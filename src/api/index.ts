@@ -782,6 +782,55 @@ export async function fetchGuildReports(
 }
 
 
+export async function putGuildReportQuote(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.MediaICreateQuote,
+) {
+  return raw.putGuildReportQuote(context, guildId, reportId, options);
+}
+
+
+export async function putGuildReportReporterMuted(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: {muted: boolean, userId: string},
+) {
+  return raw.putGuildReportReporterMuted(context, guildId, reportId, options);
+}
+
+
+export async function fetchGuildReportQuote(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+) {
+  return raw.fetchGuildReportQuote(context, guildId, reportId);
+}
+
+
+export async function putGuildReportMember(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.MediaICreateQuoteMember,
+) {
+  return raw.putGuildReportMember(context, guildId, reportId, options);
+}
+
+
+export async function createGuildReportMessage(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.CreateGuildReportMessage,
+) {
+  return raw.createGuildReportMessage(context, guildId, reportId, options);
+}
+
+
 export async function editGuildReport(
   context: RequestContext,
   guildId: string,

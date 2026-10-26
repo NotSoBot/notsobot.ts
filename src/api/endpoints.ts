@@ -976,6 +976,14 @@ export const Api = Object.freeze({
     '/guilds/:guildId/reports/:reportId',
   GUILD_REPORT_LOG_MESSAGES:
     '/guilds/:guildId/reports/:reportId/log-messages',
+  GUILD_REPORT_MESSAGES:
+    '/guilds/:guildId/reports/:reportId/messages',
+  GUILD_REPORT_MEMBER:
+    '/guilds/:guildId/reports/:reportId/member',
+  GUILD_REPORT_QUOTE:
+    '/guilds/:guildId/reports/:reportId/quote',
+  GUILD_REPORT_REPORTER_MUTED:
+    '/guilds/:guildId/reports/:reportId/reporter-muted',
   MUSIC_NODES:
     '/music/nodes',
   MUSIC_SEARCH:

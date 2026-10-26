@@ -30,6 +30,8 @@ const MAX_COMPONENT_TEXT = 12000;
 // how far back `quote @user` looks for their latest message
 const RECENT_MESSAGES_LIMIT = 100;
 const ERROR_CODE_UNKNOWN_MESSAGE = 10008;
+// how discord shows a message's time once it's older than yesterday
+const ABSOLUTE_TIME_FORMAT = 'MM/DD/YYYY h:mm A';
 
 const REGEX_TOKEN = /<(?:@!?|@&|#)\d{15,21}>|<t:-?\d{1,13}(?::[tTdDfFR])?>/g;
 
@@ -63,7 +65,39 @@ export async function createMessage(
     }
   }
 
-  const author = (message) ? (message.member || findMember(context, message.author.id) || message.author) : (args.user || context.member || context.user);
+  const options = await createQuoteOptions(context, translator, message, {
+    author: args.user,
+    compact: args.compact,
+    light: args.light,
+    text,
+  });
+  if (!options) {
+    return displayReply(context, {description: translate('fun.quote.nothing_to_quote')});
+  }
+
+  const response = await mediaICreateQuote(context, options);
+  return mediaReply(context, response, {filename: 'quote'});
+}
+
+
+// what the api draws: a real message (its author, text, first embed and images), or `text` said as `author` (whoever used
+// the command without one). null when there's nothing to draw. the server reports keep an image of the reported message
+// drawn the same way
+export async function createQuoteOptions(
+  context: Command.Context | Interaction.InteractionContext,
+  translator: Translator,
+  message: null | Structures.Message,
+  args: {
+    // the date and time instead of "Today at", for an image that's looked at later
+    absoluteTime?: boolean,
+    author?: null | Structures.Member | Structures.User,
+    compact?: boolean,
+    light?: boolean,
+    text?: string,
+  },
+): Promise<RestOptions.MediaICreateQuote | null> {
+  const text = args.text || '';
+  const author = (message) ? (message.member || findMember(context, message.author.id) || message.author) : (args.author || context.member || context.user);
   // a posted image link is drawn like discord does, the image itself and no link when that's all the text is
   const media = (message) ? mediaEmbeds(message) : [];
   const linkOnly = !!message && media.some((embed) => embed.url === message!.content.trim());
@@ -77,12 +111,12 @@ export async function createMessage(
   ].filter((url): url is string => !!url).slice(0, MAX_ATTACHMENTS) : [];
   const components = (message) ? quoteComponents(message) : [];
   if (!content && !embed && !attachments.length && !components.length) {
-    return displayReply(context, {description: translate('fun.quote.nothing_to_quote')});
+    return null;
   }
 
   const reply = (message) ? await quoteReply(context, translator, message) : null;
   const time = createTimestampMomentFromContext((message) ? message.createdAtUnix : Date.now(), {guildId: context.guildId, userId: context.userId});
-  const options: RestOptions.MediaICreateQuote = {
+  return {
     attachments,
     author: quoteAuthor(author, true),
     compact: !!args.compact,
@@ -100,11 +134,17 @@ export async function createMessage(
     ]),
     reply,
     safe: DefaultParameters.safe(context),
-    timestamp: messageTimeText(translator, time, !!args.compact),
+    timestamp: (args.absoluteTime) ? time.format(ABSOLUTE_TIME_FORMAT) : messageTimeText(translator, time, !!args.compact),
   };
+}
 
-  const response = await mediaICreateQuote(context, options);
-  return mediaReply(context, response, {filename: 'quote'});
+
+// a server report's reported member drawn as they look: their avatar, name and badges over their username
+export function createQuoteMemberOptions(author: Structures.Member | Structures.User): RestOptions.MediaICreateQuoteMember {
+  const user = (author instanceof Structures.Member) ? author.user : author;
+  // bots keep their discriminator
+  const username = (user.discriminator && user.discriminator !== '0') ? `${user.username}#${user.discriminator}` : user.username;
+  return {author: quoteAuthor(author, true), username};
 }
 
 
@@ -404,7 +444,7 @@ function messageTimeText(translator: Translator, time: moment.Moment, compact: b
   if (time.isSame(now.clone().subtract(1, 'day'), 'day')) {
     return translator.translate('fun.quote.yesterday_at', {time: clock});
   }
-  return time.format('MM/DD/YYYY h:mm A');
+  return time.format(ABSOLUTE_TIME_FORMAT);
 }
 
 

@@ -5,7 +5,6 @@ import { fetchCommandsResponses } from './api';
 import { CommandResults, setCommandResult } from './commandresults';
 import { BaseInteractionCommand } from './commands/interactions/basecommand';
 import { replyWarning } from './commands/errors';
-import ReportMessagesListener from './listeners/reportmessages';
 import { CommandMetadata } from './commands/prefixed/basecommand';
 import { runWithCommandContext } from './sentry';
 
@@ -247,34 +246,12 @@ export class NotSoCommandClient extends CommandClient {
     return !!message && message.isEdited && Math.abs(Date.now() - message.editedAtUnix) <= this.maxEditDuration;
   }
 
-  // a reply to one of our report dms goes to staff on the report, but only when it isn't a command (prefixed, a mention
-  // or a blocked one). edits don't send it again
-  async handle(
-    name: ClientEvents.MESSAGE_CREATE | ClientEvents.MESSAGE_UPDATE,
-    event: GatewayClientEvents.MessageCreate | GatewayClientEvents.MessageUpdate,
-  ) {
-    try {
-      return await super.handle(name as ClientEvents.MESSAGE_CREATE, event as GatewayClientEvents.MessageCreate);
-    } finally {
-      const { message } = event;
-      if (name === ClientEvents.MESSAGE_CREATE && message && message.inDm && message.messageReference) {
-        const commandContext = commandContexts.get(message);
-        if (!commandContext || !commandContext.command) {
-          ReportMessagesListener.handleReply(message.client, message).catch((error) => {
-            console.error(`Failed to handle report reply ${message.id} from ${message.author.id}`, error);
-          });
-        }
-      }
-    }
-  }
-
   // an edit re-runs the command, so cancel the previous run of it (and its jobs) before it can reply over this one
   async handleContext(
     name: ClientEvents.MESSAGE_CREATE | ClientEvents.MESSAGE_UPDATE,
     event: GatewayClientEvents.MessageCreate | GatewayClientEvents.MessageUpdate,
     context: Command.Context,
   ) {
-    commandContexts.set(context.message, context);
     return runWithCommandContext(context, async () => {
       // edits past the edit duration don't re-run anything, leave the old run alone
       if (!this.isWithinEditDuration(context.message)) {
@@ -381,9 +358,6 @@ const settingsFetchFailedReplies = new Collections.BaseCollection<string, number
 // `channel id.user id` -> when we last showed them a block rule's message
 const BLOCKED_MESSAGE_REPLY_INTERVAL = 30 * 1000;
 const blockedMessageReplies = new Collections.BaseCollection<string, number>({expire: BLOCKED_MESSAGE_REPLY_INTERVAL});
-
-// the context `handle` made for a message, to tell after it whether it matched a command
-const commandContexts = new WeakMap<Structures.Message, Command.Context>();
 
 // getAttributes and getCommand both check the same reply, only hit the api once per message
 const aiResponseChecks = new WeakMap<Structures.Message, Promise<boolean>>();

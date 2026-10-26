@@ -19,6 +19,12 @@ export namespace RedisPayloads {
 
   // a report resolved, dismissed or reopened from the dashboard, its messages in the reports loggers get redrawn. `created`
   // is unix ms, `moderator_id` is the dashboard user
+  export interface GuildReportMessageCreate {
+    log_messages: Array<RestResponsesRaw.GuildReportLogMessage>,
+    message: RestResponsesRaw.GuildReportMessage,
+    report: RestResponsesRaw.GuildReport,
+  }
+
   export interface GuildReportUpdate {
     created: number,
     log_messages: Array<RestResponsesRaw.GuildReportLogMessage>,

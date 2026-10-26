@@ -39,8 +39,10 @@ const NODE_RETRY_AFTER = 30 * 1000;
 const NODE_SILENT_TIMEOUT = 45 * 1000;
 // a playing node sends each player's position this often, a dead node's player got at most this much further
 const PLAYER_UPDATE_INTERVAL = 5 * 1000;
-// a guild whose voice session discord dropped (4006) leaves and rejoins for new credentials, at most this often
-const REJOIN_COOLDOWN = 30 * 1000;
+// a guild whose voice connection the node lost (`VOICE_LOST`) leaves and rejoins for new credentials. Lost again this
+// soon after rejoining is the rejoin not working, after this many of those in a row it gives up and holds the track
+const REJOIN_RETRY_WINDOW = 2 * 60 * 1000;
+const REJOIN_MAX_TRIES = 3;
 // with 24/7's `pause_alone`, how long nobody else has to be in the channel before it pauses (a connection blipping)
 const ALONE_PAUSE_DELAY = 5 * 1000;
 // after starting, how long a music session from the api waits for its server to load before it's given up on, and
@@ -70,7 +72,7 @@ type NodeEvent =
   {op: 'TRACK_ERROR', data: {error: string, guildId: string, track: NodeTrack}} |
   {op: 'QUEUE_END', data: {error: null | string, guildId: string}} |
   {op: 'PAUSE_TIMEOUT', data: {guildId: string, timeout: number}} |
-  {op: 'VOICE_CLOSE', data: {code: number, guildId: string, reason: string}};
+  {op: 'VOICE_LOST', data: {error: null | string, guildId: string}};
 
 // the track an event is about, `queueItemId` is null for a url played directly
 interface NodeTrack {
@@ -132,6 +134,8 @@ interface GuildVoice {
   rejoinedAt?: number,
   // left on purpose to rejoin, the leave's voice state isn't us being disconnected
   rejoining?: boolean,
+  // rejoins in a row that lost the connection again within `REJOIN_RETRY_WINDOW`
+  rejoinTries?: number,
   // the join half of a rejoin, a second after leaving
   rejoinTimeout?: ReturnType<typeof setTimeout> | null,
   // rejoined after a restart (from the api's music session): the queue starts with the playing track from here
@@ -1344,12 +1348,11 @@ export class VoiceNodeClient extends EventSpewer {
           }
         }).catch((error) => console.warn(`voice node move ${guildId}`, error));
       }; break;
-      // discord dropped the voice session (4006, like after a failover where the old credentials didn't carry over),
-      // new ones only come from leaving and joining again
-      case 'VOICE_CLOSE': {
-        if (event.data.code === 4006) {
-          this.rejoin(guildId);
-        }
+      // the node's voice connection is gone for good while we're still in the channel (a dropped session like after a
+      // failover, failed reconnects, a close discord sent no new voice server after), new credentials only come from
+      // leaving and joining again
+      case 'VOICE_LOST': {
+        this.rejoin(guildId, event.data.error);
       }; break;
     }
   }
@@ -1362,16 +1365,24 @@ export class VoiceNodeClient extends EventSpewer {
     }
   }
 
-  // leave and join the same channel, discord gives us a new voice session and server, which goes to the node
-  private rejoin(guildId: string) {
+  // leave and join the same channel, discord gives us a new voice session and server, which goes to the node. One that
+  // keeps losing it right after rejoining is left (the track held for the next play) instead of rejoining forever
+  private rejoin(guildId: string, error: null | string) {
     const guild = this.guilds.get(guildId);
-    if (!guild || !guild.channelId || (guild.rejoinedAt && Date.now() - guild.rejoinedAt < REJOIN_COOLDOWN)) {
+    if (!guild || !guild.channelId || guild.disconnected || guild.rejoinTimeout) {
       return;
     }
+    const now = Date.now();
+    const retry = !!guild.rejoinedAt && now - guild.rejoinedAt < REJOIN_RETRY_WINDOW;
+    guild.rejoinTries = (retry) ? (guild.rejoinTries || 0) + 1 : 1;
+    if (REJOIN_MAX_TRIES < guild.rejoinTries) {
+      console.warn(`voice connection for ${guildId} keeps getting lost (${error || 'no error'}), leaving`);
+      return (guild.idle) ? this.leave(guildId) : this.hold(guildId);
+    }
     const channelId = guild.channelId;
-    guild.rejoinedAt = Date.now();
+    guild.rejoinedAt = now;
     guild.rejoining = true;
-    console.warn(`voice session for ${guildId} was dropped, rejoining`);
+    console.warn(`voice connection for ${guildId} was lost (${error || 'no error'}), rejoining`);
     guild.shard.gateway.voiceStateUpdate(guildId, null);
     this.rejoinLater(guildId, guild, channelId);
   }

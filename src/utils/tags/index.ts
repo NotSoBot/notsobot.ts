@@ -3063,7 +3063,13 @@ const ScriptTags = Object.freeze({
   _code: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult, language: CodeLanguages, version?: string | null): Promise<boolean> => {
     // {python:code}
 
+    // nothing (or only spaces) after the name isn't a code call, it stays as text. js template literals like `${PL}`
+    // turned into an empty perl call and vanished
     arg = arg.trim();
+    if (!arg) {
+      return false;
+    }
+
     if (arg.startsWith('```') && arg.endsWith('```')) {
       const { language, text } = Parameters.codeblock(arg);
       arg = text;

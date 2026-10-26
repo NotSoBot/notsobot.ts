@@ -327,6 +327,13 @@ export namespace RestOptions {
     status?: ReportStatuses,
   }
 
+  export interface CreateGuildReportMessage {
+    // the moderator, or the reporter (the api only takes it on their own report)
+    authorId: string,
+    content: string,
+    moderator: boolean,
+  }
+
   export interface EditGuildReport {
     moderatorId: string,
     status: ReportStatuses,
@@ -811,6 +818,13 @@ export namespace RestOptions {
   }
 
   // a discord message drawn like discord does, `content` is its markdown
+  // a member drawn like discord's member list, their name and badges over their username
+  export interface MediaICreateQuoteMember {
+    author: MediaICreateQuoteAuthor,
+    light?: boolean,
+    username: string,
+  }
+
   export interface MediaICreateQuote {
     // image attachments under the content (discord's cdn only)
     attachments?: Array<string>,
@@ -2496,6 +2510,8 @@ export namespace RestResponsesRaw {
     // when the text gets cleared, while there's still text
     message_content_expires_at: string | null,
     message_id: string | null,
+    // an image of the reported message is kept (drawn like `quote`), cleared with the text
+    message_quote: boolean,
     reason: string,
     status: ReportStatuses,
     // the reported member, a message report's is the message's author
@@ -2503,6 +2519,36 @@ export namespace RestResponsesRaw {
     type: GuildReportTypes,
     // the reporter
     user_id: string,
+    // the reporter turned off the bot's DMs about it
+    reporter_muted?: boolean,
+    // replies between the reporter and the moderators (not status changes), and who sent the last one
+    last_reply?: {author: 'moderator' | 'reporter', created: string} | null,
+    replies?: number,
+  }
+
+  // false when the image wasn't kept (the report already has one, or it's too old). a message report's quote also comes
+  // back as `image` (a base64 png) with the report as it is now, for its logger messages
+  export interface PutGuildReportQuote {
+    image?: null | string,
+    log_messages?: Array<GuildReportLogMessage>,
+    report?: GuildReport,
+    stored: boolean,
+  }
+
+  // `PATCH /guilds/<guild_id>/reports/<report_id>`, `changed` is false when it already had that status
+  export interface EditGuildReport extends GuildReport {
+    changed: boolean,
+  }
+
+  // a reply on a member's report, or a status change (`status` set, no `content`). `author_id` is left out of the
+  // reporter's side
+  export interface GuildReportMessage {
+    author: 'moderator' | 'reporter',
+    author_id?: string,
+    content: null | string,
+    created: string,
+    id: string,
+    status: null | ReportStatuses,
   }
 
   // one of the bot's messages for a report in a reports logger

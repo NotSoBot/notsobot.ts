@@ -1576,6 +1576,105 @@ export async function createGuildReport(
 }
 
 
+// a message report's message drawn like `quote`, kept for the dashboard. when the api's scan flags it, it's kept drawn
+// without its images
+export async function putGuildReportQuote(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.MediaICreateQuote,
+): Promise<RestResponsesRaw.PutGuildReportQuote> {
+  return request(context, {
+    body: quoteBody(options),
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_REPORT_QUOTE,
+      params: {guildId, reportId},
+    },
+  });
+}
+
+
+// the reporter turning the bot's DMs about their report off (the Stop DMs button), only on their own report
+export async function putGuildReportReporterMuted(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: {muted: boolean, userId: string},
+): Promise<RestResponsesRaw.GuildReport> {
+  return request(context, {
+    body: {muted: options.muted, user_id: options.userId},
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_REPORT_REPORTER_MUTED,
+      params: {guildId, reportId},
+    },
+  });
+}
+
+
+// the saved quote's png, `UNKNOWN_GUILD_REPORT` when the report has none
+export async function fetchGuildReportQuote(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+): Promise<Buffer> {
+  const response = await request(context, {
+    dataOnly: false,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_REPORT_QUOTE,
+      params: {guildId, reportId},
+    },
+  });
+  return response.buffer();
+}
+
+
+// the reported member drawn as they look (both kinds of report), kept for the dashboard like the message's image
+export async function putGuildReportMember(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.MediaICreateQuoteMember,
+): Promise<RestResponsesRaw.PutGuildReportQuote> {
+  return request(context, {
+    body: {
+      author: quoteAuthorBody(options.author),
+      light: options.light,
+      username: options.username,
+    },
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_REPORT_MEMBER,
+      params: {guildId, reportId},
+    },
+  });
+}
+
+
+export async function createGuildReportMessage(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.CreateGuildReportMessage,
+): Promise<RestResponsesRaw.GuildReportMessage> {
+  const body = {
+    author_id: options.authorId,
+    content: options.content,
+    moderator: options.moderator,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_REPORT_MESSAGES,
+      params: {guildId, reportId},
+    },
+  });
+}
+
+
 export async function fetchGuildReports(
   context: RequestContext,
   guildId: string,
@@ -1602,7 +1701,7 @@ export async function editGuildReport(
   guildId: string,
   reportId: string,
   options: RestOptions.EditGuildReport,
-): Promise<RestResponsesRaw.GuildReport> {
+): Promise<RestResponsesRaw.EditGuildReport> {
   const body = {
     moderator_id: options.moderatorId,
     status: options.status,
@@ -3729,13 +3828,8 @@ export async function mediaICreateThonkify(
 }
 
 
-export async function mediaICreateQuote(
-  context: RequestContext,
-  options: RestOptions.MediaICreateQuote,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const embed = options.embed;
-  const author = (value: RestOptions.MediaICreateQuoteAuthor) => ({
+function quoteAuthorBody(value: RestOptions.MediaICreateQuoteAuthor) {
+  return {
     avatar_url: value.avatarUrl,
     bot: value.bot,
     color: value.color,
@@ -3747,9 +3841,15 @@ export async function mediaICreateQuote(
     role_icon_emoji: value.roleIconEmoji,
     role_icon_url: value.roleIconUrl,
     verified: value.verified,
-  });
+  };
+}
+
+// what the api draws, shared by `quote` and a server report's image of the reported message
+function quoteBody(options: RestOptions.MediaICreateQuote) {
+  const embed = options.embed;
+  const author = quoteAuthorBody;
   const reply = options.reply;
-  const body = {
+  return {
     attachments: options.attachments,
     author: author(options.author),
     compact: options.compact,
@@ -3767,7 +3867,6 @@ export async function mediaICreateQuote(
       title: embed.title,
     } : undefined,
     light: options.light,
-    max_file_size: maxFileSize,
     mentions: options.mentions,
     reply: (reply) ? {
       attachment: reply.attachment,
@@ -3775,8 +3874,18 @@ export async function mediaICreateQuote(
       content: reply.content,
       deleted: reply.deleted,
     } : undefined,
-    safe: options.safe,
     timestamp: options.timestamp,
+  };
+}
+
+export async function mediaICreateQuote(
+  context: RequestContext,
+  options: RestOptions.MediaICreateQuote,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...quoteBody(options),
+    max_file_size: getDefaultMaxFileSize(context, options),
+    safe: options.safe,
   };
   return request(context, {
     body,

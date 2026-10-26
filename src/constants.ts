@@ -106,6 +106,7 @@ export enum ApiErrorCodes {
   MAX_MUSIC_QUEUE_ITEMS = 30028,
   MAX_GUILD_WARNINGS = 30029,
   MAX_GUILD_REPORTS = 30030,
+  MAX_GUILD_REPORT_MESSAGES = 30031,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -1097,6 +1098,10 @@ export const MAX_GUILD_WARNING_USER_AMOUNT = 100;
 // text is kept with it
 export const MAX_GUILD_REPORT_REASON_LENGTH = 1000;
 export const MAX_GUILD_REPORT_MESSAGE_CONTENT_LENGTH = 2000;
+// a reply on a member's report, from the Respond buttons. short enough that a whole one fits in the reporter's DM
+export const MAX_GUILD_REPORT_MESSAGE_LENGTH = 1000;
+// a reply on a report to the developers, from the Respond button on the bot's DMs about it
+export const MAX_REPORT_MESSAGE_LENGTH = 2000;
 // the server settings for warnings, in seconds: how long one counts as active, and how long until one gets deleted
 // (never by default)
 export const WARNINGS_WINDOW_DEFAULT = 30 * 24 * 60 * 60;
@@ -1727,8 +1732,14 @@ export enum MessageComponentCustomIds {
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
   // `music-controls.{control}`, the pause/resume and skip buttons on `music play` and `music info`
   MUSIC_CONTROLS = 'music-controls',
-  // `guild-report.{action}.{reportId}`, the resolve/dismiss/reopen buttons on a reports logger's message
+  // `guild-report.{action}.{reportId}`, the resolve/dismiss/reopen/respond buttons on a reports logger's message
   GUILD_REPORT = 'guild-report',
+  // `guild-report-respond.{guildId}.{reportId}`, the Respond button on the reporter's DMs about their server report
+  GUILD_REPORT_RESPOND = 'guild-report-respond',
+  // `guild-report-mute.{guildId}.{reportId}`, the Stop DMs button on those DMs
+  GUILD_REPORT_MUTE = 'guild-report-mute',
+  // `report-respond.{reportId}`, the Respond button on the DMs about a report to the developers
+  REPORT_RESPOND = 'report-respond',
 }
 
 
@@ -1873,6 +1884,7 @@ export enum RedisChannels {
   GUILD_FEATURES_UPDATE = 'GUILD_FEATURES_UPDATE',
   GUILD_LOGGER_UPDATE = 'GUILD_LOGGER_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
+  GUILD_REPORT_MESSAGE_CREATE = 'GUILD_REPORT_MESSAGE_CREATE',
   GUILD_REPORT_UPDATE = 'GUILD_REPORT_UPDATE',
   GUILD_RULES_UPDATE = 'GUILD_RULES_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',

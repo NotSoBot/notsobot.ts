@@ -2,27 +2,51 @@ import { ClusterClient, Command, Interaction, ShardClient, Structures } from 'de
 import {
   DiscordAbortCodes,
   InteractionCallbackTypes,
+  MarkupTimestampStyles,
   MessageComponentButtonStyles,
+  MessageComponentInputTextStyles,
   MessageFlags,
   Permissions,
 } from 'detritus-client/lib/constants';
-import { ComponentContext, Components, Embed, Markup } from 'detritus-client/lib/utils';
+import {
+  ComponentContext,
+  Components,
+  Embed,
+  InteractionModal,
+  InteractionModalArgs,
+  InteractionModalContext,
+  Markup,
+} from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
-import { createGuildReport, editGuildReport, editGuildReportLogMessages } from '../../../api';
+import {
+  createGuildReport,
+  createGuildReportMessage,
+  editGuildReport,
+  editGuildReportLogMessages,
+  fetchGuildReportQuote,
+  putGuildReportMember,
+  putGuildReportReporterMuted,
+  putGuildReportQuote,
+} from '../../../api';
+import { Domains } from '../../../api/endpoints';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
+import { GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import { RestResponsesRaw } from '../../../api/types';
 import GuildSettingsStore from '../../../stores/guildsettings';
+import UserSettingsStore from '../../../stores/usersettings';
 import {
   EmbedColors,
   GuildLoggerTypes,
   GuildReportTypes,
   GuildSettingsResponseDisplayTypes,
   MAX_GUILD_REPORT_MESSAGE_CONTENT_LENGTH,
+  MAX_GUILD_REPORT_MESSAGE_LENGTH,
   MessageComponentCustomIds,
   ReportStatuses,
   StatusEmojis,
+  UserSettingsResponseDisplayTypes,
 } from '../../../constants';
 import { RedisPayloads } from '../../../types';
 import { Languages, Translator, getCachedTranslator, getTranslator, getTranslatorForLanguage, languageFromLocale } from '../../i18n';
@@ -35,14 +59,18 @@ import {
   displayTimestamp,
 } from '../../../utils';
 
+import { createQuoteMemberOptions, createQuoteOptions } from './fun.quote';
 import {
+  ContainerSection,
   addContainerBody,
+  addContainerGallery,
   addContainerFooter,
   addContainerHeader,
   createContainerTitle,
   createFooterTimestamp,
   createUserHeaderLines,
   sanitizeEmbed,
+  truncate,
 } from '../loggers';
 
 
@@ -58,7 +86,8 @@ export interface CommandArgs {
   user?: Structures.Member | Structures.User | null,
 }
 
-// the button's `guild-report.{action}.{reportId}` and the status it sets
+// the button's `guild-report.{action}.{reportId}` and the status it sets, `respond` opens a modal instead
+const REPORT_ACTION_RESPOND = 'respond';
 export const ReportActionStatuses: Record<string, ReportStatuses> = {
   dismiss: ReportStatuses.DISMISSED,
   reopen: ReportStatuses.OPEN,
@@ -81,6 +110,23 @@ const REPORT_UPDATE_DELAY = 5000;
 // it never sends more than one edit at once per server (and detritus waits out any 429 on its own)
 const reportUpdates = new Map<string, Map<string, RedisPayloads.GuildReportUpdate>>();
 const reportUpdateWorkers = new Set<string>();
+
+// a report resolved or dismissed DMs its reporter after this long, so a misclick that's undone right away (reopened, or
+// switched between resolve and dismiss) only sends where it ended up, or nothing
+const REPORTER_NOTICE_DELAY = 30000;
+// the reports waiting to DM their reporter, by report id, with when the latest change was made
+const reporterNotices = new Map<string, {created: number, timeout: ReturnType<typeof setTimeout>}>();
+
+// the reporter can't see the conversation anywhere but their DMs, so a whole reply (`MAX_GUILD_REPORT_MESSAGE_LENGTH`) always
+// fits: in an embed field (1024) and, with the report's preview, in a 2000 character text message
+const MAX_DM_REPORT_PREVIEW_LENGTH = 300;
+// how long the report's thread stays open without messages, a week (the longest discord has)
+const THREAD_AUTO_ARCHIVE_DURATION = 10080;
+// "A thread has already been created for this message", not in detritus' codes
+const THREAD_ALREADY_CREATED = 160004;
+// the reported message's quote on a logger message, redraws keep it (edits without `attachments` keep the old ones) and
+// point at it again
+const REPORT_QUOTE_FILENAME = 'quote.png';
 
 
 export async function createMessage(
@@ -169,7 +215,109 @@ export async function createReport(
   });
   await postReportLog(context.client, report, target);
 
+  // after they're answered, drawing them takes a moment. a member report's member as they look in this server (their
+  // nickname), the user when they aren't in it. a message report's quote already shows its author
+  const member = (message) ? null : (args.user || target);
+  saveReportImages(context, report, member, message).catch((error) => {
+    console.error(`Guild Report ${report.id} failed to save its images for ${report.guild_id}`, error);
+  });
+
   return {payload: {description: `${StatusEmojis.YES} ${translate('guild_report.sent')}`, ephemeral: true}, report};
+}
+
+
+// an image of the reported member (member reports) or message (message reports, drawn like `quote` with its images,
+// embed and author too) as they looked, kept for the dashboard, and the message's goes on its logger messages too. when
+// the api's scan flags one, it's kept drawn without its images. in the server's language, it's for the moderators
+async function saveReportImages(
+  context: Command.Context | Interaction.InteractionContext,
+  report: RestResponsesRaw.GuildReport,
+  member: null | Structures.Member | Structures.User,
+  message: null | Structures.Message,
+): Promise<void> {
+  if (member) {
+    await putGuildReportMember(context, report.guild_id, report.id, createQuoteMemberOptions(member));
+  }
+  if (message) {
+    const translator = getReportLogTranslator(context.client, report.guild_id);
+    const options = await createQuoteOptions(context, translator, message, {absoluteTime: true});
+    if (options) {
+      const response = await putGuildReportQuote(context, report.guild_id, report.id, options);
+      if (response.image && response.report && response.log_messages) {
+        await attachReportQuote(context.client, response.report, response.log_messages, Buffer.from(response.image, 'base64'));
+      }
+    }
+  }
+}
+
+
+// the quote replaces the message's text on each of the report's logger messages, drawn with the report as the api has it
+// now (a moderator could've handled it while it was drawn). a failed edit just leaves the text
+async function attachReportQuote(
+  shard: ShardClient,
+  report: RestResponsesRaw.GuildReport,
+  logMessages: Array<RestResponsesRaw.GuildReportLogMessage>,
+  buffer: Buffer,
+): Promise<void> {
+  const settings = await GuildSettingsStore.getOrFetch({client: shard}, report.guild_id);
+  if (!settings) {
+    return;
+  }
+  const translator = getReportLogTranslator(shard, report.guild_id);
+  const target = await fetchUser(shard, report.target_id);
+  for (let logMessage of logMessages) {
+    const logger = settings.loggers.find((logger) => {
+      return logger.type === GuildLoggerTypes.REPORTS && logger.webhookId === logMessage.webhook_id;
+    });
+    if (!logger || !logger.webhookId || !logger.webhookToken) {
+      continue;
+    }
+    try {
+      const message = await shard.rest.fetchWebhookTokenMessage(logger.webhookId, logger.webhookToken, logMessage.message_id);
+      const componentsV2 = (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2;
+      const { flags, ...options } = createReportLogMessage(translator, report, target, componentsV2, true);
+      await shard.rest.editWebhookTokenMessage(logger.webhookId, logger.webhookToken, logMessage.message_id, {
+        ...options,
+        files: [{filename: REPORT_QUOTE_FILENAME, value: buffer}],
+        withComponents: true,
+      });
+    } catch(error) {
+      if (error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE && error.code !== DiscordAbortCodes.UNKNOWN_WEBHOOK) {
+        console.error(`Guild Report ${report.id} failed to add its quote to ${logMessage.message_id} for ${report.guild_id}`, error);
+      }
+    }
+  }
+}
+
+
+// whether a logger message already has the report's quote, so a redraw shows it instead of the text
+function hasReportQuote(message: null | Structures.Message | undefined): boolean {
+  return !!message && message.attachments.some((attachment) => attachment.filename === REPORT_QUOTE_FILENAME);
+}
+
+// a redraw keeps the quote that's on the message, or adds the api's when the message doesn't have it (posted before it
+// was drawn, or adding it failed). `files` is what to upload with the edit, the quote's fetched once per redraw (`cache`)
+async function getReportQuoteRedraw(
+  shard: ShardClient,
+  report: RestResponsesRaw.GuildReport,
+  message: null | Structures.Message | undefined,
+  cache: {buffer?: Buffer | null},
+): Promise<{hasQuote: boolean, files?: Array<{filename: string, value: Buffer}>}> {
+  if (hasReportQuote(message)) {
+    return {hasQuote: true};
+  }
+  if (report.type !== GuildReportTypes.MESSAGE || !report.message_quote) {
+    return {hasQuote: false};
+  }
+  if (cache.buffer === undefined) {
+    try {
+      cache.buffer = await fetchGuildReportQuote({client: shard}, report.guild_id, report.id);
+    } catch(error) {
+      console.error(`Guild Report ${report.id} failed to fetch its quote for ${report.guild_id}`, error);
+      cache.buffer = null;
+    }
+  }
+  return (cache.buffer) ? {hasQuote: true, files: [{filename: REPORT_QUOTE_FILENAME, value: cache.buffer}]} : {hasQuote: false};
 }
 
 
@@ -237,7 +385,12 @@ function shardForGuild(cluster: ClusterClient, guildId: string): ShardClient | u
 // the server's shard keeps it
 export function queueGuildReportUpdate(cluster: ClusterClient, payload: RedisPayloads.GuildReportUpdate): void {
   const { report } = payload;
-  if (!payload.log_messages.length || !shardForGuild(cluster, report.guild_id)) {
+  const shard = shardForGuild(cluster, report.guild_id);
+  if (!shard) {
+    return;
+  }
+  queueReporterNotice(shard, report, payload.created);
+  if (!payload.log_messages.length) {
     return;
   }
   let updates = reportUpdates.get(report.guild_id);
@@ -301,6 +454,7 @@ async function updateReportLogMessages(cluster: ClusterClient, payload: RedisPay
   }
   const translator = getReportLogTranslator(shard, report.guild_id);
   const target = await fetchUser(shard, report.target_id);
+  const quoteCache: {buffer?: Buffer | null} = {};
   for (let logMessage of payload.log_messages) {
     const logger = settings.loggers.find((logger) => {
       return logger.type === GuildLoggerTypes.REPORTS && logger.webhookId === logMessage.webhook_id;
@@ -311,8 +465,13 @@ async function updateReportLogMessages(cluster: ClusterClient, payload: RedisPay
     try {
       const message = await shard.rest.fetchWebhookTokenMessage(logger.webhookId, logger.webhookToken, logMessage.message_id);
       const componentsV2 = (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2;
-      const { flags, ...options } = createReportLogMessage(translator, report, target, componentsV2);
-      await shard.rest.editWebhookTokenMessage(logger.webhookId, logger.webhookToken, logMessage.message_id, {...options, withComponents: true});
+      const quote = await getReportQuoteRedraw(shard, report, message, quoteCache);
+      const { flags, ...options } = createReportLogMessage(translator, report, target, componentsV2, quote.hasQuote);
+      await shard.rest.editWebhookTokenMessage(logger.webhookId, logger.webhookToken, logMessage.message_id, {
+        ...options,
+        files: quote.files,
+        withComponents: true,
+      });
     } catch(error) {
       if (error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE && error.code !== DiscordAbortCodes.UNKNOWN_WEBHOOK) {
         console.error(`Guild Report ${report.id} failed to update its log message ${logMessage.message_id} for ${report.guild_id}`, error);
@@ -338,11 +497,12 @@ export function getReportMessageUrl(report: RestResponsesRaw.GuildReport): null 
   return DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(report.guild_id, report.channel_id, report.message_id);
 }
 
-// who reported it and why, then "`id` • Resolved by @moderator • 5 minutes ago" (or just "Open")
+// who reported it and why, then "`id` • Resolved by @moderator • 5 minutes ago" (or just "Open"), and a warning while the
+// reporter's reply is the last one (replying doesn't reopen a handled report, so it'd be easy to miss)
 function getReportLines(translator: Translator, report: RestResponsesRaw.GuildReport): Array<string> {
   const { translate } = translator;
   const status = getStatusText(translate, report.status);
-  return [
+  const lines = [
     `**${translate('guild_report_log.reported_by')}**: <@${report.user_id}>`,
     `**${translate('logger.reason')}**: ${Markup.codeblock(report.reason)}`,
     displayDetailsLine([
@@ -351,6 +511,10 @@ function getReportLines(translator: Translator, report: RestResponsesRaw.GuildRe
       (report.handled_at) && displayTimestamp(Date.parse(report.handled_at)),
     ], true),
   ];
+  if (report.last_reply && report.last_reply.author === 'reporter') {
+    lines.push(`${StatusEmojis.WARNING} ${translate('guild_report_log.waiting', {when: displayTimestamp(Date.parse(report.last_reply.created))})}`);
+  }
+  return lines;
 }
 
 function getMessageLines(translator: Translator, report: RestResponsesRaw.GuildReport): Array<string> {
@@ -371,7 +535,13 @@ function getMessageLines(translator: Translator, report: RestResponsesRaw.GuildR
   return [`*${translator.translate('guild_report_log.no_text')}*`];
 }
 
-// open: resolve and dismiss, handled: reopen, plus the reported message for message reports
+// the report on the server's dashboard, opened over its Reports section
+export function getReportDashboardUrl(report: RestResponsesRaw.GuildReport): string {
+  return `${Domains.STABLE}/dashboard/servers/${report.guild_id}/reports?report=${report.id}`;
+}
+
+// open: resolve and dismiss, handled: reopen, then respond (to the reporter), the report on the dashboard and the reported
+// message for message reports
 function createReportButtons(translator: Translator, report: RestResponsesRaw.GuildReport, components: Components): void {
   const { translate } = translator;
   const row = components.createActionRow();
@@ -382,6 +552,8 @@ function createReportButtons(translator: Translator, report: RestResponsesRaw.Gu
   } else {
     row.createButton({customId: customId('reopen'), label: translate('guild_report_log.reopen'), style: MessageComponentButtonStyles.SECONDARY});
   }
+  row.createButton({customId: customId(REPORT_ACTION_RESPOND), label: translate('report_respond.button'), style: MessageComponentButtonStyles.PRIMARY});
+  row.createButton({label: translate('report_message_dm.view_report'), url: getReportDashboardUrl(report)});
   const url = getReportMessageUrl(report);
   if (url) {
     row.createButton({label: translate('guild_report_log.jump'), url});
@@ -389,12 +561,14 @@ function createReportButtons(translator: Translator, report: RestResponsesRaw.Gu
 }
 
 // laid out like the moderation logger: the reported member's header with the report next to their avatar, the reported
-// message under it, what kind of report it is in the footer and the status as the side color
+// message under it (its quote once it's attached, `REPORT_QUOTE_FILENAME`, the text before that or without one), what
+// kind of report it is in the footer and the status as the side color
 export function createReportLogMessage(
   translator: Translator,
   report: RestResponsesRaw.GuildReport,
   target: Structures.User | null,
   componentsV2: boolean,
+  hasQuote: boolean = false,
 ): {allowedMentions: {parse: []}, components: Components, embeds?: Array<Embed>, flags?: number} {
   const { translate } = translator;
   const color = ReportStatusColors[report.status] ?? EmbedColors.DEFAULT;
@@ -403,7 +577,8 @@ export function createReportLogMessage(
     : translate('guild_report_log.footer_user');
   const created = Date.parse(report.created);
   const lines = getReportLines(translator, report);
-  const messageLines = getMessageLines(translator, report);
+  const quoteUrl = (hasQuote && report.type === GuildReportTypes.MESSAGE) ? `attachment://${REPORT_QUOTE_FILENAME}` : null;
+  const messageLines = (quoteUrl) ? [] : getMessageLines(translator, report);
 
   const components = new Components();
   if (componentsV2) {
@@ -415,6 +590,10 @@ export function createReportLogMessage(
       ...lines,
     ], (target) ? target.avatarUrlFormat(null, {size: 1024}) : null, !!messageLines.length);
     addContainerBody(container, [{title: translate('guild_report_log.message'), lines: messageLines}]);
+    if (quoteUrl) {
+      // components v2 only shows an attachment a component points at
+      addContainerGallery(container, [{url: quoteUrl}], translate('guild_report_log.message'));
+    }
     addContainerFooter(container, `${footer} • ${createFooterTimestamp(created)}`);
     createReportButtons(translator, report, components);
     // text displays actually ping, unlike embeds
@@ -434,6 +613,9 @@ export function createReportLogMessage(
   if (messageLines.length) {
     embed.addField(translate('guild_report_log.message'), messageLines.join('\n'));
   }
+  if (quoteUrl) {
+    embed.setImage(quoteUrl);
+  }
   embed.setFooter(`${footer} • ${createTimestampStringFromGuild(created, report.guild_id)}`);
   createReportButtons(translator, report, components);
   return {allowedMentions: {parse: []}, components, embeds: [sanitizeEmbed(embed)]};
@@ -444,9 +626,10 @@ export function createReportLogMessage(
 // restart since everything's in the custom id, and two moderators pressing at once just both see it handled
 export async function onGuildReportComponent(context: ComponentContext, action: string, reportId: string) {
   // cached only, the click has to be answered quickly
-  const { translate, translateMaybe } = getCachedTranslator(context);
+  const translator = getCachedTranslator(context);
+  const { translate, translateMaybe } = translator;
   const status = ReportActionStatuses[action];
-  if (status === undefined || !context.guildId) {
+  if ((status === undefined && action !== REPORT_ACTION_RESPOND) || !context.guildId) {
     return context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
   }
   if (!context.member || !context.member.can(Permissions.MODERATE_MEMBERS)) {
@@ -456,8 +639,22 @@ export async function onGuildReportComponent(context: ComponentContext, action: 
     });
   }
 
+  if (action === REPORT_ACTION_RESPOND) {
+    const guildId = context.guildId;
+    // a modal has to be the first response, so it can't be deferred
+    return context.respond(createRespondModal(translator, {
+      description: translate('guild_report_respond.modal_description_moderator'),
+      maxLength: MAX_GUILD_REPORT_MESSAGE_LENGTH,
+      title: translate('guild_report_respond.modal_title'),
+      onSubmit: async (content) => {
+        await createGuildReportMessage(context, guildId, reportId, {authorId: context.userId, content, moderator: true});
+        return translate('guild_report_respond.sent_moderator');
+      },
+    }));
+  }
+
   await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-  let report: RestResponsesRaw.GuildReport;
+  let report: RestResponsesRaw.EditGuildReport;
   try {
     report = await editGuildReport(context, context.guildId, reportId, {moderatorId: context.userId, status});
   } catch(error) {
@@ -473,11 +670,416 @@ export async function onGuildReportComponent(context: ComponentContext, action: 
   }
 
   dropQueuedGuildReportUpdate(context.guildId, report.id);
+  if (report.changed) {
+    queueReporterNotice(context.client, report, Date.now());
+  }
 
   // redrawn the way it was sent, the server could have changed its display setting since
   const message = context.interaction.message;
   const componentsV2 = !!message && (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2;
   const target = await fetchUser(context.client, report.target_id);
-  const { flags, ...payload } = createReportLogMessage(getReportLogTranslator(context.client, report.guild_id), report, target, componentsV2);
-  return context.editResponse(payload);
+  const quote = await getReportQuoteRedraw(context.client, report, message, {});
+  const { flags, ...payload } = createReportLogMessage(getReportLogTranslator(context.client, report.guild_id), report, target, componentsV2, quote.hasQuote);
+  return context.editResponse({...payload, files: quote.files});
+}
+
+
+// a Respond button's modal, one paragraph. `onSubmit` sends it and gives what to tell them (ephemeral), an api error
+// (like being over the hourly limit) is shown instead
+export function createRespondModal(
+  translator: Translator,
+  options: {description: string, maxLength: number, title: string, onSubmit: (content: string) => Promise<string>},
+): InteractionModal {
+  const { translate, translateMaybe } = translator;
+  const modal = new InteractionModal({
+    title: options.title,
+    run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+      const content = await options.onSubmit((args.content || '').trim());
+      return modalContext.editOrRespond({content: `${StatusEmojis.YES} ${content}`, flags: MessageFlags.EPHEMERAL});
+    },
+    onError: async (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
+      const apiError = await getApiError(error);
+      let content: string;
+      if (apiError) {
+        const key = getApiErrorTranslationKey(apiError.code);
+        content = (key) ? translateMaybe(key, apiError.message) : apiError.message;
+      } else {
+        console.error(`Failed to send a report response from ${modalContext.userId}`, error);
+        content = String((error && error.message) || error);
+      }
+      return modalContext.editOrRespond({content: `${StatusEmojis.WARNING} ${content}`, flags: MessageFlags.EPHEMERAL});
+    },
+  });
+  modal.createLabel({
+    description: options.description,
+    label: translate('report_respond.modal_message'),
+  }).createInputText({
+    customId: 'content',
+    maxLength: options.maxLength,
+    required: true,
+    style: MessageComponentInputTextStyles.PARAGRAPH,
+  });
+  return modal;
+}
+
+
+// no command to take these from, so it's the user's own settings or the defaults
+export async function fetchDmSettings(
+  shard: ShardClient,
+  userId: string,
+): Promise<{display: UserSettingsResponseDisplayTypes, translator: Translator}> {
+  const settings = await UserSettingsStore.getOrFetch({client: shard}, userId);
+  const display = (settings && typeof(settings.response_display) === 'number')
+    ? settings.response_display as UserSettingsResponseDisplayTypes
+    : UserSettingsResponseDisplayTypes.DEFAULT;
+  const translator = getTranslatorForLanguage(languageFromLocale(settings && settings.locale) || Languages.ENGLISH);
+  return {display, translator};
+}
+
+
+// the reporter's Respond button in their DMs, the api only takes it on their own report
+export function onGuildReportRespondComponent(context: ComponentContext, guildId: string, reportId: string) {
+  const translator = getCachedTranslator(context);
+  const { translate } = translator;
+  return context.respond(createRespondModal(translator, {
+    description: translate('guild_report_respond.modal_description_reporter'),
+    maxLength: MAX_GUILD_REPORT_MESSAGE_LENGTH,
+    title: translate('guild_report_respond.modal_title'),
+    onSubmit: async (content) => {
+      await createGuildReportMessage(context, guildId, reportId, {authorId: context.userId, content, moderator: false});
+      return translate('guild_report_respond.sent_reporter');
+    },
+  }));
+}
+
+
+// the Stop DMs button on the reporter's DMs, the api only takes it on their own report. Their reports on the dashboard is
+// where they turn it back on
+export async function onGuildReportMuteComponent(context: ComponentContext, guildId: string, reportId: string) {
+  const { translate, translateMaybe } = getCachedTranslator(context);
+  await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+  try {
+    await putGuildReportReporterMuted(context, guildId, reportId, {muted: true, userId: context.userId});
+  } catch(error) {
+    const apiError = await getApiError(error);
+    if (!apiError) {
+      throw error;
+    }
+    const key = getApiErrorTranslationKey(apiError.code);
+    return context.editOrRespond({content: `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`});
+  }
+  const components = new Components();
+  components.createActionRow().createButton({label: translate('report_message_dm.view_report'), url: `${Domains.STABLE}/dashboard/reports?tab=servers`});
+  return context.editOrRespond({components, content: `${StatusEmojis.YES} ${translate('guild_report_dm.muted')}`});
+}
+
+
+// resolved or dismissed from a button or the dashboard, DMed after `REPORTER_NOTICE_DELAY` with whatever it is then. only
+// the cluster with the server's shard gets here
+function queueReporterNotice(shard: ShardClient, report: RestResponsesRaw.GuildReport, created: number): void {
+  const queued = reporterNotices.get(report.id);
+  if (queued) {
+    if (created < queued.created) {
+      return;
+    }
+    clearTimeout(queued.timeout);
+  }
+  const timeout = setTimeout(() => {
+    reporterNotices.delete(report.id);
+    if (report.status === ReportStatuses.OPEN || report.reporter_muted) {
+      return;
+    }
+    sendReporterDm(shard, report, null).catch((error) => {
+      // closed dms (or a deleted account) are expected
+      if (error.code !== DiscordAbortCodes.INVALID_MESSAGE_SEND_USER) {
+        console.error(`Failed to DM guild report ${report.id}'s status to ${report.user_id}`, error);
+      }
+    });
+  }, REPORTER_NOTICE_DELAY);
+  reporterNotices.set(report.id, {created, timeout});
+}
+
+
+// a reply on a report from either side (the bot's Respond buttons or the dashboard). a moderator's is DMed to the reporter
+// as "the moderators", then either side's goes in the report's thread on each of its logger messages
+export async function onGuildReportMessageCreate(cluster: ClusterClient, payload: RedisPayloads.GuildReportMessageCreate): Promise<void> {
+  const { message, report } = payload;
+  const shard = shardForGuild(cluster, report.guild_id);
+  // TODO: remove once replies are reaching Discord, a trace of each step (`[guild report reply]` to grep for)
+  const trace = (step: string) => console.log(`[guild report reply] ${report.id}/${message.id} cluster ${cluster.clusterId}: ${step}`);
+  trace(`received (author ${message.author}, shard ${(shard) ? shard.shardId : 'not on this cluster'}, ${payload.log_messages.length} log messages, content ${(message.content) ? 'yes' : 'no'})`);
+  if (!shard || !message.content) {
+    return;
+  }
+  // why the reporter wasn't DMed the moderators' reply, noted in the thread
+  let dmNote: null | 'failed' | 'muted' = null;
+  if (message.author === 'moderator' && report.reporter_muted) {
+    dmNote = 'muted';
+    trace('dm skipped, the reporter muted it');
+  } else if (message.author === 'moderator') {
+    try {
+      await sendReporterDm(shard, report, message);
+      trace('dm sent');
+    } catch(error) {
+      dmNote = 'failed';
+      trace(`dm failed (${error.code ?? error.message})`);
+      if (error.code !== DiscordAbortCodes.INVALID_MESSAGE_SEND_USER) {
+        console.error(`Failed to DM guild report ${report.id}'s reply ${message.id} to ${report.user_id}`, error);
+      }
+    }
+  }
+  await postReportThreadMessages(shard, payload, dmNote);
+  trace('thread posts done');
+  // the report's messages show whether it's waiting on the moderators, which every reply changes
+  await updateReportLogMessages(cluster, {created: Date.now(), log_messages: payload.log_messages, moderator_id: '', report});
+}
+
+
+async function sendReporterDm(
+  shard: ShardClient,
+  report: RestResponsesRaw.GuildReport,
+  message: RestResponsesRaw.GuildReportMessage | null,
+): Promise<void> {
+  const { display, translator } = await fetchDmSettings(shard, report.user_id);
+  const guild = shard.guilds.get(report.guild_id);
+  const channel = await shard.rest.createDm({recipientId: report.user_id});
+  await shard.rest.createMessage(channel.id, createReporterDm(translator, display, report, (guild) ? guild.name : null, message));
+}
+
+
+// laid out like the DMs about reports to the developers: what happened as the header with the report's info, the report
+// and the moderators' reply as titled sections, then the event in the footer, with the status as the side color and the
+// Respond button (and Jump to Message) under it.
+// the moderator is never named, it's "the moderators" of the server
+function createReporterDm(
+  translator: Translator,
+  display: UserSettingsResponseDisplayTypes,
+  report: RestResponsesRaw.GuildReport,
+  guildName: null | string,
+  message: RestResponsesRaw.GuildReportMessage | null,
+): Record<string, any> {
+  const { translate } = translator;
+  const color = ReportStatusColors[report.status] ?? EmbedColors.DEFAULT;
+  let title: string;
+  if (message) {
+    title = translate('guild_report_dm.title_reply');
+  } else if (report.status === ReportStatuses.DISMISSED) {
+    title = translate('guild_report_dm.title_dismissed');
+  } else {
+    title = translate('guild_report_dm.title_resolved');
+  }
+  const information = [
+    `**${translate('guild_report_dm.server')}**: ${(guildName) ? Markup.escape.all(guildName) : Markup.codestring(report.guild_id)}`,
+    `**${translate('report_message_dm.reported')}**: <@${report.target_id}>`,
+    `**${translate('report_message_dm.report_id')}**: ${Markup.codestring(report.id)}`,
+    `**${translate('common.created')}**: ${Markup.timestamp(Date.parse(report.created), MarkupTimestampStyles.RELATIVE)}`,
+  ];
+  const reply = (message && message.content) ? Markup.codeblock(truncate(message.content, MAX_GUILD_REPORT_MESSAGE_LENGTH)) : null;
+  const reportContent = Markup.codeblock(truncate(report.reason, MAX_DM_REPORT_PREVIEW_LENGTH));
+  const footer = (message) ? translate('guild_report_dm.footer_reply') : translate('report_message_dm.footer_status');
+  const happenedAt = (message) ? message.created : (report.handled_at || new Date().toISOString());
+  const happened = Markup.timestamp(Date.parse(happenedAt), MarkupTimestampStyles.BOTH_SHORT);
+
+  const respondButton = {
+    customId: `${MessageComponentCustomIds.GUILD_REPORT_RESPOND}.${report.guild_id}.${report.id}`,
+    label: translate('report_respond.button'),
+    style: MessageComponentButtonStyles.PRIMARY,
+  };
+  const jumpUrl = getReportMessageUrl(report);
+  // under the message in every layout, like the DMs about reports to the developers
+  const addButtons = (components: Components) => {
+    const row = components.createActionRow();
+    row.createButton(respondButton);
+    // turns these DMs off for this report, the report stays and they can still see it on their dashboard
+    row.createButton({
+      customId: `${MessageComponentCustomIds.GUILD_REPORT_MUTE}.${report.guild_id}.${report.id}`,
+      label: translate('guild_report_dm.mute'),
+      style: MessageComponentButtonStyles.SECONDARY,
+    });
+    if (jumpUrl) {
+      row.createButton({label: translate('guild_report_log.jump'), url: jumpUrl});
+    }
+  };
+
+  const allowedMentions = {parse: []};
+  switch (display) {
+    case UserSettingsResponseDisplayTypes.LEGACY: {
+      const embed = new Embed();
+      embed.setColor(color);
+      embed.setTitle(title);
+      embed.setDescription(information.join('\n'));
+      // their report first, then what the moderators said about it
+      embed.addField(translate('report_message_dm.your_report'), reportContent);
+      if (reply) {
+        embed.addField(translate('guild_report_dm.reply'), reply);
+      }
+      embed.setFooter(footer);
+      embed.setTimestamp(happenedAt);
+
+      const components = new Components();
+      addButtons(components);
+      return {allowedMentions, components, embed: sanitizeEmbed(embed)};
+    };
+    case UserSettingsResponseDisplayTypes.NO_EMBED: {
+      // no side color in text, the title has what happened
+      const lines = [`**${title}**`, ...information, `**${translate('report_message_dm.your_report')}**`, reportContent];
+      if (reply) {
+        lines.push(`**${translate('guild_report_dm.reply')}**`, reply);
+      }
+      lines.push(`-# ${footer} • ${happened}`);
+
+      const components = new Components();
+      addButtons(components);
+      return {allowedMentions, components, content: lines.join('\n')};
+    };
+  }
+
+  const components = new Components();
+  const container = components.createContainer();
+  container.setAccentColor(color);
+  container.addTextDisplay({content: [createContainerTitle(title), ...information].join('\n')});
+  container.addSeparator();
+  const sections: Array<ContainerSection> = [{title: translate('report_message_dm.your_report'), lines: [reportContent]}];
+  if (reply) {
+    sections.push({title: translate('guild_report_dm.reply'), lines: [reply]});
+  }
+  addContainerBody(container, sections);
+  addContainerFooter(container, `${footer} • ${happened}`);
+  addButtons(components);
+  return {allowedMentions, components, flags: MessageFlags.IS_COMPONENTS_V2};
+}
+
+
+// one message per logger message, in the thread on it (made the first time). without permission to make threads there it
+// goes in the channel instead, with a link to the report's message
+async function postReportThreadMessages(
+  shard: ShardClient,
+  payload: RedisPayloads.GuildReportMessageCreate,
+  dmNote: null | 'failed' | 'muted',
+): Promise<void> {
+  const { report } = payload;
+  // TODO: remove with the trace in `onGuildReportMessageCreate`
+  const trace = (step: string) => console.log(`[guild report reply] ${report.id}/${payload.message.id}: ${step}`);
+  if (!payload.log_messages.length) {
+    trace('no log messages saved on the report, no thread');
+    return;
+  }
+  const settings = await GuildSettingsStore.getOrFetch({client: shard}, report.guild_id);
+  if (!settings) {
+    trace('no guild settings, no thread');
+    return;
+  }
+  const componentsV2 = !!settings.settings && (settings.settings.responseDisplay ?? GuildSettingsResponseDisplayTypes.DEFAULT) === GuildSettingsResponseDisplayTypes.DEFAULT;
+  const translator = getReportLogTranslator(shard, report.guild_id);
+  const target = await fetchUser(shard, report.target_id);
+  // "Report 1300000000000000404: username", the id first so a long username can't truncate it away
+  const threadName = truncate(`${translator.translate('guild_report_log.title')} ${report.id}: ${(target) ? target.username : report.target_id}`, 100);
+  for (let logMessage of payload.log_messages) {
+    const logger = settings.loggers.find((logger) => {
+      return logger.type === GuildLoggerTypes.REPORTS && logger.webhookId === logMessage.webhook_id;
+    });
+    if (!logger || !logger.webhookId || !logger.webhookToken) {
+      trace(`no reports logger with webhook ${logMessage.webhook_id} anymore, skipped ${logMessage.message_id}`);
+      continue;
+    }
+    const create = (inThread: boolean) => {
+      // outside the thread it links to the report's message
+      const reportUrl = (inThread) ? null : DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(report.guild_id, logMessage.channel_id, logMessage.message_id);
+      return createReportThreadMessage(translator, payload, dmNote, componentsV2, reportUrl);
+    };
+    try {
+      await executeInReportThread(shard, logger, logMessage, threadName, create);
+      trace(`posted for ${logMessage.message_id}`);
+    } catch(error) {
+      trace(`posting for ${logMessage.message_id} failed (${error.code ?? error.message})`);
+      if (error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE && error.code !== DiscordAbortCodes.UNKNOWN_WEBHOOK) {
+        console.error(`Guild Report ${report.id} failed to post its reply ${payload.message.id} for ${report.guild_id}`, error);
+      }
+    }
+  }
+}
+
+async function executeInReportThread(
+  shard: ShardClient,
+  logger: GuildSettingsLogger,
+  logMessage: RestResponsesRaw.GuildReportLogMessage,
+  threadName: string,
+  create: (inThread: boolean) => ReturnType<typeof createReportThreadMessage>,
+) {
+  // a thread made from a message has the message's id
+  const threadId = logMessage.message_id;
+  try {
+    return await logger.execute(shard, {...create(true), threadId, wait: true});
+  } catch(error) {
+    if (error.code !== DiscordAbortCodes.UNKNOWN_CHANNEL) {
+      throw error;
+    }
+  }
+  try {
+    await shard.rest.createChannelMessageThread(logMessage.channel_id, logMessage.message_id, {
+      autoArchiveDuration: THREAD_AUTO_ARCHIVE_DURATION,
+      name: threadName,
+    });
+  } catch(error) {
+    if (error.code === DiscordAbortCodes.UNKNOWN_MESSAGE) {
+      throw error;
+    }
+    // no Create Public Threads there (or a channel that can't have them), so it goes in the channel
+    if (error.code !== THREAD_ALREADY_CREATED) {
+      return logger.execute(shard, {...create(false), wait: true});
+    }
+  }
+  return logger.execute(shard, {...create(true), threadId, wait: true});
+}
+
+// "@moderator replied to the reporter" (or "The reporter, @member, replied") with the reply, in the server's display format
+// like the report's own message, and the Respond button for the moderators
+function createReportThreadMessage(
+  translator: Translator,
+  payload: RedisPayloads.GuildReportMessageCreate,
+  dmNote: null | 'failed' | 'muted',
+  componentsV2: boolean,
+  // outside the thread, a link to the report's message
+  reportUrl: null | string,
+): {allowedMentions: {parse: []}, components: Components, embeds?: Array<Embed>, flags?: number} {
+  const { translate } = translator;
+  const { message, report } = payload;
+  const color = ReportStatusColors[report.status] ?? EmbedColors.DEFAULT;
+  const header = (message.author === 'moderator')
+    ? translate('guild_report_thread.moderator_replied', {user: `<@${message.author_id}>`})
+    : translate('guild_report_thread.reporter_replied', {user: `<@${report.user_id}>`});
+  const reply = Markup.codeblock(truncate(message.content || '', MAX_GUILD_REPORT_MESSAGE_LENGTH));
+  const notes: Array<string> = [];
+  if (dmNote === 'failed') {
+    notes.push(`-# ${StatusEmojis.WARNING} ${translate('guild_report_thread.dm_failed')}`);
+  } else if (dmNote === 'muted') {
+    notes.push(`-# ${translate('guild_report_thread.muted')}`);
+  }
+  if (reportUrl) {
+    notes.push(`-# ${translate('guild_report_thread.report', {report: Markup.url(report.id, reportUrl)})}`);
+  }
+
+  const components = new Components();
+  const addRespond = () => {
+    components.createActionRow().createButton({
+      customId: `${MessageComponentCustomIds.GUILD_REPORT}.${REPORT_ACTION_RESPOND}.${report.id}`,
+      label: translate('report_respond.button'),
+      style: MessageComponentButtonStyles.PRIMARY,
+    });
+  };
+  if (componentsV2) {
+    const container = components.createContainer();
+    container.setAccentColor(color);
+    container.addTextDisplay({content: [header, reply, ...notes].join('\n')});
+    addRespond();
+    // text displays actually ping, unlike embeds
+    return {allowedMentions: {parse: []}, components, flags: MessageFlags.IS_COMPONENTS_V2};
+  }
+
+  const embed = new Embed();
+  embed.setColor(color);
+  embed.setDescription([header, reply, ...notes].join('\n'));
+  embed.setTimestamp(message.created);
+  addRespond();
+  return {allowedMentions: {parse: []}, components, embeds: [sanitizeEmbed(embed)]};
 }

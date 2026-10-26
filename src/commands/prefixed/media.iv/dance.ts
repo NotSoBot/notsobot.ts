@@ -16,6 +16,7 @@ export default class DanceCommand extends BaseImageOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
+      aliases: ['yaris'],
 
       args: [
         {aliases: ['a'], name: 'amount', type: Number, metadata: {description: '1 to 60'}},

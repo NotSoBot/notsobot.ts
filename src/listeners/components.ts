@@ -14,7 +14,13 @@ import { MessageComponentCustomIds, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import { RedisPayloads } from '../types';
 import { I18n, mediaReplyFromOptions } from '../utils';
-import { onGuildReportComponent, queueGuildReportUpdate } from '../utils/formatter/commands/guild.report';
+import {
+  onGuildReportComponent,
+  onGuildReportMessageCreate,
+  onGuildReportMuteComponent,
+  onGuildReportRespondComponent,
+  queueGuildReportUpdate,
+} from '../utils/formatter/commands/guild.report';
 import { onMusicControl } from '../utils/formatter/commands/music.controls';
 import {
   MUSIC_QUEUE_CONTROL,
@@ -24,6 +30,7 @@ import {
 } from '../utils/formatter/commands/music.queue';
 
 import { Listener } from './listener';
+import { onReportRespondComponent } from './reportmessages';
 
 
 class ComponentsListener extends Listener {
@@ -72,6 +79,33 @@ class ComponentsListener extends Listener {
                 console.warn(`guild report ${context.customId} ${context.guildId}`, error);
               }
             }
+            if (context.customId.startsWith(MessageComponentCustomIds.GUILD_REPORT_RESPOND + '.')) {
+              try {
+                // `guild-report-respond.{guildId}.{reportId}`, on the reporter's DMs about their server report
+                const [ , guildId, reportId ] = context.customId.split('.');
+                return await onGuildReportRespondComponent(context, guildId, reportId);
+              } catch(error) {
+                console.warn(`guild report respond ${context.customId} ${context.userId}`, error);
+              }
+            }
+            if (context.customId.startsWith(MessageComponentCustomIds.GUILD_REPORT_MUTE + '.')) {
+              try {
+                // `guild-report-mute.{guildId}.{reportId}`, the Stop DMs button on the reporter's DMs
+                const [ , guildId, reportId ] = context.customId.split('.');
+                return await onGuildReportMuteComponent(context, guildId, reportId);
+              } catch(error) {
+                console.warn(`guild report mute ${context.customId} ${context.userId}`, error);
+              }
+            }
+            if (context.customId.startsWith(MessageComponentCustomIds.REPORT_RESPOND + '.')) {
+              try {
+                // `report-respond.{reportId}`, on the DMs about a report to the developers
+                const [ , reportId ] = context.customId.split('.');
+                return await onReportRespondComponent(context, reportId);
+              } catch(error) {
+                console.warn(`report respond ${context.customId} ${context.userId}`, error);
+              }
+            }
           }; break;
         }
       });
@@ -82,6 +116,18 @@ class ComponentsListener extends Listener {
       // the dashboard's version of the report buttons above
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_REPORT_UPDATE, (payload: RedisPayloads.GuildReportUpdate) => {
         queueGuildReportUpdate(cluster, payload);
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      // a reply on a member's report, from either side's Respond button or the dashboard
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_REPORT_MESSAGE_CREATE, (payload: RedisPayloads.GuildReportMessageCreate) => {
+        // TODO: remove with the trace in `onGuildReportMessageCreate`
+        console.log(`[guild report reply] event ${payload && payload.report && payload.report.id} arrived on cluster ${cluster.clusterId}`);
+        onGuildReportMessageCreate(cluster, payload).catch((error) => {
+          console.error(`Failed to deliver guild report ${payload.report.id}'s reply ${payload.message.id}`, error);
+        });
       });
       subscriptions.push(subscription);
     }

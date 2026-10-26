@@ -46,6 +46,9 @@ export type ApiEventsPayload = {
 
 // live events from the api (settings/tags/reminders changes), the api replays anything we missed when we reconnect with
 // the last id we handled
+// what the api's `RedisChannels` look like
+const API_EVENT_CHANNEL = /^[A-Z][A-Z0-9_]{0,63}$/;
+
 export class ApiEventsSpewer extends EventSpewer {
   ended: boolean = false;
   heartbeatTimeout = new Timers.Timeout();
@@ -239,7 +242,10 @@ export class ApiEventsSpewer extends EventSpewer {
         this.lastReportedAt = 0;
       }; break;
       case 'event': {
-        if (payload.channel in RedisChannels) {
+        // any channel shaped like the api's (`GUILD_REPORT_MESSAGE_CREATE`), not just the ones in `RedisChannels`: this module
+        // is never reloaded by `refresh`, so its copy of the enum would drop channels added since the bot started (and
+        // the reloaded listeners waiting on them would never hear a thing). the shape keeps out the spewer's own events
+        if (typeof(payload.channel) === 'string' && API_EVENT_CHANNEL.test(payload.channel)) {
           try {
             this.emit(payload.channel, (payload.data === undefined) ? null : payload.data);
           } catch(error) {
@@ -273,6 +279,7 @@ export class ApiEventsSpewer extends EventSpewer {
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: ApiEventsSpewerEvents.RESYNC, listener: () => any): this;
+  on(event: RedisChannels.GUILD_REPORT_MESSAGE_CREATE, listener: (payload: RedisPayloads.GuildReportMessageCreate) => any): this;
   on(event: RedisChannels.GUILD_REPORT_UPDATE, listener: (payload: RedisPayloads.GuildReportUpdate) => any): this;
   on(event: RedisChannels.GUILD_SETTINGS_UPDATE, listener: (payload: RedisPayloads.GuildSettingsUpdate) => any): this;
   on(event: RedisChannels.GUILD_WARNING_DELETE, listener: (payload: RedisPayloads.GuildWarningDelete) => any): this;
