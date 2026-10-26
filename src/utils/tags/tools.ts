@@ -139,7 +139,8 @@ export function parseComponentFromData(
       if ('accent_color' in data) {
         if (typeof(data.accent_color) === 'string') {
           try {
-            container.accent_color = parseInt(data.accent_color.replace(/#/, ''), 16) || 0;
+            // clamped like the number form, `ffffffffff` went past 0xFFFFFF
+            container.accent_color = Math.min(0xFFFFFF, Math.max(0, parseInt(data.accent_color.replace(/#/, ''), 16) || 0));
           } catch(error) {
             // this should not happen, only should return NaN
           }

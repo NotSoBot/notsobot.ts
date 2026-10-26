@@ -124,7 +124,6 @@ import * as Parameters from '../parameters';
 import {
   bigIntGenerateBetween,
   checkNSFW,
-  convertToBigIntFloats,
   generateCodeFromLanguage,
   generateCodeStdin,
   getCodeLanguage,
@@ -347,6 +346,8 @@ export const URL_FILE_REPLACEMENT_REGEX = /FILE_([0-9]+)(_COPY)?/g;
 export const REGEX_ARGUMENT_SPLITTER = new RegExp(`(?<!\\\\)[${TagSymbols.SPLITTER_ARGUMENT}]`, 'g');
 export const REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT = new RegExp(`\\\\\\${TagSymbols.SPLITTER_ARGUMENT}`, 'g');
 export const REGEX_BRACKET_OR_SPLITTER_ESCAPE_REPLACEMENT = /\\([{}|])/g;
+// the characters the parse loop acts on inside a function, used with `lastIndex` (one shared instance, `exec` is sync)
+const REGEX_SCRIPT_SYMBOL = /[{}\\]/g;
 
 // {newline} inserts this (a unicode noncharacter, reserved for internal use) and it gets replaced with `\n` at the end
 // so trimming in between does not eat the newlines
@@ -873,6 +874,34 @@ export function getTagFunctionByName(name: string): TagFunctions | undefined {
   return TAG_FUNCTION_BY_NAME.get(name);
 }
 
+// functions that get their argument unparsed and parse (only the parts they need of) it themselves, like {if}'s
+// branches. the parser used to check every one of these by name before looking a function up
+const RAW_ARGUMENT_FUNCTIONS: ReadonlySet<TagFunctions> = new Set([
+  TagFunctions.COMPONENT_JSON,
+  TagFunctions.COMPONENTS_ON_TIMEOUT,
+  TagFunctions.EVAL_SILENT,
+  TagFunctions.LOGICAL_AND,
+  TagFunctions.LOGICAL_FOR_EACH,
+  TagFunctions.LOGICAL_GET,
+  TagFunctions.LOGICAL_GET_CHANNEL,
+  TagFunctions.LOGICAL_GET_GLOBAL,
+  TagFunctions.LOGICAL_GET_SERVER,
+  TagFunctions.LOGICAL_GET_USER,
+  TagFunctions.LOGICAL_IF,
+  TagFunctions.LOGICAL_IF_ERROR,
+  TagFunctions.LOGICAL_INCLUDES,
+  TagFunctions.LOGICAL_OR,
+  TagFunctions.LOGICAL_SET,
+  TagFunctions.LOGICAL_SET_CHANNEL,
+  TagFunctions.LOGICAL_SET_FILE_NAME,
+  TagFunctions.LOGICAL_SET_GLOBAL,
+  TagFunctions.LOGICAL_SET_SERVER,
+  TagFunctions.LOGICAL_SET_USER,
+  TagFunctions.RNG_CHOOSE,
+  TagFunctions.STRING_INDEX_OF,
+  TagFunctions.STRING_SUB,
+]);
+
 
 export enum TagSettings {
   AI_MODEL = 'AI_MODEL',
@@ -1214,6 +1243,19 @@ async function searchImagesWithProvider(
   return {provider: UserSettingsSearchProviders[provider], results};
 }
 
+type TagResultsCaches = TagVariables[PrivateVariables.RESULTS];
+type TagResultsCacheKey = Exclude<keyof TagResultsCaches, TagFunctions.AI | TagFunctions.AI_MEMORY_ADD | TagFunctions.TAG_CREATE>;
+
+// a function's responses this execution, by query. no prototype, `{api.search.web:constructor}` found
+// `Object.prototype.constructor` in a plain `{}` and used it as the response
+function getResultsCache<K extends TagResultsCacheKey>(tag: TagResult, key: K): NonNullable<TagResultsCaches[K]> {
+  const results = tag.variables[PrivateVariables.RESULTS];
+  if (!results[key]) {
+    results[key] = Object.create(null);
+  }
+  return results[key]!;
+}
+
 // shared by the json and single result versions so `{api.search.web:cat}{search.web:cat}` is one request
 async function fetchTagSearchResults<T>(
   context: Command.Context | Interaction.InteractionContext,
@@ -1221,7 +1263,7 @@ async function fetchTagSearchResults<T>(
   kind: TagFunctions.API_SEARCH_IMAGES | TagFunctions.API_SEARCH_WEB,
   query: string,
 ): Promise<TagSearchResults<T>> {
-  const cachedResults = tag.variables[PrivateVariables.RESULTS][kind] = (tag.variables[PrivateVariables.RESULTS][kind] || {}) as Record<string, TagSearchResults<any>>;
+  const cachedResults = getResultsCache(tag, kind) as Record<string, TagSearchResults<any>>;
   if (!(query in cachedResults)) {
     increaseNetworkRequests(tag);
     cachedResults[query] = await withDeadline<TagSearchResults<any>>(context, tag, () => {
@@ -1348,7 +1390,6 @@ export interface TagVariables {
     [TagFunctions.API_UTILITIES_EXIF]?: Record<string, Record<string, any>>,
     [TagFunctions.API_UTILITIES_LOCATIONS]?: Record<string, RestResponsesRaw.UtilitiesLocations>,
     [TagFunctions.API_UTILITIES_WEATHER]?: Record<string, RestResponsesRaw.UtilitiesWeather>,
-    [TagFunctions.ATTACHMENT]?: Record<string, RestResponsesRaw.FileResponse>,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
     // the tag NotSoAI created this execution, it can only make one
@@ -1629,17 +1670,30 @@ export async function parse(
         continue;
       }
       position = nextLeftBracket;
+
+      // a function that swallowed a limit error (like inside {iferror}) can't let the next one run. the counters only
+      // change inside functions, so once per function is enough (this ran for every character of every function)
+      increaseAIExecutions(tag, 0);
+      increaseAPIManipulations(tag, 0);
+      increaseComponentExecutions(tag, 0);
+      increaseNetworkRequests(tag, 0);
+      increaseNetworkRequestsML(tag, 0);
+      increaseNetworkRequestsSafety(tag, 0);
+      increaseTagExecutions(tag, 0);
+    } else {
+      // inside a function only brackets and escapes matter, take everything before the next one at once instead of
+      // going through it a character at a time
+      REGEX_SCRIPT_SYMBOL.lastIndex = position;
+      const nextSymbol = (REGEX_SCRIPT_SYMBOL.exec(value) || {index: value.length}).index;
+      if (position < nextSymbol) {
+        scriptBuffer += value.slice(position, nextSymbol);
+        position = nextSymbol;
+        if (position === value.length) {
+          continue;
+        }
+      }
     }
 
-    increaseAIExecutions(tag, 0);
-    increaseAPIManipulations(tag, 0);
-    increaseComponentExecutions(tag, 0);
-    increaseNetworkRequests(tag, 0);
-    increaseNetworkRequestsML(tag, 0);
-    increaseNetworkRequestsSafety(tag, 0);
-    increaseTagExecutions(tag, 0);
-
-    // add network checks
     try {
       let result = value.slice(position, ++position);
       scriptBuffer += result;
@@ -1663,139 +1717,14 @@ export async function parse(
             await increaseFunctionCalls(context, tag);
             let [scriptName, arg] = parseInnerScript(scriptBuffer, shouldTrim);
             checkFunctionAllowed(tag, scriptName);
-            if (TagFunctionsToString.EVAL_SILENT.includes(scriptName)) {
-              const wasValid = await ScriptTags[TagFunctions.EVAL_SILENT](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.IGNORE.includes(scriptName)) {
+            const TAG_FUNCTION = getTagFunctionByName(scriptName);
+            if (TagFunctionsToString.IGNORE.includes(scriptName)) {
               tag.text += arg;
             } else if (TagFunctionsToString.NOTE.includes(scriptName)) {
               // do nothing
-            } else if (TagFunctionsToString.LOGICAL_AND.includes(scriptName)) {
+            } else if (TAG_FUNCTION && RAW_ARGUMENT_FUNCTIONS.has(TAG_FUNCTION)) {
               // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_AND](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_FOR_EACH.includes(scriptName)) {
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_FOR_EACH](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_GET.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_GET_CHANNEL.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_CHANNEL](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_GET_GLOBAL.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_GLOBAL](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_GET_SERVER.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_SERVER](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_GET_USER.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_USER](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_INCLUDES.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_INCLUDES](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_IF.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_IF](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_IF_ERROR.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_IF_ERROR](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_OR.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_OR](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_SET.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_SET_CHANNEL.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_CHANNEL](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_SET_FILE_NAME.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_FILE_NAME](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_SET_GLOBAL.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_GLOBAL](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_SET_SERVER.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_SERVER](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.LOGICAL_SET_USER.includes(scriptName)) {
-              // do this separate because we dont want to parse args yet
-              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_USER](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.RNG_CHOOSE.includes(scriptName)) {
-              // do this separate from below because we don't want our args parsed yet
-              const wasValid = await ScriptTags[TagFunctions.RNG_CHOOSE](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.STRING_INDEX_OF.includes(scriptName)) {
-              const wasValid = await ScriptTags[TagFunctions.STRING_INDEX_OF](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.STRING_SUB.includes(scriptName)) {
-              const wasValid = await ScriptTags[TagFunctions.STRING_SUB](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.COMPONENT_JSON.includes(scriptName)) {
-              const wasValid = await ScriptTags[TagFunctions.COMPONENT_JSON](context, arg, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
-              }
-            } else if (TagFunctionsToString.COMPONENTS_ON_TIMEOUT.includes(scriptName)) {
-              const wasValid = await ScriptTags[TagFunctions.COMPONENTS_ON_TIMEOUT](context, arg, tag);
+              const wasValid = await ScriptTags[TAG_FUNCTION](context, arg, tag);
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
@@ -1833,7 +1762,6 @@ export async function parse(
               }
 
               if (!found) {
-                const TAG_FUNCTION = getTagFunctionByName(scriptName);
                 if (TAG_FUNCTION) {
                   found = true;
                   const wasValid = await ScriptTags[TAG_FUNCTION](context, arg, tag);
@@ -2046,7 +1974,9 @@ export const MAX_AI_TAG_CONTENT_LENGTH = 2000;
 // same as the api's `MAX_LLM_MEMORY_LENGTH`
 export const MAX_AI_MEMORY_LENGTH = 200;
 
-// only NotSoAI's own reply can change the command user's memory, not a button it made (someone else could press it)
+// only NotSoAI's own reply can touch the command user's memory, settings, reminders and tags, not a button it made. a
+// press still runs with the command user's context, and NotSoAI can let everyone press its buttons
+// (`ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE`), so anyone could have changed their settings or deleted their reminders
 export function canChangeAIMemory(context: Command.Context | Interaction.InteractionContext, tag: TagResult): boolean {
   return isFromAI(context, tag) && tag.variables[PrivateVariables.COMPONENT_EXECUTIONS] <= 0;
 }
@@ -2119,6 +2049,91 @@ export function getStorageResponse(tag: TagResult, url: string): RestResponsesRa
 }
 
 
+// caches for this execution that are kept out of the variables (those get printed by `{variables}` and sent to code
+// execution). keyed by the `__results` object, it's shared with called tags and button/timeout scripts the same way the
+// api results in it are, and `resetTagLimits()` drops them
+type TagResultsObject = TagVariables[PrivateVariables.RESULTS];
+
+function getExecutionCache<K, V>(caches: WeakMap<TagResultsObject, Map<K, V>>, tag: TagResult): Map<K, V> {
+  const results = tag.variables[PrivateVariables.RESULTS];
+  let cache = caches.get(results);
+  if (!cache) {
+    cache = new Map();
+    caches.set(results, cache);
+  }
+  return cache;
+}
+
+// urls `{attach}` (and media urls in embeds/components) downloaded, decoded once. in `__results` it held each file's
+// base64 on top of the decoded buffer and decoded it again for every reuse
+const attachmentResults = new WeakMap<TagResultsObject, Map<string, {data: Buffer, response: RestResponsesRaw.FileResponse}>>();
+
+
+export interface TagStorage {
+  channel: Record<string, string>,
+  global: Record<string, string>,
+  server: Record<string, string>,
+  user: Record<string, string>,
+}
+
+// every storage value of a tag, by its id. {variableschannel}{variablesuser} fetched all of it once each, anything
+// that writes to the tag's storage drops it
+const storageResults = new WeakMap<TagResultsObject, Map<string, TagStorage>>();
+
+function getStorageTagId(context: Command.Context | Interaction.InteractionContext): string | null {
+  if (context.metadata && context.metadata.tag) {
+    return (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+  }
+  return null;
+}
+
+// `cached` is false for code execution, it decides what to save from what's stored right now
+async function fetchTagStorage(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  tagId: string,
+  cached: boolean = true,
+): Promise<TagStorage> {
+  const cache = getExecutionCache(storageResults, tag);
+  if (cached && cache.has(tagId)) {
+    return cache.get(tagId)!;
+  }
+
+  // tag storage goes through our api, so it counts like any other request
+  increaseNetworkRequests(tag);
+  const response = await withDeadline(context, tag, () => fetchTagVariables(context, tagId, {
+    channelId: context.channelId!,
+    guildId: context.guildId,
+    userId: context.userId,
+  }));
+
+  const storage: TagStorage = {channel: {}, global: {}, server: {}, user: {}};
+  for (let key of Object.keys(response)) {
+    const storageType = parseInt(key) as TagVariableStorageTypes;
+    switch (storageType) {
+      case TagVariableStorageTypes.CHANNEL: {
+        Object.assign(storage.channel, response[storageType]);
+      }; break;
+      case TagVariableStorageTypes.GUILD: {
+        Object.assign(storage.server, response[storageType]);
+      }; break;
+      case TagVariableStorageTypes.USER: {
+        Object.assign(storage.user, response[storageType]);
+      }; break;
+      case TagVariableStorageTypes.GLOBAL: {
+        Object.assign(storage.global, response[storageType]);
+      }; break;
+    }
+  }
+  cache.set(tagId, storage);
+  return storage;
+}
+
+function dropTagStorageCache(tag: TagResult, tagId: string): void {
+  getExecutionCache(storageResults, tag).delete(tagId);
+}
+
+
 // attaches a file api response (like {api.utilities.screenshot}) to the tag's output
 function addFileResponseToTag(
   context: Command.Context | Interaction.InteractionContext,
@@ -2176,33 +2191,32 @@ async function attachFileFromUrl(
 
   const url = await Parameters.url(urlString.trim(), context);
 
-  const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.ATTACHMENT] = (
-    tag.variables[PrivateVariables.RESULTS][TagFunctions.ATTACHMENT] ||
-    {}
-  );
-
-  if (!(url in cachedResults)) {
-    increaseNetworkRequests(tag);
-  }
+  const cachedResults = getExecutionCache(attachmentResults, tag);
 
   try {
     const maxFileSize = context.maxAttachmentSize;
-    const response = cachedResults[url] || await withDeadline(context, tag, (signal) => utilitiesFetchMedia(context, {
-      maxFileSize,
-      safe: DefaultParameters.safe(context),
-      url,
-    }).then((x) => jobWaitForResponse(context, x, signal)));
-
-    if (!(url in cachedResults)) {
-      cachedResults[url] = response;
+    let cached = cachedResults.get(url);
+    if (!cached) {
+      increaseNetworkRequests(tag);
+      const response = await withDeadline(context, tag, (signal) => utilitiesFetchMedia(context, {
+        maxFileSize,
+        safe: DefaultParameters.safe(context),
+        url,
+      }).then((x) => jobWaitForResponse(context, x, signal)));
+      cached = {
+        data: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
+        response: stripFileResponse(response),
+      };
+      cachedResults.set(url, cached);
     }
+    const { response } = cached;
 
     let filename = options.filename || response.file.filename_safe;
     if (options.uniqueFilename) {
       filename = getUniqueFilename(tag, filename);
     }
 
-    let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+    let data: Buffer | string = cached.data;
     if (response.file.metadata.mimetype.startsWith('text/')) {
       data = data.toString();
     }
@@ -2218,7 +2232,7 @@ async function attachFileFromUrl(
       buffer: data,
       description: options.description,
       filename,
-      response: stripFileResponse(response),
+      response,
       spoiler: options.spoiler,
       url,
     };
@@ -2837,13 +2851,13 @@ export function resetTagLimits(tag: TagResult) {
   (variables as any)[PrivateVariables.NETWORK_REQUESTS_SAFETY] = 0;
   (variables as any)[PrivateVariables.FILE_SIZE] = 0;
   (variables as any)[PrivateVariables.FUNCTION_CALLS] = 0;
+  // the {math}/{replace} budget, a press after a tag that used it up errored on its first {math}
+  (variables as any)[PrivateVariables.SYNC_TIME] = 0;
   (variables as any)[PrivateVariables.TAG_EXECUTIONS] = 0;
   (variables as any)[PrivateVariables.DEADLINE] = Date.now() + tag.limits.MAX_TIME;
-  Object.assign(tag.variables, {
-    [PrivateVariables.RESULTS]: Object.assign({}, tag.variables[PrivateVariables.RESULTS], {
-      [TagFunctions.ATTACHMENT]: undefined,
-    }),
-  });
+  attachmentResults.delete(variables[PrivateVariables.RESULTS]);
+  // another press can come much later, the storage could have changed since
+  storageResults.delete(variables[PrivateVariables.RESULTS]);
   tag.files = [];
 }
 
@@ -2856,6 +2870,9 @@ export function split(value: string, amount: number = 0): Array<string> {
   let depth = 0;
   let position = 0;
   let text = '';
+  // the value ended right after a splitter, that's an empty last argument. only the regex path below kept it, so
+  // `{set:x|}` set `x` to nothing but `{set:{get:k}|}` had no value at all and crashed
+  let endsWithEmpty = false;
 
   const args: Array<string> = [];
   while (position < value.length) {
@@ -2864,6 +2881,7 @@ export function split(value: string, amount: number = 0): Array<string> {
     // `{set:x|a\|b}` and `{set:x|a\|b|c}` stored `a\|b` differently
     if (amount && args.length === amount - 1 && !text) {
       args.push(value.slice(position));
+      endsWithEmpty = false;
       position = value.length;
       break;
     }
@@ -2898,6 +2916,7 @@ export function split(value: string, amount: number = 0): Array<string> {
             args.push(parts[i].replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
           }
         }
+        endsWithEmpty = false;
         position = value.length;
         continue;
       }
@@ -2905,12 +2924,14 @@ export function split(value: string, amount: number = 0): Array<string> {
 
     let result = value.slice(position, ++position);
     text += result;
+    endsWithEmpty = false;
     switch (result) {
       case TagSymbols.SPLITTER_ARGUMENT: {
         if (depth <= 0) {
           // use the arg, we arent in the function anymore
           args.push(text.slice(0, -1));
           text = '';
+          endsWithEmpty = true;
         }
       }; break;
       case TagSymbols.IGNORE: {
@@ -2944,6 +2965,8 @@ export function split(value: string, amount: number = 0): Array<string> {
 
   if (text) {
     args.push(text);
+  } else if (endsWithEmpty && (!amount || args.length < amount)) {
+    args.push('');
   }
   return args;
 }
@@ -3059,17 +3082,9 @@ const ScriptTags = Object.freeze({
       user: string | null,
     } = {channel: null, global: null, server: null, user: null};
 
-    const storage: {
-      channel: Record<string, string>,
-      global: Record<string, string>,
-      server: Record<string, string>,
-      user: Record<string, string>,
-    } = {channel: {}, global: {}, server: {}, user: {}};
+    let storage: TagStorage = {channel: {}, global: {}, server: {}, user: {}};
 
-    let tagId: string | null = null;
-    if (context.metadata && context.metadata.tag) {
-      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
-    }
+    const tagId = getStorageTagId(context);
 
     if (tagId) {
       {
@@ -3098,43 +3113,15 @@ const ScriptTags = Object.freeze({
           }
         }
       }
-      {
-        // tag storage goes through our api, so it counts like any other request
-        increaseNetworkRequests(tag);
-        const response = await withDeadline(context, tag, () => fetchTagVariables(context, tagId, {
-          channelId: context.channelId!,
-          guildId: context.guildId,
-          userId: context.userId,
-        }));
-        for (let key of Object.keys(response)) {
-          const storageType = parseInt(key) as TagVariableStorageTypes;
-          switch (storageType) {
-            case TagVariableStorageTypes.CHANNEL: {
-              Object.assign(storage.channel, response[storageType]);
-            }; break;
-            case TagVariableStorageTypes.GUILD: {
-              Object.assign(storage.server, response[storageType]);
-            }; break;
-            case TagVariableStorageTypes.USER: {
-              Object.assign(storage.user, response[storageType]);
-            }; break;
-            case TagVariableStorageTypes.GLOBAL: {
-              Object.assign(storage.global, response[storageType]);
-            }; break;
-          }
-        }
-      }
+      // what's stored right now, it decides what the code's changes save
+      storage = await fetchTagStorage(context, tag, tagId, false);
     }
 
     const variables = Object.assign({
       [PrivateVariables.FILES]: tag.files.map((file) => {
         return {description: file.description, filename: file.filename};
       }),
-    }, tag.variables, {
-      [PrivateVariables.RESULTS]: Object.assign({}, tag.variables[PrivateVariables.RESULTS], {
-        [TagFunctions.ATTACHMENT]: undefined,
-      }),
-    });
+    }, tag.variables);
     const { code, urls } = generateCodeFromLanguage(language, arg);
     if (!code) {
       return true;
@@ -3208,7 +3195,8 @@ const ScriptTags = Object.freeze({
                   }
                 }
 
-                tag.variables[key] = String((variables as any)[key]).slice(0, tag.limits.MAX_VARIABLE_LENGTH);
+                // objects/arrays as json like the storage below, `String()` saved them as `[object Object]`
+                tag.variables[key] = stringifyStorageValue((variables as any)[key]).slice(0, tag.limits.MAX_VARIABLE_LENGTH);
               }
             }
 
@@ -3610,6 +3598,7 @@ const ScriptTags = Object.freeze({
               }
 
               if (hasChange && tagId) {
+                dropTagStorageCache(tag, tagId);
                 // tag storage goes through our api, so it counts like any other request
                 increaseNetworkRequests(tag);
                 const storageResponse = await withDeadline(context, tag, () => putTagVariables(context, tagId, {
@@ -3647,6 +3636,7 @@ const ScriptTags = Object.freeze({
 
     let isComponents = false;
     let isEmbed = false;
+    let isPages = false;
     // only check for json in smaller outputs, bigger outputs are always text
     if (result.output.length <= 16000) {
       // just incase its a big content lol
@@ -3666,12 +3656,15 @@ const ScriptTags = Object.freeze({
         if (keysLength === 1 && 'pages' in object && Array.isArray(object.pages)) {
           // parse them
           // [{embed}]
+          // the json itself isn't output too, it used to end up as the message's text above the pages
+          isPages = true;
           for (let page of object.pages) {
             let components: Array<Record<string, any>> | undefined;
             let content: string | undefined;
             let embeds: Array<Embed> | undefined;
             let filenames: Array<string> | undefined;
-            if (typeof(page) !== 'object') {
+            // `typeof null` is 'object' too, `[null]` crashed on `'content' in page`
+            if (!page || typeof(page) !== 'object') {
               throw new TagError(tag.translate('tagscript.invalid_page_given'));
             }
             if ('content' in page && typeof(page.content) === 'string') {
@@ -3776,7 +3769,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    if (!isComponents && !isEmbed) {
+    if (!isComponents && !isEmbed && !isPages) {
       tag.text += result.output;
     }
 
@@ -3960,10 +3953,7 @@ const ScriptTags = Object.freeze({
       throw new TagError('Cannot find any audio or video');
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_AUDIO_IDENTIFY] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_AUDIO_IDENTIFY] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_AUDIO_IDENTIFY);
 
     if (!(url in cachedResults)) {
       increaseNetworkRequests(tag);
@@ -4003,7 +3993,7 @@ const ScriptTags = Object.freeze({
     // {api.create.reminder:time} {api.create.reminder:time|text}
     // only NotSoAI can use this
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -4049,7 +4039,7 @@ const ScriptTags = Object.freeze({
     // {api.delete.reminder:position}
     // only NotSoAI can use this, deletes one of the command user's reminders by its position (from {api.fetch.reminders})
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -4084,7 +4074,7 @@ const ScriptTags = Object.freeze({
     // {api.edit.reminder:position|time} {api.edit.reminder:position|time|text} {api.edit.reminder:position||text}
     // only NotSoAI can use this, an empty time keeps the current time, no text keeps the current text
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -4135,7 +4125,7 @@ const ScriptTags = Object.freeze({
     // {api.fetch.reminders} {api.fetch.reminders:global}
     // only NotSoAI can use this, lists the command user's reminders (for this server, or every server if `global`)
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -4162,10 +4152,7 @@ const ScriptTags = Object.freeze({
     }
     const code = match[1]!;
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_INFO_INVITE] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_INFO_INVITE] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_INFO_INVITE);
 
     if (!(code in cachedResults)) {
       increaseNetworkRequests(tag);
@@ -4215,10 +4202,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES);
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
@@ -4260,10 +4244,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_IMGUR] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_IMGUR] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_IMGUR);
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
@@ -4294,10 +4275,7 @@ const ScriptTags = Object.freeze({
     }
     subreddit = (subreddit || '').trim().replace(/^\/?r\//i, '').slice(0, 20);
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_REDDIT] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_REDDIT] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_REDDIT);
 
     const safe = DefaultParameters.safe(context);
     // the subreddit and safe setting change the response, so cache per all of them
@@ -4341,10 +4319,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_STEAM] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_STEAM] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_STEAM);
 
     if (!(arg in cachedResults)) {
       increaseNetworkRequests(tag);
@@ -4371,10 +4346,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_URBAN] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_URBAN] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_URBAN);
 
     if (!(arg in cachedResults)) {
       increaseNetworkRequests(tag);
@@ -4416,10 +4388,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WIKIHOW] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WIKIHOW] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_WIKIHOW);
 
     if (!(arg in cachedResults)) {
       increaseNetworkRequests(tag);
@@ -4443,10 +4412,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WOLFRAM_ALPHA] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WOLFRAM_ALPHA] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_WOLFRAM_ALPHA);
 
     if (!(arg in cachedResults)) {
       increaseNetworkRequests(tag);
@@ -4473,10 +4439,7 @@ const ScriptTags = Object.freeze({
       throw new TagError('Cannot find any media');
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_EXIF] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_EXIF] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_UTILITIES_EXIF);
 
     if (!(url in cachedResults)) {
       increaseNetworkRequests(tag);
@@ -4505,10 +4468,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_LOCATIONS] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_LOCATIONS] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_UTILITIES_LOCATIONS);
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
@@ -4597,10 +4557,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_WEATHER] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_WEATHER] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_UTILITIES_WEATHER);
 
     arg = arg.slice(0, 1024);
     // the units change the response, so cache per query and units
@@ -5649,6 +5606,7 @@ const ScriptTags = Object.freeze({
         const storageId = context.channelId!;
         // tag storage goes through our api, so it counts like any other request
         increaseNetworkRequests(tag);
+        dropTagStorageCache(tag, tagId);
         await withDeadline(context, tag, () => deleteTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
           name: arg,
         }));
@@ -5676,6 +5634,7 @@ const ScriptTags = Object.freeze({
         const storageId = context.guildId || context.channelId!;
         // tag storage goes through our api, so it counts like any other request
         increaseNetworkRequests(tag);
+        dropTagStorageCache(tag, tagId);
         await withDeadline(context, tag, () => deleteTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
           name: arg,
         }));
@@ -5703,6 +5662,7 @@ const ScriptTags = Object.freeze({
         const storageId = context.userId;
         // tag storage goes through our api, so it counts like any other request
         increaseNetworkRequests(tag);
+        dropTagStorageCache(tag, tagId);
         await withDeadline(context, tag, () => deleteTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
           name: arg,
         }));
@@ -6040,30 +6000,24 @@ const ScriptTags = Object.freeze({
       case TagIfComparisons.LESS_THAN:
       case TagIfComparisons.LESS_THAN_OR_EQUAL:
       case TagIfComparisons.TILDE: {
-        try {
-          const [ [ int1, int2 ] ] = convertToBigIntFloats(...values);
-          switch (comparison) {
-            case TagIfComparisons.GREATER_THAN: {
-              compared = int1 > int2;
-            }; break;
-            case TagIfComparisons.GREATER_THAN_OR_EQUAL: {
-              compared = int1 >= int2;
-            }; break;
-            case TagIfComparisons.LESS_THAN: {
-              compared = int1 < int2;
-            }; break;
-            case TagIfComparisons.LESS_THAN_OR_EQUAL: {
-              compared = int1 <= int2;
-            }; break;
-            case TagIfComparisons.TILDE: {
-              compared = ~int1 == ~int2;
-            }; break;
-          }
-        } catch(error) {
+        // the same exact comparison as {max}/{min}, this used `BigInt` which threw on `1e3` (so `{if:1e3|>|5}` was
+        // false while `{max:1e3|5}` gave 1000) and cut decimals past 10 places
+        const decimal1 = toPlainDecimal(values[0]);
+        const decimal2 = toPlainDecimal(values[1]);
+        if (decimal1 === null || decimal2 === null) {
           if (comparison === TagIfComparisons.TILDE) {
             compared = values[0].toLowerCase() === values[1].toLowerCase();
           } else {
             compared = false;
+          }
+        } else {
+          const difference = compareDecimals(decimal1, decimal2);
+          switch (comparison) {
+            case TagIfComparisons.GREATER_THAN: compared = 0 < difference; break;
+            case TagIfComparisons.GREATER_THAN_OR_EQUAL: compared = 0 <= difference; break;
+            case TagIfComparisons.LESS_THAN: compared = difference < 0; break;
+            case TagIfComparisons.LESS_THAN_OR_EQUAL: compared = difference <= 0; break;
+            case TagIfComparisons.TILDE: compared = difference === 0; break;
           }
         }
       }; break;
@@ -6224,6 +6178,7 @@ const ScriptTags = Object.freeze({
       const storageId = context.channelId!;
       // tag storage goes through our api, so it counts like any other request
       increaseNetworkRequests(tag);
+      dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
         name: key,
         value: storageValue,
@@ -6314,6 +6269,7 @@ const ScriptTags = Object.freeze({
       const storageId = '0';
       // tag storage goes through our api, so it counts like any other request
       increaseNetworkRequests(tag);
+      dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.GLOBAL, storageId, {
         name: key,
         value: storageValue,
@@ -6352,6 +6308,7 @@ const ScriptTags = Object.freeze({
       const storageId = context.guildId || context.channelId!;
       // tag storage goes through our api, so it counts like any other request
       increaseNetworkRequests(tag);
+      dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
         name: key,
         value: storageValue,
@@ -6390,6 +6347,7 @@ const ScriptTags = Object.freeze({
       const storageId = context.userId;
       // tag storage goes through our api, so it counts like any other request
       increaseNetworkRequests(tag);
+      dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
         name: key,
         value: storageValue,
@@ -7369,6 +7327,10 @@ const ScriptTags = Object.freeze({
       if (response.storage) {
         addStorageUrlToTag(tag, response);
       } else {
+        // the other file functions check this before they start, this only knows it's adding a file now
+        if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+          throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+        }
         const maxFileSize = context.maxAttachmentSize;
         const filename = response.file.filename_safe;
 
@@ -7532,7 +7494,8 @@ const ScriptTags = Object.freeze({
       let content: string | undefined;
       let embeds: Array<Embed> | undefined;
       let filenames: Array<string> | undefined;
-      if (typeof(page) !== 'object') {
+      // `typeof null` is 'object' too, `{pagejson:null}` crashed on `'content' in page`
+      if (!page || typeof(page) !== 'object') {
         throw new TagError(tag.translate('tagscript.invalid_page_given'));
       }
       if ('content' in page && typeof(page.content) === 'string') {
@@ -7780,11 +7743,16 @@ const ScriptTags = Object.freeze({
       secondValue = arg.slice(firstSplitter + 1).split('.').shift()!;
     }
 
-    if (isNaN(firstValue as any) || isNaN(secondValue as any)) {
+    // `isNaN` lets through numbers `BigInt` can't read (`1e3`, `Infinity`) and it throws a SyntaxError on them
+    let first: bigint, second: bigint;
+    try {
+      first = BigInt(firstValue);
+      second = BigInt(secondValue);
+    } catch(error) {
       return false;
     }
 
-    tag.text += bigIntGenerateBetween(BigInt(firstValue), BigInt(secondValue));
+    tag.text += bigIntGenerateBetween(first, second);
 
     return true;
   },
@@ -7831,10 +7799,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES);
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
@@ -7890,10 +7855,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_GOOGLE_IMAGES] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_GOOGLE_IMAGES] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.SEARCH_GOOGLE_IMAGES);
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
@@ -7970,10 +7932,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_YOUTUBE] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_YOUTUBE] ||
-      {}
-    );
+    const cachedResults = getResultsCache(tag, TagFunctions.SEARCH_YOUTUBE);
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
@@ -8124,7 +8083,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user} {settings.set.user:SETTING} {settings.set.user:SETTING|value}
     // only NotSoAI can use this, no setting outputs every setting as json, no value outputs the current value, `clear` resets it
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -8177,7 +8136,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user.ai.personality:prompt?}
     // only NotSoAI can use this
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -8210,7 +8169,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user.locale:locale?}
     // only NotSoAI can use this, empty outputs the current locale, `clear` clears it
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -8243,7 +8202,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user.timezone:timezone?}
     // only NotSoAI can use this, empty outputs the current timezone, `clear` clears it
 
-    if (!isFromAI(context, tag)) {
+    if (!canChangeAIMemory(context, tag)) {
       return false;
     }
 
@@ -8532,7 +8491,8 @@ const ScriptTags = Object.freeze({
 
     const [ amountText, ...value ] = split(arg);
     const amount = parseInt(amountText.trim());
-    if (isNaN(amount)) {
+    // `repeat()` throws a RangeError on negatives
+    if (isNaN(amount) || amount < 0) {
       return false;
     }
 
@@ -8611,7 +8571,8 @@ const ScriptTags = Object.freeze({
   [TagFunctions.STRING_REVERSE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {reverse:text}
 
-    tag.text += arg.split('').reverse().join('');
+    // by code point, `split('')` cut emojis (surrogate pairs) in half
+    tag.text += Array.from(arg).reverse().join('');
     return true;
   },
 
@@ -8747,9 +8708,12 @@ const ScriptTags = Object.freeze({
       if (oldTag && oldTag.id === fetchedTag.id) {
         Object.assign(variables, oldVariables);
       } else {
-        for (let key in PrivateVariables) {
-          const storedKey = (PrivateVariables as any)[key];
-          variables[storedKey] = tag.variables[storedKey];
+        // only the ones that are set, copying unset ones (`error`, `idx`, `valuex`) made keys holding `undefined` that
+        // `{get:idx|default}` found and printed as `undefined`, in this tag and in the caller after it
+        for (let storedKey of Object.values(PrivateVariables)) {
+          if (storedKey in tag.variables) {
+            variables[storedKey] = tag.variables[storedKey];
+          }
         }
       }
       variables[PrivateVariables.ARGS_STRING] = tagArguments;
@@ -8777,9 +8741,12 @@ const ScriptTags = Object.freeze({
         if (oldTag && oldTag.id === fetchedTag.id) {
           Object.assign(tag.variables, argParsed.variables);
         } else {
-          for (let key in PrivateVariables) {
-            const storedKey = (PrivateVariables as any)[key];
-            tag.variables[storedKey] = argParsed.variables[storedKey];
+          for (let storedKey of Object.values(PrivateVariables)) {
+            if (storedKey in argParsed.variables) {
+              (tag.variables as any)[storedKey] = argParsed.variables[storedKey];
+            } else {
+              delete (tag.variables as any)[storedKey];
+            }
           }
         }
       } catch(error) {
@@ -8968,7 +8935,12 @@ const ScriptTags = Object.freeze({
     // {unixsnowflake:SNOWFLAKE}
 
     if (arg) {
-      tag.text += Snowflake.timestamp(arg);
+      // it's `BigInt(arg)` inside, which throws a SyntaxError on anything that isn't a number
+      try {
+        tag.text += Snowflake.timestamp(arg.trim());
+      } catch(error) {
+        return false;
+      }
     }
 
     return true;
@@ -9374,93 +9346,19 @@ const ScriptTags = Object.freeze({
   [TagFunctions.VARIABLES_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {variableschannel}
 
-    let tagId: string | null = null;
-    if (context.metadata && context.metadata.tag) {
-      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
-    }
-
-    const storage: {
-      channel: Record<string, string>,
-      global: Record<string, string>,
-      server: Record<string, string>,
-      user: Record<string, string>,
-    } = {channel: {}, global: {}, server: {}, user: {}};
-
-    if (tagId) {
-      // tag storage goes through our api, so it counts like any other request
-      increaseNetworkRequests(tag);
-      const response = await withDeadline(context, tag, () => fetchTagVariables(context, tagId, {
-        channelId: context.channelId!,
-        guildId: context.guildId,
-        userId: context.userId,
-      }));
-      for (let key of Object.keys(response)) {
-        const storageType = parseInt(key) as TagVariableStorageTypes;
-        switch (storageType) {
-          case TagVariableStorageTypes.CHANNEL: {
-            Object.assign(storage.channel, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GUILD: {
-            Object.assign(storage.server, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.USER: {
-            Object.assign(storage.user, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GLOBAL: {
-            Object.assign(storage.global, response[storageType]);
-          }; break;
-        }
-      }
-    }
-
-    tag.text += JSON.stringify(storage.channel);
+    const tagId = getStorageTagId(context);
+    const storage = (tagId) ? await fetchTagStorage(context, tag, tagId) : null;
+    tag.text += JSON.stringify((storage) ? storage.channel : {});
 
     return true;
   },
 
   [TagFunctions.VARIABLES_GLOBAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {variablesglobal}
-  
-    let tagId: string | null = null;
-    if (context.metadata && context.metadata.tag) {
-      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
-    }
 
-    const storage: {
-      channel: Record<string, string>,
-      global: Record<string, string>,
-      server: Record<string, string>,
-      user: Record<string, string>,
-    } = {channel: {}, global: {}, server: {}, user: {}};
-
-    if (tagId) {
-      // tag storage goes through our api, so it counts like any other request
-      increaseNetworkRequests(tag);
-      const response = await withDeadline(context, tag, () => fetchTagVariables(context, tagId, {
-        channelId: context.channelId!,
-        guildId: context.guildId,
-        userId: context.userId,
-      }));
-      for (let key of Object.keys(response)) {
-        const storageType = parseInt(key) as TagVariableStorageTypes;
-        switch (storageType) {
-          case TagVariableStorageTypes.CHANNEL: {
-            Object.assign(storage.channel, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GUILD: {
-            Object.assign(storage.server, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.USER: {
-            Object.assign(storage.user, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GLOBAL: {
-            Object.assign(storage.global, response[storageType]);
-          }; break;
-        }
-      }
-    }
-
-    tag.text += JSON.stringify(storage.global);
+    const tagId = getStorageTagId(context);
+    const storage = (tagId) ? await fetchTagStorage(context, tag, tagId) : null;
+    tag.text += JSON.stringify((storage) ? storage.global : {});
 
     return true;
   },
@@ -9468,46 +9366,9 @@ const ScriptTags = Object.freeze({
   [TagFunctions.VARIABLES_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {variablesserver}
 
-    let tagId: string | null = null;
-    if (context.metadata && context.metadata.tag) {
-      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
-    }
-
-    const storage: {
-      channel: Record<string, string>,
-      global: Record<string, string>,
-      server: Record<string, string>,
-      user: Record<string, string>,
-    } = {channel: {}, global: {}, server: {}, user: {}};
-
-    if (tagId) {
-      // tag storage goes through our api, so it counts like any other request
-      increaseNetworkRequests(tag);
-      const response = await withDeadline(context, tag, () => fetchTagVariables(context, tagId, {
-        channelId: context.channelId!,
-        guildId: context.guildId,
-        userId: context.userId,
-      }));
-      for (let key of Object.keys(response)) {
-        const storageType = parseInt(key) as TagVariableStorageTypes;
-        switch (storageType) {
-          case TagVariableStorageTypes.CHANNEL: {
-            Object.assign(storage.channel, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GUILD: {
-            Object.assign(storage.server, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.USER: {
-            Object.assign(storage.user, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GLOBAL: {
-            Object.assign(storage.global, response[storageType]);
-          }; break;
-        }
-      }
-    }
-
-    tag.text += JSON.stringify(storage.server);
+    const tagId = getStorageTagId(context);
+    const storage = (tagId) ? await fetchTagStorage(context, tag, tagId) : null;
+    tag.text += JSON.stringify((storage) ? storage.server : {});
 
     return true;
   },
@@ -9515,46 +9376,9 @@ const ScriptTags = Object.freeze({
   [TagFunctions.VARIABLES_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {variablesuser}
 
-    let tagId: string | null = null;
-    if (context.metadata && context.metadata.tag) {
-      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
-    }
-
-    const storage: {
-      channel: Record<string, string>,
-      global: Record<string, string>,
-      server: Record<string, string>,
-      user: Record<string, string>,
-    } = {channel: {}, global: {}, server: {}, user: {}};
-
-    if (tagId) {
-      // tag storage goes through our api, so it counts like any other request
-      increaseNetworkRequests(tag);
-      const response = await withDeadline(context, tag, () => fetchTagVariables(context, tagId, {
-        channelId: context.channelId!,
-        guildId: context.guildId,
-        userId: context.userId,
-      }));
-      for (let key of Object.keys(response)) {
-        const storageType = parseInt(key) as TagVariableStorageTypes;
-        switch (storageType) {
-          case TagVariableStorageTypes.CHANNEL: {
-            Object.assign(storage.channel, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GUILD: {
-            Object.assign(storage.server, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.USER: {
-            Object.assign(storage.user, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GLOBAL: {
-            Object.assign(storage.global, response[storageType]);
-          }; break;
-        }
-      }
-    }
-
-    tag.text += JSON.stringify(storage.user);
+    const tagId = getStorageTagId(context);
+    const storage = (tagId) ? await fetchTagStorage(context, tag, tagId) : null;
+    tag.text += JSON.stringify((storage) ? storage.user : {});
 
     return true;
   },
