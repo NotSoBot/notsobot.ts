@@ -2329,6 +2329,8 @@ export const PortugueseBrazil: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Colocar uma imagem ou vídeo dentro de um meme "Who Did This"',
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
+  'commands.media_iv.overlay.keep_item.description': 'Colocar uma imagem ou vídeo dentro de um meme "Customers Usually Keep This Item"',
+  'commands.media_iv.overlay.keep_item.name': 'keepitem',
   'commands.media_iv.tint.blurple.description': 'Deixar uma imagem ou vídeo blurple',
   'commands.media_iv.tint.derain.description': 'Aplicar o oposto de um tom arco-íris em uma imagem ou vídeo',
   'commands.media_iv.tint.gold.description': 'Aplicar um tom dourado em uma imagem ou vídeo',

@@ -2329,6 +2329,8 @@ export const Polish: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Umieść obraz lub wideo w memie „Who Did This”',
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
+  'commands.media_iv.overlay.keep_item.description': 'Umieść obraz lub wideo w memie „Customers Usually Keep This Item”',
+  'commands.media_iv.overlay.keep_item.name': 'keepitem',
   'commands.media_iv.tint.blurple.description': 'Zabarw obraz lub wideo na blurple',
   'commands.media_iv.tint.derain.description': 'Nałóż odwrotność tęczowego zabarwienia na obraz lub wideo',
   'commands.media_iv.tint.gold.description': 'Zabarw obraz lub wideo na złoto',

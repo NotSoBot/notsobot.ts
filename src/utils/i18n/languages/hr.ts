@@ -2329,6 +2329,8 @@ export const Croatian: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Postavi sliku ili video unutar Who Did This mema',
   'commands.media_iv.overlay.who_did_this.name': 'tko-je-ovo-napravio',
+  'commands.media_iv.overlay.keep_item.description': 'Postavi sliku ili video unutar Customers Usually Keep This Item mema',
+  'commands.media_iv.overlay.keep_item.name': 'zadrži-artikl',
   'commands.media_iv.tint.blurple.description': 'Oboji sliku ili video u blurple',
   'commands.media_iv.tint.derain.description': 'Primijeni suprotnost duginih boja na sliku ili video',
   'commands.media_iv.tint.gold.description': 'Oboji sliku ili video zlatnom nijansom',

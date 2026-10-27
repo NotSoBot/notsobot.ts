@@ -3777,6 +3777,14 @@ export async function mediaIVManipulationOverlayHyperCam(
 }
 
 
+export async function mediaIVManipulationOverlayKeepItem(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayKeepItem(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayMistake(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,

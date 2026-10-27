@@ -9,6 +9,7 @@ import { MediaIVMemeAnalysisCommand } from './analysis';
 import { MediaIVMemeCoolGuyCommand } from './coolguy';
 import { MediaIVMemeExcuseCommand } from './excuse';
 import { MediaIVMemeGodCommand } from './god';
+import { MediaIVMemeKeepItemCommand } from './keep-item';
 import { MediaIVMemeKirbyCommand } from './kirby';
 import { MediaIVMemePerfectionCommand } from './perfection';
 import { MediaIVMemeRTXCommand } from './rtx';
@@ -32,6 +33,7 @@ export class MediaIVMemeFormatGroupCommand extends BaseInteractionCommandOptionG
         new MediaIVMemeExcuseCommand(),
         new MediaIVMemeGodCommand(),
         new MediaIVLabelsIFunnyCommand(),
+        new MediaIVMemeKeepItemCommand(),
         new MediaIVMemeKirbyCommand(),
         new MediaIVMemePerfectionCommand(),
         new MediaIVMemeRTXCommand(),

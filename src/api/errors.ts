@@ -67,6 +67,18 @@ export async function isApiError(error: any, ...codes: Array<ApiErrorCodes>): Pr
 }
 
 
+// the safety filters doing their job, the media (or text) was nsfw or against discord's guidelines. not our failure
+export const CONTENT_BLOCKED_API_ERRORS: ReadonlyArray<ApiErrorCodes> = [
+  ApiErrorCodes.MEDIA_BLOCKED_GUIDELINES,
+  ApiErrorCodes.MEDIA_BLOCKED_NSFW,
+  ApiErrorCodes.MEDIA_NOT_HOSTED_GUIDELINES,
+  ApiErrorCodes.MEDIA_NOT_HOSTED_NSFW,
+  ApiErrorCodes.MEDIA_TOO_LARGE_NOT_HOSTED_GUIDELINES,
+  ApiErrorCodes.MEDIA_TOO_LARGE_NOT_HOSTED_NSFW,
+  ApiErrorCodes.TEXT_BLOCKED_GUIDELINES,
+];
+
+
 // failed jobs have the code and metadata separately, put them in the same shape as an error response
 export function getJobApiError(job: RestResponsesRaw.JobResponse): ApiErrorBody | null {
   const { error, error_code, error_metadata } = job.result;
@@ -85,6 +97,13 @@ export class JobError extends Error {
     super(`Job Failed: ${job.result.error}`);
     this.apiError = getJobApiError(job);
   }
+}
+
+
+// a request or job that failed with one of `CONTENT_BLOCKED_API_ERRORS`
+export async function isContentBlockedError(error: any): Promise<boolean> {
+  const apiError = (error instanceof JobError) ? error.apiError : await getApiError(error);
+  return !!apiError && CONTENT_BLOCKED_API_ERRORS.includes(apiError.code);
 }
 
 

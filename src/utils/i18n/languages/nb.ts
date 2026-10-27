@@ -2329,6 +2329,8 @@ export const Norwegian: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Plasser et bilde eller en video inni en «Who Did This»-meme',
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
+  'commands.media_iv.overlay.keep_item.description': 'Plasser et bilde eller en video inni en «Customers Usually Keep This Item»-meme',
+  'commands.media_iv.overlay.keep_item.name': 'keepitem',
   'commands.media_iv.tint.blurple.description': 'Gjør et bilde eller en video blurple',
   'commands.media_iv.tint.derain.description': 'Legg det motsatte av en regnbuetoning på et bilde eller en video',
   'commands.media_iv.tint.gold.description': 'Gi et bilde eller en video en gulltoning',

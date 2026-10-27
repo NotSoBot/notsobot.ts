@@ -2329,6 +2329,8 @@ export const Japanese: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'ウェイステッド',
   'commands.media_iv.overlay.who_did_this.description': '画像または動画を「Who Did This」ミームの中に配置',
   'commands.media_iv.overlay.who_did_this.name': '誰がやった',
+  'commands.media_iv.overlay.keep_item.description': '画像または動画を「Customers Usually Keep This Item」ミームの中に配置',
+  'commands.media_iv.overlay.keep_item.name': '商品をキープ',
   'commands.media_iv.tint.blurple.description': '画像または動画をブループル色にする',
   'commands.media_iv.tint.derain.description': '画像または動画に虹色の逆の色合いをかける',
   'commands.media_iv.tint.gold.description': '画像または動画を金色にする',

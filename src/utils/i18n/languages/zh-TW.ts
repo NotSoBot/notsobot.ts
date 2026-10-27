@@ -2329,6 +2329,8 @@ export const ChineseTraditional: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': '把圖片或影片放進「Who Did This」迷因裡',
   'commands.media_iv.overlay.who_did_this.name': '誰幹的',
+  'commands.media_iv.overlay.keep_item.description': '把圖片或影片放進「Customers Usually Keep This Item」迷因裡',
+  'commands.media_iv.overlay.keep_item.name': '留下商品',
   'commands.media_iv.tint.blurple.description': '把圖片或影片變成 Blurple 色',
   'commands.media_iv.tint.derain.description': '對圖片或影片套用與彩虹相反的色調',
   'commands.media_iv.tint.gold.description': '為圖片或影片套用金色色調',

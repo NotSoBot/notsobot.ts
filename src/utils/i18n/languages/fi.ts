@@ -2329,6 +2329,8 @@ export const Finnish: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Aseta kuva tai video Who Did This -meemiin',
   'commands.media_iv.overlay.who_did_this.name': 'kuka-teki-tämän',
+  'commands.media_iv.overlay.keep_item.description': 'Aseta kuva tai video Customers Usually Keep This Item -meemiin',
+  'commands.media_iv.overlay.keep_item.name': 'pidä-tuote',
   'commands.media_iv.tint.blurple.description': 'Värjää kuva tai video blurpleksi',
   'commands.media_iv.tint.derain.description': 'Lisää sateenkaarisävytyksen vastakohta kuvaan tai videoon',
   'commands.media_iv.tint.gold.description': 'Sävytä kuva tai video kultaiseksi',

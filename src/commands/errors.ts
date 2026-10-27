@@ -5,7 +5,7 @@ import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
-import { ApiErrorBody, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, readErrorBody } from '../api/errors';
+import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, readErrorBody } from '../api/errors';
 import { ApiErrorCodes, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
 import { I18n, displayReply, formatMemory } from '../utils';
 
@@ -127,13 +127,7 @@ function translateApiError(
 // the api's message for these only rewords the translation ('An outputted media was blocked...'), it never adds anything
 const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
   ApiErrorCodes.SERVER_AI_LIMIT,
-  ApiErrorCodes.MEDIA_BLOCKED_GUIDELINES,
-  ApiErrorCodes.MEDIA_BLOCKED_NSFW,
-  ApiErrorCodes.MEDIA_NOT_HOSTED_GUIDELINES,
-  ApiErrorCodes.MEDIA_NOT_HOSTED_NSFW,
-  ApiErrorCodes.MEDIA_TOO_LARGE_NOT_HOSTED_GUIDELINES,
-  ApiErrorCodes.MEDIA_TOO_LARGE_NOT_HOSTED_NSFW,
-  ApiErrorCodes.TEXT_BLOCKED_GUIDELINES,
+  ...CONTENT_BLOCKED_API_ERRORS,
 ];
 
 

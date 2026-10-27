@@ -2329,6 +2329,8 @@ export const Bulgarian: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'уейстед',
   'commands.media_iv.overlay.who_did_this.description': 'Сложи изображение или видео в мема Who Did This',
   'commands.media_iv.overlay.who_did_this.name': 'кой-направи-това',
+  'commands.media_iv.overlay.keep_item.description': 'Сложи изображение или видео в мема Customers Usually Keep This Item',
+  'commands.media_iv.overlay.keep_item.name': 'запази-продукта',
   'commands.media_iv.tint.blurple.description': 'Оцвети изображение или видео в Blurple',
   'commands.media_iv.tint.derain.description': 'Приложи обратното на дъговиден оттенък върху изображение или видео',
   'commands.media_iv.tint.gold.description': 'Приложи златен оттенък върху изображение или видео',

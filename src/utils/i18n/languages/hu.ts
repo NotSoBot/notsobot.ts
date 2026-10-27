@@ -2329,6 +2329,8 @@ export const Hungarian: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Kép vagy videó elhelyezése egy Who Did This mémben',
   'commands.media_iv.overlay.who_did_this.name': 'ki-tette-ezt',
+  'commands.media_iv.overlay.keep_item.description': 'Kép vagy videó elhelyezése egy Customers Usually Keep This Item mémben',
+  'commands.media_iv.overlay.keep_item.name': 'termék-megtartása',
   'commands.media_iv.tint.blurple.description': 'Kép vagy videó blurple-ösítése',
   'commands.media_iv.tint.derain.description': 'A szivárványos színezés ellentétének alkalmazása képen vagy videón',
   'commands.media_iv.tint.gold.description': 'Kép vagy videó arany színezése',

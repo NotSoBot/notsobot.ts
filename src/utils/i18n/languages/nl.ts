@@ -2329,6 +2329,8 @@ export const Dutch: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Plaats een afbeelding of video in een "Who Did This"-meme',
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
+  'commands.media_iv.overlay.keep_item.description': 'Plaats een afbeelding of video in een "Customers Usually Keep This Item"-meme',
+  'commands.media_iv.overlay.keep_item.name': 'keepitem',
   'commands.media_iv.tint.blurple.description': 'Maak een afbeelding of video blurple',
   'commands.media_iv.tint.derain.description': 'Pas het tegenovergestelde van een regenboogtint toe op een afbeelding of video',
   'commands.media_iv.tint.gold.description': 'Geef een afbeelding of video een gouden tint',

@@ -1,6 +1,7 @@
 import { CommandClient, InteractionCommandClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 
+import { isContentBlockedError } from './api/errors';
 import { isTagError } from './utils/tags/exceptions';
 
 
@@ -9,6 +10,9 @@ export enum CommandResults {
   ARGUMENT_ERROR = 'argument_error',
   BLOCKED = 'blocked',
   BOT_MISSING_PERMISSIONS = 'bot_missing_permissions',
+  // the api blocked the media (or text) for being nsfw or against discord's guidelines, the filter working and not our
+  // failure, so it's kept out of `run_error` like `script_error`
+  CONTENT_BLOCKED = 'content_blocked',
   // stopped before running without saying why, like `onBeforeRun` returning false (no media found)
   CANCELLED = 'cancelled',
   // `onBeforeRun` or `onSuccess` threw
@@ -48,11 +52,19 @@ export function connectCommandResults(client: CommandClient | InteractionCommand
   for (let [event, result] of RESULT_EVENTS) {
     client.subscribe(event, ({context}: {context: {metadata?: Record<string, any>}}) => setCommandResult(context, result));
   }
-  client.subscribe(ClientEvents.COMMAND_RUN_ERROR, ({context, error}: {context: {metadata?: Record<string, any>}, error: any}) => {
-    setCommandResult(context, getRunErrorResult(error));
+  // async for reading the api error's body, still set before `onFinally` since detritus awaits `onRunError` (which reads
+  // the same cached body and replies) between emitting this and calling it
+  client.subscribe(ClientEvents.COMMAND_RUN_ERROR, async ({context, error}: {context: {metadata?: Record<string, any>}, error: any}) => {
+    setCommandResult(context, await getRunErrorResult(error));
   });
 }
 
-export function getRunErrorResult(error: any): CommandResults {
-  return (isTagError(error)) ? CommandResults.SCRIPT_ERROR : CommandResults.RUN_ERROR;
+export async function getRunErrorResult(error: any): Promise<CommandResults> {
+  if (isTagError(error)) {
+    return CommandResults.SCRIPT_ERROR;
+  }
+  if (await isContentBlockedError(error)) {
+    return CommandResults.CONTENT_BLOCKED;
+  }
+  return CommandResults.RUN_ERROR;
 }

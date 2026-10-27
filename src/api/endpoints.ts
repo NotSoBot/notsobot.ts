@@ -738,6 +738,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/half-life-smg',
   MEDIA_IV_MANIPULATION_OVERLAY_HYPERCAM:
     '/media/iv/manipulation/overlay/hypercam',
+  MEDIA_IV_MANIPULATION_OVERLAY_KEEP_ITEM:
+    '/media/iv/manipulation/overlay/keep-item',
   MEDIA_IV_MANIPULATION_OVERLAY_MISTAKE:
     '/media/iv/manipulation/overlay/mistake',
   MEDIA_IV_MANIPULATION_OVERLAY_NEWS:

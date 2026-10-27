@@ -2329,6 +2329,8 @@ export const ChineseSimplified: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': '把图片或视频放进“Who Did This”表情包里',
   'commands.media_iv.overlay.who_did_this.name': '谁干的',
+  'commands.media_iv.overlay.keep_item.description': '把图片或视频放进“Customers Usually Keep This Item”表情包里',
+  'commands.media_iv.overlay.keep_item.name': '留下商品',
   'commands.media_iv.tint.blurple.description': '把图片或视频变成 Blurple 色调',
   'commands.media_iv.tint.derain.description': '给图片或视频加上与彩虹相反的色调',
   'commands.media_iv.tint.gold.description': '给图片或视频加上金色色调',

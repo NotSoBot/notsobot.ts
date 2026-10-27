@@ -2329,6 +2329,8 @@ export const French: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Place une image ou une vidéo dans un mème « Who Did This »',
   'commands.media_iv.overlay.who_did_this.name': 'qui-a-fait-ca',
+  'commands.media_iv.overlay.keep_item.description': 'Place une image ou une vidéo dans un mème « Customers Usually Keep This Item »',
+  'commands.media_iv.overlay.keep_item.name': 'garder-article',
   'commands.media_iv.tint.blurple.description': 'Teinte une image ou une vidéo en blurple',
   'commands.media_iv.tint.derain.description': 'Applique l\'inverse d\'une teinte arc-en-ciel à une image ou une vidéo',
   'commands.media_iv.tint.gold.description': 'Teinte une image ou une vidéo en doré',

@@ -2329,6 +2329,8 @@ export const Ukrainian: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'потрачено',
   'commands.media_iv.overlay.who_did_this.description': 'Помістити зображення або відео в мем «Who Did This»',
   'commands.media_iv.overlay.who_did_this.name': 'хто-це-зробив',
+  'commands.media_iv.overlay.keep_item.description': 'Помістити зображення або відео в мем «Customers Usually Keep This Item»',
+  'commands.media_iv.overlay.keep_item.name': 'залишити-товар',
   'commands.media_iv.tint.blurple.description': 'Пофарбувати зображення або відео в колір Blurple',
   'commands.media_iv.tint.derain.description': 'Застосувати обернений райдужний відтінок до зображення або відео',
   'commands.media_iv.tint.gold.description': 'Пофарбувати зображення або відео в золото',

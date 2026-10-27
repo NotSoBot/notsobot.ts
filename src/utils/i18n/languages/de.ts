@@ -2329,6 +2329,8 @@ export const German: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Setze ein Bild oder Video in ein Who-Did-This-Meme ein',
   'commands.media_iv.overlay.who_did_this.name': 'wer-war-das',
+  'commands.media_iv.overlay.keep_item.description': 'Setze ein Bild oder Video in ein „Customers Usually Keep This Item“-Meme ein',
+  'commands.media_iv.overlay.keep_item.name': 'artikel-behalten',
   'commands.media_iv.tint.blurple.description': 'Färbe ein Bild oder Video Blurple',
   'commands.media_iv.tint.derain.description': 'Wende das Gegenteil einer Regenbogen-Tönung auf ein Bild oder Video an',
   'commands.media_iv.tint.gold.description': 'Gib einem Bild oder Video eine Goldtönung',

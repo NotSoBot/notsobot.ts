@@ -2329,6 +2329,8 @@ export const Korean: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': '이미지 또는 동영상을 "Who Did This" 밈 안에 넣어요',
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
+  'commands.media_iv.overlay.keep_item.description': '이미지 또는 동영상을 "Customers Usually Keep This Item" 밈 안에 넣어요',
+  'commands.media_iv.overlay.keep_item.name': 'keepitem',
   'commands.media_iv.tint.blurple.description': '이미지 또는 동영상을 블러플 색으로 만들어요',
   'commands.media_iv.tint.derain.description': '이미지 또는 동영상에 무지개 색조의 반대를 적용해요',
   'commands.media_iv.tint.gold.description': '이미지 또는 동영상에 금색 색조를 입혀요',

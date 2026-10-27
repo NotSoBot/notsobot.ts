@@ -388,6 +388,7 @@ import * as MediaIVManipulationOverlayHalfLifePistol from './media.iv.manipulati
 import * as MediaIVManipulationOverlayHalfLifeShotgun from './media.iv.manipulation.overlay.halflife.shotgun';
 import * as MediaIVManipulationOverlayHalfLifeSMG from './media.iv.manipulation.overlay.halflife.smg';
 import * as MediaIVManipulationOverlayHyperCam from './media.iv.manipulation.overlay.hypercam';
+import * as MediaIVManipulationOverlayKeepItem from './media.iv.manipulation.overlay.keep.item';
 import * as MediaIVManipulationOverlayMistake from './media.iv.manipulation.overlay.mistake';
 import * as MediaIVManipulationOverlayNews from './media.iv.manipulation.overlay.news';
 import * as MediaIVManipulationOverlayNotResponding from './media.iv.manipulation.overlay.not.responding';
@@ -1074,6 +1075,7 @@ export {
   MediaIVManipulationOverlayHalfLifeShotgun,
   MediaIVManipulationOverlayHalfLifeSMG,
   MediaIVManipulationOverlayHyperCam,
+  MediaIVManipulationOverlayKeepItem,
   MediaIVManipulationOverlayMistake,
   MediaIVManipulationOverlayNews,
   MediaIVManipulationOverlayNotResponding,

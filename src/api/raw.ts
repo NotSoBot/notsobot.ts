@@ -9752,6 +9752,27 @@ export async function mediaIVManipulationOverlayHyperCam(
 }
 
 
+export async function mediaIVManipulationOverlayKeepItem(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_KEEP_ITEM,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayMistake(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,

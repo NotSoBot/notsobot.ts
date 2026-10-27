@@ -2329,6 +2329,8 @@ export const Greek: Translations = Object.freeze({
   'commands.media_iv.overlay.wasted.name': 'wasted',
   'commands.media_iv.overlay.who_did_this.description': 'Βάλε εικόνα ή βίντεο μέσα σε ένα meme Who Did This',
   'commands.media_iv.overlay.who_did_this.name': 'ποιος-το-έκανε',
+  'commands.media_iv.overlay.keep_item.description': 'Βάλε εικόνα ή βίντεο μέσα σε ένα meme Customers Usually Keep This Item',
+  'commands.media_iv.overlay.keep_item.name': 'κράτα-το-προϊόν',
   'commands.media_iv.tint.blurple.description': 'Κάνε μια εικόνα ή βίντεο blurple',
   'commands.media_iv.tint.derain.description': 'Εφαρμογή του αντίθετου απόχρωσης ουράνιου τόξου σε εικόνα ή βίντεο',
   'commands.media_iv.tint.gold.description': 'Χρυσή απόχρωση σε εικόνα ή βίντεο',

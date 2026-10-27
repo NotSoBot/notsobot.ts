@@ -327,7 +327,7 @@ async function generateAndRunTag(
 
     // caught here so it can reply with the debug info, but it still counts as the run erroring. NotSoAI writing broken
     // tagscript is already kept with the generated tag above, only our own failures go to sentry
-    setCommandResult(context, getRunErrorResult(error));
+    setCommandResult(context, await getRunErrorResult(error));
     if (!TagFormatter.isTagError(error)) {
       captureError(error, {
         context,

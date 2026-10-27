@@ -137,8 +137,8 @@ export function connectCommandMetrics(commandClient: CommandClient): Array<Event
     commandClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => {
       recordCommand(type, 'ran', context.metadata && context.metadata.started);
     }),
-    commandClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, ({context, error}) => {
-      recordCommand(type, getRunErrorResult(error), context.metadata && context.metadata.started);
+    commandClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, async ({context, error}) => {
+      recordCommand(type, await getRunErrorResult(error), context.metadata && context.metadata.started);
     }),
     commandClient.subscribe(ClientEvents.COMMAND_FAIL, () => recordCommand(type, 'fail')),
     commandClient.subscribe(ClientEvents.COMMAND_RATELIMIT, () => recordCommand(type, 'ratelimited')),
@@ -151,8 +151,8 @@ export function connectInteractionCommandMetrics(interactionClient: InteractionC
     interactionClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => {
       recordCommand(type, 'ran', context.metadata && context.metadata.started);
     }),
-    interactionClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, ({context, error}) => {
-      recordCommand(type, getRunErrorResult(error), context.metadata && context.metadata.started);
+    interactionClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, async ({context, error}) => {
+      recordCommand(type, await getRunErrorResult(error), context.metadata && context.metadata.started);
     }),
     interactionClient.subscribe(ClientEvents.COMMAND_FAIL, () => recordCommand(type, 'fail')),
     interactionClient.subscribe(ClientEvents.COMMAND_RATELIMIT, () => recordCommand(type, 'ratelimited')),
