@@ -25,6 +25,7 @@ import { MediaAIVShuffleCommand } from './shuffle';
 import { MediaAIVSnipCommand } from './snip';
 import { MediaAIVSpeedCommand } from './speed';
 import { MediaAIVVegCommand } from './veg';
+import { MediaAIVWlmpCommand } from './wlmp';
 
 
 export default class MediaAIVGroupCommand extends BaseSlashCommand {
@@ -62,6 +63,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
         new MediaAIVSnipCommand(),
         new MediaAIVSpeedCommand(),
         new MediaAIVVegCommand(),
+        new MediaAIVWlmpCommand(),
 	  ],
 	});
   }

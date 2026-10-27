@@ -5,6 +5,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { MediaIVFlagAsexualCommand } from './asexual';
 import { MediaIVFlagBisexualCommand } from './bisexual';
 import { MediaIVFlagLesbianCommand } from './lesbian';
+import { MediaIVFlagMLMCommand } from './mlm';
 import { MediaIVFlagNonBinaryCommand } from './nonbinary';
 import { MediaIVFlagPansexualCommand } from './pansexual';
 import { MediaIVOverlayGayCommand } from './gay';
@@ -24,6 +25,7 @@ export class MediaIVPrideGroupCommand extends BaseInteractionCommandOptionGroup 
         new MediaIVFlagBisexualCommand(),
         new MediaIVOverlayGayCommand(),
         new MediaIVFlagLesbianCommand(),
+        new MediaIVFlagMLMCommand(),
         new MediaIVFlagNonBinaryCommand(),
         new MediaIVFlagPansexualCommand(),
         new MediaIVOverlayTransCommand(),

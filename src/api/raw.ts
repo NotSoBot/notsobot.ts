@@ -2930,6 +2930,33 @@ export async function mediaAIVManipulationVeg(
 }
 
 
+export async function mediaAIVManipulationWlmp(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationWlmp,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
+    url: options.url,
+    wlmp_url: options.wlmpUrl,
+  };
+  return request(context, {
+    file: options.file,
+    // the api tells the .wlmp upload apart from the media by its key
+    files: (options.wlmpFile) ? [{...options.wlmpFile, key: 'wlmp_file'}] : undefined,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_WLMP,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsAnalyze(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -6767,6 +6794,27 @@ export async function mediaIVManipulationOverlayFlagAsexual(
 }
 
 
+export async function mediaIVManipulationOverlayFlagAustralia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_AUSTRALIA,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagAustria(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -7502,6 +7550,27 @@ export async function mediaIVManipulationOverlayFlagEU(
 }
 
 
+export async function mediaIVManipulationOverlayFlagFiji(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_FIJI,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagFinland(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -8006,6 +8075,27 @@ export async function mediaIVManipulationOverlayFlagKazakhstan(
 }
 
 
+export async function mediaIVManipulationOverlayFlagKiribati(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_KIRIBATI,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagKosovo(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -8321,6 +8411,27 @@ export async function mediaIVManipulationOverlayFlagMalta(
 }
 
 
+export async function mediaIVManipulationOverlayFlagMarshallIslands(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MARSHALL_ISLANDS,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagMexico(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -8337,6 +8448,48 @@ export async function mediaIVManipulationOverlayFlagMexico(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MEXICO,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagMicronesia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MICRONESIA,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagMLM(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MLM,
     },
   });
 }
@@ -8447,6 +8600,27 @@ export async function mediaIVManipulationOverlayFlagMyanmar(
 }
 
 
+export async function mediaIVManipulationOverlayFlagNauru(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NAURU,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagNepal(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -8484,6 +8658,27 @@ export async function mediaIVManipulationOverlayFlagNetherlands(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NETHERLANDS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagNewZealand(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NEW_ZEALAND,
     },
   });
 }
@@ -8610,6 +8805,27 @@ export async function mediaIVManipulationOverlayFlagPanama(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PANAMA,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagPapuaNewGuinea(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PAPUA_NEW_GUINEA,
     },
   });
 }
@@ -8825,6 +9041,27 @@ export async function mediaIVManipulationOverlayFlagSaintVincent(
 }
 
 
+export async function mediaIVManipulationOverlayFlagSamoa(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAMOA,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagSanMarino(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -8946,6 +9183,27 @@ export async function mediaIVManipulationOverlayFlagSlovenia(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SLOVENIA,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagSolomonIslands(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SOLOMON_ISLANDS,
     },
   });
 }
@@ -9182,6 +9440,27 @@ export async function mediaIVManipulationOverlayFlagThailand(
 }
 
 
+export async function mediaIVManipulationOverlayFlagTonga(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TONGA,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagTrans(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -9240,6 +9519,27 @@ export async function mediaIVManipulationOverlayFlagPakistan(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PAKISTAN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagPalau(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PALAU,
     },
   });
 }
@@ -9366,6 +9666,27 @@ export async function mediaIVManipulationOverlayFlagTurkmenistan(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TURKMENISTAN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagTuvalu(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TUVALU,
     },
   });
 }
@@ -9513,6 +9834,27 @@ export async function mediaIVManipulationOverlayFlagUzbekistan(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UZBEKISTAN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagVanuatu(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_VANUATU,
     },
   });
 }
@@ -11870,6 +12212,30 @@ export async function mediaIVManipulationWiggle(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_WIGGLE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationXyt(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationXyt,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+    xyt_url: options.xytUrl,
+  };
+  return request(context, {
+    file: options.file,
+    // the api tells the .xyt upload apart from the media by its key
+    files: (options.xytFile) ? [{...options.xytFile, key: 'xyt_file'}] : undefined,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_XYT,
     },
   });
 }

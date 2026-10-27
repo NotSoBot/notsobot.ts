@@ -29,6 +29,7 @@ import { MediaIVQuadartCommand } from './quadart';
 import { MediaIVSharpenCommand } from './sharpen';
 import { MediaIVTraceCommand } from './trace';
 import { MediaIVWatercolorCommand } from './watercolor';
+import { MediaIVXytCommand } from './xyt';
 import { MediaIVZoomBlurCommand } from './zoom-blur';
 
 
@@ -72,6 +73,7 @@ export default class MediaIVFilterGroupCommand extends BaseSlashCommand {
         new MediaIVSharpenCommand(),
         new MediaIVTraceCommand(),
         new MediaIVWatercolorCommand(),
+        new MediaIVXytCommand(),
         new MediaIVZoomBlurCommand(),
       ],
     });

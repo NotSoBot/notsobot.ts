@@ -13,7 +13,7 @@ export default class OverlayEastTimorCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['o easttimor', 'overlay timor', 'o timor', 'easttimor', 'timor'],
+      aliases: ['o easttimor', 'overlay timorleste', 'o timorleste', 'overlay timor', 'o timor', 'easttimor', 'timorleste', 'timor'],
       metadata: {
         category: CommandCategories.EFFECTS,
         description: 'Overlay an East Timorese flag over an Image or Video',

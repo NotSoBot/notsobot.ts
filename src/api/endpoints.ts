@@ -106,6 +106,8 @@ export const Api = Object.freeze({
     '/media/aiv/manipulation/speed',
   MEDIA_AIV_MANIPULATION_VEG:
     '/media/aiv/manipulation/veg',
+  MEDIA_AIV_MANIPULATION_WLMP:
+    '/media/aiv/manipulation/wlmp',
 
   MEDIA_AIV_TOOLS_ANALYZE:
     '/media/aiv/tools/analyze',
@@ -452,6 +454,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-armenia',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ASEXUAL:
     '/media/iv/manipulation/overlay/flag-asexual',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_AUSTRALIA:
+    '/media/iv/manipulation/overlay/flag-australia',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_AUSTRIA:
     '/media/iv/manipulation/overlay/flag-austria',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_AZERBAIJAN:
@@ -522,6 +526,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-estonia',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_EU:
     '/media/iv/manipulation/overlay/flag-eu',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_FIJI:
+    '/media/iv/manipulation/overlay/flag-fiji',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_FINLAND:
     '/media/iv/manipulation/overlay/flag-finland',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_FRANCE:
@@ -572,6 +578,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-jordan',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_KAZAKHSTAN:
     '/media/iv/manipulation/overlay/flag-kazakhstan',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_KIRIBATI:
+    '/media/iv/manipulation/overlay/flag-kiribati',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_KOSOVO:
     '/media/iv/manipulation/overlay/flag-kosovo',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_KUWAIT:
@@ -602,8 +610,14 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-maldives',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MALTA:
     '/media/iv/manipulation/overlay/flag-malta',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MARSHALL_ISLANDS:
+    '/media/iv/manipulation/overlay/flag-marshall-islands',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MEXICO:
     '/media/iv/manipulation/overlay/flag-mexico',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MICRONESIA:
+    '/media/iv/manipulation/overlay/flag-micronesia',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MLM:
+    '/media/iv/manipulation/overlay/flag-mlm',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MOLDOVA:
     '/media/iv/manipulation/overlay/flag-moldova',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MONACO:
@@ -614,10 +628,14 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-montenegro',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MYANMAR:
     '/media/iv/manipulation/overlay/flag-myanmar',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NAURU:
+    '/media/iv/manipulation/overlay/flag-nauru',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NEPAL:
     '/media/iv/manipulation/overlay/flag-nepal',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NETHERLANDS:
     '/media/iv/manipulation/overlay/flag-netherlands',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NEW_ZEALAND:
+    '/media/iv/manipulation/overlay/flag-new-zealand',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NICARAGUA:
     '/media/iv/manipulation/overlay/flag-nicaragua',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NONBINARY:
@@ -632,12 +650,16 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-oman',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PAKISTAN:
     '/media/iv/manipulation/overlay/flag-pakistan',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PALAU:
+    '/media/iv/manipulation/overlay/flag-palau',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PALESTINE:
     '/media/iv/manipulation/overlay/flag-palestine',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PANAMA:
     '/media/iv/manipulation/overlay/flag-panama',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PANSEXUAL:
     '/media/iv/manipulation/overlay/flag-pansexual',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PAPUA_NEW_GUINEA:
+    '/media/iv/manipulation/overlay/flag-papua-new-guinea',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PARAGUAY:
     '/media/iv/manipulation/overlay/flag-paraguay',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PERU:
@@ -660,6 +682,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-saint-lucia',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAINT_VINCENT:
     '/media/iv/manipulation/overlay/flag-saint-vincent',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAMOA:
+    '/media/iv/manipulation/overlay/flag-samoa',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAN_MARINO:
     '/media/iv/manipulation/overlay/flag-san-marino',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAUDI_ARABIA:
@@ -672,6 +696,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-slovakia',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SLOVENIA:
     '/media/iv/manipulation/overlay/flag-slovenia',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SOLOMON_ISLANDS:
+    '/media/iv/manipulation/overlay/flag-solomon-islands',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SOUTH_KOREA:
     '/media/iv/manipulation/overlay/flag-south-korea',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SPAIN:
@@ -694,6 +720,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-taliban',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_THAILAND:
     '/media/iv/manipulation/overlay/flag-thailand',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TONGA:
+    '/media/iv/manipulation/overlay/flag-tonga',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRANS:
     '/media/iv/manipulation/overlay/flag-trans',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRINIDAD:
@@ -702,6 +730,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-turkey',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TURKMENISTAN:
     '/media/iv/manipulation/overlay/flag-turkmenistan',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TUVALU:
+    '/media/iv/manipulation/overlay/flag-tuvalu',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UAE:
     '/media/iv/manipulation/overlay/flag-uae',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UK:
@@ -716,6 +746,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-ussr',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UZBEKISTAN:
     '/media/iv/manipulation/overlay/flag-uzbekistan',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_VANUATU:
+    '/media/iv/manipulation/overlay/flag-vanuatu',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_VATICAN:
     '/media/iv/manipulation/overlay/flag-vatican',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_VENEZUELA:
@@ -928,6 +960,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/wave/vegas',
   MEDIA_IV_MANIPULATION_WIGGLE:
     '/media/iv/manipulation/wiggle',
+  MEDIA_IV_MANIPULATION_XYT:
+    '/media/iv/manipulation/xyt',
   MEDIA_IV_MANIPULATION_ZOOM:
     '/media/iv/manipulation/zoom',
   MEDIA_IV_MANIPULATION_ZOOM_BLUR:

@@ -317,7 +317,7 @@ export class NodeConnection {
           // nothing could take them (no other node up), the node would have dropped them by now anyway
           if (RESUME_TIMEOUT * 1000 < Date.now() - this.disconnectedAt) {
             for (const guildId of this.guildIds) {
-              this.client.leave(guildId);
+              this.client.nodeLost(guildId, this.disconnectedAt);
             }
           }
           if (this.guildIds.length) {
@@ -687,7 +687,19 @@ export class VoiceNodeClient extends EventSpewer {
   }
 
   private async recoverGuild(shard: ShardClient, guildId: string, channelId: string, session: RestResponsesRaw.MusicSession) {
-    const node = await this.pickNode(shard);
+    let node: NodeConnection;
+    try {
+      node = await this.pickNode(shard);
+    } catch(error) {
+      // no node can be reached right now: 24/7 ones wait and try again (picking one is what reconnects to the nodes,
+      // a failed one every `NODE_RETRY_AFTER`), the rest are given up on
+      if (session.stay && !this.detached && !this.guilds.has(guildId) && !this.recoveredSessions.has(guildId)) {
+        this.recoveredSessions.set(guildId, {loadedAt: Date.now(), session});
+        this.watchRecovered();
+        return;
+      }
+      throw error;
+    }
     if (this.detached || this.guilds.has(guildId)) {
       return;
     }
@@ -1120,6 +1132,50 @@ export class VoiceNodeClient extends EventSpewer {
       deleteGuildMusicSession({client: guild.shard}, guildId).catch((error) => console.warn('voice node session', error));
     }
     this.emit(VoiceNodeEvents.LEFT, {guildId});
+  }
+
+  // its node stayed out of reach past `RESUME_TIMEOUT` and no other node took it (the node dropped its player by now):
+  // we leave. 24/7 servers keep the api's music session and wait in `recoveredSessions` like after a restart, rejoining
+  // where they were once a node can be reached. A disconnected one keeps its hold, the rest lose the session like a leave
+  nodeLost(guildId: string, downAt: number) {
+    const guild = this.guilds.get(guildId);
+    if (!guild) {
+      return;
+    }
+    const channelId = guild.channelId;
+    const paused = !!guild.paused;
+    const position = (guild.idle) ? 0 : this.estimatePosition(guild, downAt);
+    this.drop(guildId);
+    this.emit(VoiceNodeEvents.LEFT, {guildId});
+    if (guild.disconnected) {
+      return;
+    }
+    const shard = guild.shard;
+    if (!channelId) {
+      deleteGuildMusicSession({client: shard}, guildId).catch((error) => console.warn('voice node session', error));
+      return;
+    }
+    fetchGuildMusic({client: shard}, guildId).catch(() => null).then((music) => {
+      // someone played something in the meantime, its join made a new session
+      if (this.detached || this.guilds.has(guildId)) {
+        return;
+      }
+      if (!music || !music.premium || !music.stay) {
+        deleteGuildMusicSession({client: shard}, guildId).catch((error) => console.warn('voice node session', error));
+        return;
+      }
+      editGuildMusicSession({client: shard}, guildId, {nodeId: null, paused, position})
+        .catch((error) => console.warn(`voice node session ${guildId}`, error));
+      const effects = guild.effects || [];
+      const volume = guild.volume ?? 100;
+      this.recoveredSessions.set(guildId, {
+        loadedAt: Date.now(),
+        // 24/7 with nothing playing has no track to carry on, the queue starts again
+        session: {channel_id: channelId, effects, finished: !!guild.idle, guild_id: guildId, held: false, node_id: null, paused, position, stay: true, volume},
+      });
+      console.log(`voice node ${guild.node.info.name} lost ${guildId} (24/7), rejoining at ${position}ms once a node can be reached`);
+      this.watchRecovered();
+    });
   }
 
   // paused too long (disconnected ones too), or `music leave` keeping the queue: we leave and the node's player goes, the

@@ -671,6 +671,12 @@ export namespace RestOptions {
     vegUrl?: string,
   }
 
+  export interface MediaAIVManipulationWlmp extends MediaBaseOptions {
+    // the .wlmp as an upload or a url, one of them is needed
+    wlmpFile?: RequestFile,
+    wlmpUrl?: string,
+  }
+
   export interface MediaAIVManipulationSnip extends MediaBaseOptions {
     audioOnly?: boolean,
     end?: number,
@@ -1521,6 +1527,12 @@ export namespace RestOptions {
     wavelengths?: number,
   }
 
+  export interface MediaIVManipulationXyt extends MediaBaseOptions {
+    // the .xyt as an upload or a url, one of them is needed
+    xytFile?: RequestFile,
+    xytUrl?: string,
+  }
+
   export interface MediaIVManipulationZoom extends MediaBaseOptions {
     amount?: number,
   }
@@ -1820,7 +1832,7 @@ export namespace RestOptions {
   export interface CommandPreview {
     // what it shows, as typed without the prefix
     example: string,
-    inputs: Array<'b1' | 'bordered' | 'captioned' | 'face' | 'face2' | 'grade' | 'music' | 'photo' | 'preview1280' | 'quiet' | 'stereo' | 'video' | 'video2' | 'voice'>,
+    inputs: Array<'b1' | 'bordered' | 'captioned' | 'face' | 'face2' | 'funface' | 'grade' | 'movie' | 'music' | 'photo' | 'preview1280' | 'quiet' | 'stereo' | 'video' | 'video2' | 'voice'>,
     script: string,
   }
 
