@@ -7,8 +7,6 @@ import UserStore from '../../../stores/users';
 import {
   CommandCategories,
   GuildFeatures,
-  TagGenerationModels,
-  TagGenerationModelsToText,
   TagGenerationPersonalityPreferences,
   TagGenerationPersonalityPreferencesToText,
   UserFlags,
@@ -35,11 +33,13 @@ export default class AiCommand extends BaseCommand {
           label: 'personalityPreference',
           type: Parameters.oneOf({choices: TagGenerationPersonalityPreferences, descriptions: TagGenerationPersonalityPreferencesToText}),
         },
-        {
-          name: 'use',
-          label: 'model',
-          type: Parameters.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToText}),
-        },
+        {name: 'url', type: Parameters.url},
+        // model picker disabled, the user's `settings set ai model` (or the api default) is used instead
+        // {
+        //   name: 'use',
+        //   label: 'model',
+        //   type: Parameters.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToText}),
+        // },
       ],
       label: 'prompt',
       metadata: {
@@ -50,7 +50,7 @@ export default class AiCommand extends BaseCommand {
           `${COMMAND_NAME} what is cake\'s user id`,
         ],
         id: Formatter.Commands.TagGenerate.COMMAND_ID,
-        usage: '<text> (-debug) (-personalitypreference <choice>) (-use <choice>)',
+        usage: '<text> (-debug) (-personalitypreference <choice>) (-url <url>)',
       },
       priority: -1,
       type: Parameters.targetText,

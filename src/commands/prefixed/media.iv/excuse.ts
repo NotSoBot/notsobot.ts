@@ -15,7 +15,7 @@ export default class ExcuseCommand extends BaseImageOrVideoCommand {
 
       aliases: ['excuseme'],
       metadata: {
-        description: 'Attach an "excuse me what the fuck" panel under an Image or Video',
+        description: 'Attach an "excuse me, what?" panel under an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

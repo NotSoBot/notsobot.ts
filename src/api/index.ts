@@ -2217,6 +2217,14 @@ export async function mediaIVManipulationHueShiftYIQ(
 }
 
 
+export async function mediaIVManipulationHueShiftHSL(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueShiftHSL,
+) {
+  return raw.mediaIVManipulationHueShiftHSL(context, options);
+}
+
+
 export async function mediaIVManipulationHueShiftHSV(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftHSV,

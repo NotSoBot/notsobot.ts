@@ -18,6 +18,7 @@ import { MediaIVHueCurveRGBACommand } from './hue-curve-rgba';
 import { MediaIVHueShiftHSVCommand } from './hue-shift-hsv';
 import { MediaIVHueShiftHSVFFMPEGCommand } from './hue-shift-hsv-ffmpeg';
 import { MediaIVHueShiftRGBCommand } from './hue-shift-rgb';
+import { MediaIVHueShiftYIQCommand } from './hue-shift-yiq';
 import { MediaIVInvertCommand } from './invert';
 import { MediaIVInvertLABCommand } from './invert-lab';
 import { MediaIVInvertRGBACommand } from './invert-rgba';
@@ -60,6 +61,7 @@ export default class MediaIVColorGroupCommand extends BaseSlashCommand {
         new MediaIVHueShiftHSVCommand(),
         new MediaIVHueShiftHSVFFMPEGCommand(),
         new MediaIVHueShiftRGBCommand(),
+        new MediaIVHueShiftYIQCommand(),
         new MediaIVInvertCommand(),
         new MediaIVInvertLABCommand(),
         new MediaIVInvertRGBACommand(),

@@ -49,6 +49,7 @@ export interface CommandArgs {
   model?: string,
   personalityPreference?: string,
   prompt: string,
+  url?: null | string,
 }
 
 export async function createMessage(
@@ -236,6 +237,11 @@ async function generateAndRunTag(
         }
       }
     }
+  }
+
+  // the url option goes first, it's what they explicitly pointed NotSoAI at
+  if (args.url && !urls.includes(args.url)) {
+    urls.unshift(args.url);
   }
 
   const [ personality, serverPersonality, userPersonality ] = await getAIPersonality(

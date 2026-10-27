@@ -191,6 +191,7 @@ import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale
 import * as MediaIVManipulationHidden from './media.iv.manipulation.hidden';
 import * as MediaIVManipulationHueCurveRGBA from './media.iv.manipulation.hue.curve.rgba';
 import * as MediaIVManipulationHueShiftCCS from './media.iv.manipulation.hue.shift.ccs';
+import * as MediaIVManipulationHueShiftHSL from './media.iv.manipulation.hue.shift.hsl';
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
 import * as MediaIVManipulationHueShiftHSVFFMPEG from './media.iv.manipulation.hue.shift.hsv.ffmpeg';
 import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
@@ -895,6 +896,7 @@ export {
   MediaIVManipulationHidden,
   MediaIVManipulationHueCurveRGBA,
   MediaIVManipulationHueShiftCCS,
+  MediaIVManipulationHueShiftHSL,
   MediaIVManipulationHueShiftHSV,
   MediaIVManipulationHueShiftHSVFFMPEG,
   MediaIVManipulationHueShiftRGB,

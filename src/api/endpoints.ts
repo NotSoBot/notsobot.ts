@@ -344,6 +344,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/hue/curve/rgba',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_CCS:
     '/media/iv/manipulation/hue/shift/ccs',
+  MEDIA_IV_MANIPULATION_HUE_SHIFT_HSL:
+    '/media/iv/manipulation/hue/shift/hsl',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV:
     '/media/iv/manipulation/hue/shift/hsv',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV_FFMPEG:

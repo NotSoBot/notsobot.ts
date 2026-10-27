@@ -1207,6 +1207,12 @@ export namespace RestOptions {
     hue?: number,
   }
 
+  export interface MediaIVManipulationHueShiftHSL extends MediaBaseOptions {
+    hue?: number,
+    lightness?: number,
+    saturation?: number,
+  }
+
   export interface MediaIVManipulationHueShiftHSV extends MediaBaseOptions {
     brightness?: number,
     hue?: number,

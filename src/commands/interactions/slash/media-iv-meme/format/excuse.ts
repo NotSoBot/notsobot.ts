@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'excuse';
 
 export class MediaIVMemeExcuseCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Attach an "excuse me what the fuck" panel under an Image or Video';
+  description = 'Attach an "excuse me, what?" panel under an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv_6.meme.excuse.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationLabelsExcuse.COMMAND_ID,

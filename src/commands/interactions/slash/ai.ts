@@ -13,8 +13,6 @@ import UserStore from '../../../stores/users';
 import {
   CommandCategories,
   GuildFeatures,
-  TagGenerationModels,
-  TagGenerationModelsToTextWithTier,
   TagGenerationPersonalityPreferences,
   TagGenerationPersonalityPreferencesToText,
   UserFlags,
@@ -53,12 +51,13 @@ export default class AICommand extends BaseSlashCommand {
           ...I18n.optionLocalizations('commands.ai.prompt'),
           required: true,
         },
-        {
-          name: 'model',
-          description: 'AI Model',
-          ...I18n.optionLocalizations('commands.ai.model'),
-          choices: Parameters.Slash.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToTextWithTier}),
-        },
+        // model picker disabled, the user's `/settings set ai model` (or the api default) is used instead
+        // {
+        //   name: 'model',
+        //   description: 'AI Model',
+        //   ...I18n.optionLocalizations('commands.ai.model'),
+        //   choices: Parameters.Slash.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToTextWithTier}),
+        // },
         {
           name: 'personalitypreference',
           description: 'Personality Preference',
@@ -75,6 +74,12 @@ export default class AICommand extends BaseSlashCommand {
           description: 'Upload the prompt instead of processing',
           ...I18n.optionLocalizations('commands.ai.debug'),
           type: Boolean,
+        },
+        {
+          name: 'url',
+          description: 'Emoji/Media URL/User',
+          ...I18n.optionLocalizations('commands.options.media.url'),
+          value: Parameters.url,
         },
         {
           name: 'attachment',

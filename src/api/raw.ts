@@ -5604,6 +5604,30 @@ export async function mediaIVManipulationHueShiftYIQ(
 }
 
 
+export async function mediaIVManipulationHueShiftHSL(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueShiftHSL,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    hue: options.hue,
+    lightness: options.lightness,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    saturation: options.saturation,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_HUE_SHIFT_HSL,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationHueShiftHSV(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftHSV,
