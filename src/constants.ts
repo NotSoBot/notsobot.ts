@@ -1170,6 +1170,20 @@ export enum MusicLoopModes {
   QUEUE = 'queue',
 }
 
+// how far back `music stats` counts, the api's `period`
+export enum MusicStatsPeriods {
+  WEEK = 'week',
+  MONTH = 'month',
+  YEAR = 'year',
+  ALL = 'all',
+}
+
+// what `music stats` ranks its top lists by, the api's `sort`
+export enum MusicStatsSorts {
+  PLAYS = 'plays',
+  TIME = 'time',
+}
+
 // the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `music effect clear` takes them all off. By name, so
 // the usage and the prefix command's error list them alphabetically
 export enum MusicEffects {
@@ -2114,6 +2128,10 @@ export enum TagSearchSortByFilters {
   EDITED = 1,
   LAST_USED = 2,
   USES = 3,
+  // uses in the last 7/30/365 days (the api counts them in clickhouse), tags then come with `recent_uses`
+  USES_WEEK = 4,
+  USES_MONTH = 5,
+  USES_YEAR = 6,
 }
 
 

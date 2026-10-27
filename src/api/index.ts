@@ -620,6 +620,15 @@ export async function fetchGuildMusicHistory(
 }
 
 
+export async function fetchGuildMusicStats(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildMusicStats = {},
+) {
+  return raw.fetchGuildMusicStats(context, guildId, options);
+}
+
+
 export async function deleteGuildMusic(context: RequestContext, guildId: string) {
   return raw.deleteGuildMusic(context, guildId);
 }

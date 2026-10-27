@@ -1207,6 +1207,27 @@ export async function fetchGuildMusicHistory(
 }
 
 
+export async function fetchGuildMusicStats(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildMusicStats = {},
+): Promise<RestResponsesRaw.FetchGuildMusicStats> {
+  const query = {
+    limit: options.limit,
+    period: options.period,
+    sort: options.sort,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MUSIC_QUEUE_STATS,
+      params: {guildId},
+    },
+  });
+}
+
+
 export async function deleteGuildMusic(
   context: RequestContext,
   guildId: string,

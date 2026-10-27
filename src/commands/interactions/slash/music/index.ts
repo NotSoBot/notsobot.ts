@@ -18,6 +18,7 @@ import { MusicResumeCommand } from './resume';
 import { MusicRulesCommand } from './rules';
 import { MusicSeekCommand } from './seek';
 import { MusicSkipCommand } from './skip';
+import { MusicStatsCommand } from './stats';
 import { MusicStayCommand } from './stay';
 import { MusicVoteGroupCommand } from './vote';
 import { MusicVolumeCommand } from './volume';
@@ -57,6 +58,7 @@ export default class MusicCommand extends BaseSlashCommand {
         new MusicRulesCommand(),
         new MusicSeekCommand(),
         new MusicSkipCommand(),
+        new MusicStatsCommand(),
         new MusicVoteGroupCommand(),
         new MusicVolumeCommand(),
       ],

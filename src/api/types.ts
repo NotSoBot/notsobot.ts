@@ -20,6 +20,8 @@ import {
   MediaQuadartTypes,
   MediaSongSounds,
   MusicLoopModes,
+  MusicStatsPeriods,
+  MusicStatsSorts,
   RedditSortTypes,
   RedditTimeTypes,
   ReportStatuses,
@@ -427,6 +429,13 @@ export namespace RestOptions {
     // older than this entry, for the next page
     before?: string,
     limit?: number,
+  }
+
+  export interface FetchGuildMusicStats {
+    // per top list, up to 50 (10 by default)
+    limit?: number,
+    period?: MusicStatsPeriods,
+    sort?: MusicStatsSorts,
   }
 
   export interface EditGuildMusicQueueItem {
@@ -2415,6 +2424,35 @@ export namespace RestResponsesRaw {
   export interface FetchGuildMusicHistory {
     // newest first
     items: Array<GuildMusicHistoryItem>,
+  }
+
+  // a top list's entry, `plays` only counts a queue item once (finished, or 30 seconds before a skip), loops and early
+  // skips only add `played_ms`
+  export interface GuildMusicStatsCounts {
+    played_ms: number,
+    plays: number,
+  }
+
+  // a track as it last played (`track.url` is always null)
+  export interface GuildMusicStatsTrack extends GuildMusicStatsCounts {
+    source: 'opus' | 'url',
+    track: GuildMusicQueueItem['track'],
+    url: string,
+  }
+
+  export interface FetchGuildMusicStats {
+    artists: Array<GuildMusicStatsCounts & {name: string}>,
+    period: MusicStatsPeriods,
+    sort: MusicStatsSorts,
+    totals: GuildMusicStatsCounts & {
+      // the oldest play in the period (unix milliseconds), null with none
+      first_played: null | number,
+      tracks: number,
+      users: number,
+    },
+    tracks: Array<GuildMusicStatsTrack>,
+    // who queued them
+    users: Array<GuildMusicStatsCounts & {user_id: string}>,
   }
 
   export type EditGuildMusic = FetchGuildMusic;
