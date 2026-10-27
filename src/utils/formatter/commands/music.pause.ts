@@ -6,7 +6,7 @@ import { displayDetails, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { MusicVoteKinds, clearMusicVotes, musicDjRefusal, musicItemTitle, musicPlaybackText, musicVote } from './music.shared';
+import { MusicVoteKinds, clearMusicVotes, musicDjRefusal, musicItemTitle, musicListeningTime, musicPlaybackText, musicPlayerSpeed, musicVote } from './music.shared';
 
 
 export const COMMAND_ID = 'music.pause';
@@ -51,12 +51,15 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
   clearMusicVotes(MusicVoteKinds.RESUME, guildId);
-  // `Paused at 1:23 • artist - title`, where it stopped of how long it is under it
+  // `Paused at 1:23 • artist - title`, where it stopped of how long it is under it (how long it takes at the speed)
+  const speed = musicPlayerSpeed(player);
   return displayReply(context, {
     description: musicPlaybackText(
-      translate('music_pause.paused_at', {position: Markup.codestring(formatTime(player.position))}),
+      translate('music_pause.paused_at', {position: Markup.codestring(formatTime(musicListeningTime(player.position, speed)))}),
       music.current,
       player.position,
+      [],
+      speed,
     ),
   });
 }

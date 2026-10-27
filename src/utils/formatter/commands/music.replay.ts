@@ -34,7 +34,7 @@ export async function replayMusic(
       return {done: false, message: translate('music.nothing_playing')};
     }
     const music = await fetchGuildMusic(context, guildId).catch(() => null);
-    return {done: true, message: replayingText(translate, (music) ? music.current : null)};
+    return {done: true, message: replayingText(translate, (music) ? music.current : null, guild.speed || 1)};
   }
 
   // held (we left): it stays held, at the start for the next resume or play
@@ -46,14 +46,14 @@ export async function replayMusic(
   return {done: true, message: replayingText(translate, music.current)};
 }
 
-// `Back to the start of artist - title`, then its length and who requested it
-function replayingText(translate: Translator['translate'], item: null | RestResponsesRaw.GuildMusicQueueItem): string {
+// `Back to the start of artist - title`, then its length (how long it takes at `speed`) and who requested it
+function replayingText(translate: Translator['translate'], item: null | RestResponsesRaw.GuildMusicQueueItem, speed: number = 1): string {
   if (!item) {
     return translate('music_replay.replaying', {title: '?'});
   }
   return displayDetails([
     translate('music_replay.replaying', {title: `**${musicItemTitle(item)}**`}),
-    displayDetailsLine(musicItemDetails(translate, item), true),
+    displayDetailsLine(musicItemDetails(translate, item, speed), true),
   ]);
 }
 

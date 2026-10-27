@@ -1042,6 +1042,8 @@ export const Api = Object.freeze({
     '/music/queue/:guildId/position/:itemId',
   MUSIC_QUEUE_SESSION:
     '/music/queue/:guildId/session',
+  MUSIC_QUEUE_SOUND:
+    '/music/queue/:guildId/sound',
   MUSIC_SESSIONS:
     '/music/sessions',
   TIMED_BANS:

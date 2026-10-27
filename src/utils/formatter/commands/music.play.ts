@@ -14,8 +14,10 @@ import { createMusicPaginator } from './music.info';
 import {
   musicItemDisplayTitle,
   musicItemTitle,
+  musicListeningTime,
   musicLoopText,
   musicPlayerPosition,
+  musicPlayerSpeed,
   musicStayNote,
   musicStays,
 } from './music.shared';
@@ -125,16 +127,18 @@ async function musicPickLanding(
   let wait = ahead.reduce((total, item) => total + ((item.track) ? item.track.duration : 0), 0);
   let unknown = ahead.some((item) => !item.track);
   const current = music.current;
+  const player = (current && VoiceNode.guilds.get(guildId)) ? await VoiceNode.getPlayer(guildId).catch(() => null) : null;
   if (current) {
     if (current.track) {
       const duration = current.track.duration;
-      const player = (VoiceNode.guilds.get(guildId)) ? await VoiceNode.getPlayer(guildId).catch(() => null) : null;
       const progress = player || {paused: true, position: music.held_position || 0};
       wait += duration - musicPlayerPosition(progress, Date.now(), duration);
     } else {
       unknown = true;
     }
   }
+  // the effects and `music speed` stay on for it too, it's how long until it's heard
+  wait = musicListeningTime(wait, musicPlayerSpeed(player));
 
   const looping = !!current && music.loop === MusicLoopModes.TRACK;
   return displayDetailsLine([

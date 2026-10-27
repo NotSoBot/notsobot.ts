@@ -14,7 +14,7 @@ import { displayDetails, displayDetailsLine, displayReply } from '../../../utils
 import VoiceNode from '../../../voicenode';
 import { Languages, Translator, getTranslator, getTranslatorForLanguage, languageFromLocale } from '../../i18n';
 
-import { MusicEffect, musicEffectName, musicEffectNames, musicKnownEffects, musicSoundSettingRefusal } from './music.shared';
+import { MusicEffect, musicEffectName, musicEffectNames, musicKnownEffects, musicSoundSettingRefusal, resetSavedMusicSound } from './music.shared';
 
 
 export const COMMAND_ID = 'music.effect';
@@ -142,9 +142,9 @@ function describeClash(translate: Translator['translate'], effect: Effect, other
 }
 
 // puts `picked` on in place of `before` (what's on, stacked as `stackMusicEffects` allows). The reply heads with the one
-// just added, then what's on numbered in order and why any were left out, then how many slots are used. Any change
-// (taking them off too) needs you in our channel, and a dj with dj mode on (`musicSoundSettingRefusal`), they stay on
-// after you leave. A premium server perk (the api's music `premium`) to put any on, taking some off isn't
+// just added, then what's on (unnumbered, the node runs them in its own order) and why any were left out, then how
+// many slots are used. Any change (taking them off too) needs you in our channel, and a dj with dj mode on
+// (`musicSoundSettingRefusal`), they stay on after you leave. A premium server perk (the api's music `premium`) to put any on, taking some off isn't
 async function applyEffects(
   context: Command.Context | Interaction.InteractionContext,
   guildId: string,
@@ -173,9 +173,9 @@ async function applyEffects(
   const positions = addedPositions(before, kept);
   const added = positions.map((index) => kept[index]);
   const content = displayDetails([
-    // `1. Nightcore • Faster and higher`, `just added` only tells them apart when some were on already
+    // `Nightcore • Faster and higher`, `just added` only tells them apart when some were on already
     ...kept.map((effect, index) => displayDetailsLine([
-      `**${index + 1}.** ${musicEffectName(effect)}`,
+      musicEffectName(effect),
       translate(`music_effect.${effect}`),
       (positions.includes(index) && added.length < kept.length) ? translate('music_effect.just_added') : null,
     ])),
@@ -205,7 +205,7 @@ async function applyEffects(
 }
 
 // live effects on what's playing, stacked (the node decodes, filters and encodes it again), they stay on for the next
-// tracks until they're turned off (`music effect clear`) or the bot leaves. These replace what's on. Ones that don't
+// tracks until they're turned off (`music effect clear`), the server keeps them when the bot leaves. These replace what's on. Ones that don't
 // stack are left out (cheaper than an error), the reply says which and why. Nothing given shows what's on and the ones
 // there are
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
@@ -257,19 +257,56 @@ export async function createRemoveMessage(context: Command.Context | Interaction
   return applyEffects(context, guildId, current.filter((effect, index) => index !== removing), current, true);
 }
 
-// takes every one off (`music effect clear`), none on says so
+// takes every one off (`music effect clear`), none on says so. Nothing playing clears the server's saved ones (what
+// the next play starts with)
 export async function createClearMessage(context: Command.Context | Interaction.InteractionContext) {
   const { translate } = await getTranslator(context);
 
   const guildId = context.guildId;
-  if (!guildId || !VoiceNode.isPlaying(guildId)) {
+  if (!guildId) {
     return displayReply(context, {description: translate('music.nothing_playing')});
+  }
+  if (!VoiceNode.isPlaying(guildId)) {
+    const refusal = await musicSoundSettingRefusal(context, translate, context.member, guildId);
+    if (refusal) {
+      return displayReply(context, {description: refusal});
+    }
+    const cleared = await resetSavedMusicSound(context, guildId, 'effects');
+    return displayReply(context, {description: translate((cleared) ? 'music_effect.off' : 'music_effect.none')});
   }
   const current = await fetchCurrentEffects(guildId);
   if (!current.length) {
     return displayReply(context, {description: translate('music_effect.none')});
   }
   return applyEffects(context, guildId, [], current, true);
+}
+
+// the dashboard's effect controls (`MUSIC_CONTROL`), the api checked who can and premium for adding. One that doesn't
+// stack (or is past `MAX_MUSIC_EFFECTS`) is left out like in Discord, quietly since there's nobody to reply to. Removing
+// takes off the one at `index` when it's still that one there (the stack can change in between), else the last of it
+export async function controlDashboardEffects(
+  guildId: string,
+  action: 'effect_add' | 'effect_clear' | 'effect_remove',
+  value?: string,
+  index?: number,
+) {
+  const current = await fetchCurrentEffects(guildId);
+  if (action === 'effect_clear') {
+    return (current.length) ? VoiceNode.setEffects(guildId, []) : null;
+  }
+  const effect = (value) ? parseMusicEffect(value) : null;
+  if (!effect) {
+    return null;
+  }
+  if (action === 'effect_add') {
+    const { kept } = stackMusicEffects([...current, effect]);
+    return (current.length < kept.length) ? VoiceNode.setEffects(guildId, kept) : null;
+  }
+  const removing = (index !== undefined && current[index] === effect) ? index : current.lastIndexOf(effect);
+  if (removing === -1) {
+    return null;
+  }
+  return VoiceNode.setEffects(guildId, current.filter((_, position) => position !== removing));
 }
 
 // what's on, then every effect there is with what it does (`/music effect list`, `music effect` with nothing given)

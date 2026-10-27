@@ -649,6 +649,11 @@ export async function editGuildMusicSession(context: RequestContext, guildId: st
 }
 
 
+export async function editGuildMusicSound(context: RequestContext, guildId: string, options: RestOptions.EditGuildMusicSound) {
+  return raw.editGuildMusicSound(context, guildId, options);
+}
+
+
 export async function postGuildMusicNext(context: RequestContext, guildId: string, options: RestOptions.PostGuildMusicNext) {
   return raw.postGuildMusicNext(context, guildId, options);
 }

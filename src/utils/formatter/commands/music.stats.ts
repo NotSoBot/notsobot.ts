@@ -41,7 +41,8 @@ function formatPlayedTime(ms: number, language: string): string {
 }
 
 // what the server's music played over a period (all of it by default): totals, then the top tracks, members (by what
-// they queued) and artists, by plays or time played. Counted by the api since it started recording them
+// they queued) and artists, by plays or time played, with how often a loop played them again. Counted by the api since it
+// started recording them
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { language, translate } = await getTranslator(context);
 
@@ -55,9 +56,14 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     });
   }
 
+  // loops playing songs again, only when there were some
+  const repeats = (item: RestResponsesRaw.GuildMusicStatsCounts): null | string => {
+    return (item.repeats) ? translate('music_stats.repeats', {count: item.repeats.toLocaleString(language)}) : null;
+  };
   const counts = (item: RestResponsesRaw.GuildMusicStatsCounts): string => {
     return displayDetailsLine([
       translate('music_stats.plays', {count: item.plays.toLocaleString(language)}),
+      repeats(item),
       translate('music_stats.played', {duration: formatPlayedTime(item.played_ms, language)}),
     ], true);
   };
@@ -74,6 +80,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   const overview = displayDetails([
     displayDetailsLine([
       Markup.bold(translate('music_stats.plays', {count: totals.plays.toLocaleString(language)})),
+      repeats(totals),
       translate('music_stats.played', {duration: formatPlayedTime(totals.played_ms, language)}),
       translate('music_stats.tracks', {count: totals.tracks.toLocaleString(language)}),
       translate('music_stats.listeners', {count: totals.users.toLocaleString(language)}),

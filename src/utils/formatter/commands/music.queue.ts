@@ -5,7 +5,7 @@ import { ComponentContext, Markup } from 'detritus-client/lib/utils';
 import { fetchGuildMusic } from '../../../api';
 import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
-import { MessageComponentCustomIds } from '../../../constants';
+import { DEFAULT_MUSIC_SPEED, MessageComponentCustomIds } from '../../../constants';
 import PaginatorsStore from '../../../stores/paginators';
 import { DisplayPayload, Paginator, chunkArray, displayDetails, displayDetailsLine, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
@@ -20,9 +20,12 @@ import {
   musicItemQueuedAt,
   musicItemTitle,
   musicKnownEffects,
+  musicListeningTime,
   musicLoopText,
   musicNothingPlayingText,
   musicNowPlaying,
+  musicPlayerSpeed,
+  musicSpeedText,
 } from './music.shared';
 
 
@@ -72,13 +75,15 @@ export async function createMusicQueuePage(
   const paused = held || (!!player && player.paused);
   // where it is: the node's player, or where it's held (or carries on from while joining)
   const progress = player || {paused: true, position: (held) ? music.held_position! : (guild && guild.resumeAt) ? guild.resumeAt.position : 0};
+  // the effects and `music speed` stay on for the queued tracks too, every time is how long it takes to hear at it
+  const speed = musicPlayerSpeed(player);
 
   // their tracks keep their real positions (what's playing is #1, the queue starts at #2)
   const queue = (fromId) ? music.queue.filter((item) => item.user_id === fromId) : music.queue;
 
   // links that haven't been converted yet have no duration, so the total is at least this long
   const queueDuration = queue.reduce((total, item) => total + ((item.track) ? item.track.duration : 0), 0);
-  const queueDurationText = formatTime(queueDuration) + ((queue.some((item) => !item.track)) ? '+' : '');
+  const queueDurationText = formatTime(musicListeningTime(queueDuration, speed)) + ((queue.some((item) => !item.track)) ? '+' : '');
 
   // a page is `RESULTS_PER_PAGE` tracks. Back-to-back tracks queued together (an album/playlist, by `batch_id` since
   // names can repeat) are one entry listing each of them, one cut off by the page (or by other tracks between them,
@@ -109,7 +114,7 @@ export async function createMusicQueuePage(
       return displayDetails([
         `\`${musicItemPosition(music, first)}.\` ${musicItemTitle(first)}`,
         displayDetailsLine([
-          (first.track) ? formatTime(first.track.duration) : null,
+          (first.track) ? formatTime(musicListeningTime(first.track.duration, speed)) : null,
           `<@${first.user_id}>`,
           musicItemBatchText(translate, first),
           musicItemQueuedAt(first, MUSIC_QUEUED_AT_AFTER),
@@ -125,7 +130,7 @@ export async function createMusicQueuePage(
       `\`${musicItemPosition(music, first)}–${musicItemPosition(music, last)}.\` ${(continued) ? translate('music_queue.batch_continued', {name}) : name}`,
       displayDetailsLine([
         translate('music_queue.batch_tracks', {count: entry.length.toLocaleString(language)}),
-        formatTime(duration) + ((entry.some((item) => !item.track)) ? '+' : ''),
+        formatTime(musicListeningTime(duration, speed)) + ((entry.some((item) => !item.track)) ? '+' : ''),
         `<@${first.user_id}>`,
         musicItemQueuedAt(first, MUSIC_QUEUED_AT_AFTER),
       ], true),
@@ -165,8 +170,11 @@ export async function createMusicQueuePage(
           (player && connected && 0 <= player.ping) ? translate('music_info.ping', {ping: player.ping}) : null,
           (guild && !connected && !guild.disconnected) ? translate('music_info.connecting') : null,
         ],
-        // its live effects on their own line (`fx Nightcore + Bass Boost`)
-        [(effects.length) ? translate('music_info.effects', {effects: musicEffectNames(effects)}) : null],
+        // its live effects and `music speed` on their own line (`fx Nightcore + Bass Boost • 1.25× speed`)
+        [
+          (effects.length) ? translate('music_info.effects', {effects: musicEffectNames(effects)}) : null,
+          (player && player.tempo && player.tempo !== DEFAULT_MUSIC_SPEED) ? translate('music_info.speed', {speed: musicSpeedText(player.tempo)}) : null,
+        ],
       ]),
       displayDetailsLine([
         translate('music_queue.requested_by', {user: `<@${current.user_id}>`}),

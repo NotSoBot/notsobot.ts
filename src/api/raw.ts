@@ -1273,6 +1273,8 @@ export async function putGuildMusicSession(
     node_id: options.nodeId,
     paused: options.paused,
     position: (options.position === undefined) ? undefined : Math.max(0, Math.round(options.position)),
+    speed: options.speed,
+    tempo: options.tempo,
     volume: options.volume,
   };
   return request(context, {
@@ -1297,6 +1299,8 @@ export async function editGuildMusicSession(
     node_id: options.nodeId,
     paused: options.paused,
     position: (options.position === undefined) ? undefined : Math.max(0, Math.round(options.position)),
+    speed: options.speed,
+    tempo: options.tempo,
     volume: options.volume,
   };
   return request(context, {
@@ -1304,6 +1308,27 @@ export async function editGuildMusicSession(
     route: {
       method: HTTPMethods.PATCH,
       path: Api.MUSIC_QUEUE_SESSION,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function editGuildMusicSound(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.EditGuildMusicSound,
+): Promise<void> {
+  const body = {
+    effects: options.effects,
+    tempo: options.tempo,
+    volume: options.volume,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.MUSIC_QUEUE_SOUND,
       params: {guildId},
     },
   });

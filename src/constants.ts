@@ -1259,6 +1259,12 @@ export const MAX_MUSIC_EFFECTS = 5;
 export const DEFAULT_MUSIC_VOLUME = 100;
 export const MAX_MUSIC_VOLUME = 200;
 
+// the node's tempo (`music speed`), percent of the track's own with its pitch kept (notsobot.voice's `MIN_TEMPO` and
+// `MAX_TEMPO`), 100 sends the file as it is
+export const DEFAULT_MUSIC_SPEED = 100;
+export const MIN_MUSIC_SPEED = 50;
+export const MAX_MUSIC_SPEED = 200;
+
 // a faster one and a slower one don't stack (the first picked is kept), slower ones together multiply
 export const MUSIC_EFFECTS_FASTER: ReadonlyArray<MusicEffects> = Object.freeze([MusicEffects.NIGHTCORE]);
 export const MUSIC_EFFECTS_SLOWER: ReadonlyArray<MusicEffects> = Object.freeze([MusicEffects.DAYCORE, MusicEffects.SLOWED, MusicEffects.VAPORWAVE]);

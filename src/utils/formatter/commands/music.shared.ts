@@ -2,10 +2,10 @@ import { Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { fetchGuildMusic } from '../../../api';
+import { editGuildMusicSound, fetchGuildMusic } from '../../../api';
 import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
-import { MusicEffects, MusicEffectsToText, MusicLoopModes, StatusEmojis } from '../../../constants';
+import { DEFAULT_MUSIC_SPEED, DEFAULT_MUSIC_VOLUME, MusicEffects, MusicEffectsToText, MusicLoopModes, StatusEmojis } from '../../../constants';
 import { DisplayPayload, displayDetails, displayDetailsLine, displayLinks, formatTime } from '../../../utils';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import VoiceNode from '../../../voicenode';
@@ -60,6 +60,37 @@ export async function musicSoundSettingRefusal(
     }
   }
   return fetchMusicDjRefusal(context, translate, guildId, member);
+}
+
+// not playing (not in voice, held, 24/7 with nothing on, still joining): `music effect clear`, `music volume 100` and
+// `music speed 1x` turn the server's saved one back (the api's, what the next play starts with). False when it was
+// already that. Check `musicSoundSettingRefusal` first
+export async function resetSavedMusicSound(
+  context: RequestContext,
+  guildId: string,
+  setting: 'effects' | 'tempo' | 'volume',
+): Promise<boolean> {
+  const { sound } = await fetchGuildMusic(context, guildId);
+  let changes: {effects?: Array<string>, tempo?: number, volume?: number};
+  if (setting === 'effects') {
+    if (!sound || !sound.effects.length) {
+      return false;
+    }
+    changes = {effects: []};
+  } else if (setting === 'tempo') {
+    if (!sound || sound.tempo === DEFAULT_MUSIC_SPEED) {
+      return false;
+    }
+    changes = {tempo: DEFAULT_MUSIC_SPEED};
+  } else {
+    if (!sound || sound.volume === DEFAULT_MUSIC_VOLUME) {
+      return false;
+    }
+    changes = {volume: DEFAULT_MUSIC_VOLUME};
+  }
+  await editGuildMusicSound(context, guildId, changes);
+  VoiceNode.setStoppedSound(guildId, changes);
+  return true;
 }
 
 export enum MusicVoteKinds {
@@ -333,14 +364,30 @@ export function musicPlayerPosition(player: any, fetchedAt: number, duration: nu
   return Math.max(Math.min(player.position + elapsed, duration), 0);
 }
 
+// how fast a player plays its tracks with the effects and `music speed` (the node's `speed`), 1 without a player
+export function musicPlayerSpeed(player: any): number {
+  return (player && typeof(player.speed) === 'number' && 0 < player.speed) ? player.speed : 1;
+}
+
+// milliseconds of a track (its own time) as how long it takes to hear at `speed`, what every time we show is in
+export function musicListeningTime(milliseconds: number, speed: number = 1): number {
+  return milliseconds / (speed || 1);
+}
+
+// `1.25×`, a `music speed` percent
+export function musicSpeedText(percent: number): string {
+  return `${Math.round(percent) / 100}×`;
+}
+
 const PROGRESS_BAR_LENGTH = 12;
 
-// `1:23` ▬▬▬🔘▬▬▬▬▬▬▬▬ `5:20`
-export function musicProgressBar(position: number, duration: number): string {
+// `1:23` ▬▬▬🔘▬▬▬▬▬▬▬▬ `5:20`, `position` and `duration` in the track's own time, shown as how long they take at `speed`
+export function musicProgressBar(position: number, duration: number, speed: number = 1): string {
   const ratio = (duration) ? Math.min(position / duration, 1) : 0;
   const knob = Math.round(ratio * (PROGRESS_BAR_LENGTH - 1));
   const bar = '▬'.repeat(knob) + '🔘' + '▬'.repeat(PROGRESS_BAR_LENGTH - 1 - knob);
-  return `${Markup.codestring(formatTime(position))} ${bar} ${Markup.codestring(formatTime(duration))}`;
+  const time = (milliseconds: number) => Markup.codestring(formatTime(musicListeningTime(milliseconds, speed)));
+  return `${time(position)} ${bar} ${time(duration)}`;
 }
 
 // what's playing in `music queue` and `music info`: its progress bar, then lines of small details (where it's playing,
@@ -353,31 +400,32 @@ export function musicNowPlaying(
 ): string {
   const duration = (item.track) ? item.track.duration : 0;
   return displayDetails([
-    (duration) ? musicProgressBar(musicPlayerPosition(player, fetchedAt, duration), duration) : null,
+    (duration) ? musicProgressBar(musicPlayerPosition(player, fetchedAt, duration), duration, musicPlayerSpeed(player)) : null,
     ...lines.map((details) => displayDetailsLine(details, true)),
   ]);
 }
 
 // `music pause`/`resume`/`seek`: what it did and the track (`Paused at 1:23 • **artist - title**`), its progress bar
-// at `position` under it (links not converted yet have no length), then small details
+// at `position` under it (links not converted yet have no length, times at `speed`), then small details
 export function musicPlaybackText(
   done: string,
   item: null | RestResponsesRaw.GuildMusicQueueItem,
   position: number,
   details: Array<null | string> = [],
+  speed: number = 1,
 ): string {
   const duration = (item && item.track) ? item.track.duration : 0;
   return displayDetails([
     displayDetailsLine([done, (item) ? `**${musicItemTitle(item)}**` : null]),
-    (duration) ? musicProgressBar(Math.max(Math.min(position, duration), 0), duration) : null,
+    (duration) ? musicProgressBar(Math.max(Math.min(position, duration), 0), duration, speed) : null,
     displayDetailsLine(details, true),
   ]);
 }
 
-// a track as a small line's details: its length and who requested it (`3:23 • @sam`)
-export function musicItemDetails(translate: Translator['translate'], item: RestResponsesRaw.GuildMusicQueueItem): Array<null | string> {
+// a track as a small line's details: its length (how long it takes at `speed`) and who requested it (`3:23 • @sam`)
+export function musicItemDetails(translate: Translator['translate'], item: RestResponsesRaw.GuildMusicQueueItem, speed: number = 1): Array<null | string> {
   return [
-    (item.track && item.track.duration) ? formatTime(item.track.duration) : null,
+    (item.track && item.track.duration) ? formatTime(musicListeningTime(item.track.duration, speed)) : null,
     translate('music_queue.requested_by', {user: `<@${item.user_id}>`}),
   ];
 }

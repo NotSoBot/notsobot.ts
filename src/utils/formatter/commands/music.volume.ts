@@ -7,7 +7,7 @@ import { displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getCachedTranslator, getTranslator } from '../../i18n';
 
-import { musicSoundSettingRefusal } from './music.shared';
+import { musicSoundSettingRefusal, resetSavedMusicSound } from './music.shared';
 
 
 export const COMMAND_ID = 'music.volume';
@@ -37,17 +37,26 @@ export function parseMusicVolume(value: string, context?: Command.Context | Inte
 // everyone hears it the same (each listener can still set the bot's volume for themselves in discord). Changing it
 // (back to 100% too) needs you in our channel, and a dj with dj mode on (`musicSoundSettingRefusal`), it stays after you leave.
 // Anything but 100% has the node decode and encode again, so it's a premium server perk (the api's music `premium`)
-// like effects, back to 100% isn't. It stays across tracks until the bot leaves
+// like effects, back to 100% isn't. It stays across tracks and the bot leaving (saved for the server), back to 100%
+// with nothing playing resets the saved one (what the next play starts with)
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { translate } = await getTranslator(context);
 
   const guildId = context.guildId;
+  const volume = args.volume;
+  if (guildId && !VoiceNode.isPlaying(guildId) && volume === DEFAULT_MUSIC_VOLUME) {
+    const refusal = await musicSoundSettingRefusal(context, translate, context.member, guildId);
+    if (refusal) {
+      return displayReply(context, {description: refusal});
+    }
+    await resetSavedMusicSound(context, guildId, 'volume');
+    return displayReply(context, {description: translate('music_volume.reset')});
+  }
   if (!guildId || !VoiceNode.isPlaying(guildId)) {
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
   const percent = (volume: number) => Markup.codestring(`${volume}%`);
 
-  const volume = args.volume;
   if (volume === null || volume === undefined) {
     const player = await VoiceNode.getPlayer(guildId);
     const current = (player && typeof(player.volume) === 'number') ? player.volume : DEFAULT_MUSIC_VOLUME;

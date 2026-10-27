@@ -4,6 +4,7 @@ import { EventSubscription } from 'detritus-utils';
 
 import { ApiEventsSpewer } from '../apievents';
 import { RedisChannels } from '../constants';
+import { controlDashboardEffects } from '../utils/formatter/commands/music.effect';
 import VoiceNode from '../voicenode';
 
 import { Listener } from './listener';
@@ -53,7 +54,8 @@ class VoiceNodeListener extends Listener {
     }
 
     {
-      // the dashboard's pause/resume/skip/leave, every cluster gets it and only the one playing in the server acts
+      // the dashboard's pause/resume/skip/leave and live effects, every cluster gets it and only the one playing in the
+      // server acts
       const subscription = apiEvents.subscribe(RedisChannels.MUSIC_CONTROL, (payload) => {
         if (!payload || !VoiceNode.guilds.has(payload.guild_id) || MUSIC_CONTROL_MAX_AGE < Date.now() - payload.created) {
           return;
@@ -65,6 +67,9 @@ class VoiceNodeListener extends Listener {
           // disconnected, it needs someone's channel to carry on in (`music resume` in discord)
           case 'resume': promise = VoiceNode.setPaused(payload.guild_id, false); break;
           case 'skip': promise = VoiceNode.skip(payload.guild_id); break;
+          case 'effect_add':
+          case 'effect_clear':
+          case 'effect_remove': promise = controlDashboardEffects(payload.guild_id, payload.action, payload.effect, payload.index); break;
           default: return;
         }
         promise.catch((error) => console.warn(`voice node dashboard ${payload.action} ${payload.guild_id}`, error));

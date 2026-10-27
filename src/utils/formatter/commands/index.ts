@@ -545,6 +545,7 @@ import * as MusicResume from './music.resume';
 import * as MusicRules from './music.rules';
 import * as MusicSeek from './music.seek';
 import * as MusicSkip from './music.skip';
+import * as MusicSpeed from './music.speed';
 import * as MusicStats from './music.stats';
 import * as MusicStay from './music.stay';
 import * as MusicTTS from './music.tts';
@@ -1251,6 +1252,7 @@ export {
   MusicRules,
   MusicSeek,
   MusicSkip,
+  MusicSpeed,
   MusicStats,
   MusicStay,
   MusicTTS,

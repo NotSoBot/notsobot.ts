@@ -360,6 +360,10 @@ export namespace RestOptions {
     paused?: boolean,
     // milliseconds, where the track is right now
     position?: number,
+    // the node's `speed` (the effects' and the tempo's together), the api's position estimate goes on at it
+    speed?: number,
+    // the node's tempo (percent, the pitch kept), kept for a restart
+    tempo?: number,
     // the node's volume (percent), kept for a restart
     volume?: number,
   }
@@ -370,6 +374,15 @@ export namespace RestOptions {
     finishedReason?: 'failed' | 'finished' | 'skipped',
   }
 
+  // the server's saved effects, volume or tempo while we're not playing (what the next session starts with)
+  export interface EditGuildMusicSound {
+    effects?: Array<string>,
+    // percent, the pitch kept
+    tempo?: number,
+    // percent
+    volume?: number,
+  }
+
   export interface EditGuildMusicSession {
     channelId?: string,
     // the node's stacked live effects, kept for a restart
@@ -378,6 +391,10 @@ export namespace RestOptions {
     paused?: boolean,
     // milliseconds, where the track is right now
     position?: number,
+    // the node's `speed` (the effects' and the tempo's together), the api's position estimate goes on at it
+    speed?: number,
+    // the node's tempo (percent, the pitch kept), kept for a restart
+    tempo?: number,
     // the node's volume (percent), kept for a restart
     volume?: number,
   }
@@ -2333,8 +2350,12 @@ export namespace RestResponsesRaw {
     paused: boolean,
     // milliseconds, where the track is about now
     position: number,
+    // how fast it plays with the effects and the tempo, 1 for neither
+    speed: number,
     // 24/7, rejoined even with nobody listening
     stay: boolean,
+    // the node's tempo (percent, the pitch kept), put back when a restart rejoins
+    tempo: number,
     // the node's volume (percent), put back when a restart rejoins
     volume: number,
   }
@@ -2393,6 +2414,9 @@ export namespace RestResponsesRaw {
     premium: boolean,
     queue: Array<GuildMusicQueueItem>,
     queue_limit: number,
+    // the saved effects, volume and tempo (percents), what our next session starts with (with `premium`) until someone
+    // changes them
+    sound: {effects: Array<string>, tempo: number, volume: number},
     // 24/7 (on by default), it only stays with `premium`
     stay: boolean,
     // pausing someone else's track is a vote
@@ -2431,6 +2455,8 @@ export namespace RestResponsesRaw {
   export interface GuildMusicStatsCounts {
     played_ms: number,
     plays: number,
+    // a loop playing a song again after its counted play, not in `plays`
+    repeats: number,
   }
 
   // a track as it last played (`track.url` is always null)

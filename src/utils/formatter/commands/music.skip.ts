@@ -60,7 +60,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     description: displayDetails([
       translate('music_skip.skipped', {title}),
       (next) ?
-        displayDetailsLine([translate('music_queue.up_next'), `**${musicItemTitle(next)}**`, ...musicItemDetails(translate, next)], true) :
+        displayDetailsLine([translate('music_queue.up_next'), `**${musicItemTitle(next)}**`, ...musicItemDetails(translate, next, (guild && guild.speed) || 1)], true) :
         `-# ${translate('music_info.nothing_after')}`,
     ]),
   });

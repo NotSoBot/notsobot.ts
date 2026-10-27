@@ -9,7 +9,7 @@ import {
 } from '../../../api';
 import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
-import { DiscordEmojis, MessageComponentCustomIds } from '../../../constants';
+import { DEFAULT_MUSIC_SPEED, DiscordEmojis, MessageComponentCustomIds } from '../../../constants';
 import PaginatorsStore from '../../../stores/paginators';
 import { DisplayPayload, Paginator, displayDetails, displayDetailsLine, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
@@ -29,10 +29,13 @@ import {
   musicItemQueuedAt,
   musicItemTitle,
   musicKnownEffects,
+  musicListeningTime,
   musicLoopText,
   musicNothingPlayingText,
   musicNowPlaying,
   musicPlayerPosition,
+  musicPlayerSpeed,
+  musicSpeedText,
   musicVote,
 } from './music.shared';
 import { replayMusic } from './music.replay';
@@ -181,6 +184,8 @@ export async function createMusicPage(
   const paused = (options.paused !== undefined) ? options.paused : held || (!!player && player.paused);
   // held, or joining (no player yet) to carry on from where it was held
   const progress = player || {paused: true, position: (held) ? music.held_position! : (guild && guild.resumeAt) ? guild.resumeAt.position : 0};
+  // the effects and `music speed` stay on for the queued tracks too, every time is how long it takes to hear at it
+  const speed = musicPlayerSpeed(player);
   // what's left of a track, the playing one from where it is (links not converted yet have no length)
   const left = (x: RestResponsesRaw.GuildMusicQueueItem, i: number): number => {
     const duration = (x.track) ? x.track.duration : 0;
@@ -188,7 +193,7 @@ export async function createMusicPage(
   };
   const leftText = (list: Array<RestResponsesRaw.GuildMusicQueueItem>): string => {
     const total = list.reduce((total, x, i) => total + left(x, i), 0);
-    return Markup.codestring(formatTime(total) + ((list.some((x) => !x.track)) ? '+' : ''));
+    return Markup.codestring(formatTime(musicListeningTime(total, speed)) + ((list.some((x) => !x.track)) ? '+' : ''));
   };
 
   const requestedBy = translate('music_queue.requested_by', {user: `<@${item.user_id}>`});
@@ -205,8 +210,11 @@ export async function createMusicPage(
           (player && connected && 0 <= player.ping) ? translate('music_info.ping', {ping: player.ping}) : null,
           (guild && !connected && !guild.disconnected) ? translate('music_info.connecting') : null,
         ],
-        // its live effects on their own line (`fx Nightcore + Bass Boost`)
-        [(effects.length) ? translate('music_info.effects', {effects: musicEffectNames(effects)}) : null],
+        // its live effects and `music speed` on their own line (`fx Nightcore + Bass Boost • 1.25× speed`)
+        [
+          (effects.length) ? translate('music_info.effects', {effects: musicEffectNames(effects)}) : null,
+          (player && player.tempo && player.tempo !== DEFAULT_MUSIC_SPEED) ? translate('music_info.speed', {speed: musicSpeedText(player.tempo)}) : null,
+        ],
       ]),
       displayDetailsLine([requestedBy, musicItemBatchText(translate, item), musicItemQueuedAt(item)], true),
       musicItemLinks(item),
@@ -214,7 +222,7 @@ export async function createMusicPage(
   } else {
     description = displayDetails([
       displayDetailsLine([
-        (item.track && item.track.duration) ? Markup.codestring(formatTime(item.track.duration)) : null,
+        (item.track && item.track.duration) ? Markup.codestring(formatTime(musicListeningTime(item.track.duration, speed))) : null,
         (item.track && item.track.album) ? Markup.escape.all(item.track.album) : null,
       ]),
       displayDetailsLine([requestedBy, musicItemBatchText(translate, item), musicItemQueuedAt(item)], true),
