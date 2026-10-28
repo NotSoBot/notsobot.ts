@@ -23,7 +23,7 @@ export default class MimicCommand extends BaseMediasCommand {
         description: 'Make the first media\'s face copy the expression and head pose of the second media\'s face, gifs and videos use their first frame',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
-          `${COMMAND_NAME} @cakedan https://example.com/talking.mp4 -regions LIPS`,
+          `${COMMAND_NAME} @cakedan https://cdn.nsb.gg/assets/samples/video.mp4 -regions LIPS`,
           `${COMMAND_NAME} @cakedan @notsobot -regions EXPRESSION -multiplier 1.5`,
         ],
         id: Formatter.Commands.MediaIVManipulationFaceFeaturesSwap.COMMAND_ID,

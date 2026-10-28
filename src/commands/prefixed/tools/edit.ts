@@ -33,7 +33,7 @@ export default class EditCommand extends BaseMediasCommand {
         description: 'Alter an Image with machine learning',
         examples: [
           `${COMMAND_NAME} an animal eating strawberries`,
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png an animal eating strawberries -seed 5`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/photo.jpg an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> <...query> (-expand) (-seed <number>) (-steps <number>) (-strength <float>) (-use <choice>)',

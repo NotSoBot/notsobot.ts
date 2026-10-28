@@ -29,7 +29,7 @@ export default class ReimagineCommand extends BaseImageCommand {
         description: 'Interrogate an Image for a prompt then generate that prompt',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/photo.jpg`,
         ],
         id: Formatter.Commands.ToolsMLReimagine.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> (-add <query>) (-seed <number>) (-steps <number>) (-use <choice>)',

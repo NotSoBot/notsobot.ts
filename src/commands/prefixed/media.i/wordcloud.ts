@@ -34,7 +34,7 @@ export default class WordcloudCommand extends BaseCommand {
           `${COMMAND_NAME} lobby`,
           `${COMMAND_NAME} <#585639594574217232> -max 500`,
           `${COMMAND_NAME} lobby -shape heart -theme sunset`,
-          `${COMMAND_NAME} -image https://notsobot.com/logo.png -exclude lol,lmao`,
+          `${COMMAND_NAME} -image https://cdn.nsb.gg/assets/samples/face.png -exclude lol,lmao`,
         ],
         id: Formatter.Commands.MediaICreateWordcloudChannel.COMMAND_ID,
         usage: '...<channel:id|mention|name> (-before <message_id>) (-bots) (-exclude <words>) (-image <emoji,user:id|mention|name,url>) (-max <number>) (-shape <choice>) (-theme <choice>)',

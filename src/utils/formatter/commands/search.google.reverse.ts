@@ -4,97 +4,94 @@ import { Markup } from 'detritus-client/lib/utils';
 import { googleContentVisionWebDetection, searchGoogleReverseImages } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, createPaginatorMediaCache, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.google.reverse';
-
-export const RESULTS_PER_PAGE = 3;
 
 
 export interface CommandArgs {
   url: string,
 }
 
+interface ReverseImagePage {
+  imageUrl: string,
+  // the page the image was found on, cloud vision's fallback images don't have one
+  match: null | {cite: string, site: string, title: string, url: string},
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { translate } = await getTranslator(context);
 
-  const [
-    { visuallySimilarImages },
-    {
-      related_search: relatedSearch,
-      similar_images: similarImages,
-      similar_results: similarResults,
-      thumbnail,
-      total_result_count: totalResultCount,
-      url,
-    },
-  ] = await Promise.all([
-    googleContentVisionWebDetection(context, args),
-    searchGoogleReverseImages(context, args),
-  ]);
-  similarResults.length = Math.min(similarResults.length, 2);
+  // lens matches come with the page they're on, cloud vision's similar images are only the fallback (and cost per call)
+  let pages: Array<ReverseImagePage> = [];
+  let lensUrl: null | string = null;
+  let lensError: unknown = null;
+  try {
+    const { similar_results: similarResults, url } = await searchGoogleReverseImages(context, args);
+    lensUrl = url;
+    for (const result of similarResults) {
+      const imageUrl = (result.thumbnail) ? result.thumbnail.proxy_url || result.thumbnail.url : null;
+      if (imageUrl) {
+        pages.push({imageUrl, match: {cite: result.cite, site: result.footer, title: result.title, url: result.url}});
+      }
+    }
+  } catch (error) {
+    lensError = error;
+  }
 
-  if ((visuallySimilarImages && visuallySimilarImages.length) || similarResults.length) {
-    // paginate the images (with similar results in body)
-    const pageLimit = (visuallySimilarImages) ? visuallySimilarImages.length || 1 : 1;
+  if (!pages.length) {
+    const { visuallySimilarImages } = await googleContentVisionWebDetection(context, args);
+    pages = (visuallySimilarImages || []).map((image) => ({imageUrl: image.url, match: null}));
+    if (!pages.length && lensError) {
+      throw lensError;
+    }
+  }
+
+  if (pages.length) {
+    const pageLimit = pages.length;
+    const fetchMedia = createPaginatorMediaCache(context, {safe: DefaultParameters.safe(context)});
     const paginator = new Paginator(context, {
       pageLimit,
-      onPage: (pageNumber) => {
-        const payload: DisplayPayload = {fields: []};
+      onPage: async (pageNumber) => {
+        const page = pages[pageNumber - 1];
+
+        const payload: DisplayPayload = {};
         payload.color = EmbedColors.DEFAULT;
+        payload.title = translate('search_google_reverse.reverse_image_results');
+        if (lensUrl) {
+          payload.url = lensUrl;
+        }
+
+        if (page.match) {
+          const { cite, site, title, url } = page.match;
+          const details = [site, cite].filter((x) => x).map((x) => Markup.escape.all(x));
+          payload.description = [
+            Markup.url(`**${Markup.escape.all(title || cite)}**`, `<${url}>`),
+            details.join(' • '),
+          ].filter((x) => x).join('\n');
+        }
 
         let footer = translate('search_google_reverse.google_reverse_image_results');
         if (pageLimit !== 1) {
-          footer = translate('search_google_reverse.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
+          footer = translate('search_google_reverse.page_of', {footer, pageLimit, pageNumber});
         }
-        footer = translate('search_google_reverse.total_results', {footer: footer, totalResultCount: totalResultCount.toLocaleString(language)});
         payload.footer = footer;
         payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 
-        payload.title = translate('search_google_reverse.reverse_image_results');
-        payload.url = url;
-
-        const image = (visuallySimilarImages) ? visuallySimilarImages[pageNumber - 1] : null;
-        if (image) {
-          payload.image = image.url;
-        }
-
-        if (relatedSearch.text) {
-          payload.description = translate('search_google_reverse.best_guess', {text: Markup.codestring(relatedSearch.text)});
-        }
-
-        for (let result of similarResults) {
-          const description: Array<string> = [
-            Markup.url(`**${Markup.escape.all(result.cite)}**`, `<${result.url}>`),
-            Markup.escape.all(result.description),
-          ];
-          if (result.footer) {
-            description.push(result.footer);
-          }
-          if (result.suggestions.length) {
-            const suggestions = result.suggestions.map((suggestion: {text: string, url: string}) => {
-              if (suggestion.url.length < 100) {
-                return Markup.url(Markup.escape.all(suggestion.text), `<${suggestion.url}>`);
-              }
-            }).filter((v: string | undefined) => v);
-            if (suggestions.length) {
-              description.push(translate('search_google_reverse.suggestions', {suggestions: suggestions.join(', ')}));
-            }
-          }
-
-          payload.fields!.push({name: `**${Markup.escape.all(result.title)}**`, value: description.join('\n')});
-        }
-        return {display: payload};
+        // throws if it can't be fetched (and scanned), the raw url is never shown
+        const media = await fetchMedia(pageNumber, page.imageUrl);
+        payload.image = `attachment://${media.filename}`;
+        return {display: {...payload, files: [{filename: media.filename, value: media.value}]}};
       },
     });
     return await paginator.start();
   }
 
-  const payload: DisplayPayload = {fields: []};
+  const payload: DisplayPayload = {};
   payload.color = EmbedColors.DEFAULT;
   payload.footer = translate('search_google_reverse.google_reverse_image_results');
   payload.footerIconUrl = EmbedBrands.GOOGLE_GO;

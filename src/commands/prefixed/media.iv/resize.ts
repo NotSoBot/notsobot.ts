@@ -28,7 +28,7 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot 512x512`,
           `${COMMAND_NAME} notsobot -kernel bicubic`,
           `${COMMAND_NAME} 👌🏿 -scale 2`,
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png -size 2048`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/b1.png -size 2048`,
           `${COMMAND_NAME} notsobot -ratio -size 320x320`,
         ],
         id: Formatter.Commands.MediaIVManipulationResize.COMMAND_ID,

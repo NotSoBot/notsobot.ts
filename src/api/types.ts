@@ -1882,7 +1882,7 @@ export namespace RestOptions {
   export interface CommandPreview {
     // what it shows, as typed without the prefix
     example: string,
-    inputs: Array<'b1' | 'bordered' | 'captioned' | 'face' | 'face2' | 'funface' | 'grade' | 'movie' | 'music' | 'photo' | 'preview1280' | 'quiet' | 'stereo' | 'video' | 'video2' | 'voice'>,
+    inputs: Array<'b1' | 'bordered' | 'captioned' | 'displacement' | 'face' | 'face2' | 'funface' | 'grade' | 'gradient' | 'greenscreen' | 'movie' | 'music' | 'photo' | 'preview1280' | 'qr' | 'quiet' | 'stereo' | 'video' | 'video2' | 'voice'>,
     script: string,
   }
 
@@ -3199,16 +3199,18 @@ export namespace RestResponsesRaw {
     related_search: {
       results: Array<SearchGoogleResult>,
       text: string,
-      url: string,
+      url: null | string,
     },
     similar_images: {
-      results: Array<{search_url: string, url: string}>,
-      url: string,
+      results: Array<{search_url: null | string, url: string}>,
+      url: null | string,
     },
+    // google lens' visual matches, `thumbnail` is the matched image and `footer` the site's name
     similar_results: Array<SearchGoogleResult>,
-    thumbnail: string,
+    thumbnail: null | string,
     total_result_count: number,
-    url: string,
+    // a lens search anyone can open, only when the image came in as a link
+    url: null | string,
   }
 
   export interface SearchGoogleImages {

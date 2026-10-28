@@ -23,7 +23,7 @@ export default class ConvertCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot jpeg`,
           `${COMMAND_NAME} 👌🏿 png -size 2560`,
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png webp`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/b1.png webp`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 mov`,
         ],
         id: Formatter.Commands.MediaAIVManipulationConvert.COMMAND_ID,

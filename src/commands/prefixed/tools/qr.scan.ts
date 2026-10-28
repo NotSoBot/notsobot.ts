@@ -19,7 +19,7 @@ export default class QRScanCommand extends BaseImageCommand<Formatter.Commands.T
         description: 'Scan an Image for QR codes',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/qr.png`,
         ],
         id: Formatter.Commands.ToolsQrScan.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
