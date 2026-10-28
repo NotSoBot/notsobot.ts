@@ -14,7 +14,7 @@ export default class InviteCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Invite to Guild Link',
+        description: 'Get the link to invite NotSoBot',
         category: CommandCategories.UTILITY,
         id: Formatter.Commands.UtilsInvite.COMMAND_ID,
         usage: '',

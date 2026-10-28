@@ -15,7 +15,7 @@ export default class SteamProfileCommand extends BaseSearchCommand {
 
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Show information about a Steam User\'s Profile',
+        description: 'Show information about a Steam Profile',
         examples: [
           `${COMMAND_NAME} coconut_cake`,
           `${COMMAND_NAME} 76561198000146360`,

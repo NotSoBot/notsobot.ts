@@ -15,7 +15,7 @@ export default class MirrorRightCommand extends BaseImageOrVideoCommand {
 
       aliases: ['waaw'],
       metadata: {
-        description: 'Mirror right half of an Image or Video',
+        description: 'Mirror the right half of an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

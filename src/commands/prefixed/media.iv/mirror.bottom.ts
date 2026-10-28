@@ -16,7 +16,7 @@ export default class MirrorBottomCommand extends BaseImageOrVideoCommand {
       aliases: ['hooh'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Mirror bottom half of an Image or Video',
+        description: 'Mirror the bottom half of an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

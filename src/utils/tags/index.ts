@@ -360,6 +360,8 @@ const REGEX_INVITE_CODE = /^(?:(?:https?:\/\/)?(?:www\.)?discord(?:app)?\.(?:gg|
 
 export enum PrivateVariables {
   AI_EXECUTIONS = '__aiExecutions',
+  AI_PROMPT_UNTRUSTED = '__aiPromptUntrusted',
+  AI_WRITES_BLOCKED = '__aiWritesBlocked',
   API_MANIPULATIONS = '__apiManipulations',
   ARGS = '__args',
   ARGS_STRING = '__argsString',
@@ -1358,6 +1360,8 @@ async function setServerSetting(
 
 export interface TagVariables {
   [PrivateVariables.AI_EXECUTIONS]: number,
+  [PrivateVariables.AI_PROMPT_UNTRUSTED]: number,
+  [PrivateVariables.AI_WRITES_BLOCKED]: number,
   [PrivateVariables.API_MANIPULATIONS]: number,
   [PrivateVariables.ARGS]: Array<string>,
   [PrivateVariables.ARGS_STRING]: string,
@@ -1508,6 +1512,12 @@ export async function parse(
   }
   if (!(PrivateVariables.AI_EXECUTIONS in variables)) {
     (variables as any)[PrivateVariables.AI_EXECUTIONS] = 0;
+  }
+  if (!(PrivateVariables.AI_PROMPT_UNTRUSTED in variables)) {
+    (variables as any)[PrivateVariables.AI_PROMPT_UNTRUSTED] = 0;
+  }
+  if (!(PrivateVariables.AI_WRITES_BLOCKED in variables)) {
+    (variables as any)[PrivateVariables.AI_WRITES_BLOCKED] = 0;
   }
   if (!(PrivateVariables.API_MANIPULATIONS in variables)) {
     (variables as any)[PrivateVariables.API_MANIPULATIONS] = 0;
@@ -1977,8 +1987,33 @@ export const MAX_AI_MEMORY_LENGTH = 200;
 // only NotSoAI's own reply can touch the command user's memory, settings, reminders and tags, not a button it made. a
 // press still runs with the command user's context, and NotSoAI can let everyone press its buttons
 // (`ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE`), so anyone could have changed their settings or deleted their reminders
+// it also can't when someone else's text was in its prompt (a message it replied to, a file or link, or tagscript made
+// while running like {ai}'s answer or {eval}'s result), they could have told it to change or read out the command
+// user's things. those are counted so NotSoAI's reply can say it skipped them
 export function canChangeAIMemory(context: Command.Context | Interaction.InteractionContext, tag: TagResult): boolean {
-  return isFromAI(context, tag) && tag.variables[PrivateVariables.COMPONENT_EXECUTIONS] <= 0;
+  if (!isFromAI(context, tag) || 0 < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS]) {
+    return false;
+  }
+  if (tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED]) {
+    tag.variables[PrivateVariables.AI_WRITES_BLOCKED]++;
+    return false;
+  }
+  return true;
+}
+
+// runs tagscript that only exists at runtime (not what NotSoAI wrote) with the NotSoAI-only functions locked
+async function parseUntrustedValue(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  value: string,
+): Promise<string> {
+  const wasUntrusted = tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED];
+  tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED] = 1;
+  try {
+    return await parseValue(context, tag, value);
+  } finally {
+    tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED] = wasUntrusted;
+  }
 }
 
 export function getAIMemoryChanges(tag: TagResult): AIMemoryChanges | null {
@@ -3841,11 +3876,11 @@ const ScriptTags = Object.freeze({
       // is from a tag, the text isn't run so a plain answer goes in as itself (`text` has its braces escaped)
       tag.text += (typeof(response.text_answer) === 'string') ? response.text_answer : response.text;
     } else {
-      // is from ai, parse the text first
+      // is from ai, parse the text first. its prompt was built while running, so it can have anyone's text in it
       const isFromAICache = tag.variables[PrivateVariables.IS_FROM_AI];
       tag.variables[PrivateVariables.IS_FROM_AI] = 1;
       try {
-        tag.text += await parseValue(context, tag, response.text);
+        tag.text += await parseUntrustedValue(context, tag, response.text);
       } finally {
         tag.variables[PrivateVariables.IS_FROM_AI] = isFromAICache;
       }
@@ -5052,17 +5087,19 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.EVAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {eval:{args}}
+    // the argument already ran once, so this runs what it turned into (like a {request}'s response)
 
-    tag.text += await parseValue(context, tag, arg);
+    tag.text += await parseUntrustedValue(context, tag, arg);
 
     return true;
   },
 
   [TagFunctions.EVAL_SILENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {evalsilent:{args}}
+    // like {eval}, what the argument turned into runs with the NotSoAI-only functions locked
 
     try {
-      tag.text += await parseValue(context, tag, arg);
+      tag.text += await parseUntrustedValue(context, tag, arg);
     } catch(error) {
       if (error instanceof TagExitError || error instanceof TagTimeoutError) {
         throw error;

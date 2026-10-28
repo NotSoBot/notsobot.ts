@@ -19,7 +19,7 @@ export default class SlideCommand extends BaseImageOrVideoCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Apply a Sliding Effect to an Image or Video',
+        description: 'Scroll an Image or Video in a loop, wrapping around the edges',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

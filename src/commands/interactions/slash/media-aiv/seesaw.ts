@@ -8,7 +8,7 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'seesaw';
 
 export class MediaAIVSeeSawCommand extends BaseInteractionMediaCommandOption {
-  description = 'SeeSaw an Animated Image/Audio/Video, add a reversed copy of itself at the end of it';
+  description = 'Play an Animated Image/Audio/Video forwards then backwards';
   descriptionLocalizations = I18n.localizations('commands.media_aiv.seesaw.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationSeeSaw.COMMAND_ID,

@@ -12,7 +12,7 @@ export interface CommandArgs {
 }
 
 export class TagListUserCommand extends BaseInteractionCommandOption {
-  description = 'List all of a User\'s Tags';
+  description = 'List all of a user\'s tags';
   descriptionLocalizations = I18n.localizations('commands.tag.list.user.description');
   metadata = {
     id: Formatter.Commands.TagListUser.COMMAND_ID,

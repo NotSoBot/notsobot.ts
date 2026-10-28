@@ -8,7 +8,7 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'android';
 
 export class MediaAIVAndroidCommand extends BaseInteractionMediaCommandOption {
-  description = 'Compress the Audio/Image/Video File to be Android-Like';
+  description = 'Make an Audio/Image/Video look and sound like it was sent from an old Android phone';
   descriptionLocalizations = I18n.localizations('commands.media_aiv.android.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationAndroid.COMMAND_ID,

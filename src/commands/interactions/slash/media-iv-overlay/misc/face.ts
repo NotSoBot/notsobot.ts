@@ -8,7 +8,7 @@ import { BaseInteractionMediasCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'face';
 
 export class MediaIVOverlayFaceCommand extends BaseInteractionMediasCommandOption {
-  description = 'Overlay Media onto the face of another Media';
+  description = 'Overlay an Image or Video onto the faces in another one';
   descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.face.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayFace.COMMAND_ID,

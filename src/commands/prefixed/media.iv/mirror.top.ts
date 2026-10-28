@@ -16,7 +16,7 @@ export default class MirrorTopCommand extends BaseImageOrVideoCommand {
       aliases: ['woow'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Mirror top half of an Image or Video',
+        description: 'Mirror the top half of an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

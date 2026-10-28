@@ -19,7 +19,7 @@ export default class RetroCommand extends BaseCommand {
       label: 'text',
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Create a Retro Image overlayed with text',
+        description: 'Write text in an 80s retrowave style',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

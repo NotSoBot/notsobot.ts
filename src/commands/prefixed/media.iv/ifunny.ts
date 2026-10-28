@@ -14,7 +14,7 @@ export default class IFunnyCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Attach an iFunny Label on an Image or Video',
+        description: 'Add an iFunny watermark to an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'hue-shift-rgb';
 
 export class MediaIVHueShiftRGBCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Shift the Image or Video\'s RGB Pixel Color by X amount';
+  description = 'Shift an Image or Video\'s RGB Pixel Color by X amount';
   descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.hue_shift_rgb.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationHueShiftRGB.COMMAND_ID,

@@ -20,7 +20,7 @@ export default class InterpolateCommand extends BaseMediasCommand {
       ],
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Cut two medias into small pieces and alternate between them',
+        description: 'Cut two Audio/Image/Video files into small pieces and alternate between them',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
           `${COMMAND_NAME} @cakedan @notsobot -segment 0.2 -noloop`,

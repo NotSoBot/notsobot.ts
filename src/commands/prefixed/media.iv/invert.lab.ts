@@ -15,7 +15,7 @@ export default class InvertLABCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Invert each CIELAB channel with 1, or ignore with 0 (lightness flips light and dark keeping the colors, a swaps green and red, b swaps blue and yellow)',
+        description: 'Invert an Image or Video\'s CIELAB channels one by one, 1 inverts and 0 keeps (lightness flips light and dark keeping the colors, a swaps green and red, b swaps blue and yellow)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

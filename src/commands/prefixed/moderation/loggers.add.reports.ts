@@ -13,7 +13,7 @@ export default class LoggersAddReportsCommand extends LoggersAddBaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Create a logger for members\' reports to the moderators, with buttons to resolve or dismiss them.',
+        description: 'Create a logger for members\' reports to the moderators, with buttons to resolve or dismiss them',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -channel reports`,

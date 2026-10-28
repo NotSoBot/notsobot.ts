@@ -15,7 +15,7 @@ export default class ConcatCommand extends BaseMediasCommand {
 
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Concat two Medias together',
+        description: 'Play two Audio/Image/Video files one after the other',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
         ],

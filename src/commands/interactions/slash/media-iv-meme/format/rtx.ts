@@ -8,7 +8,7 @@ import { BaseInteractionMediasCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'rtx';
 
 export class MediaIVMemeRTXCommand extends BaseInteractionMediasCommandOption {
-  description = 'Compare two Medias side by side with RTX OFF and RTX ON badges';
+  description = 'Compare two Images or Videos side by side with RTX OFF and RTX ON badges';
   descriptionLocalizations = I18n.localizations('commands.media_iv_6.meme_2.rtx.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayRTX.COMMAND_ID,

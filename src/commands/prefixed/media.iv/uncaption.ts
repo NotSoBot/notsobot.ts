@@ -18,7 +18,7 @@ export default class UncaptionCommand extends BaseImageOrVideoCommand {
       ],
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Uncaption an Image or Video',
+        description: 'Remove the caption from an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

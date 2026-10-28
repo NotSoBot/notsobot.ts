@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'alias';
 
 export class TagAliasCommand extends BaseInteractionTagWriteCommandOption {
   blockedCommandShouldStillExecute = false;
-  description = 'Create a Tag Alias';
+  description = 'Create a tag alias';
   descriptionLocalizations = I18n.localizations('commands.tag.alias.description');
   metadata = {
     id: Formatter.Commands.TagAlias.COMMAND_ID,

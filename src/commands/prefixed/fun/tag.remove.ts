@@ -20,7 +20,7 @@ export default class TagRemoveCommand extends BaseCommand {
       label: 'tag',
       metadata: {
         category: CommandCategories.TAGS,
-        description: 'Delete a tag',
+        description: 'Remove a tag',
         examples: [
           `${COMMAND_NAME} something`,
           `${COMMAND_NAME} some tag`,

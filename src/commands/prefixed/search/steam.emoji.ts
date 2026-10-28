@@ -16,7 +16,7 @@ export default class SteamEmojiCommand extends BaseSearchCommand {
       aliases: ['steam e'],
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Search all of Steam\'s Emojis',
+        description: 'Search Steam\'s Emojis',
         examples: [
           `${COMMAND_NAME} b1`,
           `${COMMAND_NAME} sleep`,

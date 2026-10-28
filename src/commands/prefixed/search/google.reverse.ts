@@ -20,7 +20,7 @@ export default class GoogleReverseCommand extends BaseImageCommand<CommandArgs> 
       aliases: ['g reverse', 'images', 'imgs'],
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Reverse Search an image using Google',
+        description: 'Reverse search an Image using Google',
         examples: [
           `${COMMAND_NAME}`,
           `${COMMAND_NAME} notsobot`,

@@ -20,7 +20,7 @@ export default class Image2Command extends BaseSearchCommand {
       ],
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Search Google Images, but with less data displayed',
+        description: 'Search Google Images but with less data displayed',
         examples: [
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -locale russian`,

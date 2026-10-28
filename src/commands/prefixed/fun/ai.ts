@@ -45,7 +45,7 @@ export default class AiCommand extends BaseCommand {
       metadata: {
         category: CommandCategories.AI,
         pipeable: false,
-        description: 'Use AI to generate and execute TagScript code',
+        description: 'Use NotSoAI to generate and execute TagScript code',
         examples: [
           `${COMMAND_NAME} what is cake\'s user id`,
         ],

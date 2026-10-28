@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'pistol';
 
 export class MediaIVOverlayPistolCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Overlay a Half Life Pistol on an Image or Video';
+  description = 'Overlay a Half-Life pistol over an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.pistol.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.COMMAND_ID,

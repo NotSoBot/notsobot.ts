@@ -10,7 +10,7 @@ import { EYES_FLIPPED_OPTION } from './options';
 export const COMMAND_NAME = 'center';
 
 export class MediaIVEyesCenterCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Attach center eyes to people\'s faces in an Image or Video';
+  description = 'Attach centered eyes to people\'s faces in an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv_4.eyes.center.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationEyesCenter.COMMAND_ID,

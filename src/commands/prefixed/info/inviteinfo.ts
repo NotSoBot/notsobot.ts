@@ -15,7 +15,7 @@ export default class InviteInfoCommand extends BaseCommand {
 
       label: 'code',
       metadata: {
-        description: 'Get information of a discord invite',
+        description: 'Get information about a Discord invite',
         examples: [
           `${COMMAND_NAME} 9Ukuw9V`,
         ],

@@ -22,7 +22,7 @@ export default class KickCommand extends BaseCommand {
       label: 'payload',
       metadata: {
         category: CommandCategories.MODERATION,
-        description: 'Kick multiple members, add a reason, and clean their messages.',
+        description: 'Kick multiple members, add a reason, and clean their messages',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} 300505364032389122 -clean 1 day`,

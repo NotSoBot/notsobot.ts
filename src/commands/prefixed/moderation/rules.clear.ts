@@ -17,7 +17,7 @@ export default class RulesClearCommand extends BaseCommand {
       disableDm: true,
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Remove every rule in this server',
+        description: 'Remove every rule in this Server',
         examples: [
           COMMAND_NAME,
         ],

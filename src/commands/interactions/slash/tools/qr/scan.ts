@@ -6,7 +6,7 @@ import { BaseInteractionImageCommandOption } from '../../../basecommand';
 
 
 export class ToolsQrScanCommand extends BaseInteractionImageCommandOption {
-  description = 'Scan a QR code';
+  description = 'Scan an Image for QR codes';
   descriptionLocalizations = I18n.localizations('commands.tools.qr.scan.description');
   metadata = {
     id: Formatter.Commands.ToolsQrScan.COMMAND_ID,

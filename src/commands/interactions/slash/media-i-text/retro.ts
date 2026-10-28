@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'retro';
 
 export class MediaIRetroCommand extends BaseInteractionCommandOption {
-  description = 'Create a Retro Image overlayed with text';
+  description = 'Write text in an 80s retrowave style';
   descriptionLocalizations = I18n.localizations('commands.media_i.fun.retro.description');
   metadata = {
     id: Formatter.Commands.MediaICreateRetrowave.COMMAND_ID,

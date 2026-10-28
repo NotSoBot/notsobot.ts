@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'phosimp';
 
 export class MediaIVPhoSimpCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Apply PhoSimp Filters on an Image or Video';
+  description = 'Apply numbered filters (0 to 1256) from the game PHOSIMP to an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv_3.fun.phosimp.description');
   metadata = {
     credits: Formatter.Commands.MediaIVManipulationPhoSimp.CREDITS,

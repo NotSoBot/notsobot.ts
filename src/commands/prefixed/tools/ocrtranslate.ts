@@ -29,7 +29,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
       ],
       metadata: {
         category: CommandCategories.AI,
-        description: 'Read text inside of an image and translate it',
+        description: 'Read text inside of an Image and translate it',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} cake`,

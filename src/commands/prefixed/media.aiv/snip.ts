@@ -18,7 +18,7 @@ export default class SnipCommand extends BaseMediaCommand {
       ],
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Snip an Animated Image/Audio/Video',
+        description: 'Cut out the part of an Animated Image/Audio/Video between two times',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 10 50`,
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -50`,

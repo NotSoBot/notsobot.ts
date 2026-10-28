@@ -20,7 +20,7 @@ export default class RefreshCommand extends BaseCommand {
         {name: 'voice', type: Boolean},
       ],
       metadata: {
-        description: 'Reload the bot\'s commands.',
+        description: 'Reload the bot\'s commands',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -stores`,

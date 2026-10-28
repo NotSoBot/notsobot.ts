@@ -10,7 +10,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'channel';
 
 export class InfoChannelCommand extends BaseInteractionCommandOption {
-  description = 'Get information for a channel';
+  description = 'Get information about a channel';
   descriptionLocalizations = I18n.localizations('commands.info.channel.description');
   metadata = {
     id: Formatter.Commands.InfoChannel.COMMAND_ID,

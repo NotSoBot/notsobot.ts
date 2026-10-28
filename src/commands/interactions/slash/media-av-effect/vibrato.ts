@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'vibrato';
 
 export class MediaAVAudioVibratoCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Adjust the timing of sound waves in any Audio or Video file';
+  description = 'Make an Audio or Video\'s pitch waver up and down (vibrato)';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.vibrato.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioVibrato.COMMAND_ID,

@@ -26,7 +26,7 @@ export default class ReimagineCommand extends BaseImageCommand {
       ],
       metadata: {
         category: CommandCategories.AI,
-        description: 'Alter an Image by generating a prompt of the Imagine then Imagining that prompt',
+        description: 'Interrogate an Image for a prompt then generate that prompt',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,

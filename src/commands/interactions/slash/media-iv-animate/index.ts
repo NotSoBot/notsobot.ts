@@ -14,6 +14,7 @@ import { MediaIVFlashCommand } from './flash';
 import { MediaIVInOutCommand } from './in-out';
 import { MediaIVOrbCommand } from './orb';
 import { MediaIVOutInCommand } from './out-in';
+import { MediaIVPrismCommand } from './prism';
 import { MediaIVRainbowCommand } from './rainbow';
 import { MediaIVShakeCommand } from './shake';
 import { MediaIVSideToSideCommand } from './side-to-side';
@@ -51,6 +52,7 @@ export default class MediaIVAnimateGroupCommand extends BaseSlashCommand {
         new MediaIVSideToSideCommand(),
         new MediaIVUpToDownCommand(),
         new MediaIVOrbCommand(),
+        new MediaIVPrismCommand(),
         new MediaIVShakeCommand(),
         new MediaIVSlideCommand(),
         new MediaIVSpinCommand(),

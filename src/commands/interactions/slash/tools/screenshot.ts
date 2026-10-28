@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
-  description = 'Screenshot a website';
+  description = 'Take a screenshot of a website';
   descriptionLocalizations = I18n.localizations('commands.tools.screenshot.description');
   metadata = {
     id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,

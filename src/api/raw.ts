@@ -11218,6 +11218,32 @@ export async function mediaIVManipulationPopArt(
 }
 
 
+export async function mediaIVManipulationPrism(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPrism,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    angle: options.angle,
+    clockwise: options.clockwise,
+    max_file_size: maxFileSize,
+    repeat: options.repeat,
+    safe: options.safe,
+    still: options.still,
+    tilt: options.tilt,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_PRISM,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationQuadart(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationQuadart,

@@ -13,7 +13,7 @@ export default class LoggersAddBansCommand extends LoggersAddBaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Create a logger for ban events.',
+        description: 'Create a logger for ban events',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -channel ban-logs`,

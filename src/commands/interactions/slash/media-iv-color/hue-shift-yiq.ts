@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'hue-shift-yiq';
 
 export class MediaIVHueShiftYIQCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Rotate the Image or Video\'s Hue in YIQ (NTSC) color space, keeping its brightness';
+  description = 'Rotate an Image or Video\'s Hue in YIQ (NTSC) color space, keeping its brightness';
   descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.hue_shift_yiq.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationHueShiftYIQ.COMMAND_ID,

@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'volume';
 
 export class MediaAVAudioVolumeCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Manipulate an Audio or Video\'s Volume';
+  description = 'Change an Audio or Video\'s volume';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.volume.description');
   metadata = {
   id: Formatter.Commands.MediaAVManipulationAudioVolume.COMMAND_ID,

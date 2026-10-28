@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetUnitsCommand extends BaseInteractionCommandOption {
-  description = 'Set what your default Measurement Unit should be';
+  description = 'Set your default measurement units';
   descriptionLocalizations = I18n.localizations('commands.settings.set.units.description');
   metadata = {
     id: Formatter.Commands.SettingsSetUnits.COMMAND_ID,

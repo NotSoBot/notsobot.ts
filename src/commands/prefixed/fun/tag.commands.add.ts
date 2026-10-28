@@ -18,7 +18,7 @@ export default class TagCommandsAddCommand extends BaseCommand {
       label: 'tag',
       metadata: {
         category: CommandCategories.TAGS,
-        description: 'Add a tag into the custom command list',
+        description: 'Make a tag a custom command in this server',
         examples: [
           `${COMMAND_NAME} something`,
           `${COMMAND_NAME} some tag`,

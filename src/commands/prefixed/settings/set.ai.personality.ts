@@ -21,7 +21,7 @@ export default class SetAIPersonalityCommand extends BaseCommand {
       label: 'personality',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Set the guild\'s AI personality.',
+        description: 'Set the server\'s default AI personality',
         examples: [
           `${COMMAND_NAME} Be very cutesy and dumb`,
         ],

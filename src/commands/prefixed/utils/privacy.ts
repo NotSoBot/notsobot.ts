@@ -14,7 +14,7 @@ export default class PrivacyCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Privacy Policy',
+        description: 'Show NotSoBot\'s Privacy Policy',
         examples: [
           COMMAND_NAME,
         ],

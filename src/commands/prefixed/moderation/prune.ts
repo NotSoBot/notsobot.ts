@@ -79,7 +79,7 @@ export default class PruneCommand extends BaseCommand {
       default: null,
       label: 'amount',
       metadata: {
-        description: 'Prune multiple messages, default 10 messages',
+        description: 'Delete recent messages in bulk (10 by default)',
         examples: [
           `${COMMAND_NAME} 100`,
           `${COMMAND_NAME} 100 -from cake`,

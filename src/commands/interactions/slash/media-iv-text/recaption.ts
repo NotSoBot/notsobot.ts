@@ -9,7 +9,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'recaption';
 
 export class MediaIVRecaptionCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Remove Caption Text then Add Caption Text to an Image or Video';
+  description = 'Replace an Image or Video\'s caption with new text';
   descriptionLocalizations = I18n.localizations('commands.media_iv_text.recaption.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationRecaption.COMMAND_ID,

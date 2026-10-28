@@ -20,7 +20,7 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Pipe some Image commands together',
+        description: 'Run several media commands in a row, each on the last one\'s result',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} flip; flop`,

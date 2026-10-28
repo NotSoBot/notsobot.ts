@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetDownloadQualityCommand extends BaseInteractionCommandOption {
-  description = 'Set what your default Download Quality should be';
+  description = 'Set your default download quality';
   descriptionLocalizations = I18n.localizations('commands.settings.set.download_quality.description');
   metadata = {
     id: Formatter.Commands.SettingsSetDownloadQuality.COMMAND_ID,

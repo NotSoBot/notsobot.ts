@@ -15,7 +15,7 @@ export default class EmojisCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.OWNER,
-        description: 'Search through all emoji\'s that NotSoBot sees.',
+        description: 'Search through all emojis that NotSoBot sees',
         examples: [
           `${COMMAND_NAME} pepe`,
         ],

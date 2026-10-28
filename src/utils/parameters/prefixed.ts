@@ -1,5 +1,5 @@
 import { ClusterClient, Collections, Command, Interaction, Structures } from 'detritus-client';
-import { DiscordRegexNames } from 'detritus-client/lib/constants';
+import { DiscordRegexNames, Permissions } from 'detritus-client/lib/constants';
 import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
 import MiniSearch from 'minisearch';
@@ -140,6 +140,32 @@ export interface ChannelMetadata {
   channels: GuildChannelsStored,
 }
 
+// any channel the bot could see used to show up with its name and topic, even private ones in servers the user isn't in.
+// dms and group dms are the bot's with someone else, and a server only cached on another cluster has no roles here to
+// check the permissions with, so those don't show up either
+async function canUserViewChannel(
+  context: Command.Context | Interaction.InteractionContext,
+  channel: Structures.Channel,
+): Promise<boolean> {
+  if (context.user.isClientOwner) {
+    return true;
+  }
+  const guild = (channel.isGuildChannel) ? channel.guild : null;
+  if (!guild) {
+    return false;
+  }
+  let member = guild.members.get(context.userId) || null;
+  if (!member) {
+    try {
+      member = await context.rest.fetchGuildMember(guild.id, context.userId);
+    } catch(error) {
+      return false;
+    }
+  }
+  return channel.can(Permissions.VIEW_CHANNEL, member);
+}
+
+
 export async function channelMetadata(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
@@ -184,6 +210,10 @@ export async function channelMetadata(
           }
         }
       }
+    }
+
+    if (payload.channel && !(await canUserViewChannel(context, payload.channel))) {
+      payload.channel = null;
     }
   }
 

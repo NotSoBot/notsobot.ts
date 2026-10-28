@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class ReminderListServerCommand extends BaseInteractionCommandOption {
-  description = 'List of Reminders in this Server';
+  description = 'List the reminders in this server';
   descriptionLocalizations = I18n.localizations('commands.reminder.list.server.description');
   metadata = {
     id: Formatter.Commands.ReminderListServer.COMMAND_ID,

@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'textwall';
 
 export class TextwallCommand extends BaseInteractionCommandOption {
-  description = 'Textwallify some text';
+  description = 'Turn text into a wall, each line shifted by one letter';
   descriptionLocalizations = I18n.localizations('commands.fun.textwall.description');
   metadata = {
     id: Formatter.Commands.FunTextwall.COMMAND_ID,

@@ -9,7 +9,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'list';
 
 export class ServerRulesListCommand extends BaseInteractionCommandOption {
-  description = 'List the rules in this Server';
+  description = 'List the rules deciding who can use which commands in this server';
   descriptionLocalizations = I18n.localizations('commands.rules.list.description');
   metadata = {
     id: Formatter.Commands.ModerationRules.COMMAND_ID,

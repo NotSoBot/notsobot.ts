@@ -19,7 +19,7 @@ export default class RemindDeleteServerCommand extends BaseCommand {
 	    metadata: {
 		    category: CommandCategories.UTILITY,
 		    pipeable: true,
-		    description: 'Move a User\'s Reminder out of the Server and into their DMs',
+		    description: 'Move a Reminder out of the Server and into DMs',
 		    examples: [
 		      `${COMMAND_NAME} @cake 1`,
 		      `${COMMAND_NAME} @cake 5`,

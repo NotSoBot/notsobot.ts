@@ -18,7 +18,7 @@ export default class ConvertCommand extends BaseMediaCommand {
       ],
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Convert Media',
+        description: 'Convert an Audio, Image or Video File',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot jpeg`,

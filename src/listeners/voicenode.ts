@@ -13,6 +13,19 @@ import { Listener } from './listener';
 // a dashboard control older than this was replayed after we reconnected, it's not acted on anymore
 const MUSIC_CONTROL_MAX_AGE = 15 * 1000;
 
+// the dashboard's speed or volume: on the playing track, or (in voice with nothing playing) what the queue starts with
+// next. The api saved it for the server already
+async function controlDashboardSound(guildId: string, action: 'speed' | 'volume', value?: number): Promise<unknown> {
+  if (typeof(value) !== 'number') {
+    return null;
+  }
+  if (VoiceNode.isPlaying(guildId)) {
+    return (action === 'speed') ? VoiceNode.setTempo(guildId, value) : VoiceNode.setVolume(guildId, value);
+  }
+  VoiceNode.setStoppedSound(guildId, (action === 'speed') ? {tempo: value} : {volume: value});
+  return null;
+}
+
 
 // our own voice state and voice server go to the voice node, it only acts on guilds it's playing in. Everyone else's
 // voice states are only counted for `pause_alone`
@@ -54,8 +67,8 @@ class VoiceNodeListener extends Listener {
     }
 
     {
-      // the dashboard's pause/resume/skip/leave and live effects, every cluster gets it and only the one playing in the
-      // server acts
+      // the dashboard's pause/resume/skip/leave, live effects, speed and volume, every cluster gets it and only the one
+      // playing in the server acts
       const subscription = apiEvents.subscribe(RedisChannels.MUSIC_CONTROL, (payload) => {
         if (!payload || !VoiceNode.guilds.has(payload.guild_id) || MUSIC_CONTROL_MAX_AGE < Date.now() - payload.created) {
           return;
@@ -70,6 +83,8 @@ class VoiceNodeListener extends Listener {
           case 'effect_add':
           case 'effect_clear':
           case 'effect_remove': promise = controlDashboardEffects(payload.guild_id, payload.action, payload.effect, payload.index); break;
+          case 'speed':
+          case 'volume': promise = controlDashboardSound(payload.guild_id, payload.action, payload.value); break;
           default: return;
         }
         promise.catch((error) => console.warn(`voice node dashboard ${payload.action} ${payload.guild_id}`, error));

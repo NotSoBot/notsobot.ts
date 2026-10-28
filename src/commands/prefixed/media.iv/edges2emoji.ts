@@ -16,7 +16,7 @@ export default class Edges2EmojiCommand extends BaseImageOrVideoCommand {
       aliases: ['e2e'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Edges to Emoji',
+        description: 'Trace an Image or Video\'s edges and have an AI redraw them as an emoji',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

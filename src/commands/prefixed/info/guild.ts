@@ -16,7 +16,7 @@ export default class GuildCommand extends BaseCommand {
       aliases: ['guildinfo', 'server', 'serverinfo'],
       label: 'payload',
       metadata: {
-        description: 'Get information for a guild, defaults to the current guild',
+        description: 'Get information about a server, defaults to the current server',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} 178313653177548800`,

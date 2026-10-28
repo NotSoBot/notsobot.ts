@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'compress';
 
 export class MediaAVAudioCompressCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Compress Audio';
+  description = 'Crush an Audio or Video\'s audio down to 8 kHz, low bitrate sound';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.compress.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioCompress.COMMAND_ID,

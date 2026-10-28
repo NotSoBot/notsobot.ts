@@ -18,7 +18,7 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Remove Caption Text then Add Caption Text to an Image or Video',
+        description: 'Replace an Image or Video\'s caption with new text',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} @NotSoBot what an idiot`,

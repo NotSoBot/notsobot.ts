@@ -21,7 +21,7 @@ export default class QRCreateCommand extends BaseCommand<Formatter.Commands.Tool
       metadata: {
         category: CommandCategories.UTILITY,
         pipeable: true,
-        description: 'Generate a QR code',
+        description: 'Create a QR code',
         examples: [
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png -size 1024`,

@@ -16,7 +16,7 @@ export default class TTSVoiceRenameCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Rename one cloned voice to another name',
+        description: 'Rename one of your cloned voices',
         examples: [
           `${COMMAND_NAME} chewbacca ralph`,
         ],

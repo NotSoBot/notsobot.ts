@@ -25,7 +25,7 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'prune';
 
 export class ModerationPruneCommand extends BaseInteractionCommandOption {
-  description = 'Prune multiple messages';
+  description = 'Delete recent messages in bulk';
   descriptionLocalizations = I18n.localizations('commands.moderation.prune.description');
   metadata = {
     id: 'moderation.prune',

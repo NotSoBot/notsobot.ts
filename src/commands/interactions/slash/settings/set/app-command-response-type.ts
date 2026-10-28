@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetApplicationCommandResponseTypeCommand extends BaseInteractionCommandOption {
-  description = 'Set if the Application Command Response should always be Ephemeral or not.';
+  description = 'Set if slash command responses are only shown to you';
   descriptionLocalizations = I18n.localizations('commands.settings.set.app_command_response_type.description');
   metadata = {
     id: Formatter.Commands.SettingsSetApplicationCommandResponseType.COMMAND_ID,

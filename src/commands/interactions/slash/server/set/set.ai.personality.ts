@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 export class ServerSetAIPersonalityCommand extends BaseInteractionCommandOption {
   blockedCommandShouldStillExecute = false;
-  description = 'Set the server\'s default AI personality for the bot.';
+  description = 'Set the server\'s default AI personality';
   descriptionLocalizations = I18n.localizations('commands.settings_server.set.set_ai_personality.description');
   metadata = {
     id: Formatter.Commands.SettingsServerSetAIPersonality.COMMAND_ID,

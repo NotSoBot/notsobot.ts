@@ -14,7 +14,7 @@ export default class SepiaCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Apply an Sepia Tint to an Image or Video',
+        description: 'Apply a Sepia Tint to an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

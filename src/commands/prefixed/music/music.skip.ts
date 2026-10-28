@@ -15,7 +15,7 @@ export default class MusicSkipCommand extends BaseCommand {
 
       disableDm: true,
       metadata: {
-        description: 'Skip to the next track in the music queue',
+        description: 'Skip to the next song in the queue',
         examples: [
           COMMAND_NAME,
         ],

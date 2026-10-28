@@ -16,7 +16,7 @@ export default class OverlayShotgunCommand extends BaseImageOrVideoCommand {
       aliases: ['o shotgun', 'shotgun'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Overlay a Half Life Shotgun over an Image or Video',
+        description: 'Overlay a Half-Life shotgun over an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

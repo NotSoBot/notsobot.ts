@@ -16,7 +16,7 @@ export default class AIMemoryCommand extends BaseCommand {
       aliases: ['ai memories'],
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'See what NotSoAI remembers about you.',
+        description: 'See what NotSoAI remembers about you',
         examples: [
           COMMAND_NAME,
         ],

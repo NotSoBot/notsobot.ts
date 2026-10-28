@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'spin';
 
 export class MediaIVSpinCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Create a Spinning Disk from an Image or Video';
+  description = 'Create a spinning disk from an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.spin.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSpin.COMMAND_ID,

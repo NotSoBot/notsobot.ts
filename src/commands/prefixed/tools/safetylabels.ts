@@ -15,7 +15,7 @@ export default class SafetyLabelsCommand extends BaseImageCommand<Formatter.Comm
 
       aliases: ['slabels', 'safelabels', 'isnsfw'],
       metadata: {
-        description: 'Get the safety labels of an image',
+        description: 'Get the safety labels of an Image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

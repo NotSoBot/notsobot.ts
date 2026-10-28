@@ -30,7 +30,7 @@ export default class MuteCommand extends BaseCommand {
       label: 'payload',
       metadata: {
         category: CommandCategories.MODERATION,
-        description: 'Time out multiple members (default 1 hour, up to 28 days) with a reason',
+        description: 'Time out multiple members with a reason (default 1 hour, up to 28 days)',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} <@300505364032389122> spamming -for 10 minutes`,

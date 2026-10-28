@@ -16,7 +16,7 @@ export default class ChannelCommand extends BaseCommand {
       aliases: ['channelinfo'],
       label: 'payload',
       metadata: {
-        description: 'Get information for a channel, defaults to the current channel',
+        description: 'Get information about a channel, defaults to the current channel',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} lobby`,

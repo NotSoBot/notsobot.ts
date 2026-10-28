@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'invert-rgba';
 
 export class MediaIVInvertRGBACommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Invert each individual channel with 1, or ignore with 0';
+  description = 'Invert an Image or Video\'s RGBA channels one by one, 1 inverts and 0 keeps';
   descriptionLocalizations = I18n.localizations('commands.media_iv.tint.invert_rgba.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationInvertRGBA.COMMAND_ID,

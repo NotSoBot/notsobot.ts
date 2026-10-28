@@ -16,7 +16,7 @@ export default class TTSVoiceSampleCommand extends BaseAudioOrVideoCommand {
 
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Add another Audio or Video File to a cloned voice for Text-to-Speech',
+        description: 'Add another Audio or Video File to one of your cloned voices',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 cake`,
         ],

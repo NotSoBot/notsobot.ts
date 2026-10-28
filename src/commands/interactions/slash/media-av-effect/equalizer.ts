@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'equalizer';
 
 export class MediaAVAudioEqualizerCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Manipulate an Audio or Video\'s Equalizer Settings';
+  description = 'Boost or cut frequencies in an Audio or Video with an equalizer';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.equalizer.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioEqualizer.COMMAND_ID,

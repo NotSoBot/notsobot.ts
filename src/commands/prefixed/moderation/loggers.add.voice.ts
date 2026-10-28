@@ -13,7 +13,7 @@ export default class LoggersAddVoiceCommand extends LoggersAddBaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Create a logger for voice events.',
+        description: 'Create a logger for voice events',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -channel voice-logs`,

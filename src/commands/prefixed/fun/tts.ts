@@ -25,7 +25,7 @@ export default class TTSCommand extends BaseCommand {
       metadata: {
         category: CommandCategories.AUDIO,
         pipeable: false,
-        description: 'Text to Speech',
+        description: 'Generate Text to Speech',
         examples: [
           `${COMMAND_NAME} give me a table`,
           `${COMMAND_NAME} give me a table -use klattsch`,

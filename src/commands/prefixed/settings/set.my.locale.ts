@@ -20,7 +20,7 @@ export default class SetMyLocaleCommand extends BaseCommand {
       label: 'locale',
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'Set your default language preference.',
+        description: 'Set your default language for the bot',
         examples: [
           `${COMMAND_NAME} en-us`,
           `${COMMAND_NAME} german`,

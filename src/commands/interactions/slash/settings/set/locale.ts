@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetLocaleCommand extends BaseInteractionCommandOption {
-  description = 'Set your default language for the bot.';
+  description = 'Set your default language for the bot';
   descriptionLocalizations = I18n.localizations('commands.settings.set.locale.description');
   metadata = {
     id: Formatter.Commands.SettingsSetLocale.COMMAND_ID,

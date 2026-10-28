@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'gay';
 
 export class MediaIVOverlayGayCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Overlay a LGBT flag over an Image or Video';
+  description = 'Overlay an LGBT pride flag over an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.gay.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayFlagLGBT.COMMAND_ID,

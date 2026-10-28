@@ -25,7 +25,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
       label: 'url',
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Download a URL, like reels/shorts/tiktoks',
+        description: 'Download an image or video from a link, like reels/shorts/tiktoks',
         examples: [
           `${COMMAND_NAME} https://discordapp.com`,
         ],

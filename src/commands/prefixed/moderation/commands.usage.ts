@@ -32,7 +32,7 @@ export default class CommandsUsageCommand extends BaseCommand {
       label: 'command',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Show the latest commands used by the Server',
+        description: 'Show the latest commands used in this server',
         examples: [
           `${COMMAND_NAME} imagine`,
           `${COMMAND_NAME} imagine -channel lobby`,

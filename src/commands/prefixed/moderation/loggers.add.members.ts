@@ -13,7 +13,7 @@ export default class LoggersAddMembersCommand extends LoggersAddBaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Create a logger for member events.',
+        description: 'Create a logger for member events',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -channel member-logs`,

@@ -15,7 +15,7 @@ export default class AIMemoryClearCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'Make NotSoAI forget everything it remembers about you.',
+        description: 'Make NotSoAI forget everything it remembers about you',
         examples: [
           COMMAND_NAME,
         ],

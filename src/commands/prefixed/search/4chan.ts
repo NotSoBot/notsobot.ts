@@ -21,7 +21,7 @@ export default class ChanCommand extends BaseSearchCommand<Formatter.Commands.Se
       label: 'board',
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Search 4Chan',
+        description: 'Search 4chan',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} fitness`,

@@ -15,7 +15,7 @@ export default class GoldCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Gold tintify an Image or Video',
+        description: 'Add a gold tint to an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

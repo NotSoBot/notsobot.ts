@@ -21,7 +21,7 @@ export default class TagRemoveAllCommand extends BaseCommand {
       ],
       metadata: {
         category: CommandCategories.TAGS,
-        description: 'Remove all of a server\'s tags, with filters',
+        description: 'Remove all of a Server\'s tags, with filters',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -content discord.gg`,

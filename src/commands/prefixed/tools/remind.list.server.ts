@@ -17,7 +17,7 @@ export default class RemindListServerCommand extends BaseCommand {
       metadata: {
         category: CommandCategories.UTILITY,
         pipeable: true,
-        description: 'List of Reminders in the Server',
+        description: 'List the reminders in this server',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} cake`,

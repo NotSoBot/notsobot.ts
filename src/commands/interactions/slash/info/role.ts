@@ -10,7 +10,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'role';
 
 export class InfoRoleCommand extends BaseInteractionCommandOption {
-  description = 'Get information for a role';
+  description = 'Get information about a role';
   descriptionLocalizations = I18n.localizations('commands.info.role.description');
   metadata = {
     id: Formatter.Commands.InfoRole.COMMAND_ID,

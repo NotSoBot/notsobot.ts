@@ -6,7 +6,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export class ToolsMathCommand extends BaseInteractionCommandOption {
-  description = 'Evaluate a Math Equation';
+  description = 'Solve a math expression';
   descriptionLocalizations = I18n.localizations('commands.tools.math.description');
   metadata = {
     id: Formatter.Commands.ToolsMath.COMMAND_ID,

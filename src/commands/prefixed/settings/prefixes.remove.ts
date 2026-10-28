@@ -27,7 +27,7 @@ export default class PrefixesRemoveCommand extends BaseCommand {
       label: 'prefix',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Remove a custom prefix from the guild. (Bot Mentions will always override this)',
+        description: 'Remove a custom prefix from this Server (Bot Mentions will always override this)',
         examples: [
           `${COMMAND_NAME} ..`,
         ],

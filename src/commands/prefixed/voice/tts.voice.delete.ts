@@ -17,7 +17,7 @@ export default class TTSVoiceDeleteCommand extends BaseCommand {
       label: 'voice',
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Delete one of your stored cloned voices',
+        description: 'Delete one of your cloned voices',
         examples: [
           `${COMMAND_NAME} cake`,
         ],

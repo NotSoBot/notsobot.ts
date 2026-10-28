@@ -19,7 +19,7 @@ export default class TagCommandsRemoveCommand extends BaseCommand {
       label: 'tag',
       metadata: {
         category: CommandCategories.TAGS,
-        description: 'Remove a tag from the custom command list',
+        description: 'Stop a tag being a custom command in this server',
         examples: [
           `${COMMAND_NAME} something`,
           `${COMMAND_NAME} some tag`,

@@ -19,7 +19,7 @@ export default class SetMyAIMemoryCommand extends BaseCommand {
       label: 'enabled',
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'Turn NotSoAI\'s memory of you on or off.',
+        description: 'Turn NotSoAI\'s memory of you on or off',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} off`,

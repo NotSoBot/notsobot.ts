@@ -17,7 +17,7 @@ export default class PlayingCommand extends BaseCommand {
       disableDm: true,
       label: 'text',
       metadata: {
-        description: 'List users in the current server that is playing a certain game.',
+        description: 'List users in the current server that are playing a certain game',
         examples: [
           `${COMMAND_NAME} rust`,
           `${COMMAND_NAME} spotify`,

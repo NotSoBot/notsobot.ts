@@ -17,7 +17,7 @@ export default class YoutubeCommand extends BaseSearchCommand<Formatter.Commands
       args: [{name: 'sp'}],
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Search Youtube',
+        description: 'Search YouTube',
         examples: [
           `${COMMAND_NAME} notsobot`,
         ],

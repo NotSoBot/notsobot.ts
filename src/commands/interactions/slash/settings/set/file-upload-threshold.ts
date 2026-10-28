@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetFileUploadThresholdCommand extends BaseInteractionCommandOption {
-  description = 'Set when we should upload your file responses to https://nsb.gg';
+  description = 'Set when your file responses get uploaded to nsb.gg';
   descriptionLocalizations = I18n.localizations('commands.settings.set.file_upload_threshold.description');
   metadata = {
     id: Formatter.Commands.SettingsSetFileUploadThreshold.COMMAND_ID,

@@ -18,7 +18,7 @@ export default class ReverseCommand extends BaseMediaCommand {
       ],
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Reverse an animated image/audio/video',
+        description: 'Reverse an Animated Image/Audio/Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,

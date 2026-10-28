@@ -17,7 +17,7 @@ const DEFAULT_MATCHER_MODE = Formatter.Commands.MediaAVManipulationStammer.DEFAU
 export const COMMAND_NAME = 'stammer';
 
 export class MediaAVStammerCommand extends BaseInteractionMediasCommandOption {
-  description = 'Cut up the audio and video frames of a media to match with the modulator\'s audio frames';
+  description = 'Rebuild the second media\'s audio out of tiny pieces of the first one\'s audio and video';
   descriptionLocalizations = I18n.localizations('commands.media_av.stammer.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationStammer.COMMAND_ID,

@@ -15,7 +15,7 @@ export default class InvertRGBACommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Invert each individual channel with 1, or ignore with 0',
+        description: 'Invert an Image or Video\'s RGBA channels one by one, 1 inverts and 0 keeps',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

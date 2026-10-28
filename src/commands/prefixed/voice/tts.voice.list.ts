@@ -16,7 +16,7 @@ export default class TTSVoiceListCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'List your stored cloned voices',
+        description: 'List your cloned voices',
         examples: [
           COMMAND_NAME,
         ],

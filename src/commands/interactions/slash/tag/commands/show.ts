@@ -9,7 +9,7 @@ import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../../b
 
 
 export class TagCommandsShowCommand extends BaseInteractionCommandOption {
-  description = 'Execute a custom command tag';
+  description = 'Run a custom command tag';
   descriptionLocalizations = I18n.localizations('commands.tag.commands.show.description');
   metadata = {
     id: Formatter.Commands.TagShowCustomCommand.COMMAND_ID,

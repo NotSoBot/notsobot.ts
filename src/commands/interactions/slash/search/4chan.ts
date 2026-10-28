@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = '4chan';
 
 export class Search4ChanCommand extends BaseInteractionCommandOption {
-  description = 'Search 4Chan';
+  description = 'Search 4chan';
   descriptionLocalizations = I18n.localizations('commands.search.4chan.description');
   metadata = {
     id: Formatter.Commands.Search4Chan.COMMAND_ID,

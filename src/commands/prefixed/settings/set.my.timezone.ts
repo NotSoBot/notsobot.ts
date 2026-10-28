@@ -20,7 +20,7 @@ export default class SetMyTimezoneCommand extends BaseCommand {
       label: 'timezone',
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'Set your default timezone, used for times in commands like reminders.',
+        description: 'Set your default timezone for the bot, used for times in commands like reminders',
         examples: [
           `${COMMAND_NAME} alaska`,
           `${COMMAND_NAME} pst`,

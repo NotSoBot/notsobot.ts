@@ -15,7 +15,7 @@ export default class B1Command extends BaseCommand {
 
       metadata: {
         category: CommandCategories.FUN,
-        description: 'cool',
+        description: 'Send the B1 emoji, big',
         examples: [
           COMMAND_NAME,
         ],

@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'swap-rgba';
 
 export class MediaIVSwapRGBACommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Shift the Image or Video\'s RGB Pixel Color by X amount';
+  description = 'Swap an Image or Video\'s RGBA channels around';
   descriptionLocalizations = I18n.localizations('commands.media_iv.fun.swap_rgba.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSwapRGBA.COMMAND_ID,

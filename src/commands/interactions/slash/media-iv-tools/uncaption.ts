@@ -9,7 +9,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'uncaption';
 
 export class MediaIVToolsUncaptionCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Uncaption an Image or Video';
+  description = 'Remove the caption from an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv_tools.uncaption.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationUncaption.COMMAND_ID,

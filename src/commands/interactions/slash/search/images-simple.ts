@@ -6,7 +6,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export class SearchImagesSimpleCommand extends BaseInteractionCommandOption {
-  description = 'Search Images from Bing, DuckDuckGo, or Google but with less data displayed';
+  description = 'Search Images from Bing, DuckDuckGo, or Google, but with less data displayed';
   descriptionLocalizations = I18n.localizations('commands.search.images_simple.description');
   metadata = {
     id: Formatter.Commands.SearchImages.COMMAND_ID_SIMPLE,

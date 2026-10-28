@@ -15,7 +15,7 @@ export default class TraceCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Trace an Image/Gif',
+        description: 'Trace an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

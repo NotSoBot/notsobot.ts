@@ -9,7 +9,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetFileVanityCommand extends BaseInteractionCommandOption {
-  description = 'Set your default file upload vanity.';
+  description = 'Set the shape of your nsb.gg upload links';
   descriptionLocalizations = I18n.localizations('commands.settings.set.file_vanity.description');
   metadata = {
     id: Formatter.Commands.SettingsSetFileVanity.COMMAND_ID,

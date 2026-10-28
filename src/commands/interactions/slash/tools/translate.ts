@@ -21,7 +21,7 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'translate';
 
 export class ToolsTranslateCommand extends BaseInteractionCommandOption {
-  description = 'Translate some text';
+  description = 'Translate text to a different language';
   descriptionLocalizations = I18n.localizations('commands.tools.translate.description');
   metadata = {
     id: Formatter.Commands.ToolsTranslate.COMMAND_ID,

@@ -25,7 +25,7 @@ export default class BanCommand extends BaseCommand {
       label: 'payload',
       metadata: {
         category: CommandCategories.MODERATION,
-        description: 'Ban multiple users, add a reason, and clean their messages.',
+        description: 'Ban multiple users, add a reason, and clean their messages',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} 300505364032389122 -clean 1 day`,

@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetFallbacksMediaImageCommand extends BaseInteractionCommandOption {
-  description = 'Set what your Image Fallback should be for commands';
+  description = 'Set what image commands do when you don\'t give an image';
   descriptionLocalizations = I18n.localizations('commands.settings.set.fallbacks_media_image.description');
   metadata = {
     id: Formatter.Commands.SettingsSetFallbacksMediaImage.COMMAND_ID,

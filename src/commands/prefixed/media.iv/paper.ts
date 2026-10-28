@@ -15,7 +15,7 @@ export default class PaperCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Create a paper out of an Image/Gif',
+        description: 'Overlay an Image or Video on some paper',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

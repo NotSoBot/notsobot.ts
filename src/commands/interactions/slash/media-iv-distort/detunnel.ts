@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'detunnel';
 
 export class MediaIVDetunnelCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Apply a De-Tunnel effect on an Image or Video';
+  description = 'Unroll an Image or Video around its center into a flat strip (the reverse of tunnel)';
   descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.detunnel.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationDetunnel.COMMAND_ID,

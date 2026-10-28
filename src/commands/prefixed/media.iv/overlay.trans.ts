@@ -16,7 +16,7 @@ export default class OverlayTransCommand extends BaseImageOrVideoCommand {
       aliases: ['o trans', 'trans'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Overlay a Transgender flag over an Image or Video',
+        description: 'Overlay a Transgender pride flag over an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

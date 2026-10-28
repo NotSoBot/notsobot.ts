@@ -868,6 +868,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/pixelate',
   MEDIA_IV_MANIPULATION_POP_ART:
     '/media/iv/manipulation/popart',
+  MEDIA_IV_MANIPULATION_PRISM:
+    '/media/iv/manipulation/prism',
   MEDIA_IV_MANIPULATION_QUADART:
     '/media/iv/manipulation/quadart',
   MEDIA_IV_MANIPULATION_RAIN:

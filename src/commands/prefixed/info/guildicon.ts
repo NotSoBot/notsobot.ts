@@ -15,7 +15,7 @@ export default class GuildIconCommand extends BaseCommand {
 
       label: 'payload',
       metadata: {
-        description: 'Get the icon for a guild, defaults to the current guild',
+        description: 'Get the icon for a server, defaults to the current server',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} 178313653177548800`,

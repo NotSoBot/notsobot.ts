@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'deepfry';
 
 export class MediaIVDeepfryCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Deepfry an Image or Video';
+  description = 'Deep fry an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv.fun.deepfry.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationDeepfry.COMMAND_ID,

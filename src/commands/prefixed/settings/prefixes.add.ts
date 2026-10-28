@@ -24,7 +24,7 @@ export default class PrefixesAddCommand extends BaseCommand {
       label: 'prefix',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Add a custom prefix to the guild. (Bot Mentions will always override this)',
+        description: 'Add a custom prefix for this Server (Bot Mentions will always override this)',
         examples: [
           `${COMMAND_NAME} ..`,
         ],

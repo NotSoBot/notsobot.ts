@@ -14,7 +14,7 @@ export default class SolarizeCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Apply an Solarize Tint to an Image or Video',
+        description: 'Apply a Solarize Effect to an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

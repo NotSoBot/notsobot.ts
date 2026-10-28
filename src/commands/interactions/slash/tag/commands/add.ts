@@ -11,7 +11,7 @@ export const COMMAND_NAME = 'add';
 
 export class TagCommandsAddCommand extends BaseInteractionCommandOption {
   blockedCommandShouldStillExecute = false;
-  description = 'Add a tag into the custom command list';
+  description = 'Make a tag a custom command in this server';
   descriptionLocalizations = I18n.localizations('commands.tag.commands.add.description');
   metadata = {
     id: Formatter.Commands.TagCommandsAdd.COMMAND_ID,

@@ -18,7 +18,7 @@ export default class PrefixesClearCommand extends BaseCommand {
       disableDm: true,
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Clear all custom prefixes from the guild. (Bot Mentions will always override this)',
+        description: 'Clear all custom prefixes in the Server (Bot Mentions will always override this)',
         examples: [
           COMMAND_NAME,
         ],

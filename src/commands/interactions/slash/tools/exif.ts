@@ -8,7 +8,7 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'exif';
 
 export class ToolsExifCommand extends BaseInteractionMediaCommandOption {
-  description = 'Get exif information from a Media File';
+  description = 'Get the EXIF metadata of a Media File';
   descriptionLocalizations = I18n.localizations('commands.tools.exif.description');
   metadata = {
     id: Formatter.Commands.ToolsExif.COMMAND_ID,

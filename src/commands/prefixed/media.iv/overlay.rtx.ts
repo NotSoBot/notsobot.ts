@@ -16,7 +16,7 @@ export default class OverlayRTXCommand extends BaseMediasCommand {
       aliases: ['o rtx', 'rtx'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Compare two Medias side by side with RTX OFF and RTX ON badges',
+        description: 'Compare two Images or Videos side by side with RTX OFF and RTX ON badges',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
         ],

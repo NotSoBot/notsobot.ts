@@ -8,7 +8,7 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'snip';
 
 export class MediaAIVSnipCommand extends BaseInteractionMediaCommandOption {
-  description = 'Snip an Animated Image/Audio/Video';
+  description = 'Cut out the part of an Animated Image/Audio/Video between two times';
   descriptionLocalizations = I18n.localizations('commands.media_aiv.snip.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationSnip.COMMAND_ID,

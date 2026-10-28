@@ -128,7 +128,7 @@ export default class LoggersCommand extends BaseCommand {
       help: `Must be one of (${Object.values(GuildLoggerTypes).join(', ')})`,
       label: 'only',
       metadata: {
-        description: 'List all loggers inside of the server.',
+        description: 'List all loggers inside of the server',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} members`,

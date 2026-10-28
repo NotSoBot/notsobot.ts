@@ -25,7 +25,7 @@ export default class AudioEqualizerCommand extends BaseAudioOrVideoCommand {
       ],
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Manipulate an Audio or Video\'s Equalizer Settings',
+        description: 'Boost or cut frequencies in an Audio or Video with an equalizer',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],

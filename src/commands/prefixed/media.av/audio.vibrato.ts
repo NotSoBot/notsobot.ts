@@ -20,7 +20,7 @@ export default class AudioVibratoCommand extends BaseAudioOrVideoCommand {
       ],
       metadata: {
       category: CommandCategories.AUDIO,
-      description: 'Adjust the timing of sound waves in any Audio or Video file',
+      description: 'Make an Audio or Video\'s pitch waver up and down (vibrato)',
       examples: [
         `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
       ],

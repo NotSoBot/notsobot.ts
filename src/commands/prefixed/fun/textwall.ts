@@ -17,7 +17,7 @@ export default class TextwallCommand extends BaseCommand {
       label: 'text',
       metadata: {
         category: CommandCategories.FUN,
-        description: 'Textwallify some text',
+        description: 'Turn text into a wall, each line shifted by one letter',
         examples: [
           `${COMMAND_NAME} lol`,
         ],

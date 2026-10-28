@@ -1393,6 +1393,14 @@ export namespace RestOptions {
     grid?: number,
   }
 
+  export interface MediaIVManipulationPrism extends MediaBaseOptions {
+    angle?: number,
+    clockwise?: boolean,
+    repeat?: boolean,
+    still?: boolean,
+    tilt?: number,
+  }
+
   export interface MediaIVManipulationQuadart extends MediaBaseOptions {
     type?: MediaQuadartTypes,
   }

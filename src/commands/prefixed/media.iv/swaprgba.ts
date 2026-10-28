@@ -15,7 +15,7 @@ export default class SwapRGBACommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Swap an Image or Video RGBA channels around',
+        description: 'Swap an Image or Video\'s RGBA channels around',
         examples: [
           `${COMMAND_NAME} @notsobot rrba`,
           `${COMMAND_NAME} @notsobot 0g0a`,

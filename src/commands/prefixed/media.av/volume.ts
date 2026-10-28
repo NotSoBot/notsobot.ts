@@ -15,7 +15,7 @@ export default class VolumeCommand extends BaseAudioOrVideoCommand {
 
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Change an audio/video\'s volume',
+        description: 'Change an Audio or Video\'s volume',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],

@@ -20,7 +20,7 @@ export default class PhoSimpCommand extends BaseImageOrVideoCommand {
       metadata: {
         category: CommandCategories.EFFECTS,
         credits: Formatter.Commands.MediaIVManipulationPhoSimp.CREDITS,
-        description: 'Apply PhoSimp Filters on an Image or Video',
+        description: 'Apply numbered filters (0 to 1256) from the game PHOSIMP to an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot 1 9 4`,

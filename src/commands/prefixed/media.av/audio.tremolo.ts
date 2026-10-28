@@ -20,7 +20,7 @@ export default class AudioTremoloCommand extends BaseAudioOrVideoCommand {
       ],
       metadata: {
       category: CommandCategories.AUDIO,
-      description: 'Modify the audio\'s wave pattern in an Audio or Video file',
+      description: 'Make an Audio or Video\'s volume pulse up and down (tremolo)',
       examples: [
         `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
       ],

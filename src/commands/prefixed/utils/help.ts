@@ -25,7 +25,7 @@ export default class HelpCommand extends BaseCommand {
 
       label: 'commands',
       metadata: {
-        description: 'Help!',
+        description: 'Get help with NotSoBot\'s commands',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} google`,

@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'reverse';
 
 export class MediaAVAudioReverseCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Reverse Audio';
+  description = 'Reverse an Audio or Video\'s audio';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.reverse.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioReverse.COMMAND_ID,

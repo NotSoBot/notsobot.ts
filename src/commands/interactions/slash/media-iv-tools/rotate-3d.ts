@@ -10,7 +10,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'rotate-3d';
 
 export class MediaIVToolsRotate3dCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Rotate an Image or Video on a 3d Axis';
+  description = 'Rotate an Image or Video on a 3d axis';
   descriptionLocalizations = I18n.localizations('commands.media_iv_tools.rotate_3d.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationRotate3d.COMMAND_ID,

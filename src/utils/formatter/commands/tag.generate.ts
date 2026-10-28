@@ -1,7 +1,7 @@
-import { Command, Interaction, Structures } from 'detritus-client';
+import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import CommandResponsesStore from '../../../stores/commandresponses';
+import CommandResponsesStore, { TRACK_DURATION } from '../../../stores/commandresponses';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserSettingsStore from '../../../stores/usersettings';
 
@@ -34,6 +34,11 @@ import { THINKING_REPLY_AFTER, ThinkingReply, createTagMessage, tagTimeLimitText
 export const COMMAND_ID = 'tag.generate';
 
 export const MAX_TEXT_FILE_LENGTH = 20000;
+
+// NotSoAI response id -> if its prompt had someone else's text (a reply, a link, a file that isn't the user's own
+// upload). a conversation keeps its earlier turns, so that text is still there when the user replies to continue it.
+// a response that isn't in here (an older process, or `.refresh`) counts as having it
+const UNTRUSTED_RESPONSES = new Collections.BaseCollection<string, boolean>({expire: TRACK_DURATION});
 
 export interface CommandArgsBefore {
   debug?: boolean,
@@ -113,12 +118,19 @@ async function generateAndRunTag(
 ) {
   const urls: Array<string> = [];
   const promptExtra: Array<string> = [];
+  // someone else's text is in the prompt, NotSoAI can't change or read out the user's settings, memory, reminders or
+  // tags then. the url option can point at anything
+  let isUntrusted = !!args.url;
   // replying to NotSoAI continues that conversation, the api sends its earlier turns (with the code it wrote)
   let parentId: null | string = null;
   if (context instanceof Command.Context) {
     // only the media from the command message itself and the first media found going up the reply chain
     const current = findMediaForAI(context.message);
     const currentText = (current && current.isText) ? await fetchTextForAI(context, current.url) : null;
+    // a link's preview, not a file they uploaded
+    if (current && !isOwnAttachment(context.message, current.url)) {
+      isUntrusted = true;
+    }
     let reply: null | {isText: boolean, url: string} = null;
 
     let { message } = context;
@@ -152,6 +164,9 @@ async function generateAndRunTag(
         // the rest of the chain is already in the conversation, only say where its media came from
         parentId = await fetchAIParentId(context, message);
         if (parentId) {
+          if (UNTRUSTED_RESPONSES.get(parentId) !== false) {
+            isUntrusted = true;
+          }
           promptExtra.push([
             `Message Reply Context ${chain}`,
             '-> Your previous reply in this conversation',
@@ -159,6 +174,11 @@ async function generateAndRunTag(
             (mediaIsFromHere && !reply!.isText) ? '-> Media is from here' : null,
           ].filter(Boolean).join('\n'));
           break;
+        }
+
+        // their own messages are fine, as long as the media isn't a link's preview or a forward's
+        if (message.author.id !== context.userId || (mediaIsFromHere && !isOwnAttachment(message, reply!.url))) {
+          isUntrusted = true;
         }
 
         const content: Array<string> = [];
@@ -261,6 +281,7 @@ async function generateAndRunTag(
   if (response.id) {
     // saved with the command's response (`onFinally`), so a reply to it can continue this conversation
     context.metadata = Object.assign({}, context.metadata, {llmResponseId: response.id});
+    UNTRUSTED_RESPONSES.set(response.id, isUntrusted);
   }
   if (args.debug || args.debugFull) {
     await thinking.stop();
@@ -305,8 +326,9 @@ async function generateAndRunTag(
       personality: personality || TAG_GENERATION_PERSONALITY_DEFAULT,
       serverPersonality,
       userPersonality,
-      // NotSoAI wrote this, unlocks the NotSoAI-only functions
+      // NotSoAI wrote this, unlocks the NotSoAI-only functions (unless someone else's text was in its prompt)
       [TagFormatter.PrivateVariables.IS_FROM_AI]: 1,
+      [TagFormatter.PrivateVariables.AI_PROMPT_UNTRUSTED]: (isUntrusted) ? 1 : 0,
       [TagFormatter.PrivateVariables.SETTINGS]: {
         [TagFormatter.TagSettings.AI_MODEL]: args.model,
       },
@@ -318,6 +340,10 @@ async function generateAndRunTag(
       const { translate } = await getTranslator(context);
       const receipt = (memoryChanges.added && !memoryChanges.changed) ? translate('tag_generate.memory_saved') : translate('tag_generate.memory_updated');
       parsedTag.text = [parsedTag.text.trimEnd(), `-# 🧠 ${receipt}`].join('\n');
+    }
+    if (parsedTag.variables[TagFormatter.PrivateVariables.AI_WRITES_BLOCKED]) {
+      const { translate } = await getTranslator(context);
+      parsedTag.text = [parsedTag.text.trimEnd(), `-# ${translate('tag_generate.untrusted_prompt_blocked')}`].join('\n');
     }
     await thinking.stop();
     return await createTagMessage(context, parsedTag);
@@ -451,6 +477,17 @@ function findMediaForAI(message: Structures.Message): null | {isText: boolean, u
     return {isText: true, url: textUrl};
   }
   return null;
+}
+
+
+// a file uploaded with the message, not something found through an embed, a component or a forward
+function isOwnAttachment(message: Structures.Message, url: string): boolean {
+  for (let attachment of message.attachments.values()) {
+    if (url === attachment.url || (attachment.proxyUrl && url.startsWith(attachment.proxyUrl))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 

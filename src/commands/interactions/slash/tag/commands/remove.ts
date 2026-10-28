@@ -11,7 +11,7 @@ export const COMMAND_NAME = 'remove';
 
 export class TagCommandsRemoveCommand extends BaseInteractionCommandOption {
   blockedCommandShouldStillExecute = false;
-  description = 'Remove a tag from the custom command list';
+  description = 'Stop a tag being a custom command in this server';
   descriptionLocalizations = I18n.localizations('commands.tag.commands.remove.description');
   metadata = {
     id: Formatter.Commands.TagCommandsRemove.COMMAND_ID,

@@ -62,7 +62,7 @@ export namespace RedisPayloads {
   // the dashboard's music controls, for whichever cluster is playing in `guild_id`. `created` is unix ms, events are
   // replayed after reconnecting so old ones are ignored
   export interface MusicControl {
-    action: 'effect_add' | 'effect_clear' | 'effect_remove' | 'leave' | 'pause' | 'resume' | 'skip',
+    action: 'effect_add' | 'effect_clear' | 'effect_remove' | 'leave' | 'pause' | 'resume' | 'skip' | 'speed' | 'volume',
     created: number,
     // `effect_add` and `effect_remove`, a `MusicEffects` value (the api only checks it looks like one)
     effect?: string,
@@ -70,6 +70,8 @@ export namespace RedisPayloads {
     // `effect_remove`, where in the stack the dashboard saw it
     index?: number,
     user_id: string,
+    // `speed` (the tempo) and `volume`, percent. The api saved it for the server already (and checked premium)
+    value?: number,
   }
 
   export type ReminderCreate = RestResponsesRaw.Reminder;

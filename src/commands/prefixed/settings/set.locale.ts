@@ -22,7 +22,7 @@ export default class SetLocaleCommand extends BaseCommand {
       label: 'locale',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Set the guild\'s language preference.',
+        description: 'Set the server\'s language for the bot',
         examples: [
           `${COMMAND_NAME} en-us`,
           `${COMMAND_NAME} german`,

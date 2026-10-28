@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetAIPersonalityCommand extends BaseInteractionCommandOption {
-  description = 'Set your default AI Personality.';
+  description = 'Set your default AI personality';
   descriptionLocalizations = I18n.localizations('commands.settings.set.ai_personality.description');
   metadata = {
     id: Formatter.Commands.SettingsSetAIPersonality.COMMAND_ID,

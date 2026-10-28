@@ -13,7 +13,7 @@ export default class LoggersAddRolesCommand extends LoggersAddBaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Create a logger for role events.',
+        description: 'Create a logger for role events',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -channel role-logs`,

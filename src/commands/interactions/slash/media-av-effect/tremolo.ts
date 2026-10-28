@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'tremolo';
 
 export class MediaAVAudioTremoloCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Modify the audio\'s wave pattern in an Audio or Video file';
+  description = 'Make an Audio or Video\'s volume pulse up and down (tremolo)';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.tremolo.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioTremolo.COMMAND_ID,

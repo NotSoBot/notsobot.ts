@@ -16,7 +16,7 @@ export default class OverlayUSACommand extends BaseImageOrVideoCommand {
       aliases: ['o usa', 'usa'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Overlay an USA flag over an Image or Video',
+        description: 'Overlay a USA flag over an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

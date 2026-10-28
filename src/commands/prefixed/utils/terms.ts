@@ -15,7 +15,7 @@ export default class TermsCommand extends BaseCommand {
 
       aliases: ['tos'],
       metadata: {
-        description: 'Terms of Service',
+        description: 'Show NotSoBot\'s Terms of Service',
         examples: [
           COMMAND_NAME,
         ],

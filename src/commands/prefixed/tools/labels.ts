@@ -14,7 +14,7 @@ export default class LabelsCommand extends BaseImageCommand<Formatter.Commands.T
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Get the labels of an image',
+        description: 'Get the labels of an Image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

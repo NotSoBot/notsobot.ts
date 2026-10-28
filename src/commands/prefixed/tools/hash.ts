@@ -36,7 +36,7 @@ export default class HashCommand extends BaseCommand<CommandArgs> {
       metadata: {
         category: CommandCategories.UTILITY,
         pipeable: true,
-        description: 'Hash some text, uses MD5 by default',
+        description: 'Create a hash from some text, uses MD5 by default',
         examples: [
           `${COMMAND_NAME} Discord Bots`,
           `${COMMAND_NAME} Discord Bots -use sha256`,

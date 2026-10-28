@@ -9,7 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'guild';
 
 export class InfoGuildCommand extends BaseInteractionCommandOption {
-  description = 'Get information for a server';
+  description = 'Get information about a server';
   descriptionLocalizations = I18n.localizations('commands.info.guild.description');
   metadata = {
     id: Formatter.Commands.InfoGuild.COMMAND_ID,

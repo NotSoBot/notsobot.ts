@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'pitch';
 
 export class MediaAVAudioPitchCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Manipulate an Audio or Video\'s Pitch';
+  description = 'Change an Audio or Video\'s pitch';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.pitch.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioPitch.COMMAND_ID,

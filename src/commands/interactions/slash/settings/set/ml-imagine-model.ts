@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetMLImagineModelCommand extends BaseInteractionCommandOption {
-  description = 'Set your default ML Imagine Model.';
+  description = 'Set your default model for imagine';
   descriptionLocalizations = I18n.localizations('commands.settings.set.ml_imagine_model.description');
   metadata = {
     id: Formatter.Commands.SettingsSetMLImagineModel.COMMAND_ID,

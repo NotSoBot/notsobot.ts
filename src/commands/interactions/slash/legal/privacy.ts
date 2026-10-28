@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'privacy';
 
 export class LegalPrivacyCommand extends BaseInteractionCommandOption {
-  description = 'Privacy Policy';
+  description = 'Show NotSoBot\'s Privacy Policy';
   descriptionLocalizations = I18n.localizations('commands.legal.privacy.description');
   metadata = {
     id: Formatter.Commands.UtilsPrivacy.COMMAND_ID,

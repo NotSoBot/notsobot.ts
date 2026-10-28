@@ -27,7 +27,7 @@ export default class PrefixesReplaceCommand extends BaseCommand {
       label: 'prefix',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Replace all custom prefixes in the guild. (Bot Mentions will always override this)',
+        description: 'Replace all prefixes on this Server (Bot Mentions will always override this)',
         examples: [
           `${COMMAND_NAME} ..`,
         ],

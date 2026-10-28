@@ -15,7 +15,7 @@ export default class DerainCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Apply the opposite of a Rainbow tint to an Image or Video',
+        description: 'Scramble an Image or Video\'s colors by reading them as HSB (the reverse of rain)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

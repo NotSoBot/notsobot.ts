@@ -22,7 +22,7 @@ export default class JoinCommand extends BaseMediasCommand {
       ],
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Join two medias together',
+        description: 'Put two Images or Videos side by side (or stacked)',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
           `${COMMAND_NAME} @cakedan @notsobot -vertical`,

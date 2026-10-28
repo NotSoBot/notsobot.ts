@@ -19,7 +19,7 @@ export default class RoleCommand extends BaseCommand {
       default: DefaultParameters.defaultRole,
       disableDm: true,
       metadata: {
-        description: 'Get information for a role, defaults to the @everyone role',
+        description: 'Get information about a role, defaults to the @everyone role',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} everyone`,

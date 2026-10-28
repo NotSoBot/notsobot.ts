@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'e2f';
 
 export class MediaIVE2FCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Edges to Flesh an Image or Video';
+  description = 'Trace an Image or Video\'s edges and have an AI fill them in with flesh';
   descriptionLocalizations = I18n.localizations('commands.media_iv.fun.e2f.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationEdges2Flesh.COMMAND_ID,

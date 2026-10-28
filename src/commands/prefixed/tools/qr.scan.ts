@@ -16,7 +16,7 @@ export default class QRScanCommand extends BaseImageCommand<Formatter.Commands.T
       metadata: {
         category: CommandCategories.UTILITY,
         pipeable: true,
-        description: 'Scan an image for QR Codes',
+        description: 'Scan an Image for QR codes',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,

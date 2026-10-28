@@ -16,7 +16,7 @@ export default class AudioBoostBassCommand extends BaseAudioOrVideoCommand {
       aliases: ['b bass'],
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Boost an audio/video\'s bass',
+        description: 'Boost an Audio or Video\'s bass',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],

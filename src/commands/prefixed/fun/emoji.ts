@@ -35,7 +35,7 @@ export default class EmojiCommand extends BaseCommand {
       label: 'emojis',
       metadata: {
         category: CommandCategories.FUN,
-        description: 'make emoji big!',
+        description: 'Make an Emoji Big!',
         examples: [
           `${COMMAND_NAME} 😩`,
           `${COMMAND_NAME} 😩 -type apple`,

@@ -453,6 +453,7 @@ import * as MediaIVManipulationPinchPunch from './media.iv.manipulation.pinch.pu
 import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
 import * as MediaIVManipulationPixelSort from './media.iv.manipulation.pixel.sort';
 import * as MediaIVManipulationPopArt from './media.iv.manipulation.pop.art';
+import * as MediaIVManipulationPrism from './media.iv.manipulation.prism';
 import * as MediaIVManipulationQuadart from './media.iv.manipulation.quadart';
 import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
 import * as MediaIVManipulationRainbow from './media.iv.manipulation.rainbow';
@@ -1160,6 +1161,7 @@ export {
   MediaIVManipulationPixelate,
   MediaIVManipulationPixelSort,
   MediaIVManipulationPopArt,
+  MediaIVManipulationPrism,
   MediaIVManipulationQuadart,
   MediaIVManipulationRain,
   MediaIVManipulationRainbow,

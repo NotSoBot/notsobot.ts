@@ -187,6 +187,14 @@ const IGNORED_DISCORD_STATUSES: ReadonlyArray<number> = [403, 404, 429];
 // coded body are bugs. 502 and 520-523 without a body is the api restarting or cloudflare not reaching it
 const API_DOWN_STATUSES: ReadonlyArray<number> = [502, 520, 521, 522, 523];
 
+// webhook and interaction urls have their token in the path (`/webhooks/:id/:token`, `/interactions/:id/:token/callback`),
+// a logger's webhook token never expires and lets anyone post in that channel. interaction followups are under webhooks
+const REGEX_URL_TOKEN = /\/(webhooks|interactions)\/(\d+)\/[^/?#]+/g;
+
+export function redactUrlTokens(url: string): string {
+  return url.replace(REGEX_URL_TOKEN, '/$1/$2/:token');
+}
+
 export function captureRestResponse(options: {
   body: string,
   // the command that made the request, if any
@@ -200,7 +208,7 @@ export function captureRestResponse(options: {
 }): void {
   const { body, context, isNotSoBotApi, method, route, shardId, status, url } = options;
   // the query can have search terms or user given links
-  const extra = {body: body.slice(0, RESPONSE_BODY_MAX_LENGTH), url: url.split('?')[0]};
+  const extra = {body: body.slice(0, RESPONSE_BODY_MAX_LENGTH), url: redactUrlTokens(url.split('?')[0])};
   const tags = {'http.method': method, 'http.route': route, 'http.status': status, shard_id: shardId};
 
   if (!isNotSoBotApi) {

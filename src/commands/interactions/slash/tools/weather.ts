@@ -14,7 +14,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'weather';
 
 export class ToolsWeatherCommand extends BaseInteractionCommandOption {
-  description = 'Get the Weather of Some Place';
+  description = 'Show the weather of a location';
   descriptionLocalizations = I18n.localizations('commands.tools.weather.description');
   metadata = {
     id: Formatter.Commands.ToolsWeather.COMMAND_ID,

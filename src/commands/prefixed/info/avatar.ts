@@ -20,7 +20,7 @@ export default class AvatarCommand extends BaseCommand {
       label: 'user',
       metadata: {
         category: CommandCategories.INFO,
-        description: 'Get the avatar for a user, defaults to self',
+        description: 'Get the avatar of a user, defaults to self',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

@@ -8,7 +8,7 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'adhd';
 
 export class MediaAIVADHDCommand extends BaseInteractionMediaCommandOption {
-  description = 'Add random gameplay to an Audio/Image/Video file';
+  description = 'Split-screen an Audio/Image/Video with random gameplay footage';
   descriptionLocalizations = I18n.localizations('commands.media_aiv.adhd.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationADHD.COMMAND_ID,

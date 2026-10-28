@@ -18,7 +18,7 @@ export default class ADHDCommand extends BaseMediaCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Add random gameplay to an Audio/Image/Video file',
+        description: 'Split-screen an Audio/Image/Video with random gameplay footage',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

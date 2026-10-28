@@ -15,7 +15,7 @@ export default class PremiumServersAddCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'Give this server your NotSoPremium Plus perks, up to 2 servers.',
+        description: 'Give this server your NotSoPremium Plus perks, up to 2 servers',
         examples: [
           COMMAND_NAME,
         ],

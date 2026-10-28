@@ -18,7 +18,7 @@ export default class AndroidCommand extends BaseMediaCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Compress the Audio/Image/Video File to be Android-Like',
+        description: 'Make an Audio/Image/Video look and sound like it was sent from an old Android phone',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

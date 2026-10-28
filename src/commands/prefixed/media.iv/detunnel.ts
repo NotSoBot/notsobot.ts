@@ -18,7 +18,7 @@ export default class DetunnelCommand extends BaseImageOrVideoCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Apply a De-Tunnel effect on an Image or Video',
+        description: 'Unroll an Image or Video around its center into a flat strip (the reverse of tunnel)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

@@ -15,7 +15,7 @@ export default class OverlayGaben1Command extends BaseImageOrVideoCommand {
 
       aliases: ['o gaben', 'gaben'],
       metadata: {
-        description: 'Overlay an Image or Video over a sign held by Gaben Newell',
+        description: 'Overlay an Image or Video over a sign held by Gabe Newell',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

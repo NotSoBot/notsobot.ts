@@ -19,7 +19,7 @@ export default class ImageCommand extends BaseSearchCommand {
       ],
       metadata: {
       category: CommandCategories.SEARCH,
-      description: 'Search Images from Bing, DuckDuckGo, or Google.',
+      description: 'Search Images from Bing, DuckDuckGo, or Google',
       examples: [
         `${COMMAND_NAME} notsobot`,
         `${COMMAND_NAME} notsobot -randomize`,

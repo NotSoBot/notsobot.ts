@@ -21,7 +21,7 @@ export default class AudioReverbCommand extends BaseAudioOrVideoCommand {
       ],
       metadata: {
       category: CommandCategories.AUDIO,
-      description: 'Add an Audio Reverb to an Audio or Video File.',
+      description: 'Add an Audio Reverb to an Audio or Video file',
       examples: [
         `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
       ],

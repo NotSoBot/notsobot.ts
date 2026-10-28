@@ -8,7 +8,7 @@ import { BaseInteractionMediasCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'interpolate';
 
 export class MediaAIVInterpolateCommand extends BaseInteractionMediasCommandOption {
-  description = 'Cut two Medias into small pieces and alternate between them';
+  description = 'Cut two Audio/Image/Video files into small pieces and alternate between them';
   descriptionLocalizations = I18n.localizations('commands.media_aiv.interpolate.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationInterpolate.COMMAND_ID,

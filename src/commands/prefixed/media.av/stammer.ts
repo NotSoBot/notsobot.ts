@@ -20,7 +20,7 @@ export default class StammerCommand extends BaseAudioOrVideosCommand {
       ],
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Cut up the audio and video frames of a media to match with the modulator\'s audio frames',
+        description: 'Rebuild the second media\'s audio out of tiny pieces of the first one\'s audio and video',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/video_file.mp4 https://notsobot.com/some/audio_file.mp3`,
         ],

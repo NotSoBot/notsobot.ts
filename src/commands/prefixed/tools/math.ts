@@ -18,7 +18,7 @@ export default class MathCommand extends BaseCommand {
       metadata: {
         category: CommandCategories.UTILITY,
         pipeable: true,
-        description: 'Evaluate a Math Equation',
+        description: 'Solve a math expression',
         examples: [
           `${COMMAND_NAME} 5 + 5`,
           `${COMMAND_NAME} 5 miles to km`,

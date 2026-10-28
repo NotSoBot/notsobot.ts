@@ -14,7 +14,7 @@ export default class PingCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Ping Discord\'s Gateway and Rest Api',
+        description: 'Check NotSoBot\'s response time (Discord\'s Gateway and Rest API)',
         examples: [
           COMMAND_NAME,
         ],

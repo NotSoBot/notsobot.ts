@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'terms';
 
 export class LegalTermsCommand extends BaseInteractionCommandOption {
-  description = 'Terms of Service';
+  description = 'Show NotSoBot\'s Terms of Service';
   descriptionLocalizations = I18n.localizations('commands.legal.terms.description');
   metadata = {
     id: Formatter.Commands.UtilsTerms.COMMAND_ID,

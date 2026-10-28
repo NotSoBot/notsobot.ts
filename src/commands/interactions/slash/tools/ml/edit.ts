@@ -9,7 +9,7 @@ import { BaseInteractionMediasCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'edit';
 
 export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
-  description = 'Alter an Image with Machine Learning';
+  description = 'Alter an Image with machine learning';
   descriptionLocalizations = I18n.localizations('commands.tools.ml.edit.description');
   metadata = {
     credits: Formatter.Commands.ToolsMLEdit.CREDITS,

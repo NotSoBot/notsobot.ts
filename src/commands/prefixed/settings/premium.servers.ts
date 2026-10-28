@@ -15,7 +15,7 @@ export default class PremiumServersCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'See the servers you gave your NotSoPremium Plus to.',
+        description: 'See the servers you gave your NotSoPremium Plus to',
         examples: [
           COMMAND_NAME,
         ],

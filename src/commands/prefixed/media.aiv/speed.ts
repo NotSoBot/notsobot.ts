@@ -15,7 +15,7 @@ export default class SpeedCommand extends BaseMediaCommand {
 
       metadata: {
         category: CommandCategories.CONVERSION,
-        description: 'Edit an animated image/audio/video\'s Speed',
+        description: 'Edit an Animated Image/Audio/Video\'s Speed',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,

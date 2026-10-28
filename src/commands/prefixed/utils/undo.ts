@@ -16,7 +16,7 @@ export default class UndoCommand extends BaseCommand {
       default: 1,
       label: 'amount',
       metadata: {
-        description: 'Undo your last commands. (Up to 5 last commands, default 1)',
+        description: 'Undo your last commands in this channel (up to 5, default 1)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} 5`,

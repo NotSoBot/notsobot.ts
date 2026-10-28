@@ -16,7 +16,7 @@ export default class PremiumServersRemoveCommand extends BaseCommand {
       label: 'server',
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'Take your NotSoPremium Plus perks off of a server (this one if none is given).',
+        description: 'Take your NotSoPremium Plus perks off of a server (this one if none is given)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} 2`,

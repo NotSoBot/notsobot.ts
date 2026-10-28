@@ -9,7 +9,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'slide';
 
 export class MediaIVSlideCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Apply a Sliding Effect to an Image or Video';
+  description = 'Scroll an Image or Video in a loop, wrapping around the edges';
   descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.slide.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSlide.COMMAND_ID,

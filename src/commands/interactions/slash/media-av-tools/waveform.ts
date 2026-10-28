@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'waveform';
 
 export class MediaAVWaveformCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Draw the Audio of an Audio or Video File as a Waveform Image';
+  description = 'Draw the audio of an Audio or Video file as a waveform image';
   descriptionLocalizations = I18n.localizations('commands.media_av.waveform.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationWaveform.COMMAND_ID,

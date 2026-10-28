@@ -15,7 +15,7 @@ export default class WallCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Create a wall with an Image or Video',
+        description: 'Create a wall out of an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

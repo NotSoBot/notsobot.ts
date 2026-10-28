@@ -4311,6 +4311,14 @@ export async function mediaIVManipulationPopArt(
 }
 
 
+export async function mediaIVManipulationPrism(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPrism,
+) {
+  return raw.mediaIVManipulationPrism(context, options);
+}
+
+
 export async function mediaIVManipulationQuadart(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationQuadart,

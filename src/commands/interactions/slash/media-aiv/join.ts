@@ -8,7 +8,7 @@ import { BaseInteractionMediasCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'join';
 
 export class MediaAIVJoinCommand extends BaseInteractionMediasCommandOption {
-  description = 'Join two Medias together';
+  description = 'Put two Images or Videos side by side (or stacked)';
   descriptionLocalizations = I18n.localizations('commands.media_aiv.join.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationJoin.COMMAND_ID,

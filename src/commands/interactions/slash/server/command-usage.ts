@@ -9,7 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'command-usage';
 
 export class ServerCommandUsageCommand extends BaseInteractionCommandOption {
-  description = 'Show the latest commands used by the Server';
+  description = 'Show the latest commands used in this server';
   descriptionLocalizations = I18n.localizations('commands.commands.usage.description');
   metadata = {
     id: Formatter.Commands.ModerationCommandsUsage.COMMAND_ID,

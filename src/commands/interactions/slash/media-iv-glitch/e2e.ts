@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'e2e';
 
 export class MediaIVE2ECommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Edges to Emoji an Image or Video';
+  description = 'Trace an Image or Video\'s edges and have an AI redraw them as an emoji';
   descriptionLocalizations = I18n.localizations('commands.media_iv.fun.e2e.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationEdges2Emoji.COMMAND_ID,

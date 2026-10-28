@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'invite';
 
 export class InfoInviteCommand extends BaseInteractionCommandOption {
-  description = 'Get information of a Discord invite';
+  description = 'Get information about a Discord invite';
   descriptionLocalizations = I18n.localizations('commands.info.invite.description');
   metadata = {
     id: Formatter.Commands.InfoInvite.COMMAND_ID,

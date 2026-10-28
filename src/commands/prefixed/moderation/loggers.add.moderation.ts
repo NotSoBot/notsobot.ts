@@ -13,7 +13,7 @@ export default class LoggersAddModerationCommand extends LoggersAddBaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Create a logger for warnings given, removed and cleared.',
+        description: 'Create a logger for warnings given, removed and cleared',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -channel mod-logs`,

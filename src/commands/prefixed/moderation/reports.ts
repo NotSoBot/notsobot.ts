@@ -22,7 +22,7 @@ export default class ReportsCommand extends BaseCommand {
       label: 'status',
       metadata: {
         category: CommandCategories.MODERATION,
-        description: 'List members\' reports to this server\'s moderators, or only the ones with a status',
+        description: 'See members\' reports to this server\'s moderators, or only the ones with a status',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} open`,

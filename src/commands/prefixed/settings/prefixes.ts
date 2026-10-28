@@ -17,7 +17,7 @@ export default class PrefixesCommand extends BaseCommand {
       disableDm: true,
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Show all current prefixes in the server.',
+        description: 'List the Server\'s Prefixes',
         examples: [
           COMMAND_NAME,
         ],

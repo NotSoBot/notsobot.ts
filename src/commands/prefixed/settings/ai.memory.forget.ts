@@ -16,7 +16,7 @@ export default class AIMemoryForgetCommand extends BaseCommand {
       label: 'position',
       metadata: {
         category: CommandCategories.PERSONAL,
-        description: 'Make NotSoAI forget one thing it remembers about you.',
+        description: 'Make NotSoAI forget one thing it remembers about you',
         examples: [
           `${COMMAND_NAME} 2`,
         ],

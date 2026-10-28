@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'circle';
 
 export class MediaIVCircleCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Put a Radial Blur on an Image or Video';
+  description = 'Put a radial blur on an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv.fun.circle.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationCircle.COMMAND_ID,

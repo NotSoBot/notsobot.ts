@@ -26,6 +26,7 @@ import {
   connectCommandErrorReporting,
   getCommandContext,
   initSentry,
+  redactUrlTokens,
 } from './sentry';
 import { connectAllStores } from './stores';
 
@@ -117,10 +118,11 @@ const cluster = new ClusterClient('', {
   cluster.on(ClientEvents.REST_RESPONSE, async ({response, restRequest, shard}) => {
     const route = response.request.route;
     if (route) {
+      const url = redactUrlTokens(response.request.url.href);
       if (response.ok) {
-        console.log(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.method}-${response.request.url} (${route.path})`);
+        console.log(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.method}-${url} (${route.path})`);
       } else {
-        const message = `Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.method}-${response.request.url} (${route.path})`;
+        const message = `Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.method}-${url} (${route.path})`;
         console.log(message);
         let body: string = '';
         try {

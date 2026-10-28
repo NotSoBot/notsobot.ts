@@ -16,7 +16,7 @@ export default class Edges2FleshCommand extends BaseImageOrVideoCommand {
       aliases: ['e2f', 'e2p'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Edges to Flesh',
+        description: 'Trace an Image or Video\'s edges and have an AI fill them in with flesh',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

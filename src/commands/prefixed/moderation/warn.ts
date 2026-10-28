@@ -19,7 +19,7 @@ export default class WarnCommand extends BaseCommand {
       label: 'payload',
       metadata: {
         category: CommandCategories.MODERATION,
-        description: 'Warn multiple members with a reason, it\'s sent to them and kept on their record in this server',
+        description: 'Warn multiple members with a reason, kept on their record here (it\'s sent to them too)',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} <@300505364032389122> spamming`,

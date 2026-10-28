@@ -21,7 +21,7 @@ export default class OverlayFliesCommand extends BaseImageOrVideoCommand {
         {name: 'speed', aliases: ['s'], type: 'float', metadata: {description: '0.01 to 1000'}},
       ],
       metadata: {
-        description: 'Overlay some flies over an Image or Video',
+        description: 'Overlay some flies on an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

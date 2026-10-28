@@ -21,7 +21,7 @@ export default class SetTimezoneCommand extends BaseCommand {
       label: 'timezone',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'Change your guild\'s timezone for commands/logging purposes',
+        description: 'Set the server\'s default timezone for the bot',
         examples: [
           `${COMMAND_NAME} alaska`,
           `${COMMAND_NAME} mst`,

@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'destroy';
 
 export class MediaAVAudioDestroyCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Destroy Audio';
+  description = 'Destroy an Audio or Video\'s audio with heavy bit crushing';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.destroy.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioDestroy.COMMAND_ID,
