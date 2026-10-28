@@ -470,3 +470,49 @@ export function optionLocalizations(key: string): {
   }
   return result;
 }
+
+
+// english `commands.*.description` text -> its key, for descriptions only known by their text (a prefixed command
+// repeats its slash command's description as a plain string). the first key wins when two have the same text
+let DescriptionKeysByText: Map<string, TranslationKey> | null = null;
+
+export function descriptionKeyFromText(text: string): TranslationKey | null {
+  if (!DescriptionKeysByText) {
+    DescriptionKeysByText = new Map();
+    for (let key of Object.keys(English) as Array<TranslationKey>) {
+      if (key.startsWith('commands.') && key.endsWith('.description') && !DescriptionKeysByText.has(English[key])) {
+        DescriptionKeysByText.set(English[key], key);
+      }
+    }
+  }
+  return DescriptionKeysByText.get(text) || null;
+}
+
+// for the site's commands page, keyed by language ('es', 'pt-BR'). unlike `localizations` it has every language, not
+// just the uploadable discord locales. english is left out (it's the command's own text) and so are untranslated copies
+export function translationsByLanguage(key: TranslationKey): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (let language of Object.values(Languages)) {
+    const text = LanguageTranslations[language][key];
+    if (language !== Languages.ENGLISH && text && text !== English[key]) {
+      result[language] = text;
+    }
+  }
+  return result;
+}
+
+// a slash command's discord `{locale: text}` (`localizations`, `optionLocalizations`) back as `{language: text}` like
+// `translationsByLanguage`, so 'es-419' and 'es-ES' are both 'es'. only has the languages uploaded to discord
+export function translationsFromDiscordLocales(localizations?: Record<string, string | undefined> | null): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (localizations) {
+    for (let locale in localizations) {
+      const language = languageFromLocale(locale);
+      const text = localizations[locale];
+      if (language && language !== Languages.ENGLISH && text) {
+        result[language] = text;
+      }
+    }
+  }
+  return result;
+}

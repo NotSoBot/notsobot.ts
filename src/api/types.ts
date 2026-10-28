@@ -1880,14 +1880,29 @@ export namespace RestOptions {
   export interface UploadCommands {
     commands: Array<{
       aliases?: Array<string>,
-      args?: Array<{aliases: Array<string>, description?: string, name: string, prefix: string}>,
+      args?: Array<{
+        aliases: Array<string>,
+        choices?: Array<{description: string, description_localizations?: Record<string, string>, value: string}>,
+        description?: string,
+        // slash command options only, by language like `description_localizations`
+        description_localizations?: Record<string, string>,
+        name: string,
+        name_localizations?: Record<string, string>,
+        prefix: string,
+        // slash command options only, prefixed args are all optional
+        required?: boolean,
+      }>,
       category: string,
       credits?: Array<{id?: string, name: string, url?: string}>,
       description?: string,
+      // translations of `description` by language ('es', 'pt-BR'), for the site's commands page
+      description_localizations?: Record<string, string>,
       dmable?: boolean,
       examples?: Array<string>,
       id: string,
       name: string,
+      // slash/context menu commands only, the full name by language like `description_localizations`
+      name_localizations?: Record<string, string>,
       ratelimits?: Array<{duration: number, key?: string, limit: number, type: string}>,
       type: number,
       usage: string,

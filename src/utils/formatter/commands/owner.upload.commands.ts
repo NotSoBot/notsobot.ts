@@ -5,7 +5,7 @@ import { uploadCommands } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import type { CommandMetadata } from '../../../commands/prefixed/basecommand';
 import { CommandCategories, CommandTypes, SLASH_COMMAND_CATEGORY_FALLBACKS } from '../../../constants';
-import { Formatter, Parameters, displayReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'owner.upload.commands';
@@ -24,6 +24,59 @@ function premiumLevel(metadata?: {premium?: boolean, premiumPlus?: boolean, prem
     return 'premium_server';
   }
   return (metadata.premium) ? 'premium' : null;
+}
+
+// the translations of a description, from the `commands.*.description` key with the same english text (empty when none has it)
+function descriptionLocalizations(description: string): Record<string, string> {
+  const key = (description) ? I18n.descriptionKeyFromText(description) : null;
+  return (key) ? I18n.translationsByLanguage(key) : {};
+}
+
+// a slash/context menu command's full name in each language ('leyenda', 'música saltar'), like `fullName` but with every
+// part translated on its own (english where a part has none), the way discord shows it
+function nameLocalizations(invoker: Interaction.InteractionCommand | Interaction.InteractionCommandOption): Record<string, string> {
+  const parts: Array<{localizations: Record<string, string>, name: string}> = [];
+  for (let item: Interaction.InteractionCommand | Interaction.InteractionCommandOption | undefined = invoker; item; item = (item as Interaction.InteractionCommandOption).parent) {
+    parts.unshift({localizations: I18n.translationsFromDiscordLocales(item.nameLocalizations), name: item.name});
+  }
+  const result: Record<string, string> = {};
+  for (let language of new Set(parts.flatMap((part) => Object.keys(part.localizations)))) {
+    const name = parts.map((part) => part.localizations[language] || part.name).join(' ');
+    if (name !== invoker.fullName) {
+      result[language] = name;
+    }
+  }
+  return result;
+}
+
+// a slash command's options in the same shape as a prefixed command's args, with no prefix and `required` set. names,
+// descriptions and choice labels carry their translations, the api picks the one for the site's language
+function slashArgs(invoker: Interaction.InteractionCommand | Interaction.InteractionCommandOption) {
+  const args: Array<any> = [];
+  if (invoker._options) {
+    for (let [, option] of invoker._options) {
+      if (option.isSubCommand || option.isSubCommandGroup) {
+        continue;
+      }
+      args.push({
+        aliases: [],
+        choices: (option.choices || []).map((choice) => {
+          return {
+            description: choice.name,
+            description_localizations: I18n.translationsFromDiscordLocales(choice.nameLocalizations),
+            value: String(choice.value),
+          };
+        }),
+        description: option.description || '',
+        description_localizations: I18n.translationsFromDiscordLocales(option.descriptionLocalizations),
+        name: option.name,
+        name_localizations: I18n.translationsFromDiscordLocales(option.nameLocalizations),
+        prefix: '',
+        required: !!option.required,
+      });
+    }
+  }
+  return args;
 }
 
 // explicit category, else the prefixed command with the same id, else an id-prefix fallback
@@ -86,6 +139,7 @@ export async function createMessage(
         credits: metadata.credits || [],
         enabled: true,
         description: metadata.description || '',
+        description_localizations: descriptionLocalizations(metadata.description || ''),
         dmable: !command.disableDm,
         examples: metadata.examples || [],
         id: metadata.id || name.split(' ').join('.'),
@@ -144,18 +198,19 @@ export async function createMessage(
 
       const id = invoker.metadata.id || invoker.fullName.split(' ').join('.');
 
-      // add in args
       commands.push({
-        args: [],
+        args: slashArgs(invoker),
         category: resolveInteractionCategory(id, invoker.metadata.category, prefixedCategories),
         credits: invoker.metadata.credits || [],
         enabled: true,
         description: invoker.description,
+        description_localizations: descriptionLocalizations(invoker.description),
         dmable: !invoker.disableDm,
         // the global application command's id, a subcommand mentions its top-level command's (`</tag get:id>`)
         external_id: command.ids.get(LOCAL_GUILD_ID) || null,
         id,
         name: invoker.fullName,
+        name_localizations: nameLocalizations(invoker),
         // set on the subcommand, or for all of them on the command
         premium: premiumLevel(invoker.metadata) || premiumLevel((command as any).metadata),
         ratelimits: invoker.ratelimits?.map((ratelimit) => {
@@ -169,6 +224,19 @@ export async function createMessage(
         type: commandType,
         usage: '',
       });
+    }
+  }
+
+  // a prefixed command worded differently from its slash command uses the slash command's translations
+  const slashLocalizations = new Map<string, Record<string, string>>();
+  for (const command of commands) {
+    if (command.type === CommandTypes.APPLICATION_SLASH && Object.keys(command.description_localizations).length) {
+      slashLocalizations.set(command.id, command.description_localizations);
+    }
+  }
+  for (const command of commands) {
+    if (command.type === CommandTypes.PREFIXED && !Object.keys(command.description_localizations).length) {
+      command.description_localizations = slashLocalizations.get(command.id) || {};
     }
   }
 
