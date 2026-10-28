@@ -21,8 +21,8 @@ export default class AudioVocoderCommand extends BaseMediasCommand {
         category: CommandCategories.AUDIO,
         description: 'Make the voice in the first Audio or Video sing the second one\'s music (the "autotune" vocoder from tags)',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/video/file.mp4 https://notsobot.com/some/audio/song.mp3`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/song.mp3 -bands 16`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 https://cdn.nsb.gg/assets/samples/music.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 https://cdn.nsb.gg/assets/samples/music.mp3 -bands 16`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioVocoder.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-bands <number>)',

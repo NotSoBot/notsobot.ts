@@ -20,7 +20,7 @@ export default class TranscribeCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AI,
         description: 'Transcribe an Audio or Video File',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3`,
         ],
         id: Formatter.Commands.ToolsTranscribe.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

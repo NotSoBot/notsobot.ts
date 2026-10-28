@@ -30,7 +30,6 @@ export default class CleanCommand extends BaseCommand {
         description: 'Delete my recent command uses: the messages that used my commands and my responses to them (including slash commands)',
         examples: [
           `${COMMAND_NAME} 10`,
-          `${COMMAND_NAME} 50`,
         ],
         id: COMMAND_ID,
         usage: '<amount>',

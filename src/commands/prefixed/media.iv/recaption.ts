@@ -20,7 +20,6 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
         category: CommandCategories.EFFECTS,
         description: 'Replace an Image or Video\'s caption with new text',
         examples: [
-          COMMAND_NAME,
           `${COMMAND_NAME} @NotSoBot what an idiot`,
           `${COMMAND_NAME} @NotSoBot what an idiot -tolerance 50`,
         ],

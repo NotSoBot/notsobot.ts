@@ -29,7 +29,6 @@ export default class BanCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} 300505364032389122 -clean 1 day`,
-          `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
           `${COMMAND_NAME} <@300505364032389122> spamming -for 7 days`,
         ],

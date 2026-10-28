@@ -50,7 +50,6 @@ export default class NickMassCommand extends BaseCommand {
           `${COMMAND_NAME} troy`,
           `${COMMAND_NAME} troy -role admin`,
           `${COMMAND_NAME} troy -nobots`,
-          `${COMMAND_NAME} troy -nousers`,
           `${COMMAND_NAME} {choose:🎄|🎅|🦌} {nick}`,
         ],
         category: CommandCategories.MODERATION,

@@ -22,9 +22,9 @@ export default class AudioVocoderChordCommand extends BaseMediaCommand {
         category: CommandCategories.AUDIO,
         description: 'Make the voice in an Audio or Video sing a chord, no music needed',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/video/file.mp4`,
-          `${COMMAND_NAME} https://notsobot.com/some/video/file.mp4 A3,C4,E4 -synth pad`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/voice.mp3 C3,G3,C4 -synth robot -bands 16`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 A3,C4,E4 -synth pad`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 C3,G3,C4 -synth robot -bands 16`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioVocoderChord.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<notes,comma-separated> (-synth <choice>) (-bands <number>)',

@@ -27,7 +27,7 @@ export default class AudioEqualizerCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Boost or cut frequencies in an Audio or Video with an equalizer',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioEqualizer.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-air <float>) (-bass <float>) (-highmids <float>) (-lowmids <float>) (-mids <float>) (-subbass <float>) (-treble <float>)',

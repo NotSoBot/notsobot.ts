@@ -22,7 +22,7 @@ export default class DetunnelCommand extends BaseImageOrVideoCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
-          `${COMMAND_NAME} notsobot -s`,
+          `${COMMAND_NAME} notsobot -spiral`,
         ],
         id: Formatter.Commands.MediaIVManipulationDetunnel.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-spiral)',

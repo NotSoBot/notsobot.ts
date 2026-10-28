@@ -18,7 +18,7 @@ export default class AudioReverseCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Reverse an Audio or Video\'s audio',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioReverse.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

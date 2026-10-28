@@ -26,8 +26,8 @@ export default class WlmpCommand extends BaseMediaCommand {
         category: CommandCategories.EFFECTS,
         description: 'Play a Movie Maker project (.wlmp) with every one of its sources replaced by an Audio/Image/Video',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/project.wlmp https://notsobot.com/some/video/file.mp4`,
-          `${COMMAND_NAME} https://notsobot.com/some/project.wlmp @cake#0001`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/movie.wlmp https://cdn.nsb.gg/assets/samples/video.mp4`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/movie.wlmp @cakedan`,
         ],
         id: Formatter.Commands.MediaAIVManipulationWlmp.COMMAND_ID,
         usage: '<.wlmp url or attachment> ?<emoji,user:id|mention|name,url>',

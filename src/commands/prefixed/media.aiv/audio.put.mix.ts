@@ -22,7 +22,7 @@ export default class AudioPutMixCommand extends BaseMediasCommand {
         category: CommandCategories.AUDIO,
         description: 'Mix an Audio/Image/Video\'s audio with another audio file',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 @cakedan`,
         ],
         id: Formatter.Commands.MediaAIVManipulationAudioPutMix.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-longest) (-noloop)',

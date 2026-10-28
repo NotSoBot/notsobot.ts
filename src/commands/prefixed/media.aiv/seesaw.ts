@@ -18,7 +18,7 @@ export default class SeeSawCommand extends BaseMediaCommand {
         description: 'Play an Animated Image/Audio/Video forwards then backwards',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
         ],
         id: Formatter.Commands.MediaAIVManipulationSeeSaw.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

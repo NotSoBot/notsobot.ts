@@ -26,7 +26,7 @@ export default class AudioFlangerCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Apply a Flanger Effect on an Audio or Video',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioFlanger.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-delay <number>) (-depth <number>) (-phase <number>) (-regen <number>) (-speed <float>) (-width <number>)',

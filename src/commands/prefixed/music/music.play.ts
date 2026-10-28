@@ -22,7 +22,7 @@ export default class MusicPlayCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} lorde david`,
           `${COMMAND_NAME} https://open.spotify.com/track/6ghDayhHeBXAP4OOnnrFW9`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         category: CommandCategories.MUSIC,
         id: Formatter.Commands.MusicPlay.COMMAND_ID,

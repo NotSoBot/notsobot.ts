@@ -25,7 +25,6 @@ export default class GoogleImageCommand extends BaseSearchCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -locale russian`,
           `${COMMAND_NAME} notsobot -randomize`,
-          `${COMMAND_NAME} notsobot -r`,
         ],
         id: Formatter.Commands.SearchGoogleImages.COMMAND_ID,
         usage: '<query> (-locale <language>) (-randomize)',

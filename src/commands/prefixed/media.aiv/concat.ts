@@ -17,7 +17,7 @@ export default class ConcatCommand extends BaseMediasCommand {
         category: CommandCategories.CONVERSION,
         description: 'Play two Audio/Image/Video files one after the other',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 @cakedan`,
         ],
         id: Formatter.Commands.MediaAIVManipulationConcat.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url>',

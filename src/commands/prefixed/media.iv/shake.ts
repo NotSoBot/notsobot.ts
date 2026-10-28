@@ -25,7 +25,7 @@ export default class ShakeCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -horizontal 5`,
-          `${COMMAND_NAME} notsobot -h 5 -v 20`,
+          `${COMMAND_NAME} notsobot -vertical 20 -randomize`,
         ],
         id: Formatter.Commands.MediaIVManipulationShake.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-horizontal <float>) (-randomize) (-vertical <float>)',

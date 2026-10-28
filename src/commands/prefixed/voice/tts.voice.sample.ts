@@ -18,7 +18,7 @@ export default class TTSVoiceSampleCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Add another Audio or Video File to one of your cloned voices',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 cake`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 cake`,
         ],
         id: Formatter.Commands.VoiceCloneAdd.COMMAND_ID,
         premiumPlus: true,

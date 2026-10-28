@@ -23,7 +23,6 @@ export default class Image2Command extends BaseSearchCommand {
         examples: [
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -randomize`,
-          `${COMMAND_NAME} notsobot -r`,
         ],
         id: Formatter.Commands.SearchImages.COMMAND_ID_SIMPLE,
         usage: '<query> (-randomize)',

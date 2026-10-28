@@ -18,7 +18,7 @@ export default class AudioChannelsInvertCommand extends BaseAudioOrVideoCommand 
 		category: CommandCategories.AUDIO,
 		description: 'Swap the left and right audio channels of an Audio or Video file',
 		examples: [
-		  `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+		  `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/stereo.mp3`,
 		],
 		id: Formatter.Commands.MediaAVManipulationAudioChannelsInvert.COMMAND_ID,
 		usage: '?<emoji,user:id|mention|name,url>',

@@ -17,7 +17,6 @@ export default class BitRateCommand extends BaseMediaCommand {
         category: CommandCategories.CONVERSION,
         description: 'Set an Audio or Video File\'s Bit Rate',
         examples: [
-          COMMAND_NAME,
           `${COMMAND_NAME} 1000 1000`,
         ],
         id: Formatter.Commands.MediaAVManipulationSetBitRate.COMMAND_ID,

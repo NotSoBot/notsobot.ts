@@ -27,7 +27,6 @@ export default class UsersCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} -bots`,
           `${COMMAND_NAME} cake`,
-          `${COMMAND_NAME} cake#1`,
           `${COMMAND_NAME} cake -role admin`,
         ],
         category: CommandCategories.INFO,

@@ -22,7 +22,6 @@ export default class UnbanCommand extends BaseCommand {
         description: 'Unban multiple users and add a reason',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
-          `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
         id: Formatter.Commands.ModerationUnban.COMMAND_ID,

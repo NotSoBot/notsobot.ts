@@ -82,8 +82,6 @@ export default class PruneCommand extends BaseCommand {
         description: 'Delete recent messages in bulk (10 by default)',
         examples: [
           `${COMMAND_NAME} 100`,
-          `${COMMAND_NAME} 100 -from cake`,
-          `${COMMAND_NAME} 500 -with discord.gg`,
           `${COMMAND_NAME} 500 -with discord.gg -in general`,
           `${COMMAND_NAME} 100 -bots`,
           `${COMMAND_NAME} 100 -images -from cake`,

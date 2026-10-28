@@ -22,7 +22,7 @@ export default class TunnelCommand extends BaseImageOrVideoCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
-          `${COMMAND_NAME} notsobot -s`,
+          `${COMMAND_NAME} notsobot -spiral`,
         ],
         id: Formatter.Commands.MediaIVManipulationTunnel.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-spiral)',

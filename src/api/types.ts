@@ -1123,6 +1123,10 @@ export namespace RestOptions {
     y?: string,
   }
 
+  export interface MediaIVManipulationCropFace extends MediaBaseOptions {
+    face?: number,
+  }
+
   export interface MediaIVManipulationDance extends MediaBaseOptions {
     amount?: number,
     bpm?: number,
@@ -1503,6 +1507,12 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationSwirl extends MediaBaseOptions {
     degrees?: number,
+  }
+
+  export interface MediaIVManipulationTimecodeVegas extends MediaBaseOptions {
+    type?: string,
+    x?: string,
+    y?: string,
   }
 
   export interface MediaIVManipulationTrim extends MediaBaseOptions {

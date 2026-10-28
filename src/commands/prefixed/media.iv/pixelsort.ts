@@ -31,7 +31,6 @@ export default class PixelSortCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -interval RANDOM`,
-          `${COMMAND_NAME} notsobot -sort HUE`,
           `${COMMAND_NAME} notsobot -interval IMAGE -sort COLOR`,
         ],
         category: CommandCategories.EFFECTS,

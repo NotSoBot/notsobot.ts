@@ -22,8 +22,7 @@ export default class MusicQueueClearCommand extends BaseCommand {
         description: 'Clear the queue, only what a user queued, or only a playlist (the one the track at a position is from), other people\'s need Manage Server or the DJ role with DJ mode on',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} -from cake#1`,
-          `${COMMAND_NAME} -user cake#1`,
+          `${COMMAND_NAME} -from cake`,
           `${COMMAND_NAME} -playlist 5`,
         ],
         category: CommandCategories.MUSIC,

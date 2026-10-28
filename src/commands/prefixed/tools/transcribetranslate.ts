@@ -21,7 +21,8 @@ export default class TranscribeTranslateCommand extends BaseAudioOrVideoCommand 
         category: CommandCategories.AI,
         description: 'Transcribe an Audio or Video File then translate it',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 -to spanish`,
         ],
         id: Formatter.Commands.ToolsTranscribeTranslate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-to <language>)',

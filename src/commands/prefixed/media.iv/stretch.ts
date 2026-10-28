@@ -21,7 +21,7 @@ export default class StretchCommand extends BaseImageOrVideoCommand {
         description: 'Stretch an Image or Video by multiplying its Width or Height (0.01 to 3)',
         examples: [
           `${COMMAND_NAME} notsobot 1 3`,
-          `${COMMAND_NAME} notsobot 2 3`,
+          `${COMMAND_NAME} notsobot 2 1 -crop`,
         ],
         id: Formatter.Commands.MediaIVManipulationStretch.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> <width multiplier:float> <height multiplier:float> (-crop)',

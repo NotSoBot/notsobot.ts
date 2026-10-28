@@ -23,7 +23,6 @@ export default class DuckDuckGoImageCommand extends BaseSearchCommand{
         examples: [
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -randomize`,
-          `${COMMAND_NAME} notsobot -r`,
         ],
         id: Formatter.Commands.SearchDuckDuckGoImages.COMMAND_ID,
         usage: '<query> (-randomize)',

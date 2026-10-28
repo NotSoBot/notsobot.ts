@@ -18,7 +18,7 @@ export default class AudioChannelsCombineCommand extends BaseAudioOrVideoCommand
 		category: CommandCategories.AUDIO,
 		description: 'Combine an Audio or Video file\'s audio streams to be mono',
 		examples: [
-		  `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+		  `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/stereo.mp3`,
 		],
 		id: Formatter.Commands.MediaAVManipulationAudioChannelsCombine.COMMAND_ID,
 		usage: '?<emoji,user:id|mention|name,url>',

@@ -27,7 +27,7 @@ export default class ScreenshotCommand extends BaseCommand {
         pipeable: true,
         description: 'Take a screenshot of a website',
         examples: [
-          `${COMMAND_NAME} https://discordapp.com`,
+          `${COMMAND_NAME} https://discord.com`,
         ],
         id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
         usage: '<url> (-height <number>) (-lightmode) (-timeout <seconds>) (-wait <float>) (-width <number>)',

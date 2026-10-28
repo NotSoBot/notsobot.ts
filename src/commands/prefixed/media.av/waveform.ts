@@ -21,8 +21,8 @@ export default class WaveformCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Draw the audio of an Audio or Video file as a waveform image',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -color red -split`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 -color red -split`,
         ],
         id: Formatter.Commands.MediaAVManipulationWaveform.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-color <string:FFMPEGColors|HEX|RGBA?>) (-split)',

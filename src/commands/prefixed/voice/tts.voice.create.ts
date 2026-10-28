@@ -22,8 +22,8 @@ export default class TTSVoiceCreateCommand extends BaseAudioOrVideoCommand {
         description: 'Clone a voice from an Audio or Video File to use for Text-to-Speech',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -name cake`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 -name cake`,
         ],
         id: Formatter.Commands.VoiceClone.COMMAND_ID,
         premiumPlus: true,

@@ -26,7 +26,6 @@ export default class KickCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} 300505364032389122 -clean 1 day`,
-          `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
         id: Formatter.Commands.ModerationKick.COMMAND_ID,

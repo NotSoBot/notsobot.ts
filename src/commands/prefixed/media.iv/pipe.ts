@@ -22,7 +22,6 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
         category: CommandCategories.CONVERSION,
         description: 'Run several media commands in a row, each on the last one\'s result',
         examples: [
-          COMMAND_NAME,
           `${COMMAND_NAME} flip; flop`,
         ],
         id: Formatter.Commands.MediaAIVPipe.COMMAND_ID,

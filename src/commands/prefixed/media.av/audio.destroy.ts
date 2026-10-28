@@ -18,7 +18,7 @@ export default class AudioDestroyCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Destroy an Audio or Video\'s audio with heavy bit crushing',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioDestroy.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

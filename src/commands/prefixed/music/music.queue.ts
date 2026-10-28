@@ -21,8 +21,7 @@ export default class MusicQueueCommand extends BaseCommand {
         description: 'Show what the music is playing and what is queued after it, or only what a user queued',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} -from cake#1`,
-          `${COMMAND_NAME} -user cake#1`,
+          `${COMMAND_NAME} -from cake`,
         ],
         category: CommandCategories.MUSIC,
         id: Formatter.Commands.MusicQueue.COMMAND_ID,

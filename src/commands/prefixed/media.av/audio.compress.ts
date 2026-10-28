@@ -21,7 +21,7 @@ export default class AudioCompressCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Crush an Audio or Video\'s audio down to 8 kHz, low bitrate sound',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioCompress.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-norevert)',

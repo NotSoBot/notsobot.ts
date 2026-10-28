@@ -17,7 +17,6 @@ export default class CaptionCommand extends BaseImageOrVideoCommand {
         category: CommandCategories.EFFECTS,
         description: 'Add Caption Text to an Image or Video',
         examples: [
-          COMMAND_NAME,
           `${COMMAND_NAME} @NotSoBot what an idiot`,
         ],
         id: Formatter.Commands.MediaIVManipulationCaption.COMMAND_ID,

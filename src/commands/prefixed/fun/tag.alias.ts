@@ -21,7 +21,6 @@ export default class TagAliasCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} test1 test`,
           `${COMMAND_NAME} "test tag1" test tag`,
-          `${COMMAND_NAME} "test tag1" "test tag"`,
         ],
         id: Formatter.Commands.TagAlias.COMMAND_ID,
         usage: '<tagname> <tagname2>',

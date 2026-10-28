@@ -18,7 +18,7 @@ export default class ExtractAudioCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.CONVERSION,
         description: 'Extract Audio from an Audio or Video File',
         examples: [
-          `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
         ],
         id: Formatter.Commands.MediaAVToolsExtractAudio.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

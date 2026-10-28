@@ -18,8 +18,8 @@ export default class SpeedCommand extends BaseMediaCommand {
         description: 'Edit an Animated Image/Audio/Video\'s Speed',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
-          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg 0.5`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 0.5`,
         ],
         id: Formatter.Commands.MediaAIVManipulationSpeed.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> ?<speed multiplier:float>',

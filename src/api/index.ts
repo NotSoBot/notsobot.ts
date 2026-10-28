@@ -1807,6 +1807,14 @@ export async function mediaIVManipulationCropCircle(
 }
 
 
+export async function mediaIVManipulationCropFace(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCropFace,
+) {
+  return raw.mediaIVManipulationCropFace(context, options);
+}
+
+
 export async function mediaIVManipulationCropTriangle(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4556,6 +4564,14 @@ export async function mediaIVManipulationSwirl(
   options: RestOptions.MediaIVManipulationSwirl,
 ) {
   return raw.mediaIVManipulationSwirl(context, options);
+}
+
+
+export async function mediaIVManipulationTimecodeVegas(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTimecodeVegas,
+) {
+  return raw.mediaIVManipulationTimecodeVegas(context, options);
 }
 
 

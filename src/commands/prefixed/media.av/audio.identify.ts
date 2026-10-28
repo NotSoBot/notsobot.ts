@@ -21,7 +21,7 @@ export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Identify a song in an audio or video file',
         examples: [
-          `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
         ],
         id: Formatter.Commands.MediaAVToolsIdentify.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-start <duration>)',

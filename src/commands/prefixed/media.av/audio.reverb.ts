@@ -23,7 +23,7 @@ export default class AudioReverbCommand extends BaseAudioOrVideoCommand {
       category: CommandCategories.AUDIO,
       description: 'Add an Audio Reverb to an Audio or Video file',
       examples: [
-        `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+        `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
       ],
       id: Formatter.Commands.MediaAVManipulationAudioReverb.COMMAND_ID,
       usage: '?<emoji,user:id|mention|name,url> (-decay <float>) (-delay <number>) (-volume <float>)',

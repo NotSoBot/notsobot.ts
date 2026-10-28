@@ -21,7 +21,7 @@ export default class ReverseCommand extends BaseMediaCommand {
         description: 'Reverse an Animated Image/Audio/Video',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
         ],
         id: Formatter.Commands.MediaAIVManipulationReverse.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-noaudio)',

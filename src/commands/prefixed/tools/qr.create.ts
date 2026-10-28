@@ -23,9 +23,8 @@ export default class QRCreateCommand extends BaseCommand<Formatter.Commands.Tool
         pipeable: true,
         description: 'Create a QR code',
         examples: [
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png -size 1024`,
-          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png -size 1024 -margin 0`,
+          `${COMMAND_NAME} https://notsobot.com`,
+          `${COMMAND_NAME} https://notsobot.com -size 1024 -margin 0`,
         ],
         id: Formatter.Commands.ToolsQrCreate.COMMAND_ID,
         usage: '<query> (-margin <number>) (-size <number>)',

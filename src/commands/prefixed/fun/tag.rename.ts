@@ -21,7 +21,6 @@ export default class TagRenameCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} test test1`,
           `${COMMAND_NAME} "test tag" test tag1`,
-          `${COMMAND_NAME} "test tag" "test tag1"`,
         ],
         id: Formatter.Commands.TagRename.COMMAND_ID,
         usage: '<tagname> <tagname2>',

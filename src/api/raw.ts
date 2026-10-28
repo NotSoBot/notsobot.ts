@@ -4459,6 +4459,28 @@ export async function mediaIVManipulationCropCircle(
 }
 
 
+export async function mediaIVManipulationCropFace(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCropFace,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    face: options.face,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_CROP_FACE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationCropTriangle(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -11919,6 +11941,30 @@ export async function mediaIVManipulationSwirl(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_SWIRL,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationTimecodeVegas(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTimecodeVegas,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    type: options.type,
+    url: options.url,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_TIMECODE_VEGAS,
     },
   });
 }

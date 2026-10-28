@@ -37,7 +37,6 @@ export default class UserCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} cake`,
-          `${COMMAND_NAME} cake#1`,
           `${COMMAND_NAME} <@439205512425504771>`,
         ],
         id: Formatter.Commands.InfoUser.COMMAND_ID,

@@ -23,7 +23,6 @@ export default class BingCommand extends BaseSearchCommand {
         examples: [
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -randomize`,
-          `${COMMAND_NAME} notsobot -r`,
         ],
         id: Formatter.Commands.SearchBing.COMMAND_ID,
         usage: '<query> (-randomize)',

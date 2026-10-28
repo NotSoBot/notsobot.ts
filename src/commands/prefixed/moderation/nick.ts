@@ -31,7 +31,6 @@ export default class NickCommand extends BaseCommand {
         description: 'Change or reset a member\'s nickname',
         examples: [
           `${COMMAND_NAME} <@300505364032389122> troy`,
-          `${COMMAND_NAME} 300505364032389122 some nickname`,
           `${COMMAND_NAME} "cake dan" troy`,
           `${COMMAND_NAME} <@300505364032389122> {choose:🎄|🎅|🦌} {nick}`,
           `${COMMAND_NAME} <@300505364032389122>`,

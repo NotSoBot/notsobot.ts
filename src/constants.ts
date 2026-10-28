@@ -1718,6 +1718,50 @@ export const MediaStammerMatcherModesToText: Record<MediaStammerMatcherModes, st
 });
 
 
+// Sony Timecode's alignments and formats, the vegastimecode endpoint takes these names
+export enum MediaVegasTimecodeHorizontal {
+  CENTER = 'center',
+  LEFT = 'left',
+  RIGHT = 'right',
+}
+
+export enum MediaVegasTimecodeVertical {
+  BOTTOM = 'bottom',
+  CENTER = 'center',
+  TOP = 'top',
+}
+
+export enum MediaVegasTimecodeTypes {
+  DROP = 'drop',
+  EBU = 'ebu',
+  FEET16 = 'feet16',
+  FEET35 = 'feet35',
+  FILM = 'film',
+  FRAMES = 'frames',
+  IVTC = 'ivtc',
+  NONDROP = 'nondrop',
+  SECONDS = 'seconds',
+  SMPTE30 = 'smpte30',
+  TIME = 'time',
+  TIMEFRAMES = 'timeframes',
+}
+
+export const MediaVegasTimecodeTypesToText: Record<MediaVegasTimecodeTypes, string> = Object.freeze({
+  [MediaVegasTimecodeTypes.DROP]: 'SMPTE Drop (29.97 fps, 00:00:01;10)',
+  [MediaVegasTimecodeTypes.EBU]: 'SMPTE EBU (25 fps)',
+  [MediaVegasTimecodeTypes.FEET16]: 'Feet & Frames 16mm',
+  [MediaVegasTimecodeTypes.FEET35]: 'Feet & Frames 35mm',
+  [MediaVegasTimecodeTypes.FILM]: 'SMPTE Film Sync (24 fps)',
+  [MediaVegasTimecodeTypes.FRAMES]: 'Absolute Frames',
+  [MediaVegasTimecodeTypes.IVTC]: 'SMPTE Film Sync IVTC (23.976 fps)',
+  [MediaVegasTimecodeTypes.NONDROP]: 'SMPTE Non-Drop (29.97 fps)',
+  [MediaVegasTimecodeTypes.SECONDS]: 'Seconds',
+  [MediaVegasTimecodeTypes.SMPTE30]: 'SMPTE 30 (30 fps)',
+  [MediaVegasTimecodeTypes.TIME]: 'Time',
+  [MediaVegasTimecodeTypes.TIMEFRAMES]: 'Time & Frames',
+});
+
+
 export enum MediaWiggleDirections {
   DOWN = 'DOWN',
   LEFT = 'LEFT',

@@ -21,8 +21,8 @@ export default class AudioNormalizeCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Normalize the loudness of an Audio or Video to a high volume',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -strength 0.5`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/quiet.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/quiet.mp3 -strength 0.5`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioNormalize.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-strength <float>)',

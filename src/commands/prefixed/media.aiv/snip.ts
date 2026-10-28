@@ -20,9 +20,9 @@ export default class SnipCommand extends BaseMediaCommand {
         category: CommandCategories.CONVERSION,
         description: 'Cut out the part of an Animated Image/Audio/Video between two times',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 10 50`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -50`,
-          `${COMMAND_NAME} https://notsobot.com/some/video/file.mp4 -50 -audio`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 2 6`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 -4`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 -4 -audio`,
         ],
         id: Formatter.Commands.MediaAIVManipulationSnip.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> <start,number> <end,number> (-audio)',

@@ -24,8 +24,8 @@ export default class AudioBitcrushCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Bit Crush an Audio or Video\'s audio, lowering its sample rate and bit depth',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -samples 12 -bits 4 -mode lin`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 -samples 12 -bits 4 -mode lin`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioBitcrush.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-samples <number>) (-bits <number>) (-mix <float>) (-mode <choice>)',

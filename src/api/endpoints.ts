@@ -240,6 +240,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/crop/auto',
   MEDIA_IV_MANIPULATION_CROP_CIRCLE:
     '/media/iv/manipulation/crop/circle',
+  MEDIA_IV_MANIPULATION_CROP_FACE:
+    '/media/iv/manipulation/crop/face',
   MEDIA_IV_MANIPULATION_CROP_TRIANGLE:
     '/media/iv/manipulation/crop/triangle',
   MEDIA_IV_MANIPULATION_CROP_TWITTER_HEX:
@@ -930,6 +932,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/swap/rgba',
   MEDIA_IV_MANIPULATION_SWIRL:
     '/media/iv/manipulation/swirl',
+  MEDIA_IV_MANIPULATION_TIMECODE_VEGAS:
+    '/media/iv/manipulation/timecode/vegas',
   MEDIA_IV_MANIPULATION_TIMESQUARE:
     '/media/iv/manipulation/timesquare',
   MEDIA_IV_MANIPULATION_TO_GIF:

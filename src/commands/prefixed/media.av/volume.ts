@@ -17,7 +17,8 @@ export default class VolumeCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Change an Audio or Video\'s volume',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 0.5`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioVolume.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<volume,float>',

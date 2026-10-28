@@ -18,7 +18,7 @@ export default class AudioBoostBassCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Boost an Audio or Video\'s bass',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioBoostBass.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

@@ -22,7 +22,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
         description: 'Attach spongebob eyes to people\'s faces in an Image or Video',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/face.png`,
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationEyesSpongebob.COMMAND_ID,

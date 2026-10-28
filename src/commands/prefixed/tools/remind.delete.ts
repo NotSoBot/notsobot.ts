@@ -21,7 +21,6 @@ export default class RemindDeleteCommand extends BaseCommand {
 		description: 'Delete one of your Reminders',
 		examples: [
 		  `${COMMAND_NAME} 1`,
-		  `${COMMAND_NAME} 5`,
 		],
 		id: Formatter.Commands.ReminderDeleteMe.COMMAND_ID,
 		usage: '<position,number>',

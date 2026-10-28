@@ -26,8 +26,7 @@ export default class XytCommand extends BaseImageOrVideoCommand {
         category: CommandCategories.EFFECTS,
         description: 'Apply a VivaVideo filter or fx template (.xyt) to an Image or Video',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/template.xyt notsobot`,
-          `${COMMAND_NAME} https://notsobot.com/some/template.xyt @cake#0001`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/funface.xyt notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationXyt.COMMAND_ID,
         usage: '<.xyt url or attachment> ?<emoji,user:id|mention|name,url>',

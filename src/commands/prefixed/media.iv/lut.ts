@@ -32,8 +32,8 @@ export default class LUTCommand extends BaseImageOrVideoCommand {
         category: CommandCategories.EFFECTS,
         description: 'Color grade an Image or Video with a .cube LUT',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/grade.cube notsobot`,
-          `${COMMAND_NAME} https://notsobot.com/some/grade.cube @cake#0001 -strength 0.5`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/grade.cube notsobot`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/grade.cube @cakedan -strength 0.5`,
         ],
         id: Formatter.Commands.MediaIVManipulationLUT.COMMAND_ID,
         usage: '<.cube url or attachment> ?<emoji,user:id|mention|name,url> (-interpolation <choice>) (-strength <float>)',

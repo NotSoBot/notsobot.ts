@@ -26,7 +26,7 @@ export default class TagExportCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} -content discord.gg`,
           `${COMMAND_NAME} -name badword`,
-          `${COMMAND_NAME} -user cake#1`,
+          `${COMMAND_NAME} -user cake`,
         ],
         id: Formatter.Commands.TagExport.COMMAND_ID,
         usage: '(-content <string>) (-name <string>) (-user <user:id|mention|name>)',

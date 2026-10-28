@@ -24,7 +24,7 @@ export default class ConvertCommand extends BaseMediaCommand {
           `${COMMAND_NAME} notsobot jpeg`,
           `${COMMAND_NAME} 👌🏿 png -size 2560`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png webp`,
-          `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/1054322096420950097/igVideo.mp4 mov`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 mov`,
         ],
         id: Formatter.Commands.MediaAIVManipulationConvert.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>)',

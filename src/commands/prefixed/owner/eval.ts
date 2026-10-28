@@ -23,7 +23,7 @@ export default class EvalCommand extends BaseCommand {
       metadata: {
         description: 'Eval some code ;)',
         examples: [
-          `${COMMAND_NAME} context.client.token`,
+          `${COMMAND_NAME} context.client.guilds.length`,
         ],
         category: CommandCategories.OWNER,
         id: Formatter.Commands.OwnerEval.COMMAND_ID,

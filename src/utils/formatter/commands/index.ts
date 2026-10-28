@@ -116,6 +116,7 @@ import * as MediaIVManipulationCircle from './media.iv.manipulation.circle';
 import * as MediaIVManipulationCrop from './media.iv.manipulation.crop';
 import * as MediaIVManipulationCropAuto from './media.iv.manipulation.crop.auto';
 import * as MediaIVManipulationCropCircle from './media.iv.manipulation.crop.circle';
+import * as MediaIVManipulationCropFace from './media.iv.manipulation.crop.face';
 import * as MediaIVManipulationCropNFT from './media.iv.manipulation.crop.nft';
 import * as MediaIVManipulationCropTriangle from './media.iv.manipulation.crop.triangle';
 import * as MediaIVManipulationDance from './media.iv.manipulation.dance';
@@ -485,6 +486,7 @@ import * as MediaIVManipulationSwapColors from './media.iv.manipulation.swap.col
 import * as MediaIVManipulationSwapPixels from './media.iv.manipulation.swap.pixels';
 import * as MediaIVManipulationSwapRGBA from './media.iv.manipulation.swap.rgba';
 import * as MediaIVManipulationSwirl from './media.iv.manipulation.swirl';
+import * as MediaIVManipulationTimecodeVegas from './media.iv.manipulation.timecode.vegas';
 import * as MediaIVManipulationTimesquare from './media.iv.manipulation.timesquare';
 import * as MediaIVManipulationToGif from './media.iv.manipulation.to.gif';
 import * as MediaIVManipulationTrace from './media.iv.manipulation.trace';
@@ -824,6 +826,7 @@ export {
   MediaIVManipulationCrop,
   MediaIVManipulationCropAuto,
   MediaIVManipulationCropCircle,
+  MediaIVManipulationCropFace,
   MediaIVManipulationCropNFT,
   MediaIVManipulationCropTriangle,
   MediaIVManipulationDance,
@@ -1193,6 +1196,7 @@ export {
   MediaIVManipulationSwapPixels,
   MediaIVManipulationSwapRGBA,
   MediaIVManipulationSwirl,
+  MediaIVManipulationTimecodeVegas,
   MediaIVManipulationTimesquare,
   MediaIVManipulationToGif,
   MediaIVManipulationTrace,

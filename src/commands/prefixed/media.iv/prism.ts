@@ -27,7 +27,6 @@ export default class PrismCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -repeat`,
-          `${COMMAND_NAME} notsobot -still`,
           `${COMMAND_NAME} notsobot -still -angle 0`,
           `${COMMAND_NAME} notsobot -tilt 40`,
         ],

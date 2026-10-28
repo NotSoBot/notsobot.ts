@@ -34,7 +34,7 @@ export default class TagSearchCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} bot`,
-          `${COMMAND_NAME} bot -user cake#1`,
+          `${COMMAND_NAME} bot -user cake`,
           `${COMMAND_NAME} -user <@439205512425504771>`,
         ],
         id: Formatter.Commands.TagListServer.COMMAND_ID,

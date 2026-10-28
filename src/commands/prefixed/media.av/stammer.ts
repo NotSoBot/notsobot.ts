@@ -22,7 +22,7 @@ export default class StammerCommand extends BaseAudioOrVideosCommand {
         category: CommandCategories.AUDIO,
         description: 'Rebuild the second media\'s audio out of tiny pieces of the first one\'s audio and video',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/video_file.mp4 https://notsobot.com/some/audio_file.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationStammer.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-color <choice>) (-matcher <choice>)',

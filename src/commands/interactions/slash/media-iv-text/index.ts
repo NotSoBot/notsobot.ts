@@ -19,6 +19,7 @@ import { MediaIVSnapchatCommand } from './snapchat';
 import { MediaIVSubtitleCommand } from './subtitle';
 import { MediaIVTikTokCommand } from './tiktok';
 import { MediaIVVaporwaveCommand } from './vaporwave';
+import { MediaIVVegasTimecodeCommand } from './vegas-timecode';
 import { MediaIVWatchMojoCommand } from './watchmojo';
 import { MediaIVYouTubeCommand } from './youtube';
 
@@ -53,6 +54,7 @@ export default class MediaIVTextGroupCommand extends BaseSlashCommand {
         new MediaIVSubtitleCommand(),
         new MediaIVTikTokCommand(),
         new MediaIVVaporwaveCommand(),
+        new MediaIVVegasTimecodeCommand(),
         new MediaIVWatchMojoCommand(),
         new MediaIVYouTubeCommand(),
       ],

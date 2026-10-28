@@ -22,7 +22,7 @@ export default class AudioTremoloCommand extends BaseAudioOrVideoCommand {
       category: CommandCategories.AUDIO,
       description: 'Make an Audio or Video\'s volume pulse up and down (tremolo)',
       examples: [
-        `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+        `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
       ],
       id: Formatter.Commands.MediaAVManipulationAudioTremolo.COMMAND_ID,
       usage: '?<emoji,user:id|mention|name,url> (-depth <float>) (-frequency <float>)',

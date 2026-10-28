@@ -22,8 +22,8 @@ export default class AudioPaulstretchCommand extends BaseAudioOrVideoCommand {
         category: CommandCategories.AUDIO,
         description: 'Stretch an Audio or Video into a slow, smeared ambient drone, like Audacity\'s Paulstretch',
         examples: [
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -stretch 10 -resolution 0.25`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 -stretch 10 -resolution 0.25`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioPaulstretch.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-stretch <float>) (-resolution <float>)',

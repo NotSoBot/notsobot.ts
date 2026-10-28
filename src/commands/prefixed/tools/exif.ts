@@ -19,7 +19,7 @@ export default class ExifCommand extends BaseMediaCommand {
         description: 'Get the EXIF metadata of a Media File',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/photo.jpg`,
         ],
         id: Formatter.Commands.ToolsExif.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

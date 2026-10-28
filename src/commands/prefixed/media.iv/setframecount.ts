@@ -18,7 +18,6 @@ export default class SetFrameCountCommand extends BaseMediaCommand {
         category: CommandCategories.CONVERSION,
         description: 'Set an Animated Image or Video\'s Frame Count',
         examples: [
-          COMMAND_NAME,
           `${COMMAND_NAME} 24`,
         ],
         id: Formatter.Commands.MediaIVManipulationSetFrameCount.COMMAND_ID,

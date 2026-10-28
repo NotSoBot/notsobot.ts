@@ -22,7 +22,6 @@ export default class RemindDeleteServerCommand extends BaseCommand {
 		    description: 'Move a Reminder out of the Server and into DMs',
 		    examples: [
 		      `${COMMAND_NAME} @cake 1`,
-		      `${COMMAND_NAME} @cake 5`,
 		    ],
 		    id: Formatter.Commands.ReminderDeleteServer.COMMAND_ID,
 		    usage: '<user:id|mention|name> <position,number>',
