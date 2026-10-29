@@ -11,6 +11,7 @@ export const COMMAND_NAME = 'autowarn remove';
 
 export interface CommandArgs {
   channel?: Structures.Channel | null,
+  rule?: Formatter.Commands.ModerationAutowarn.AutomodRuleChoice,
   trigger: GuildWarningAutoTriggers | null,
 }
 
@@ -22,6 +23,7 @@ export default class AutowarnRemoveCommand extends BaseCommand {
       aliases: ['autowarn delete'],
       args: [
         {name: 'channel', type: Parameters.channel({types: Formatter.Commands.ModerationAutowarn.CHANNEL_TYPES as any})},
+        {name: 'rule', type: Formatter.Commands.ModerationAutowarn.automodRuleParser},
       ],
       disableDm: true,
       label: 'trigger',
@@ -31,9 +33,10 @@ export default class AutowarnRemoveCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} mentions`,
           `${COMMAND_NAME} blocked -channel general`,
+          `${COMMAND_NAME} automod -rule Bad Words`,
         ],
         id: Formatter.Commands.ModerationAutowarn.COMMAND_ID_REMOVE,
-        usage: '<mentions|blocked> (-channel <channel:id|mention|name>)',
+        usage: '<mentions|blocked|automod> (-channel <channel:id|mention|name>) (-rule <automod rule:id|name>)',
       },
       permissions: [Permissions.MANAGE_GUILD],
       type: Formatter.Commands.ModerationAutowarn.triggerParser,
@@ -51,6 +54,7 @@ export default class AutowarnRemoveCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     return Formatter.Commands.ModerationAutowarn.createSetMessage(context, {
+      automodRule: args.rule,
       channel: args.channel || null,
       remove: true,
       trigger: args.trigger!,

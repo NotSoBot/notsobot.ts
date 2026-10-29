@@ -361,7 +361,7 @@ export class NotSoCommandClient extends CommandClient {
     }
     const audit = await I18n.getGuildTranslator(context);
     const reason = AutoWarn.createAutoWarnReason(audit, rule, {mentions});
-    const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule});
+    const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule, settings});
     if (result && context.canReply) {
       await context.reply({
         allowedMentions: {parse: [], users: [member.id]},
@@ -384,7 +384,7 @@ export class NotSoCommandClient extends CommandClient {
     }
     const audit = await I18n.getGuildTranslator(context);
     const reason = AutoWarn.createAutoWarnReason(audit, rule, {command: commandName});
-    const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule});
+    const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule, settings});
     if (result && context.canReply) {
       await context.reply({
         allowedMentions: {parse: [], users: [member.id]},

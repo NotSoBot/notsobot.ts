@@ -1118,9 +1118,13 @@ export const MAX_GUILD_WARNING_WEIGHT = 10;
 // a server's auto-warn rules, and the most mentions a mention limit can allow
 export const MAX_GUILD_WARNINGS_AUTO = 20;
 export const MAX_GUILD_WARNINGS_AUTO_MENTIONS = 50;
+// roles an auto-warn exemption (the server-wide one, or a rule's own) can skip
+export const MAX_GUILD_WARNINGS_AUTO_EXEMPT_ROLES = 25;
 
 // what makes the bot warn a member itself, see `GuildWarningAuto`
 export enum GuildWarningAutoTriggers {
+  // setting off one of the server's discord AutoMod rules (the rule's `automod_rule_id`, null: any of them)
+  AUTOMOD = 'automod',
   // running a command the server's rules block for them
   BLOCKED_COMMAND = 'blocked_command',
   // a message mentioning more than the rule's `limit` users and roles
@@ -2858,6 +2862,7 @@ export const NotSoApiKeys = Object.freeze({
   VIEWS: 'views',
   WARNINGS_ACTIONS: 'warnings_actions',
   WARNINGS_AUTO: 'warnings_auto',
+  WARNINGS_AUTO_EXEMPT: 'warnings_auto_exempt',
   WARNINGS_EXPIRE: 'warnings_expire',
   WARNINGS_WINDOW: 'warnings_window',
   WEBHOOK_ID: 'webhook_id',

@@ -387,19 +387,20 @@ export async function createVoiceClone(
 }
 
 
-export async function deleteChannel(
+export async function sweepGuild(
   context: RequestContext,
-  channelId: string,
-  options: RestOptions.DeleteChannel,
-): Promise<RestResponsesRaw.DeleteChannel> {
+  guildId: string,
+  options: RestOptions.SweepGuild,
+): Promise<RestResponsesRaw.SweepGuild> {
   return request(context, {
-    query: {
-      guild_id: options.guildId,
+    body: {
+      channel_ids: options.channelIds,
+      role_ids: options.roleIds,
     },
     route: {
-      method: HTTPMethods.DELETE,
-      path: Api.CHANNEL,
-      params: {channelId},
+      method: HTTPMethods.POST,
+      path: Api.GUILD_SWEEP,
+      params: {guildId},
     },
   });
 }
@@ -728,6 +729,7 @@ export async function editGuildSettings(
     timezone: options.timezone,
     warnings_actions: options.warningsActions,
     warnings_auto: options.warningsAuto,
+    warnings_auto_exempt: options.warningsAutoExempt,
     warnings_expire: options.warningsExpire,
     warnings_window: options.warningsWindow,
   };

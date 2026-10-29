@@ -132,12 +132,14 @@ export async function createVoiceClone(
 }
 
 
-export async function deleteChannel(
+// channels and roles the server doesn't have anymore, everything it kept for them goes (the channel delete listener and
+// the settings sweep)
+export async function sweepGuild(
   context: RequestContext,
-  channelId: string,
-  options: RestOptions.DeleteChannel,
+  guildId: string,
+  options: RestOptions.SweepGuild,
 ) {
-  return raw.deleteChannel(context, channelId, options);
+  return raw.sweepGuild(context, guildId, options);
 }
 
 

@@ -11,6 +11,8 @@ export const COMMAND_NAME = 'autowarn mentions';
 
 export interface CommandArgs {
   channel?: Structures.Channel | null,
+  'exempt-permissions'?: bigint,
+  'exempt-roles'?: Array<Structures.Role>,
   limit: number,
   warnings?: number,
 }
@@ -24,6 +26,8 @@ export default class AutowarnMentionsCommand extends BaseCommand {
       args: [
         {name: 'channel', type: Parameters.channel({types: Formatter.Commands.ModerationAutowarn.CHANNEL_TYPES as any})},
         {name: 'warnings', aliases: ['warns', 'cost'], type: Number},
+        {name: 'exempt-roles', aliases: ['skip-roles'], type: Formatter.Commands.ModerationAutowarn.exemptRolesParser},
+        {name: 'exempt-permissions', aliases: ['skip-permissions'], type: Formatter.Commands.ModerationAutowarn.exemptPermissionsParser},
       ],
       disableDm: true,
       label: 'limit',
@@ -34,9 +38,11 @@ export default class AutowarnMentionsCommand extends BaseCommand {
           `${COMMAND_NAME} 5`,
           `${COMMAND_NAME} 5 -warnings 2`,
           `${COMMAND_NAME} 3 -channel general -warnings 3`,
+          `${COMMAND_NAME} 5 -channel announcements -exempt-roles @Event Hosts`,
+          `${COMMAND_NAME} 5 -exempt-roles none`,
         ],
         id: Formatter.Commands.ModerationAutowarn.COMMAND_ID_MENTIONS,
-        usage: '<limit> (-warnings <count>) (-channel <channel:id|mention|name>)',
+        usage: '<limit> (-warnings <count>) (-channel <channel:id|mention|name>) (-exempt-roles ...<role:id|mention|name>|none) (-exempt-permissions <permission, ...|none>)',
       },
       permissions: [Permissions.MANAGE_GUILD],
       type: Number,
@@ -50,6 +56,8 @@ export default class AutowarnMentionsCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     return Formatter.Commands.ModerationAutowarn.createSetMessage(context, {
       channel: args.channel || null,
+      exemptPermissions: args['exempt-permissions'],
+      exemptRoles: args['exempt-roles'],
       limit: args.limit,
       trigger: GuildWarningAutoTriggers.MENTIONS,
       warnings: args.warnings,

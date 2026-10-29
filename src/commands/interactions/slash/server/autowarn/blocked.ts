@@ -6,11 +6,13 @@ import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
-import { channelOption, warningsOption } from './shared';
+import { channelOption, exemptOptions, warningsOption } from './shared';
 
 
 export interface CommandArgs {
   channel?: Structures.Channel | null,
+  'exempt-permissions'?: bigint,
+  'exempt-roles'?: Array<Structures.Role>,
   warnings?: number,
 }
 
@@ -29,6 +31,7 @@ export class ServerAutowarnBlockedCommand extends BaseInteractionCommandOption {
       options: [
         warningsOption('commands.autowarn.blocked'),
         channelOption('commands.autowarn.blocked'),
+        ...exemptOptions('commands.autowarn.blocked'),
       ],
     });
   }
@@ -36,6 +39,8 @@ export class ServerAutowarnBlockedCommand extends BaseInteractionCommandOption {
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
     return Formatter.Commands.ModerationAutowarn.createSetMessage(context, {
       channel: args.channel || null,
+      exemptPermissions: args['exempt-permissions'],
+      exemptRoles: args['exempt-roles'],
       trigger: GuildWarningAutoTriggers.BLOCKED_COMMAND,
       warnings: args.warnings,
     });

@@ -1,5 +1,5 @@
-import { Collections, Command, Interaction, Structures } from 'detritus-client';
-import { ChannelTypes } from 'detritus-client/lib/constants';
+import { Collections, Command, Interaction, ShardClient, Structures } from 'detritus-client';
+import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildTimedBans, editGuildSettings, putGuildTimedBans, putGuildWarnings } from '../../../api';
@@ -13,11 +13,13 @@ import {
   GuildWarningAutoTriggers,
   MAX_GUILD_WARNING_WEIGHT,
   MAX_GUILD_WARNINGS_AUTO,
+  MAX_GUILD_WARNINGS_AUTO_EXEMPT_ROLES,
   MAX_GUILD_WARNINGS_AUTO_MENTIONS,
+  PermissionsText,
   StatusEmojis,
 } from '../../../constants';
-import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { createTimestampMomentFromGuild, displayDetailsLine, displayReply, formatUserTag } from '../../../utils';
+import { LanguageContext, Translator, getCachedTranslator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
+import { Parameters, createTimestampMomentFromGuild, displayDetailsLine, displayReply, formatUserTag } from '../../../utils';
 
 import { GuildLoggingCustomEvents } from '../loggers';
 
@@ -26,7 +28,9 @@ import { formatCounts, formatWarningAction, getWarningActionPermissions } from '
 
 export const COMMAND_ID = 'server.autowarn.list';
 // the commands changing them, through `createSetMessage`
+export const COMMAND_ID_AUTOMOD = 'server.autowarn.automod';
 export const COMMAND_ID_BLOCKED = 'server.autowarn.blocked';
+export const COMMAND_ID_EXEMPT = 'server.autowarn.exempt';
 export const COMMAND_ID_MENTIONS = 'server.autowarn.mentions';
 export const COMMAND_ID_REMOVE = 'server.autowarn.remove';
 
@@ -41,25 +45,80 @@ const warnedMessages = new Collections.BaseCollection<string, boolean>({expire: 
 
 
 // the rule for `trigger` where this happened: the channel's own, then its parent's (a thread's channel or a channel's
-// category), then its parent's parent, then the server-wide one
+// category), then its parent's parent, then the server-wide one. For AutoMod, the rules for that AutoMod rule or for any
+// of them, the AutoMod rule's own goes first wherever they're both set
 export function resolveGuildWarningAuto(
   settings: GuildSettings,
   trigger: GuildWarningAutoTriggers,
   channel: Structures.Channel | null,
   channelId: string | null,
+  automodRuleId: string | null = null,
 ): RestResponsesRaw.GuildWarningAuto | null {
-  const rules = ((settings.settings) ? settings.settings.warningsAuto : []).filter((rule) => rule.trigger === trigger);
+  const rules = ((settings.settings) ? settings.settings.warningsAuto : []).filter((rule) => {
+    return rule.trigger === trigger && (!rule.automod_rule_id || rule.automod_rule_id === automodRuleId);
+  });
   if (!rules.length) {
     return null;
   }
+  const find = (id: string | null) => {
+    const matching = rules.filter((rule) => (rule.channel_id || null) === id);
+    return matching.find((rule) => !!rule.automod_rule_id) || matching[0] || null;
+  };
   const parent = (channel) ? channel.parent : null;
   for (let id of [channelId, channel && channel.parentId, parent && parent.parentId]) {
-    const rule = (id) ? rules.find((rule) => rule.channel_id === id) : null;
+    const rule = (id) ? find(id) : null;
     if (rule) {
       return rule;
     }
   }
-  return rules.find((rule) => !rule.channel_id) || null;
+  return find(null);
+}
+
+
+// a server's discord AutoMod rules by id -> name, for showing which one a rule is for (empty if they can't be fetched,
+// it needs manage server)
+export async function fetchAutomodRuleNames(
+  context: {guildId?: string | null, rest: ShardClient['rest']},
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  if (!context.guildId) {
+    return names;
+  }
+  try {
+    const rules = await context.rest.fetchGuildAutoModerationRules(context.guildId);
+    for (let [ruleId, rule] of rules) {
+      names.set(ruleId, rule.name);
+    }
+  } catch(error) {
+    // no manage server
+  }
+  return names;
+}
+
+export interface AutomodRuleChoice {
+  id: string,
+  name: string,
+}
+
+// what `-rule` takes: one of the server's AutoMod rules by name or id
+export async function automodRuleParser(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<AutomodRuleChoice | undefined> {
+  const text = value.trim();
+  if (!text) {
+    return undefined;
+  }
+  const names = await fetchAutomodRuleNames(context);
+  if (names.has(text)) {
+    return {id: text, name: names.get(text)!};
+  }
+  for (let [id, name] of names) {
+    if (name.toLowerCase() === text.toLowerCase()) {
+      return {id, name};
+    }
+  }
+  throw new Error(getCachedTranslator(context).translate('moderation_autowarn.unknown_automod_rule', {rule: Markup.codestring(text.slice(0, 100))}));
 }
 
 
@@ -75,9 +134,141 @@ export function countMessageMentions(message: Structures.Message): number {
 }
 
 
-// "More than 5 mentions in a message", "Using a blocked command"
-export function describeGuildWarningAuto(translate: Translator['translate'], rule: RestResponsesRaw.GuildWarningAuto): string {
+// if the member has any of the exemption's roles or any of its permissions (server-wide, not a channel's overwrites)
+export function matchesGuildWarningAutoExempt(
+  member: Structures.Member,
+  exempt: RestResponsesRaw.GuildWarningAutoExempt | null | undefined,
+): boolean {
+  if (!exempt) {
+    return false;
+  }
+  if (exempt.role_ids.some((roleId) => member.roles.has(roleId))) {
+    return true;
+  }
+  const permissions = BigInt(exempt.permissions || '0');
+  return !!permissions && (member.permissions & permissions) !== 0n;
+}
+
+// if auto-warn skips them for this rule, the server's exemption or the rule's own
+export function isGuildWarningAutoExempt(
+  settings: GuildSettings,
+  rule: RestResponsesRaw.GuildWarningAuto,
+  member: Structures.Member,
+): boolean {
+  const serverExempt = (settings.settings) ? settings.settings.warningsAutoExempt : null;
+  return matchesGuildWarningAutoExempt(member, serverExempt) || matchesGuildWarningAutoExempt(member, rule.exempt);
+}
+
+
+// what `-exempt-permissions` takes: english names like `manage messages` or `MANAGE_MESSAGES`, separated by commas
+const PERMISSION_NAMES: Record<string, bigint> = (() => {
+  const names: Record<string, bigint> = {};
+  const normalize = (text: string) => text.toLowerCase().replace(/[^a-z]/g, '');
+  for (let [key, value] of Object.entries(Permissions)) {
+    if (typeof(value) === 'bigint' && value) {
+      names[normalize(key)] = value;
+      const label = PermissionsText[String(value)];
+      if (label) {
+        names[normalize(label)] = value;
+      }
+    }
+  }
+  return names;
+})();
+
+// the values for clearing an exemption's roles or permissions
+export const NONE_VALUES = ['none', 'off', 'clear', 'nobody'];
+
+export function exemptPermissionsParser(value: string, context: Command.Context | Interaction.InteractionContext): bigint | undefined {
+  const text = value.trim();
+  if (!text) {
+    return undefined;
+  }
+  if (NONE_VALUES.includes(text.toLowerCase())) {
+    return 0n;
+  }
+  let permissions = 0n;
+  const unknown: Array<string> = [];
+  for (let part of text.split(/[,\n]+/).map((x) => x.trim()).filter(Boolean)) {
+    const permission = PERMISSION_NAMES[part.toLowerCase().replace(/[^a-z]/g, '')];
+    if (permission) {
+      permissions |= permission;
+    } else {
+      unknown.push(part);
+    }
+  }
+  if (unknown.length) {
+    const { translate } = getCachedTranslator(context);
+    throw new Error(translate('moderation_autowarn.unknown_permissions', {permissions: unknown.map((x) => Markup.codestring(x)).join(', ')}));
+  }
+  return permissions;
+}
+
+// roles by mention, id or name, `none` for no roles
+export function exemptRolesParser(value: string, context: Command.Context | Interaction.InteractionContext): Array<Structures.Role> | undefined {
+  const text = value.trim();
+  if (!text) {
+    return undefined;
+  }
+  if (NONE_VALUES.includes(text.toLowerCase())) {
+    return [];
+  }
+  const roles = Parameters.roles(text, context);
+  if (!roles.length) {
+    throw new Error(getCachedTranslator(context).translate('moderation.items_not_found', {
+      items: getCachedTranslator(context).translate('moderation.types.role').toLowerCase(),
+    }));
+  }
+  return roles;
+}
+
+// an exemption with the given roles/permissions swapped in (undefined keeps what it had), null once it's empty
+export function createGuildWarningAutoExempt(
+  current: RestResponsesRaw.GuildWarningAutoExempt | null | undefined,
+  roles: Array<Structures.Role> | undefined,
+  permissions: bigint | undefined,
+): RestResponsesRaw.GuildWarningAutoExempt | null {
+  const exempt: RestResponsesRaw.GuildWarningAutoExempt = {
+    permissions: (permissions === undefined) ? ((current && current.permissions) || '0') : String(permissions),
+    role_ids: (roles === undefined) ? ((current) ? current.role_ids : []) : Array.from(new Set(roles.map((role) => role.id))),
+  };
+  if (!BigInt(exempt.permissions) && !exempt.role_ids.length) {
+    return null;
+  }
+  return exempt;
+}
+
+// "@Mods @Event Hosts • Manage Messages, Mention Everyone"
+export function formatGuildWarningAutoExempt(translator: Translator, exempt: RestResponsesRaw.GuildWarningAutoExempt): string {
+  const permissions = BigInt(exempt.permissions || '0');
+  const names: Array<string> = [];
+  for (let [key, label] of Object.entries(PermissionsText)) {
+    const bit = BigInt(key);
+    if (bit && (permissions & bit) === bit) {
+      names.push(translator.label('permissions', label));
+    }
+  }
+  return displayDetailsLine([
+    exempt.role_ids.map((roleId) => `<@&${roleId}>`).join(' '),
+    names.join(', '),
+  ]);
+}
+
+
+// "More than 5 mentions in a message", "Using a blocked command", "Setting off the AutoMod rule **Bad Words**"
+export function describeGuildWarningAuto(
+  translate: Translator['translate'],
+  rule: RestResponsesRaw.GuildWarningAuto,
+  automodRuleNames: Map<string, string> = new Map(),
+): string {
   switch (rule.trigger) {
+    case GuildWarningAutoTriggers.AUTOMOD: {
+      if (!rule.automod_rule_id) {
+        return translate('moderation_autowarn.trigger_automod_any');
+      }
+      const name = automodRuleNames.get(rule.automod_rule_id);
+      return translate('moderation_autowarn.trigger_automod', {rule: (name) ? `**${Markup.escape.all(name)}**` : Markup.codestring(rule.automod_rule_id)});
+    };
     case GuildWarningAutoTriggers.BLOCKED_COMMAND: return translate('moderation_autowarn.trigger_blocked_command');
     case GuildWarningAutoTriggers.MENTIONS: return translate('moderation_autowarn.trigger_mentions', {limit: String(rule.limit)});
   }
@@ -93,24 +284,40 @@ export function formatWarningWeight(translator: Translator, weight: number): str
 }
 
 
-// "More than 5 mentions in a message • #general • Counts as 2 warnings"
-export function formatGuildWarningAuto(translator: Translator, rule: RestResponsesRaw.GuildWarningAuto): string {
-  return displayDetailsLine([
-    describeGuildWarningAuto(translator.translate, rule),
+// "More than 5 mentions in a message • #general • Counts as 2 warnings", and who it skips under it
+export function formatGuildWarningAuto(
+  translator: Translator,
+  rule: RestResponsesRaw.GuildWarningAuto,
+  automodRuleNames?: Map<string, string>,
+): string {
+  const line = displayDetailsLine([
+    describeGuildWarningAuto(translator.translate, rule, automodRuleNames),
     (rule.channel_id) ? `<#${rule.channel_id}>` : translator.translate('moderation_autowarn.anywhere'),
     formatWarningWeight(translator, rule.warnings),
   ]);
+  if (!rule.exempt) {
+    return line;
+  }
+  return `${line}\n-# ${translator.translate('moderation_autowarn.skips', {exempt: formatGuildWarningAutoExempt(translator, rule.exempt)})}`;
 }
 
 
-export function formatGuildWarningsAuto(translator: Translator, rules: Array<RestResponsesRaw.GuildWarningAuto>): string {
+export function formatGuildWarningsAuto(
+  translator: Translator,
+  rules: Array<RestResponsesRaw.GuildWarningAuto>,
+  exempt: RestResponsesRaw.GuildWarningAutoExempt | null = null,
+  automodRuleNames?: Map<string, string>,
+): string {
   const { translate } = translator;
+  const exemptLine = (exempt) ? translate('moderation_autowarn.exempt_server', {exempt: formatGuildWarningAutoExempt(translator, exempt)}) : null;
   if (!rules.length) {
-    return translate('moderation_autowarn.none');
+    return [translate('moderation_autowarn.none'), exemptLine && `-# ${exemptLine}`].filter(Boolean).join('\n');
   }
   return [
     translate('moderation_autowarn.rules'),
-    ...rules.map((rule) => `-> ${formatGuildWarningAuto(translator, rule)}`),
+    ...rules.map((rule) => `-> ${formatGuildWarningAuto(translator, rule, automodRuleNames)}`),
+    '',
+    exemptLine || translate('moderation_autowarn.exempt_server_none'),
     `-# ${translate('moderation_autowarn.ladder_note')}`,
   ].join('\n');
 }
@@ -131,14 +338,30 @@ export async function createMessage(
   }
   return displayReply(context, {
     color: EmbedColors.DEFAULT,
-    description: formatGuildWarningsAuto(translator, settings.settings.warningsAuto || []),
+    description: formatGuildWarningsAuto(
+      translator,
+      settings.settings.warningsAuto || [],
+      settings.settings.warningsAutoExempt,
+      await fetchNamesIfNeeded(context, settings.settings.warningsAuto || []),
+    ),
     ephemeral: true,
   });
 }
 
 
+// only asks discord when there's an AutoMod rule to name
+async function fetchNamesIfNeeded(
+  context: Command.Context | Interaction.InteractionContext,
+  rules: Array<RestResponsesRaw.GuildWarningAuto>,
+): Promise<Map<string, string>> {
+  return (rules.some((rule) => !!rule.automod_rule_id)) ? fetchAutomodRuleNames(context) : new Map();
+}
+
+
 // what `autowarn remove` takes for each trigger
 export const TRIGGER_VALUES: Record<string, GuildWarningAutoTriggers> = Object.freeze({
+  'auto-mod': GuildWarningAutoTriggers.AUTOMOD,
+  automod: GuildWarningAutoTriggers.AUTOMOD,
   blocked: GuildWarningAutoTriggers.BLOCKED_COMMAND,
   blocked_command: GuildWarningAutoTriggers.BLOCKED_COMMAND,
   commands: GuildWarningAutoTriggers.BLOCKED_COMMAND,
@@ -163,8 +386,13 @@ export const CHANNEL_TYPES = Object.freeze([
 ]);
 
 export interface SetArgs {
+  // automod: the AutoMod rule, any of them without it
+  automodRule?: AutomodRuleChoice,
   // null: anywhere
   channel: Structures.Channel | null,
+  // who the rule skips (on top of the server's), undefined keeps what an existing rule had and empty clears it
+  exemptPermissions?: bigint,
+  exemptRoles?: Array<Structures.Role>,
   // mentions: the most users and roles a message can mention
   limit?: number,
   // removes the rule instead
@@ -188,8 +416,12 @@ export async function createSetMessage(
     return reply(translate('settings_server_set_warnings.error_fetching'));
   }
   const channelId = (args.channel) ? args.channel.id : null;
+  const automodRuleId = (args.trigger === GuildWarningAutoTriggers.AUTOMOD && args.automodRule) ? args.automodRule.id : null;
+  const isSame = (rule: RestResponsesRaw.GuildWarningAuto) => {
+    return rule.trigger === args.trigger && rule.channel_id === channelId && (rule.automod_rule_id || null) === automodRuleId;
+  };
   const rules = settings.settings.warningsAuto || [];
-  const others = rules.filter((rule) => !(rule.trigger === args.trigger && rule.channel_id === channelId));
+  const others = rules.filter((rule) => !isSame(rule));
 
   let rule: RestResponsesRaw.GuildWarningAuto | null = null;
   if (args.remove) {
@@ -211,19 +443,30 @@ export async function createSetMessage(
     if (MAX_GUILD_WARNINGS_AUTO <= others.length) {
       return reply(translate('moderation_autowarn.max_rules', {max: MAX_GUILD_WARNINGS_AUTO.toLocaleString(language)}));
     }
-    rule = {channel_id: channelId, limit, trigger: args.trigger, warnings};
+    if (args.exemptRoles && MAX_GUILD_WARNINGS_AUTO_EXEMPT_ROLES < args.exemptRoles.length) {
+      return reply(translate('moderation_autowarn.too_many_roles', {max: MAX_GUILD_WARNINGS_AUTO_EXEMPT_ROLES.toLocaleString(language)}));
+    }
+    // changing a rule keeps who it skipped unless that's given too
+    const existing = rules.find(isSame);
+    const exempt = createGuildWarningAutoExempt(existing && existing.exempt, args.exemptRoles, args.exemptPermissions);
+    rule = {automod_rule_id: automodRuleId, channel_id: channelId, exempt, limit, trigger: args.trigger, warnings};
   }
 
   const { settings: updated } = await editGuildSettings(context, context.guildId!, {
     warningsAuto: (rule) ? [...others, rule] : others,
   });
+  const names = await fetchNamesIfNeeded(context, [...(updated.warningsAuto || []), ...rules]);
   const description = [
     translate((rule) ? 'moderation_autowarn.added' : 'moderation_autowarn.removed', {
-      rule: formatGuildWarningAuto(translator, rule || rules.find((x) => x.trigger === args.trigger && x.channel_id === channelId)!),
+      rule: formatGuildWarningAuto(translator, rule || rules.find(isSame)!, names),
     }),
     '',
-    formatGuildWarningsAuto(translator, updated.warningsAuto || []),
+    formatGuildWarningsAuto(translator, updated.warningsAuto || [], updated.warningsAutoExempt, names),
   ];
+  // discord only sends AutoMod's actions to bots with manage server
+  if (rule && rule.trigger === GuildWarningAutoTriggers.AUTOMOD && !(context.me && context.me.can(Permissions.MANAGE_GUILD))) {
+    description.push(`-# ${translate('moderation_autowarn.automod_needs_manage_guild')}`);
+  }
   // blocked commands only come from the server's rules
   if (rule && rule.trigger === GuildWarningAutoTriggers.BLOCKED_COMMAND && !settings.rules.some((x) => !x.allows)) {
     description.push(`-# ${translate('moderation_autowarn.no_block_rules')}`);
@@ -233,13 +476,76 @@ export async function createSetMessage(
 
 
 
+export interface ExemptArgs {
+  // nobody's skipped anymore
+  clear?: boolean,
+  // undefined keeps what it had, empty clears it
+  permissions?: bigint,
+  roles?: Array<Structures.Role>,
+}
+
+// shows who every auto-warn rule skips, or changes it
+export async function createExemptMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  args: ExemptArgs,
+) {
+  const translator = await getTranslator(context);
+  const { language, translate } = translator;
+  const reply = (text: string) => displayReply(context, {description: `${StatusEmojis.WARNING} ${text}`, ephemeral: true});
+
+  const settings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
+  if (!settings) {
+    return reply(translate('settings_server_set_warnings.error_fetching'));
+  }
+  if (!args.clear && args.roles === undefined && args.permissions === undefined) {
+    return displayReply(context, {
+      color: EmbedColors.DEFAULT,
+      description: [
+        (settings.settings.warningsAutoExempt) ? translate('moderation_autowarn.exempt_server', {
+          exempt: formatGuildWarningAutoExempt(translator, settings.settings.warningsAutoExempt),
+        }) : translate('moderation_autowarn.exempt_server_none'),
+        `-# ${translate('moderation_autowarn.exempt_note')}`,
+      ].join('\n'),
+      ephemeral: true,
+    });
+  }
+  if (args.roles && MAX_GUILD_WARNINGS_AUTO_EXEMPT_ROLES < args.roles.length) {
+    return reply(translate('moderation_autowarn.too_many_roles', {max: MAX_GUILD_WARNINGS_AUTO_EXEMPT_ROLES.toLocaleString(language)}));
+  }
+
+  const exempt = (args.clear) ? null : createGuildWarningAutoExempt(settings.settings.warningsAutoExempt, args.roles, args.permissions);
+  const { settings: updated } = await editGuildSettings(context, context.guildId!, {warningsAutoExempt: exempt});
+  return displayReply(context, {
+    color: EmbedColors.DEFAULT,
+    description: [
+      translate('moderation_autowarn.exempt_updated'),
+      '',
+      formatGuildWarningsAuto(translator, updated.warningsAuto || [], updated.warningsAutoExempt, await fetchNamesIfNeeded(context, updated.warningsAuto || [])),
+    ].join('\n'),
+    ephemeral: true,
+  });
+}
+
+
+// what auto-warn needs from where it happened, a command's context or (for AutoMod) the event's shard and guild
+export interface AutoWarnContext {
+  client: ShardClient,
+  guild: Structures.Guild | null,
+  guildId?: string,
+  me: Structures.Member | null,
+  rest: ShardClient['rest'],
+}
+
 export interface AutoWarnOptions {
+  // on top of the trigger, what the cooldown's for (the AutoMod rule, so different ones each warn)
+  cooldownKey?: string,
   member: Structures.Member,
   // the message that set it off, so an edit to it doesn't warn them again
   messageId?: string,
   // what they did, in the server's language (it's the warning's reason)
   reason: string,
   rule: RestResponsesRaw.GuildWarningAuto,
+  settings: GuildSettings,
 }
 
 export interface AutoWarnResult {
@@ -253,21 +559,23 @@ export interface AutoWarnResult {
 /**
  * Warns the member for setting off `rule`, with the bot as the moderator: the warning (counting as the rule's
  * `warnings`), the moderation log, a dm like `warn`'s, then the ladder step it reached if the bot can do it. Null if
- * they weren't warned (on cooldown, an edit of a message they were already warned for, at the most warnings a member
- * can have, or the api failing). The caller tells them where it happened.
+ * they weren't warned (exempt, on cooldown, an edit of a message they were already warned for, at the most warnings a
+ * member can have, or the api failing). The caller tells them where it happened.
  */
 export async function runAutoWarn(
-  context: Command.Context | Interaction.InteractionContext,
+  context: AutoWarnContext,
   options: AutoWarnOptions,
 ): Promise<AutoWarnResult | null> {
+  // the translators only read the client, guild and guild id
+  const languageContext = context as unknown as LanguageContext;
   const { member, rule } = options;
   const guild = context.guild;
   const moderator = context.client.user;
-  if (!guild || !moderator || member.bot) {
+  if (!guild || !moderator || member.bot || isGuildWarningAutoExempt(options.settings, rule, member)) {
     return null;
   }
 
-  const key = `${guild.id}.${member.id}.${rule.trigger}`;
+  const key = `${guild.id}.${member.id}.${rule.trigger}.${options.cooldownKey || ''}`;
   if (cooldowns.has(key) || (options.messageId && warnedMessages.has(options.messageId))) {
     return null;
   }
@@ -302,10 +610,10 @@ export async function runAutoWarn(
     payload: {counts, moderator, user: member.user, warning},
   });
 
-  const audit = await getGuildTranslator(context);
+  const audit = await getGuildTranslator(languageContext);
   // before the step, a kick or ban would stop them getting it
   try {
-    const dm = await getTranslatorForUser(context, member.id);
+    const dm = await getTranslatorForUser(languageContext, member.id);
     const details = [
       dm.translate('moderation_mute.moderator', {user: formatUserTag(moderator), user2: moderator.id}),
       dm.translate('moderation_mute.date', {timestamp: createTimestampMomentFromGuild(Date.now(), guild.id).format(DateMomentLogFormat)}),
@@ -335,7 +643,7 @@ export async function runAutoWarn(
 
 // a ladder step done by the bot itself, skipped (false) when it can't
 async function runWarningStep(
-  context: Command.Context | Interaction.InteractionContext,
+  context: AutoWarnContext,
   member: Structures.Member,
   step: RestResponsesRaw.GuildWarningAction,
   audit: Translator,
@@ -411,16 +719,21 @@ export function formatAutoWarnNotice(
 }
 
 
-// the reason a rule's warning gets, in a given language
+// the reason a rule's warning gets, in a given language, or worded to them for a notice only they see
 export function createAutoWarnReason(
   translator: Translator,
   rule: RestResponsesRaw.GuildWarningAuto,
-  details: {command?: string, mentions?: number},
+  details: {automodRule?: string, command?: string, mentions?: number},
+  toThem: boolean = false,
 ): string {
   const { language, translate } = translator;
   switch (rule.trigger) {
+    case GuildWarningAutoTriggers.AUTOMOD: {
+      return translate('moderation_autowarn.reason_automod', {rule: details.automodRule || '?'});
+    };
     case GuildWarningAutoTriggers.BLOCKED_COMMAND: {
-      return translate('moderation_autowarn.reason_blocked_command', {command: details.command || '?'});
+      const key = (toThem) ? 'moderation_autowarn.reason_blocked_command_you' : 'moderation_autowarn.reason_blocked_command';
+      return translate(key, {command: details.command || '?'});
     };
     case GuildWarningAutoTriggers.MENTIONS: {
       return translate('moderation_autowarn.reason_mentions', {

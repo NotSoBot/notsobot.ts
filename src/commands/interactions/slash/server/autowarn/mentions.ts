@@ -6,11 +6,13 @@ import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
-import { channelOption, warningsOption } from './shared';
+import { channelOption, exemptOptions, warningsOption } from './shared';
 
 
 export interface CommandArgs {
   channel?: Structures.Channel | null,
+  'exempt-permissions'?: bigint,
+  'exempt-roles'?: Array<Structures.Role>,
   limit: number,
   warnings?: number,
 }
@@ -39,6 +41,7 @@ export class ServerAutowarnMentionsCommand extends BaseInteractionCommandOption 
         },
         warningsOption('commands.autowarn.mentions'),
         channelOption('commands.autowarn.mentions'),
+        ...exemptOptions('commands.autowarn.mentions'),
       ],
     });
   }
@@ -46,6 +49,8 @@ export class ServerAutowarnMentionsCommand extends BaseInteractionCommandOption 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
     return Formatter.Commands.ModerationAutowarn.createSetMessage(context, {
       channel: args.channel || null,
+      exemptPermissions: args['exempt-permissions'],
+      exemptRoles: args['exempt-roles'],
       limit: args.limit,
       trigger: GuildWarningAutoTriggers.MENTIONS,
       warnings: args.warnings,

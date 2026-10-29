@@ -13,8 +13,6 @@ export const Api = Object.freeze({
   URL_PUBLIC: Domains.STABLE,
   PATH: '/api',
 
-  CHANNEL:
-    '/channels/:channelId',
 
   COMMANDS:
     '/commands',
@@ -51,6 +49,8 @@ export const Api = Object.freeze({
     '/guilds/:guildId/prefixes/delete',
   GUILD_RULES:
     '/guilds/:guildId/rules',
+  GUILD_SWEEP:
+    '/guilds/:guildId/sweep',
   GUILD_RULES_DELETE:
     '/guilds/:guildId/rules/delete',
   GUILD_RULE:

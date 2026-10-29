@@ -1,12 +1,12 @@
 import { ClusterClient } from 'detritus-client';
-import { ClientEvents } from 'detritus-client/lib/constants';
+import { ClientEvents, DiscordAbortCodes } from 'detritus-client/lib/constants';
 import { BaseCollection, EventSubscription, Timers } from 'detritus-utils';
 
 import { Store } from './store';
 
-import { RequestContext, fetchGuildSettings, putGuildSettings } from '../api';
+import { RequestContext, fetchGuildSettings, putGuildSettings, sweepGuild } from '../api';
 import { GuildSettings } from '../api/structures/guildsettings';
-import { RedisChannels } from '../constants';
+import { GuildRuleTargetTypes, RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 
@@ -17,6 +17,10 @@ export const FETCH_TIMEOUT = 5 * 1000;
 export const FAILED_FETCH_RETRY_AFTER = 30 * 1000;
 // how long the last copy of a server's settings is kept around after it expires, for when fetching it fails
 export const LAST_KNOWN_EXPIRE = 12 * 60 * 60 * 1000;
+// a server's settings are checked for deleted channels/roles at most this often (when they load)
+export const PRUNE_INTERVAL = 2 * 60 * 60 * 1000;
+// the api's limit of channels for one sweep (roles can be 250, so this many of each goes together)
+export const MAX_SWEEP_CHANNELS_PER_REQUEST = 100;
 
 
 // Stores Guild Settings
@@ -26,6 +30,8 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   // the last settings we had for each server, used when a fetch fails. the same objects as the cache while they're in
   // it, so it only costs anything for servers that expired out of it
   lastKnown = new BaseCollection<string, GuildSettings>({expire: LAST_KNOWN_EXPIRE});
+  // guild id -> when its settings were last checked for deleted channels/roles
+  pruned = new BaseCollection<string, number>({expire: PRUNE_INTERVAL});
 
   constructor() {
     // 2 hours
@@ -98,6 +104,10 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
           }
           this.insert(settings);
           resolve(settings);
+          // in the background, the command doesn't wait on it
+          this.prune(context, settings).catch((error) => {
+            console.error(`Pruning settings failed for ${guildId}`, error);
+          });
         } catch(error) {
           resolve(onFailed());
         }
@@ -109,6 +119,74 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       GuildSettingsPromisesStore.set(guildId, {promise, timeout});
     }
     return promise;
+  }
+
+  /**
+   * Sends the api the channels and roles the server's settings point at that it doesn't have anymore (deleted while we
+   * weren't around to see it), the api removes everything kept for them (`POST /guilds/:guildId/sweep`). Channels: the
+   * ones its rules, loggers and auto-warn rules are for. Roles: the ones its rules are for, in the auto-warn exemptions,
+   * and the music dj role. Roles come whole with the guild, so a missing one is gone. Channels aren't all cached
+   * (archived threads), so discord is asked about each missing one first. Skipped unless the server's fully loaded, a
+   * partial cache would look like everything was deleted. The settings come back through `GUILD_SETTINGS_UPDATE`.
+   */
+  async prune(context: RequestContext, settings: GuildSettings): Promise<void> {
+    const guildId = settings.id;
+    const guild = context.client.guilds.get(guildId);
+    if (!guild || guild.unavailable || !guild.channels.size || !guild.roles.size || this.pruned.has(guildId)) {
+      return;
+    }
+    this.pruned.set(guildId, Date.now());
+
+    const child = settings.settings;
+    const autoRules = (child) ? child.warningsAuto || [] : [];
+    const channelIds = new Set<string>();
+    const roleIds = new Set<string>();
+    for (let rule of settings.rules.toArray()) {
+      switch (rule.targetType) {
+        case GuildRuleTargetTypes.CHANNEL: channelIds.add(rule.targetId); break;
+        case GuildRuleTargetTypes.ROLE: roleIds.add(rule.targetId); break;
+      }
+    }
+    for (let logger of settings.loggers.toArray()) {
+      channelIds.add(logger.channelId);
+    }
+    for (let rule of autoRules) {
+      if (rule.channel_id) {
+        channelIds.add(rule.channel_id);
+      }
+      for (let roleId of (rule.exempt) ? rule.exempt.role_ids : []) {
+        roleIds.add(roleId);
+      }
+    }
+    for (let roleId of (child && child.warningsAutoExempt) ? child.warningsAutoExempt.role_ids : []) {
+      roleIds.add(roleId);
+    }
+    if (child && child.musicDjRoleId) {
+      roleIds.add(child.musicDjRoleId);
+    }
+
+    const deletedRoleIds = Array.from(roleIds).filter((roleId) => !guild.roles.has(roleId));
+    // ids not cached are checked once each, anything but unknown channel (no access, rate limits) keeps it
+    const deletedChannelIds: Array<string> = [];
+    for (let channelId of channelIds) {
+      if (guild.channels.has(channelId) || context.client.channels.has(channelId)) {
+        continue;
+      }
+      try {
+        await context.client.rest.fetchChannel(channelId);
+      } catch(error) {
+        if (error && error.code === DiscordAbortCodes.UNKNOWN_CHANNEL) {
+          deletedChannelIds.push(channelId);
+        }
+      }
+    }
+
+    for (let i = 0; i < Math.max(deletedChannelIds.length, deletedRoleIds.length); i += MAX_SWEEP_CHANNELS_PER_REQUEST) {
+      await sweepGuild(context, guildId, {
+        channelIds: deletedChannelIds.slice(i, i + MAX_SWEEP_CHANNELS_PER_REQUEST),
+        roleIds: deletedRoleIds.slice(i, i + MAX_SWEEP_CHANNELS_PER_REQUEST),
+      });
+    }
   }
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {

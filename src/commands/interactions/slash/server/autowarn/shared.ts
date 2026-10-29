@@ -14,6 +14,35 @@ export function channelOption(key: string) {
   };
 }
 
+// one of the server's discord AutoMod rules, any of them without it
+export function automodRuleOption(key: string) {
+  return {
+    name: 'rule',
+    description: 'Only this AutoMod rule (Default: any of them)',
+    ...I18n.optionLocalizations(`${key}.rule`),
+    onAutoComplete: Parameters.AutoComplete.guildAutomodRules,
+    value: Formatter.Commands.ModerationAutowarn.automodRuleParser,
+  };
+}
+
+// who the rule skips on top of the server's exemption
+export function exemptOptions(key: string) {
+  return [
+    {
+      name: 'exempt-roles',
+      description: 'Skip members with any of these roles (Mentions or IDs, or none to clear)',
+      ...I18n.optionLocalizations(`${key}.exempt_roles`),
+      value: Formatter.Commands.ModerationAutowarn.exemptRolesParser,
+    },
+    {
+      name: 'exempt-permissions',
+      description: 'Skip members with any of these permissions, like Manage Messages (or none to clear)',
+      ...I18n.optionLocalizations(`${key}.exempt_permissions`),
+      value: Formatter.Commands.ModerationAutowarn.exemptPermissionsParser,
+    },
+  ];
+}
+
 export function warningsOption(key: string) {
   return {
     name: 'warnings',

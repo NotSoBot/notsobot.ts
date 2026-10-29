@@ -216,10 +216,10 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     }
     const command = `/${context.invoker.fullName}`;
     const audit = await I18n.getGuildTranslator(context);
-    const result = await AutoWarn.runAutoWarn(context, {member, reason: AutoWarn.createAutoWarnReason(audit, rule, {command}), rule});
+    const result = await AutoWarn.runAutoWarn(context, {member, reason: AutoWarn.createAutoWarnReason(audit, rule, {command}), rule, settings});
     if (result) {
       const translator = await I18n.getTranslator(context);
-      const reason = AutoWarn.createAutoWarnReason(translator, rule, {command});
+      const reason = AutoWarn.createAutoWarnReason(translator, rule, {command}, true);
       await context.createMessage({
         allowedMentions: {parse: []},
         content: AutoWarn.formatAutoWarnNotice(translator, member, rule, result, reason, true),

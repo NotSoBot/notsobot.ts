@@ -2,7 +2,7 @@ import { ClusterClient, ShardClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription, Timers } from 'detritus-utils';
 
-import { deleteChannel } from '../api';
+import { sweepGuild } from '../api';
 import { ApiEventsSpewer } from '../apievents';
 
 import { Listener } from './listener';
@@ -17,9 +17,10 @@ class ChannelDeleteListener extends Listener {
         const { channel, shard } = event;
         const { guildId } = channel;
 
+        // everything the server kept for it goes, same as the settings sweep
         if (guildId) {
           try {
-            await deleteChannel({client: shard}, channel.id, {guildId});
+            await sweepGuild({client: shard}, guildId, {channelIds: [channel.id]});
           } catch(e) {
 
           }

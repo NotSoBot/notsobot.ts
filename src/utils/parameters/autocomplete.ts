@@ -335,6 +335,25 @@ export async function guildRuleCoverage(context: Interaction.InteractionAutoComp
 
 
 
+// the server's discord AutoMod rules by name, the value is the rule's id (needs manage server, nothing without it)
+export async function guildAutomodRules(context: Interaction.InteractionAutoCompleteContext) {
+  const value = (context.value || '').trim().toLowerCase();
+  const choices: Array<{name: string, value: string}> = [];
+  if (context.guildId) {
+    try {
+      const rules = await context.rest.fetchGuildAutoModerationRules(context.guildId);
+      for (let [ruleId, rule] of rules) {
+        if (!value || rule.name.toLowerCase().includes(value) || ruleId.startsWith(value)) {
+          choices.push({name: rule.name.slice(0, 100), value: ruleId});
+        }
+      }
+    } catch(error) {
+      // no manage server
+    }
+  }
+  return context.respond({choices: choices.slice(0, 25)});
+}
+
 interface StoredReminder {
   content?: string,
   guild_id: null | string,

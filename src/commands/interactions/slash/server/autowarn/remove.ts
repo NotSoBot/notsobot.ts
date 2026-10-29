@@ -6,11 +6,12 @@ import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
-import { channelOption } from './shared';
+import { automodRuleOption, channelOption } from './shared';
 
 
 export interface CommandArgs {
   channel?: Structures.Channel | null,
+  rule?: Formatter.Commands.ModerationAutowarn.AutomodRuleChoice,
   trigger: GuildWarningAutoTriggers,
 }
 
@@ -34,16 +35,19 @@ export class ServerAutowarnRemoveCommand extends BaseInteractionCommandOption {
           choices: [
             Parameters.Slash.createChoice('Mentions', GuildWarningAutoTriggers.MENTIONS, {localizationKey: 'moderation_autowarn.choice_mentions'}),
             Parameters.Slash.createChoice('Blocked Commands', GuildWarningAutoTriggers.BLOCKED_COMMAND, {localizationKey: 'moderation_autowarn.choice_blocked_command'}),
+            Parameters.Slash.createChoice('AutoMod', GuildWarningAutoTriggers.AUTOMOD, {localizationKey: 'moderation_autowarn.choice_automod'}),
           ],
           required: true,
         },
         channelOption('commands.autowarn.remove'),
+        automodRuleOption('commands.autowarn.remove'),
       ],
     });
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
     return Formatter.Commands.ModerationAutowarn.createSetMessage(context, {
+      automodRule: args.rule,
       channel: args.channel || null,
       remove: true,
       trigger: args.trigger,

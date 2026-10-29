@@ -107,13 +107,15 @@ export namespace RestOptions {
   }
 
 
-  export interface DeleteChannel {
-    guildId: string,
-  }
-
   export interface DeleteCommandsResponses {
     channelId?: string,
     triggerIds: Array<string>,
+  }
+
+  // channels and roles the server doesn't have anymore
+  export interface SweepGuild {
+    channelIds?: Array<string>,
+    roleIds?: Array<string>,
   }
 
   export interface DeleteGuildLogger {
@@ -173,6 +175,8 @@ export namespace RestOptions {
     warningsActions?: Array<RestResponsesRaw.GuildWarningAction> | null,
     // replaces every auto-warn rule, empty or null turns them off
     warningsAuto?: Array<RestResponsesRaw.GuildWarningAuto> | null,
+    // who every auto-warn rule skips, null: nobody
+    warningsAutoExempt?: RestResponsesRaw.GuildWarningAutoExempt | null,
     // seconds, null: warnings never expire
     warningsExpire?: number | null,
     // seconds, null resets it to 30 days
@@ -2051,7 +2055,6 @@ export namespace RestResponses {
   export type CreateGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type CreateGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
-  export type DeleteChannel = null;
   export type DeleteCommandsResponses = RestResponsesRaw.DeleteCommandsResponses;
   export type DeleteGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
@@ -2267,7 +2270,7 @@ export namespace RestResponsesRaw {
 
   export type CreateVoiceClone = Voice;
 
-  export type DeleteChannel = null;
+  export type SweepGuild = null;
   export interface DeleteCommandsResponses {
     deleted: number,
   }
@@ -2601,12 +2604,22 @@ export namespace RestResponsesRaw {
   // an auto-warn rule, the bot warns members itself when they set it off in `channel_id` (null: anywhere, a channel
   // covers its threads and a category its channels)
   export interface GuildWarningAuto {
+    // automod: the discord AutoMod rule, null for any of them (and for the other triggers)
+    automod_rule_id?: string | null,
     channel_id: string | null,
+    // who this rule skips, on top of the server's
+    exempt?: GuildWarningAutoExempt | null,
     // mentions: the most users and roles one message can mention, null for the others
     limit: number | null,
     trigger: GuildWarningAutoTriggers,
     // how many warnings it counts as
     warnings: number,
+  }
+
+  // who auto-warn skips: a member with any of the roles, or any of the permissions (a bitfield as a string)
+  export interface GuildWarningAutoExempt {
+    permissions: string,
+    role_ids: Array<string>,
   }
 
   export interface PutGuildWarnings {
@@ -2943,6 +2956,7 @@ export namespace RestResponsesRaw {
       search_provider_web: number | null,
       warnings_actions: Array<GuildWarningAction>,
       warnings_auto: Array<GuildWarningAuto>,
+      warnings_auto_exempt: GuildWarningAutoExempt | null,
       warnings_expire: number | null,
       warnings_window: number,
     },
