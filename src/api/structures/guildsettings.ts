@@ -364,6 +364,7 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.SEARCH_PROVIDER_IMAGES,
   NotSoApiKeys.SEARCH_PROVIDER_WEB,
   NotSoApiKeys.WARNINGS_ACTIONS,
+  NotSoApiKeys.WARNINGS_AUTO,
   NotSoApiKeys.WARNINGS_EXPIRE,
   NotSoApiKeys.WARNINGS_WINDOW,
 ]);
@@ -385,6 +386,8 @@ export class GuildSettingsChild extends BaseStructure {
   searchProviderWeb: UserSettingsSearchProviders | null = null;
   // the warning ladder, sorted by threshold, empty: off
   warningsActions: Array<RestResponsesRaw.GuildWarningAction> = [];
+  // the auto-warn rules, by trigger with the anywhere ones first, empty: off
+  warningsAuto: Array<RestResponsesRaw.GuildWarningAuto> = [];
   // seconds until a warning gets deleted, null: never
   warningsExpire: null | number = null;
   // seconds a warning counts towards a member's active warnings

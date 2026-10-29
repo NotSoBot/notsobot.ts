@@ -213,10 +213,10 @@ export function musicStayNote(translate: Translator['translate']): string {
 }
 
 // `music queue`/`music info` (and the controls) with nothing on: 24/7 keeping us in voice says where we are and how to
-// let us leave, otherwise nothing's playing
+// let us leave, otherwise nothing's playing (idle without 24/7 too, we leave soon)
 export function musicNothingPlayingText(translate: Translator['translate'], guildId: null | string | undefined): string {
   const guild = (guildId) ? VoiceNode.guilds.get(guildId) : undefined;
-  if (guild && guild.idle && guild.channelId) {
+  if (guild && guild.idle && !guild.idleTimeout && guild.channelId) {
     return displayDetails([
       translate('music_stay.idle', {channel: `<#${guild.channelId}>`}),
       `-# ${translate('music_stay.off_hint')}`,

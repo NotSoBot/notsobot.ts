@@ -1029,6 +1029,18 @@ export function findUrlsInMessages(
 
 /** Member Chunking */
 
+// loads every member of a guild we don't have all of yet (`guild.isReady`), the same options everywhere so concurrent
+// calls for a guild share one request
+export async function requestAllGuildMembers(guild: Structures.Guild): Promise<void> {
+  await guild.requestMembers({
+    limit: 0,
+    presences: true,
+    query: '',
+    timeout: 10000,
+  });
+}
+
+
 export async function findMemberByChunk(
   context: Command.Context | Interaction.InteractionContext,
   username: string,
@@ -1047,12 +1059,7 @@ export async function findMemberByChunk(
 
   const guild = context.guild;
   if (guild && !guild.isReady) {
-    await guild.requestMembers({
-      limit: 0,
-      presences: true,
-      query: '',
-      timeout: 10000,
-    });
+    await requestAllGuildMembers(guild);
   }
 
   const { channel } = context;
@@ -1180,12 +1187,7 @@ export async function findMembersByChunk(
   const guild = context.guild;
   if (guild) {
     if (!guild.isReady) {
-      await guild.requestMembers({
-        limit: 0,
-        presences: true,
-        query: '',
-        timeout: 10000,
-      });
+      await requestAllGuildMembers(guild);
     }
     // find via guild cache
     const found = findMembersByUsername(guild.members, username, discriminator);

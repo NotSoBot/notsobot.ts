@@ -18,6 +18,7 @@ import UserSettingsStore from './stores/usersettings';
 import {
   GuildFeatures,
   GuildRuleActions,
+  GuildWarningAutoTriggers,
   UserFlags,
 } from './constants';
 import {
@@ -134,6 +135,8 @@ export class NotSoCommandClient extends CommandClient {
       if (match && !match.rule.allows) {
         // only rules with a message tell the user anything, see `onCommandCancel`
         contextMetadata.blockedMessage = match.rule.value.message;
+        // for the server's auto-warn on blocked commands
+        contextMetadata.blockedByRule = true;
         return false;
       }
       return true;
@@ -289,6 +292,9 @@ export class NotSoCommandClient extends CommandClient {
     if (!context.metadata || !command.name) {
       return;
     }
+    if (context.metadata.blockedByRule) {
+      this.autoWarnBlockedCommand(context, command.name).catch(() => null);
+    }
     if (context.metadata.blockedMessage) {
       const key = `${context.channelId}.${context.userId}`;
       if (blockedMessageReplies.has(key) || !context.canReply) {
@@ -328,12 +334,63 @@ export class NotSoCommandClient extends CommandClient {
       return false;
     }
 
-    // do automod checks
-    if (context.guildId) {
-
+    // automod, in the background so commands in the message don't wait on it
+    if (context.guildId && context.member) {
+      this.autoWarnMentions(context).catch(() => null);
     }
 
     return true;
+  }
+
+  // the server's auto-warn for mentioning too many users and roles in one message (or an edit adding them)
+  async autoWarnMentions(context: Command.Context): Promise<void> {
+    const AutoWarn = Formatter.Commands.ModerationAutowarn;
+    const member = context.member!;
+    const mentions = AutoWarn.countMessageMentions(context.message);
+    // the owner and admins don't get warned for pinging people
+    if (!mentions || member.isOwner || member.canAdministrator) {
+      return;
+    }
+    const settings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
+    if (!settings) {
+      return;
+    }
+    const rule = AutoWarn.resolveGuildWarningAuto(settings, GuildWarningAutoTriggers.MENTIONS, context.channel || null, context.channelId);
+    if (!rule || mentions <= rule.limit!) {
+      return;
+    }
+    const audit = await I18n.getGuildTranslator(context);
+    const reason = AutoWarn.createAutoWarnReason(audit, rule, {mentions});
+    const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule});
+    if (result && context.canReply) {
+      await context.reply({
+        allowedMentions: {parse: [], users: [member.id]},
+        content: AutoWarn.formatAutoWarnNotice(audit, member, rule, result, reason),
+      });
+    }
+  }
+
+  // the server's auto-warn for running a command its rules block for them, told in the channel (the dm might not get there)
+  async autoWarnBlockedCommand(context: Command.Context, commandName: string): Promise<void> {
+    const AutoWarn = Formatter.Commands.ModerationAutowarn;
+    const member = context.member;
+    const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
+    if (!member || !settings) {
+      return;
+    }
+    const rule = AutoWarn.resolveGuildWarningAuto(settings, GuildWarningAutoTriggers.BLOCKED_COMMAND, context.channel || null, context.channelId);
+    if (!rule) {
+      return;
+    }
+    const audit = await I18n.getGuildTranslator(context);
+    const reason = AutoWarn.createAutoWarnReason(audit, rule, {command: commandName});
+    const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule});
+    if (result && context.canReply) {
+      await context.reply({
+        allowedMentions: {parse: [], users: [member.id]},
+        content: AutoWarn.formatAutoWarnNotice(audit, member, rule, result, reason),
+      });
+    }
   }
 
   async onPrefixCheck(context: Command.Context) {

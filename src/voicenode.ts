@@ -45,6 +45,8 @@ const REJOIN_RETRY_WINDOW = 2 * 60 * 1000;
 const REJOIN_MAX_TRIES = 3;
 // with 24/7's `pause_alone`, how long nobody else has to be in the channel before it pauses (a connection blipping)
 const ALONE_PAUSE_DELAY = 5 * 1000;
+// without 24/7, how long we stay in the channel after the queue runs out (a play in the meantime carries on) before leaving
+const IDLE_LEAVE_DELAY = 2 * 60 * 1000;
 // after starting, how long a music session from the api waits for its server to load before it's given up on, and
 // how often the waiting ones are looked at
 const RECOVER_WAIT = 60 * 1000;
@@ -121,8 +123,11 @@ interface GuildVoice {
   // failover and the owner refresh keep them, they go when we leave
   effects?: Array<string>,
   endpoint?: string,
-  // 24/7: nothing's playing (the queue ran out), we stay in the channel and the next play starts the node's queue again
+  // nothing's playing (the queue ran out), we stay in the channel and the next play starts the node's queue again. For
+  // good with 24/7, otherwise until `idleTimeout`
   idle?: boolean,
+  // not 24/7: we leave when this runs out, unless something plays (or 24/7 got turned on) in the meantime
+  idleTimeout?: ReturnType<typeof setTimeout> | null,
   joinTimeout: ReturnType<typeof setTimeout> | null,
   // when it last moved, the new node's track start is the same track carrying on (not a new one at 0)
   movedAt?: number,
@@ -164,7 +169,7 @@ interface GuildVoice {
 export interface VoiceNodeHandover {
   // every old websocket closed, a node only resumes a session that has no websocket
   closed: Promise<void>,
-  guilds: Array<{guild: GuildVoice, guildId: string, joining: boolean, nodeId: string, rejoinPending: boolean}>,
+  guilds: Array<{guild: GuildVoice, guildId: string, idleLeaving?: boolean, joining: boolean, nodeId: string, rejoinPending: boolean}>,
   nodes: Array<{
     disconnectedAt: null | number,
     failedAt: null | number,
@@ -751,6 +756,7 @@ export class VoiceNodeClient extends EventSpewer {
           guild.idle = true;
           guild.paused = false;
           guild.position = {at: Date.now(), value: 0};
+          this.idleUnlessStaying(guildId, guild).catch((error) => console.warn(`voice node idle ${guildId}`, error));
         }
       }
     }
@@ -914,30 +920,31 @@ export class VoiceNodeClient extends EventSpewer {
     return !!guild && !guild.startQueue && !guild.disconnected && !guild.idle;
   }
 
-  // 24/7 got turned off: an idle guild leaves now, a playing one when its queue runs out
+  // 24/7 got turned off: an idle guild leaves after `IDLE_LEAVE_DELAY`, a playing one that long after its queue runs out
   unstay(guildId: string) {
     const guild = this.guilds.get(guildId);
-    if (guild && guild.idle) {
-      this.leave(guildId);
+    if (guild && guild.idle && !guild.idleTimeout) {
+      this.leaveWhenIdle(guildId, guild);
     }
   }
 
-  // an idle guild (24/7) plays its queue again
+  // an idle guild (24/7, or waiting to leave) plays its queue again
   private async startIdle(guildId: string, guild: GuildVoice) {
+    this.clearIdleTimeout(guild);
     guild.idle = false;
     guild.paused = false;
     guild.position = {at: Date.now(), value: 0};
     await guild.node.updatePlayer(guildId, {paused: false, queue: true});
   }
 
-  // the queue ran out: 24/7 servers keep us in the channel (idle until the next play), the rest we leave. The api says
-  // which, from the server's setting and premium
+  // the queue ran out: we stay in the channel idle until the next play, for good on 24/7 servers and for
+  // `IDLE_LEAVE_DELAY` on the rest. The api says which, from the server's setting and premium
   private async queueEnded(guildId: string, guild: GuildVoice) {
     const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
     if (this.guilds.get(guildId) !== guild) {
       return;
     }
-    if (!music || !music.premium || !music.stay || guild.disconnected) {
+    if (!music || guild.disconnected) {
       return this.leave(guildId);
     }
     guild.idle = true;
@@ -946,6 +953,46 @@ export class VoiceNodeClient extends EventSpewer {
     // nothing comes next (a skip of the last track waits for this)
     this.resolveNextTrack(guildId, 'left');
     this.editSession(guildId, guild, {paused: false, position: 0});
+    if (!music.premium || !music.stay) {
+      this.leaveWhenIdle(guildId, guild);
+    }
+  }
+
+  // idle without knowing the server's 24/7 (rejoined after a restart): the api says whether we wait to leave
+  private async idleUnlessStaying(guildId: string, guild: GuildVoice) {
+    const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
+    if (this.guilds.get(guildId) === guild && guild.idle && !guild.idleTimeout && (!music || !music.premium || !music.stay)) {
+      this.leaveWhenIdle(guildId, guild);
+    }
+  }
+
+  private leaveWhenIdle(guildId: string, guild: GuildVoice) {
+    this.clearIdleTimeout(guild);
+    guild.idleTimeout = setTimeout(() => {
+      guild.idleTimeout = null;
+      this.idleTimedOut(guildId, guild).catch((error) => {
+        console.warn(`voice node idle leave ${guildId}`, error);
+        this.leave(guildId);
+      });
+    }, IDLE_LEAVE_DELAY);
+  }
+
+  // still idle after `IDLE_LEAVE_DELAY`: we leave, unless 24/7 got turned on in the meantime
+  private async idleTimedOut(guildId: string, guild: GuildVoice) {
+    const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
+    if (this.guilds.get(guildId) !== guild || !guild.idle || guild.idleTimeout) {
+      return;
+    }
+    if (!music || !music.premium || !music.stay) {
+      this.leave(guildId);
+    }
+  }
+
+  private clearIdleTimeout(guild: GuildVoice) {
+    if (guild.idleTimeout) {
+      clearTimeout(guild.idleTimeout);
+      guild.idleTimeout = null;
+    }
   }
 
   isDisconnected(guildId: string): boolean {
@@ -1325,7 +1372,7 @@ export class VoiceNodeClient extends EventSpewer {
     }
     this.guilds.delete(guildId);
     this.resolveNextTrack(guildId, 'left');
-    for (const timeout of [guild.aloneTimeout, guild.joinTimeout]) {
+    for (const timeout of [guild.aloneTimeout, guild.idleTimeout, guild.joinTimeout]) {
       if (timeout) {
         clearTimeout(timeout);
       }
@@ -1518,6 +1565,7 @@ export class VoiceNodeClient extends EventSpewer {
       case 'TRACK_START': {
         // a track playing isn't idle, even if it was restored as idle between two tracks
         guild.idle = false;
+        this.clearIdleTimeout(guild);
         if (!guild.movedAt || PLAYER_UPDATE_INTERVAL * 2 < Date.now() - guild.movedAt) {
           guild.position = {at: Date.now(), value: 0};
         }
@@ -1696,10 +1744,14 @@ export class VoiceNodeClient extends EventSpewer {
       this.recoveryInterval = null;
     }
     const guilds = Array.from(this.guilds).map(([guildId, guild]) => {
-      const { aloneTimeout, joinTimeout, rejoinTimeout } = guild;
+      const { aloneTimeout, idleTimeout, joinTimeout, rejoinTimeout } = guild;
       // a pending pause is checked again by the new instance's next voice state, it isn't carried over
       if (aloneTimeout) {
         clearTimeout(aloneTimeout);
+      }
+      // the new instance waits the whole delay again
+      if (idleTimeout) {
+        clearTimeout(idleTimeout);
       }
       if (joinTimeout) {
         clearTimeout(joinTimeout);
@@ -1709,8 +1761,9 @@ export class VoiceNodeClient extends EventSpewer {
       }
       // a copy, whatever this instance still has running (a command, a move) changes its own
       return {
-        guild: {...guild, aloneTimeout: null, joinTimeout: null, moving: false, rejoinTimeout: null},
+        guild: {...guild, aloneTimeout: null, idleTimeout: null, joinTimeout: null, moving: false, rejoinTimeout: null},
         guildId,
+        idleLeaving: !!idleTimeout,
         joining: !!joinTimeout,
         nodeId: guild.node.id,
         rejoinPending: !!rejoinTimeout,
@@ -1771,15 +1824,18 @@ export class VoiceNodeClient extends EventSpewer {
       node.sessionId = (old.restoring) ? null : old.sessionId;
       this.nodes.set(node.id, node);
     }
-    for (const { guild, guildId, joining, nodeId, rejoinPending } of handover.guilds) {
+    for (const { guild, guildId, idleLeaving, joining, nodeId, rejoinPending } of handover.guilds) {
       const node = this.nodes.get(nodeId);
       if (!node) {
         continue;
       }
-      const adopted: GuildVoice = {...guild, aloneTimeout: null, joinTimeout: null, moving: false, node, rejoinTimeout: null};
+      const adopted: GuildVoice = {...guild, aloneTimeout: null, idleTimeout: null, joinTimeout: null, moving: false, node, rejoinTimeout: null};
       this.guilds.set(guildId, adopted);
       if (joining) {
         adopted.joinTimeout = setTimeout(() => this.leave(guildId), JOIN_TIMEOUT);
+      }
+      if (idleLeaving && adopted.idle) {
+        this.leaveWhenIdle(guildId, adopted);
       }
       if (rejoinPending && adopted.channelId) {
         this.rejoinLater(guildId, adopted, adopted.channelId);

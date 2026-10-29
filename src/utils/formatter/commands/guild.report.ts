@@ -57,9 +57,11 @@ import {
   displayDetailsLine,
   displayReply,
   displayTimestamp,
+  fetchMemberOrUserById,
 } from '../../../utils';
 
 import { createQuoteMemberOptions, createQuoteOptions } from './fun.quote';
+import { findResponseInvoker } from './report';
 import {
   ContainerSection,
   addContainerBody,
@@ -193,6 +195,15 @@ export async function createReport(
   if (args.message) {
     message = args.message;
     target = message.author;
+    // our own responses are reported for whoever used the command. their own response is a bug report, it stays on us
+    // (so does one whose user is gone)
+    if (message.fromMe) {
+      const invoker = await findResponseInvoker(context, message);
+      const found = (invoker && invoker.userId !== context.userId) ? await fetchMemberOrUserById(context, invoker.userId) : null;
+      if (found) {
+        target = (found instanceof Structures.Member) ? found.user : found;
+      }
+    }
   } else if (args.user === undefined) {
     return refuse(translate('report.needs_user'));
   } else if (!args.user) {

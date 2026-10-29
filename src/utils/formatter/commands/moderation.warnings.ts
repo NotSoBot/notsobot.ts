@@ -41,6 +41,7 @@ export function formatWarningDetails(
   return displayDetailsLine([
     showId && Markup.codestring(warning.id),
     translate('moderation_warnings.by', {user: `<@${warning.moderator_id}>`}),
+    (1 < (warning.weight || 1)) && translate('moderation_autowarn.counts_as', {count: String(warning.weight)}),
     displayTimestamp(created),
     (created < Date.now() - window * 1000) && translate('moderation_warnings.inactive'),
   ], true);

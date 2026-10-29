@@ -1,5 +1,6 @@
 export { Listener, connectAllListeners } from './listener';
 
+export { default as ApiRequestsListener } from './apirequests';
 export { default as BulkDeleteListener } from './bulkdelete';
 export { default as ChannelDeleteListener } from './channeldelete';
 export { default as BotGuildsListener } from './botguilds';

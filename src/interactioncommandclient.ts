@@ -12,7 +12,7 @@ import {
   BaseInteractionCommandOption,
   InteractionCommandMetadata,
 } from './commands/interactions/basecommand';
-import { GuildRuleActions } from './constants';
+import { GuildRuleActions, GuildWarningAutoTriggers } from './constants';
 import {
   Formatter,
   I18n,
@@ -168,6 +168,8 @@ export class NotSoInteractionClient extends InteractionCommandClient {
           return true;
         }
         contextMetadata.reason = match.rule.value.message || translate('rules.blocked', {rule: describeGuildRule(translate, match.rule)});
+        // for the server's auto-warn on blocked commands
+        contextMetadata.blockedByRule = true;
         return false;
       }
 
@@ -190,9 +192,39 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       const { translate } = await I18n.getTranslator(context);
       content = translate('blocked.generic');
     }
-    return editOrReply(context, {
+    const reply = await editOrReply(context, {
       content,
       flags: MessageFlags.EPHEMERAL,
     });
+    if (context.metadata && context.metadata.blockedByRule) {
+      await this.autoWarnBlockedCommand(context).catch(() => null);
+    }
+    return reply;
+  }
+
+  // the server's auto-warn for running a command its rules block for them, told privately under the blocked reply
+  async autoWarnBlockedCommand(context: Interaction.InteractionContext): Promise<void> {
+    const AutoWarn = Formatter.Commands.ModerationAutowarn;
+    const member = context.member;
+    const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
+    if (!member || !settings) {
+      return;
+    }
+    const rule = AutoWarn.resolveGuildWarningAuto(settings, GuildWarningAutoTriggers.BLOCKED_COMMAND, context.channel || null, context.channelId || null);
+    if (!rule) {
+      return;
+    }
+    const command = `/${context.invoker.fullName}`;
+    const audit = await I18n.getGuildTranslator(context);
+    const result = await AutoWarn.runAutoWarn(context, {member, reason: AutoWarn.createAutoWarnReason(audit, rule, {command}), rule});
+    if (result) {
+      const translator = await I18n.getTranslator(context);
+      const reason = AutoWarn.createAutoWarnReason(translator, rule, {command});
+      await context.createMessage({
+        allowedMentions: {parse: []},
+        content: AutoWarn.formatAutoWarnNotice(translator, member, rule, result, reason, true),
+        flags: MessageFlags.EPHEMERAL,
+      });
+    }
   }
 }

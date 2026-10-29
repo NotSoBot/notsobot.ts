@@ -1113,6 +1113,19 @@ export const WARNINGS_EXPIRE_MAX = 5 * 365 * 24 * 60 * 60;
 // a server's warning ladder: its steps, and how far back a kick/ban step can delete messages (discord's limit)
 export const MAX_GUILD_WARNING_ACTIONS = 10;
 export const WARNING_ACTION_CLEAN_MAX = 7 * 24 * 60 * 60;
+// how many warnings one warning can count as (an auto-warn rule's cost)
+export const MAX_GUILD_WARNING_WEIGHT = 10;
+// a server's auto-warn rules, and the most mentions a mention limit can allow
+export const MAX_GUILD_WARNINGS_AUTO = 20;
+export const MAX_GUILD_WARNINGS_AUTO_MENTIONS = 50;
+
+// what makes the bot warn a member itself, see `GuildWarningAuto`
+export enum GuildWarningAutoTriggers {
+  // running a command the server's rules block for them
+  BLOCKED_COMMAND = 'blocked_command',
+  // a message mentioning more than the rule's `limit` users and roles
+  MENTIONS = 'mentions',
+}
 
 
 export enum GuildFeatures {
@@ -2844,6 +2857,7 @@ export const NotSoApiKeys = Object.freeze({
   VIDEO: 'video',
   VIEWS: 'views',
   WARNINGS_ACTIONS: 'warnings_actions',
+  WARNINGS_AUTO: 'warnings_auto',
   WARNINGS_EXPIRE: 'warnings_expire',
   WARNINGS_WINDOW: 'warnings_window',
   WEBHOOK_ID: 'webhook_id',

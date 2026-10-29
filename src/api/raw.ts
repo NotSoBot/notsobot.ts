@@ -727,6 +727,7 @@ export async function editGuildSettings(
     search_provider_web: options.searchProviderWeb,
     timezone: options.timezone,
     warnings_actions: options.warningsActions,
+    warnings_auto: options.warningsAuto,
     warnings_expire: options.warningsExpire,
     warnings_window: options.warningsWindow,
   };
@@ -1530,6 +1531,7 @@ export async function putGuildWarnings(
     moderator_id: options.moderatorId,
     reason: options.reason,
     user_ids: options.userIds,
+    weight: options.weight,
   };
   return request(context, {
     body,
@@ -12354,6 +12356,30 @@ export async function mediaIVManipulationWiggle(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_WIGGLE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationWobble(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWobble,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    amount: options.amount,
+    duration: options.duration,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+    wobbles: options.wobbles,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_WOBBLE,
     },
   });
 }

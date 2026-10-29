@@ -67,6 +67,8 @@ export function onReportRespondComponent(context: ComponentContext, reportId: st
 // its Respond button opens a modal that sends staff a message on the report, like replying on the dashboard
 class ReportMessagesListener extends Listener {
   // every cluster gets the event, only one should send the dm
+  // the api's gateway only sends report dm events to shard 0's cluster (`EVENT_ROUTE_HOME` in its utilities/tools/redis.py),
+  // moving this off cluster 0 means changing that route too
   shouldHandle(cluster: ClusterClient): boolean {
     return cluster.clusterId === 0;
   }

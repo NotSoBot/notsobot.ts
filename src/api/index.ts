@@ -4711,6 +4711,14 @@ export async function mediaIVManipulationWiggle(
 }
 
 
+export async function mediaIVManipulationWobble(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWobble,
+) {
+  return raw.mediaIVManipulationWobble(context, options);
+}
+
+
 export async function mediaIVManipulationXyt(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationXyt,

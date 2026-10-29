@@ -968,6 +968,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/wave/vegas',
   MEDIA_IV_MANIPULATION_WIGGLE:
     '/media/iv/manipulation/wiggle',
+  MEDIA_IV_MANIPULATION_WOBBLE:
+    '/media/iv/manipulation/wobble',
   MEDIA_IV_MANIPULATION_XYT:
     '/media/iv/manipulation/xyt',
   MEDIA_IV_MANIPULATION_ZOOM:

@@ -105,8 +105,8 @@ export async function createQuoteOptions(
   const embed = (message) ? quoteEmbed(message) : null;
   const attachments = (message) ? [
     ...message.attachments
-      .filter((attachment) => attachment.isImage)
-      .map((attachment) => resizedProxyUrl(attachment.proxyUrl, attachment.width, attachment.height)),
+      .filter((attachment) => attachment.isImage || attachment.isVideo)
+      .map((attachment) => resizedProxyUrl(attachment.proxyUrl, attachment.width, attachment.height, attachment.isVideo)),
     ...media.map((embed) => resizedProxyUrl(embed.thumbnail!.proxyUrl, embed.thumbnail!.width, embed.thumbnail!.height)),
   ].filter((url): url is string => !!url).slice(0, MAX_ATTACHMENTS) : [];
   const components = (message) ? quoteComponents(message) : [];
@@ -305,7 +305,11 @@ function quoteComponents(message: Structures.Message): Array<RestOptions.MediaIC
     return taken;
   };
   const media = (value: any): null | string => {
-    return (value) ? resizedProxyUrl(value.proxy_url, value.width, value.height) : null;
+    if (!value) {
+      return null;
+    }
+    const video = typeof(value.content_type) === 'string' && value.content_type.startsWith('video/');
+    return resizedProxyUrl(value.proxy_url, value.width, value.height, video);
   };
   const convert = (value: any, depth: number): null | RestOptions.MediaICreateQuoteComponent => {
     if (!value || typeof(value) !== 'object' || MAX_COMPONENTS <= count || MAX_COMPONENT_DEPTH < depth) {
@@ -360,17 +364,25 @@ function componentTexts(components: Array<RestOptions.MediaICreateQuoteComponent
 }
 
 
-// discord's media proxy url for an image, resized to fit `MAX_IMAGE_SIDE` (its original size when it doesn't say)
-function resizedProxyUrl(proxyUrl?: null | string, width?: number, height?: number): null | string {
+// discord's media proxy url for an image, resized to fit `MAX_IMAGE_SIDE` (its original size when it doesn't say). a
+// video's is its thumbnail (`format=png` makes the proxy give its first frame), drawn like discord shows the player
+function resizedProxyUrl(proxyUrl?: null | string, width?: number, height?: number, video: boolean = false): null | string {
   if (!proxyUrl) {
     return null;
   }
-  if (!width || !height) {
+  const params: Array<string> = [];
+  if (video) {
+    params.push('format=png');
+  }
+  if (width && height) {
+    const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(width, height));
+    params.push(`width=${Math.max(1, Math.round(width * scale))}`, `height=${Math.max(1, Math.round(height * scale))}`);
+  }
+  if (!params.length) {
     return proxyUrl;
   }
-  const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(width, height));
   const separator = (proxyUrl.includes('?')) ? '&' : '?';
-  return `${proxyUrl}${separator}width=${Math.max(1, Math.round(width * scale))}&height=${Math.max(1, Math.round(height * scale))}`;
+  return `${proxyUrl}${separator}${params.join('&')}`;
 }
 
 

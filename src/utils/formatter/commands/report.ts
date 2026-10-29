@@ -78,20 +78,12 @@ export async function createPayload(
       if (!message) {
         throw new Error('Message reports need the reported message');
       }
-      // the context menu only allows our own responses, they're reported for whoever used the command
-      const response = await fetchCommandResponse(context, message);
-      if (response) {
-        targetId = response.user_id;
-        tagId = response.tag_id || undefined;
-      } else if (message.interactionMetadata) {
-        targetId = message.interactionMetadata.user.id;
-      } else {
-        // the stored response is gone (cleaned up after a while), the api stores our own id when it's unknown
-        targetId = message.author.id;
-      }
-      if (targetId === context.userId) {
-        return {description: `${StatusEmojis.WARNING} ${translate('report.cannot_report_yourself')}`, ephemeral: true};
-      }
+      // the context menu only allows our own responses, they're reported for whoever used the command. someone
+      // reporting their own command's response is reporting a bug in it, and when who used it is gone (the stored
+      // response is cleaned up after a while) it's on us too, the api stores our own id when it's unknown
+      const invoker = await findResponseInvoker(context, message);
+      targetId = (invoker && invoker.userId !== context.userId) ? invoker.userId : message.author.id;
+      tagId = (invoker && invoker.tagId) || undefined;
       // the message id points to the reported message instead of where the report was sent from
       channelId = message.channelId;
       guildId = message.guildId || context.guildId;
@@ -140,6 +132,37 @@ async function fetchCommandResponse(
     });
     return results[0] || null;
   } catch(error) {
+    return null;
+  }
+}
+
+
+// who used the command one of our responses answers (and its tag): the response we stored, the slash command's user, or
+// who sent the message a prefixed command's reply answers. null when none of those are left
+export async function findResponseInvoker(
+  context: Command.Context | Interaction.InteractionContext,
+  message: Structures.Message,
+): Promise<{tagId: null | string, userId: string} | null> {
+  const response = await fetchCommandResponse(context, message);
+  if (response) {
+    return {tagId: response.tag_id || null, userId: response.user_id};
+  }
+  if (message.interactionMetadata) {
+    return {tagId: null, userId: message.interactionMetadata.user.id};
+  }
+  if (message.referencedMessage) {
+    return {tagId: null, userId: message.referencedMessage.author.id};
+  }
+  // a replied to message doesn't come with what it replied to (the prefixed `report`'s)
+  const reference = message.messageReference;
+  if (!reference || !reference.messageId) {
+    return null;
+  }
+  try {
+    const raw = await context.rest.fetchMessage(message.channelId, reference.messageId);
+    return (raw && raw.author) ? {tagId: null, userId: raw.author.id} : null;
+  } catch(error) {
+    // deleted
     return null;
   }
 }

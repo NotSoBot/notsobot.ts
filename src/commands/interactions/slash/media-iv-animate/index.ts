@@ -22,6 +22,7 @@ import { MediaIVSlideCommand } from './slide';
 import { MediaIVSpin3dCommand } from './spin-3d';
 import { MediaIVSpinCommand } from './spin';
 import { MediaIVUpToDownCommand } from './up-to-down';
+import { MediaIVWobbleCommand } from './wobble';
 
 
 export default class MediaIVAnimateGroupCommand extends BaseSlashCommand {
@@ -57,6 +58,7 @@ export default class MediaIVAnimateGroupCommand extends BaseSlashCommand {
         new MediaIVSlideCommand(),
         new MediaIVSpinCommand(),
         new MediaIVSpin3dCommand(),
+        new MediaIVWobbleCommand(),
       ],
     });
   }

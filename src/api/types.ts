@@ -10,6 +10,7 @@ import {
   GuildRuleActions,
   GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
+  GuildWarningAutoTriggers,
   MeasurementUnits,
   MediaAudioBitcrushModes,
   MediaAudioMultiPitchEngines,
@@ -170,6 +171,8 @@ export namespace RestOptions {
     timezone?: string | null,
     // replaces the whole ladder, empty or null turns it off
     warningsActions?: Array<RestResponsesRaw.GuildWarningAction> | null,
+    // replaces every auto-warn rule, empty or null turns them off
+    warningsAuto?: Array<RestResponsesRaw.GuildWarningAuto> | null,
     // seconds, null: warnings never expire
     warningsExpire?: number | null,
     // seconds, null resets it to 30 days
@@ -297,6 +300,8 @@ export namespace RestOptions {
     moderatorId: string,
     reason?: string | null,
     userIds: Array<string>,
+    // how many warnings each one counts as (1 by default)
+    weight?: number,
   }
 
   export interface FetchGuildWarnings {
@@ -1577,6 +1582,12 @@ export namespace RestOptions {
     wavelengths?: number,
   }
 
+  export interface MediaIVManipulationWobble extends MediaBaseOptions {
+    amount?: number,
+    duration?: number,
+    wobbles?: number,
+  }
+
   export interface MediaIVManipulationXyt extends MediaBaseOptions {
     // the .xyt as an upload or a url, one of them is needed
     xytFile?: RequestFile,
@@ -2567,6 +2578,8 @@ export namespace RestResponsesRaw {
     moderator_id: string,
     reason: string | null,
     user_id: string,
+    // how many warnings it counts as, an auto-warn rule can cost more than one
+    weight: number,
   }
 
   // a member's warnings that haven't expired (`total`), and the ones within the server's window (`active`)
@@ -2583,6 +2596,17 @@ export namespace RestResponsesRaw {
     // seconds, how long a mute is or until a ban is lifted (null: permanent), always null for kicks
     duration: number | null,
     threshold: number,
+  }
+
+  // an auto-warn rule, the bot warns members itself when they set it off in `channel_id` (null: anywhere, a channel
+  // covers its threads and a category its channels)
+  export interface GuildWarningAuto {
+    channel_id: string | null,
+    // mentions: the most users and roles one message can mention, null for the others
+    limit: number | null,
+    trigger: GuildWarningAutoTriggers,
+    // how many warnings it counts as
+    warnings: number,
   }
 
   export interface PutGuildWarnings {
@@ -2918,6 +2942,7 @@ export namespace RestResponsesRaw {
       search_provider_images: number | null,
       search_provider_web: number | null,
       warnings_actions: Array<GuildWarningAction>,
+      warnings_auto: Array<GuildWarningAuto>,
       warnings_expire: number | null,
       warnings_window: number,
     },

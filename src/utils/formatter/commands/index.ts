@@ -504,10 +504,12 @@ import * as MediaIVManipulationWave from './media.iv.manipulation.wave';
 import * as MediaIVManipulationWaveAnimated from './media.iv.manipulation.wave.animated';
 import * as MediaIVManipulationWaveVegas from './media.iv.manipulation.wave.vegas';
 import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
+import * as MediaIVManipulationWobble from './media.iv.manipulation.wobble';
 import * as MediaIVManipulationXyt from './media.iv.manipulation.xyt';
 import * as MediaIVManipulationZoom from './media.iv.manipulation.zoom';
 import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur';
 
+import * as ModerationAutowarn from './moderation.autowarn';
 import * as ModerationBan from './moderation.ban';
 import * as ModerationCommandsUsage from './moderation.commands.usage';
 import * as ModerationKick from './moderation.kick';
@@ -1214,10 +1216,12 @@ export {
   MediaIVManipulationWaveAnimated,
   MediaIVManipulationWaveVegas,
   MediaIVManipulationWiggle,
+  MediaIVManipulationWobble,
   MediaIVManipulationXyt,
   MediaIVManipulationZoom,
   MediaIVManipulationZoomBlur,
 
+  ModerationAutowarn,
   ModerationBan,
   ModerationCommandsUsage,
   ModerationKick,

@@ -33,6 +33,8 @@ class ReminderInterval extends Listener {
   deleteRetryMin = 15 * 1000;
   deleteRetryMax = 10 * 60 * 1000;
 
+  // the api's gateway only sends reminder events to shard 0's cluster (`EVENT_ROUTE_HOME` in its utilities/tools/redis.py),
+  // moving this off cluster 0 means changing that route too
   shouldHandle(cluster: ClusterClient): boolean {
     return cluster.clusterId === 0;
   }

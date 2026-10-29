@@ -77,6 +77,7 @@ function getWarningAddLines(event: GuildLoggingEventGuildWarningAdd, translator:
   const { counts, moderator, warning } = event.payload;
   return getWarningModerationLines(moderator, translate('logger.warned_by'), warning.reason, [
     Markup.codestring(warning.id),
+    (1 < (warning.weight || 1)) && translate('moderation_autowarn.counts_as', {count: warning.weight.toLocaleString(language)}),
     translate('moderation_warnings.active', {count: counts.active.toLocaleString(language)}),
     translate('moderation_warnings.total', {count: counts.total.toLocaleString(language)}),
   ], translator);

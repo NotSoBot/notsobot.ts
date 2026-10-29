@@ -55,6 +55,8 @@ class TimedBanScheduler extends Listener {
   // timed ban id -> when to try again, for servers we're not in
   deferred = new Map<string, number>();
 
+  // the api's gateway only sends timed ban events to shard 0's cluster (`EVENT_ROUTE_HOME` in its utilities/tools/redis.py),
+  // moving this off cluster 0 means changing that route too
   shouldHandle(cluster: ClusterClient): boolean {
     return cluster.clusterId === 0;
   }

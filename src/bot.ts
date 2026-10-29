@@ -12,6 +12,7 @@ import {
 } from 'detritus-client/lib/constants';
 
 import { deleteCommandsResponses } from './api';
+import ApiEventsClient from './apievents';
 import { NotSoCommandClient } from './commandclient';
 import { connectCommandResults } from './commandresults';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
@@ -207,6 +208,7 @@ const cluster = new ClusterClient('', {
 
     connectAllListeners(cluster);
     connectAllStores(cluster);
+    ApiEventsClient.start({shardCount: cluster.shardCount, shardEnd: cluster.shardEnd, shardStart: cluster.shardStart});
 
     console.log('cluster ran', cluster.ran);
     const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
