@@ -4,7 +4,6 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { ServerAutowarnGroupCommand } from './autowarn';
 import { ServerBansCommand } from './bans';
 import { ServerCommandUsageCommand } from './command-usage';
 import { ServerInvitesCommand } from './invites';
@@ -30,7 +29,6 @@ export default class ServerGroupCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
-        new ServerAutowarnGroupCommand(),
         new ServerBansCommand(),
         new ServerCommandUsageCommand(),
         new ServerInvitesCommand(),

@@ -20,6 +20,7 @@ import { MediaIVEmbossCommand } from './emboss';
 import { MediaIVGlowCommand } from './glow';
 import { MediaIVHiddenCommand } from './hidden';
 import { MediaIVLegofyCommand } from './legofy';
+import { MediaIVLightRaysCommand } from './light-rays';
 import { MediaIVMotionBlurCommand } from './motion-blur';
 import { MediaIVPaintCommand } from './paint';
 import { MediaIVPaintGifCommand } from './paint-gif';
@@ -64,6 +65,7 @@ export default class MediaIVFilterGroupCommand extends BaseSlashCommand {
         new MediaIVGlowCommand(),
         new MediaIVHiddenCommand(),
         new MediaIVLegofyCommand(),
+        new MediaIVLightRaysCommand(),
         new MediaIVMotionBlurCommand(),
         new MediaIVPaintCommand(),
         new MediaIVPaintGifCommand(),

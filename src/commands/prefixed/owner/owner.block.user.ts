@@ -13,15 +13,19 @@ export default class OwnerBlockUserCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'for', aliases: ['duration', 'time', 't'], label: 'duration', type: Parameters.secondsWithOptions({float: false})},
+      ],
       label: 'payload',
       metadata: {
         description: 'Block a user from the bot',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
+          `${COMMAND_NAME} 300505364032389122 spamming -for 7d`,
         ],
         category: CommandCategories.OWNER,
         id: Formatter.Commands.OwnerBlockUser.COMMAND_ID,
-        usage: '<user:id|mention|name>',
+        usage: '<user:id|mention|name> ?<reason:string> (-for <duration>)',
       },
       type: Parameters.banPayload({allowBots: false}),
     });

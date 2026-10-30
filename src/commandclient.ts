@@ -1,7 +1,7 @@
 import { Collections, Command, CommandAttributes, CommandClient, GatewayClientEvents, Interaction, Structures } from 'detritus-client';
 import { ClientEvents, LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
-import { fetchCommandsResponses } from './api';
+import { acknowledgeUserWarnings, fetchCommandsResponses } from './api';
 import { CommandResults, setCommandResult } from './commandresults';
 import { BaseInteractionCommand } from './commands/interactions/basecommand';
 import { replyWarning } from './commands/errors';
@@ -69,7 +69,14 @@ export class NotSoCommandClient extends CommandClient {
     }
 
     const user = await UserStore.getOrFetch(context, context.userId);
-    if (!user || user.blocked) {
+    if (!user || user.isBlocked) {
+      return false;
+    }
+
+    // a warning from NotSoBot staff takes the place of this command, they run it again after reading it. not for the
+    // custom command fallback (`onCommandCancel` says nothing for those), it runs for every unmatched message
+    if (user.warningsPending.length && command.name) {
+      contextMetadata.userWarnings = user.warningsPending;
       return false;
     }
 
@@ -84,7 +91,7 @@ export class NotSoCommandClient extends CommandClient {
     const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     // without settings (the fetch failed and there's no older copy) only admins get through, see the end
-    if (settings && settings.blocked) {
+    if (settings && settings.isBlocked) {
       return false;
     }
 
@@ -290,6 +297,21 @@ export class NotSoCommandClient extends CommandClient {
     setCommandResult(context, CommandResults.BLOCKED);
     // the custom command fallback runs for every unmatched prefixed message, those aren't commands
     if (!context.metadata || !command.name) {
+      return;
+    }
+    if (context.metadata.userWarnings) {
+      if (!context.canReply) {
+        return;
+      }
+      try {
+        const { translate } = await I18n.getTranslator(context);
+        const notice = Formatter.Commands.OwnerWarn.createUserWarningsNotice(translate, context.metadata.userWarnings);
+        await context.editOrReply({allowedMentions: {parse: []}, content: notice.content});
+        // only once it was shown, a failed reply leaves them pending for the next command
+        await acknowledgeUserWarnings(context, context.userId, {warningIds: notice.warningIds});
+      } catch(error) {
+
+      }
       return;
     }
     if (context.metadata.blockedByRule) {

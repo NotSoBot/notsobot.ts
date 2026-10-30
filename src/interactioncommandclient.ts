@@ -23,6 +23,7 @@ import {
   isGuildRulesCommandId,
   resolveGuildRule,
 } from './utils';
+import { acknowledgeUserWarnings } from './api';
 import { CommandResults, setCommandResult } from './commandresults';
 import { runWithCommandContext } from './sentry';
 
@@ -94,15 +95,24 @@ export class NotSoInteractionClient extends InteractionCommandClient {
 
     const { translate } = await I18n.getTranslator(context);
     const user = await UserStore.getOrFetch(context, context.userId);
-    if (!user || user.blocked) {
-      if (user && user.blocked) {
+    if (!user || user.isBlocked) {
+      if (user && user.isBlocked) {
         contextMetadata.reason = translate('blocked.user');
         if (user.blockedReason) {
           contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${user.blockedReason}\`)`;
         }
+        contextMetadata.reason += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, user.blockedUntil);
       } else {
         contextMetadata.reason = translate('blocked.user_fetch_failed');
       }
+      return false;
+    }
+
+    // a warning from NotSoBot staff takes the place of this command, they run it again after reading it
+    if (user.warningsPending.length) {
+      const notice = Formatter.Commands.OwnerWarn.createUserWarningsNotice(translate, user.warningsPending);
+      contextMetadata.reason = notice.content;
+      contextMetadata.userWarningIds = notice.warningIds;
       return false;
     }
 
@@ -127,12 +137,13 @@ export class NotSoInteractionClient extends InteractionCommandClient {
 
     const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
-    if (settings && settings.blocked) {
+    if (settings && settings.isBlocked) {
       // if we aren't able to fetch the settings, it will surpass the blocked setting cuz it's rare to block a guild
       contextMetadata.reason = translate('blocked.server');
       if (settings.blockedReason) {
         contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
       }
+      contextMetadata.reason += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, settings.blockedUntil);
       return false;
     }
 
@@ -193,9 +204,14 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       content = translate('blocked.generic');
     }
     const reply = await editOrReply(context, {
+      allowedMentions: {parse: []},
       content,
       flags: MessageFlags.EPHEMERAL,
     });
+    if (context.metadata && context.metadata.userWarningIds) {
+      // only once it was shown, a failed reply leaves them pending for the next command
+      await acknowledgeUserWarnings(context, context.userId, {warningIds: context.metadata.userWarningIds}).catch(() => null);
+    }
     if (context.metadata && context.metadata.blockedByRule) {
       await this.autoWarnBlockedCommand(context).catch(() => null);
     }

@@ -1170,12 +1170,55 @@ export async function targetTextWithParsedMentions(
 
 const oneOfTextToSpeechVoices = Prefixed.oneOf<TTSVoices>({choices: TTSVoices, descriptions: TTSVoicesToText});
 
+// like the api's mediascript `find_tts_voice`: a voice's name in any case (spaces as `_`), or with `partial` the end of
+// exactly one voice's name compared on whole `_` parts (`sam` is Microsoft Sam, `elf` is SAM_ELF). the fuzzy search
+// alone ranked a rare prefix (`samc`) above a whole word that six SAM voices share
+function findTextToSpeechVoice(value: string, partial: boolean = false): TTSVoices | null {
+  const name = value.trim().toUpperCase().replace(/[\s-]+/g, '_');
+  if (!name || name === TTSVoices.CLONED) {
+    return null;
+  }
+  if ((TTS_VOICES as Array<string>).includes(name)) {
+    return name as TTSVoices;
+  }
+  if (!partial) {
+    return null;
+  }
+  const parts = name.split('_');
+  const matches = TTS_VOICES.filter((voice) => {
+    return voice !== TTSVoices.CLONED && voice.split('_').slice(-parts.length).join('_') === name;
+  });
+  return (matches.length === 1) ? matches[0] : null;
+}
+
 export async function textToSpeechVoice(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<{voice: TTSVoices, voiceId?: string}> {
+  {
+    const voice = findTextToSpeechVoice(value);
+    if (voice) {
+      return {voice};
+    }
+  }
+
   // check if user is premium, then fetch their voices
   const { count, voices } = await fetchUserVoices(context, context.userId);
+  {
+    // their cloned voice's exact name or id comes before the end of a voice's name, like in mediascript
+    const lower = value.trim().toLowerCase();
+    const cloned = voices.find((x) => x.id === lower) || voices.find((x) => x.name.toLowerCase() === lower);
+    if (cloned) {
+      return {voice: TTSVoices.CLONED, voiceId: cloned.id};
+    }
+  }
+  {
+    const voice = findTextToSpeechVoice(value, true);
+    if (voice) {
+      return {voice};
+    }
+  }
+
   if (voices.length) {
     const search = new MiniSearch({
       fields: ['id', 'name'],

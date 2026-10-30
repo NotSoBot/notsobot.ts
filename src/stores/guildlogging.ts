@@ -15,6 +15,7 @@ import GuildSettingsStore from './guildsettings';
 import UserAvatarDecorationStore, { UserAvatarDecorationStored } from './useravatardecorations';
 import { Store } from './store';
 
+import type { GuildSettingsLogger } from '../api/structures/guildsettings';
 import { GuildLoggerFlags, GuildLoggerTypes, GuildSettingsResponseDisplayTypes, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import { RedisPayloads } from '../types';
@@ -24,6 +25,7 @@ import {
   GuildLoggingCustomEvents,
   GuildLoggingEventItem,
   GuildLoggingEventModeration,
+  GuildLoggingIgnoreTargets,
   LogPayload,
   MAX_COMPONENTS,
   MAX_COMPONENTS_TEXT_LENGTH,
@@ -133,12 +135,14 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
           const guild = shard.guilds.get(guildId);
           const language = languageFromLocale((guild) ? guild.preferredLocale : null) || Languages.ENGLISH;
           for (let [loggerType, queue] of queues) {
-            const logPayloads = queue.splice(0, 10).map((event) => createLogPayload(event, {componentsV2, language}));
-            const payloads = createWebhookPayloads(logPayloads);
-            if (payloads.length) {
+            const events = queue.splice(0, 10);
+            if (events.length) {
+              const logPayloads = events.map((event) => createLogPayload(event, {componentsV2, language}));
               const loggers = settings.loggers.filter((logger) => logger.type === loggerType);
               for (let logger of loggers) {
-                for (let payload of payloads) {
+                // each logger skips what it ignores
+                const kept = logPayloads.filter((logPayload, index) => !isEventIgnoredByLogger(logger, events[index]));
+                for (let payload of createWebhookPayloads(kept)) {
                   promises.push(logger.execute(shard, payload));
                 }
               }
@@ -270,7 +274,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
   ): Promise<void> {
     const { guildId } = event;
     const settings = await GuildSettingsStore.getOrFetch({client: shard}, guildId);
-    if (!settings || settings.blocked) {
+    if (!settings || settings.isBlocked) {
       return;
     }
 
@@ -350,8 +354,12 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
           loggerType = GuildLoggerTypes.MODERATION;
         }; break;
       }
-      if (loggerType !== null && settings.loggers.some((logger) => logger.type === loggerType)) {
-        this.add(guildId, loggerType, shard, event);
+      if (loggerType !== null) {
+        event.ignoreTargets = getEventIgnoreTargets(shard, event);
+        // skip the queue (and its audit log fetch) when every logger of the type ignores it
+        if (settings.loggers.some((logger) => logger.type === loggerType && !isEventIgnoredByLogger(logger, event))) {
+          this.add(guildId, loggerType, shard, event);
+        }
       }
     }
   }
@@ -953,6 +961,79 @@ export async function fetchImageFiles(
     return undefined;
   }
   return files;
+}
+
+
+// the channel with its parents, a thread's channel and category or a channel's category
+export function getChannelWithParents(shard: ShardClient, channelId: string, parentId?: null | string): Array<string> {
+  const ids = [channelId];
+  if (parentId === undefined) {
+    const channel = shard.channels.get(channelId);
+    parentId = (channel) ? channel.parentId : null;
+  }
+  // a thread's channel can only be in a category, so it's two parents at most
+  while (parentId && ids.length < 3) {
+    ids.push(parentId);
+    const parent = shard.channels.get(parentId);
+    parentId = (parent) ? parent.parentId : null;
+  }
+  return ids;
+}
+
+
+export function getEventIgnoreTargets(shard: ShardClient, event: GuildLoggingEventItem): GuildLoggingIgnoreTargets {
+  switch (event.name) {
+    case ClientEvents.CHANNEL_CREATE:
+    case ClientEvents.CHANNEL_DELETE: {
+      // the deleted channel is gone from the cache, the clone still has its category
+      const { channel } = event.cached;
+      return [getChannelWithParents(shard, channel.id, channel.parentId)];
+    };
+    case ClientEvents.CHANNEL_UPDATE: {
+      // moving it into or out of an ignored category still gets logged
+      const { channel, old } = event.cached;
+      const targets = [getChannelWithParents(shard, channel.id, channel.parentId)];
+      if ((old.parentId || null) !== (channel.parentId || null)) {
+        targets.push(getChannelWithParents(shard, old.id, old.parentId));
+      }
+      return targets;
+    };
+    case ClientEvents.MESSAGE_DELETE:
+    case ClientEvents.MESSAGE_DELETE_BULK: {
+      return [getChannelWithParents(shard, event.payload.channelId)];
+    };
+    case ClientEvents.MESSAGE_UPDATE: {
+      return [getChannelWithParents(shard, event.cached.message.channelId)];
+    };
+    case ClientEvents.GUILD_ROLE_CREATE:
+    case ClientEvents.GUILD_ROLE_UPDATE: {
+      return [[event.payload.role.id]];
+    };
+    case ClientEvents.GUILD_ROLE_DELETE: {
+      return [[event.payload.roleId]];
+    };
+    case ClientEvents.VOICE_STATE_UPDATE: {
+      // a move between channels is in both, it's only skipped when both are ignored
+      const { old, voiceState } = event.cached;
+      const channelIds = new Set<string>();
+      for (let channelId of [(old) ? old.channelId : null, voiceState.channelId]) {
+        if (channelId) {
+          channelIds.add(channelId);
+        }
+      }
+      return Array.from(channelIds).map((channelId) => getChannelWithParents(shard, channelId));
+    };
+  }
+  return [];
+}
+
+
+export function isEventIgnoredByLogger(logger: GuildSettingsLogger, event: GuildLoggingEventItem): boolean {
+  const targets = event.ignoreTargets;
+  if (!logger.ignoredIds.length || !targets || !targets.length) {
+    return false;
+  }
+  return targets.every((ids) => ids.some((id) => logger.ignoredIds.includes(id)));
 }
 
 

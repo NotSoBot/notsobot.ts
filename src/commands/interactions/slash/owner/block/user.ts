@@ -28,6 +28,12 @@ export class OwnerBlockUserCommand extends BaseOwnerCommandOption {
           required: true,
           value: Parameters.Slash.banPayload({allowBots: false}),
         },
+        {
+          name: 'duration',
+          description: 'Unblock them after this long, like 12h or 7 days (Default: Permanent, Max: 5 years)',
+          ...I18n.optionLocalizations('commands.owner.block.user.duration'),
+          value: Parameters.secondsWithOptions({float: false}),
+        },
       ],
     });
   }

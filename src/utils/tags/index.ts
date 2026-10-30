@@ -1861,6 +1861,16 @@ function setVariableRaw(tag: TagResult, key: string, value: any): void {
 }
 
 
+function isHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch(e) {
+    return false;
+  }
+}
+
+
 // `load FILE_n NAME` lines in code: files with a buffer are sent as uploads (and the line dropped), url-only files get
 // their url. a second line for the same file used to be dropped entirely, so its name never existed in the code
 function collectCodeFiles(tag: TagResult, urls: Record<string, {filename?: string, url: string}>): Array<RequestFile> {
@@ -1869,6 +1879,10 @@ function collectCodeFiles(tag: TagResult, urls: Record<string, {filename?: strin
   for (let urlObj of Object.values(urls)) {
     const match = urlObj.url.matchAll(URL_FILE_REPLACEMENT_REGEX).next().value;
     if (!match) {
+      // `load 1` from a bad arg would otherwise reach the api and come back as a raw pydantic union error
+      if (!isHttpUrl(urlObj.url)) {
+        throw new TagError(`${tag.translate('errors.invalid_url')}: ${Markup.codestring(`load ${urlObj.url}`)}`);
+      }
       continue;
     }
     const fileKey = parseInt(match[1]) - 1;

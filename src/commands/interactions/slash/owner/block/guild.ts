@@ -21,6 +21,12 @@ export class OwnerBlockGuildCommand extends BaseOwnerCommandOption {
     super({
       options: [
         {name: 'guild', description: 'Guild ID (Default: Current Guild)', ...I18n.optionLocalizations('commands.owner.block.guild.guild'), default: DefaultParameters.guild, value: Parameters.guild},
+        {
+          name: 'duration',
+          description: 'Unblock it after this long, like 12h or 7 days (Default: Permanent, Max: 5 years)',
+          ...I18n.optionLocalizations('commands.owner.block.guild.duration'),
+          value: Parameters.secondsWithOptions({float: false}),
+        },
       ],
     });
   }

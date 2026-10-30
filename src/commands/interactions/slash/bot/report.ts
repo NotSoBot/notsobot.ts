@@ -46,6 +46,9 @@ export async function createReportReasonModal(
     },
   });
 
+  // reports are for NotSoBot being abused, spamming them gets you blocked
+  modal.createTextDisplay({content: `-# ${translate('report.spam_warning')}`});
+
   modal.createLabel({
     description: translate('report.modal_reason_description'),
     label: translate('report.modal_reason'),
@@ -92,6 +95,9 @@ export class BotReportCommand extends BaseInteractionCommandOption {
         return onModalError(context, modalContext, error);
       },
     });
+
+    // reports are for NotSoBot being abused, spamming them gets you blocked (the modal's fifth and last component)
+    modal.createTextDisplay({content: `-# ${translate('report.spam_warning')}`});
 
     const type = modal.createRadioGroup({label: translate('report.modal_type')}, {customId: 'type', required: true});
     type.createOption({

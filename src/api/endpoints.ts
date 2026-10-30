@@ -392,6 +392,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/layer',
   MEDIA_IV_MANIPULATION_LEGOFY:
     '/media/iv/manipulation/legofy',
+  MEDIA_IV_MANIPULATION_LIGHT_RAYS:
+    '/media/iv/manipulation/light/rays',
   MEDIA_IV_MANIPULATION_LUT:
     '/media/iv/manipulation/lut',
   MEDIA_IV_MANIPULATION_MAGIK:
@@ -1189,6 +1191,10 @@ export const Api = Object.freeze({
     '/users/:userId/usage/commands/:command',
   USER_VOICES:
     '/users/:userId/voices',
+  USER_WARNINGS:
+    '/users/:userId/warnings',
+  USER_WARNINGS_ACKNOWLEDGE:
+    '/users/:userId/warnings/acknowledge',
 
   UTILITIES_CODE_RUN:
     '/utilities/code/run',

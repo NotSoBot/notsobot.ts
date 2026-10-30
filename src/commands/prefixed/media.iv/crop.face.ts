@@ -13,15 +13,19 @@ export default class CropFaceCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'zoom', aliases: ['z'], type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.CONVERSION,
         description: 'Crop an Image or Video to a face, following it on every frame (the face number is the one drawfaces shows)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} 1`,
+          `${COMMAND_NAME} -zoom`,
         ],
         id: Formatter.Commands.MediaIVManipulationCropFace.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> ?<face:number>',
+        usage: '?<emoji,user:id|mention,url> ?<face:number> (-zoom)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

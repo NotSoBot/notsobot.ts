@@ -70,6 +70,8 @@ export enum ApiErrorCodes {
   UNKNOWN_VOICE_NODE = 10031,
   UNKNOWN_GUILD_WARNING = 10033,
   UNKNOWN_GUILD_REPORT = 10034,
+  UNKNOWN_USER_WARNING = 10035,
+  UNKNOWN_GUILD_LOGGER = 10036,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -1176,6 +1178,17 @@ export enum GuildLoggerTypes {
   // members' `report`s to the server's moderators, the bot posts these itself (one message each, with buttons)
   REPORTS = 8,
 }
+
+// the logger types that can ignore channels (messages, voice, channels) or roles (roles), matches the api's
+export const GUILD_LOGGER_IGNORE_TYPES: ReadonlyArray<GuildLoggerTypes> = [
+  GuildLoggerTypes.MESSAGES,
+  GuildLoggerTypes.VOICE,
+  GuildLoggerTypes.CHANNELS,
+  GuildLoggerTypes.ROLES,
+];
+
+// channels (or roles) one logger can ignore
+export const MAX_GUILD_LOGGER_IGNORED_AMOUNT = 50;
 
 
 // the music queue's loop, the api's `MusicLoopModes` by name
@@ -2785,6 +2798,7 @@ export const NotSoApiKeys = Object.freeze({
   AVATAR: 'avatar',
   BLOCKED: 'blocked',
   BLOCKED_REASON: 'blocked_reason',
+  BLOCKED_UNTIL: 'blocked_until',
   BOT: 'bot',
   BRAND: 'brand',
   CATEGORY: 'category',
@@ -2810,6 +2824,7 @@ export const NotSoApiKeys = Object.freeze({
   HEIGHT: 'height',
   ICON: 'icon',
   ID: 'id',
+  IGNORED_IDS: 'ignored_ids',
   IMAGE: 'image',
   IN_STOCK: 'in_stock',
   INGREDIENTS: 'ingredients',
@@ -2864,6 +2879,7 @@ export const NotSoApiKeys = Object.freeze({
   WARNINGS_AUTO: 'warnings_auto',
   WARNINGS_AUTO_EXEMPT: 'warnings_auto_exempt',
   WARNINGS_EXPIRE: 'warnings_expire',
+  WARNINGS_PENDING: 'warnings_pending',
   WARNINGS_WINDOW: 'warnings_window',
   WEBHOOK_ID: 'webhook_id',
   WEBHOOK_TOKEN: 'webhook_token',
@@ -2903,6 +2919,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.HEIGHT]: 'height',
   [NotSoApiKeys.ICON]: 'icon',
   [NotSoApiKeys.ID]: 'id',
+  [NotSoApiKeys.IGNORED_IDS]: 'ignoredIds',
   [NotSoApiKeys.IMAGE]: 'image',
   [NotSoApiKeys.IN_STOCK]: 'inStock',
   [NotSoApiKeys.INGREDIENTS]: 'ingredients',
@@ -3114,6 +3131,12 @@ export enum TTSVoices {
   FLITE_US_MALE_RICH = 'FLITE_US_MALE_RICH',
   KLATTSCH = 'KLATTSCH',
   PHONEME_MORSHU = 'PHONEME_MORSHU',
+  SAM_C64 = 'SAM_C64',
+  SAM_ELF = 'SAM_ELF',
+  SAM_EXTRA_TERRESTRIAL = 'SAM_EXTRA_TERRESTRIAL',
+  SAM_LITTLE_OLD_LADY = 'SAM_LITTLE_OLD_LADY',
+  SAM_LITTLE_ROBOT = 'SAM_LITTLE_ROBOT',
+  SAM_STUFFY_GUY = 'SAM_STUFFY_GUY',
   SAPI_ATT_EN_MALE_MOONMAN = 'SAPI_ATT_EN_MALE_MOONMAN',
   SAPI_DECTALK_DE_FEMALE_BETTY = 'SAPI_DECTALK_DE_FEMALE_BETTY',
   SAPI_DECTALK_DE_FEMALE_RITA = 'SAPI_DECTALK_DE_FEMALE_RITA',
@@ -3273,6 +3296,12 @@ export const TTSVoicesToText = Object.freeze({
   [TTSVoices.FLITE_US_MALE_RICH]: 'Flite English USA Male Rich Stern (rwb)',
   [TTSVoices.KLATTSCH]: 'Klattsch',
   [TTSVoices.PHONEME_MORSHU]: 'Phoneme Morshu',
+  [TTSVoices.SAM_C64]: 'SAM Commodore 64',
+  [TTSVoices.SAM_ELF]: 'SAM Commodore 64 Elf',
+  [TTSVoices.SAM_EXTRA_TERRESTRIAL]: 'SAM Commodore 64 Extra-Terrestrial',
+  [TTSVoices.SAM_LITTLE_OLD_LADY]: 'SAM Commodore 64 Little Old Lady',
+  [TTSVoices.SAM_LITTLE_ROBOT]: 'SAM Commodore 64 Little Robot',
+  [TTSVoices.SAM_STUFFY_GUY]: 'SAM Commodore 64 Stuffy Guy',
   [TTSVoices.SAPI_ATT_EN_MALE_MOONMAN]: 'SAPI AT&T English Male Moon Man',
   [TTSVoices.SAPI_DECTALK_DE_FEMALE_BETTY]: 'SAPI DecTalk German Female Beautiful Betty',
   [TTSVoices.SAPI_DECTALK_DE_FEMALE_RITA]: 'SAPI DecTalk German Female Rough Rita',

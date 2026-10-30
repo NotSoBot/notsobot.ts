@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../../api/types';
 import { ReportTypes } from '../../../../constants';
-import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -46,11 +46,11 @@ export class TagReportCommand extends BaseInteractionCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    const payload = await Formatter.Commands.Report.createPayload(context, {
+    // no modal, so it confirms with the warning against report spam first, like the prefixed commands
+    return Formatter.Commands.Report.createMessage(context, {
       content: args.reason,
       tag: args.tag,
       type: ReportTypes.TAG,
     });
-    return displayReply(context, payload);
   }
 }

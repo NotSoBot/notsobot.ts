@@ -13,16 +13,20 @@ export default class OwnerBlockGuildCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'for', aliases: ['duration', 'time', 't'], label: 'duration', type: Parameters.secondsWithOptions({float: false})},
+      ],
       default: DefaultParameters.guild,
       label: 'guild',
       metadata: {
         description: 'Block a guild from the bot',
         examples: [
           `${COMMAND_NAME} 178313653177548800`,
+          `${COMMAND_NAME} 178313653177548800 -for 30d`,
         ],
         category: CommandCategories.OWNER,
         id: Formatter.Commands.OwnerBlockGuild.COMMAND_ID,
-        usage: '<guild:id>',
+        usage: '<guild:id> (-for <duration>)',
       },
       type: Parameters.guild,
     });

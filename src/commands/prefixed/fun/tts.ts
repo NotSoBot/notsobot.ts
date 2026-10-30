@@ -29,6 +29,7 @@ export default class TTSCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} give me a table`,
           `${COMMAND_NAME} give me a table -use klattsch`,
+          `${COMMAND_NAME} hello, my name is sam -use sam c64`,
         ],
         id: Formatter.Commands.FunTTS.COMMAND_ID,
         usage: '<text> (-use <language/type>)',

@@ -509,6 +509,27 @@ export async function deleteGuildRules(
 }
 
 
+export async function editGuildLogger(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.EditGuildLogger,
+): Promise<RestResponsesRaw.EditGuildLogger> {
+  const body = {
+    channel_id: options.channelId,
+    ignored_ids: options.ignoredIds,
+    type: options.type,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.GUILD_LOGGERS,
+      params: {guildId},
+    },
+  });
+}
+
+
 export async function editGuildRule(
   context: RequestContext,
   guildId: string,
@@ -717,6 +738,7 @@ export async function editGuildSettings(
   const body = {
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
+    blocked_until: options.blockedUntil,
     locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
@@ -867,6 +889,7 @@ export async function editUser(
   const body = {
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
+    blocked_until: options.blockedUntil,
     channel_id: options.channelId,
   };
   const params = {userId};
@@ -875,6 +898,46 @@ export async function editUser(
     route: {
       method: HTTPMethods.PATCH,
       path: Api.USER,
+      params,
+    },
+  });
+}
+
+
+export async function createUserWarning(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.CreateUserWarning,
+): Promise<RestResponsesRaw.CreateUserWarning> {
+  const body = {
+    reason: options.reason,
+  };
+  const params = {userId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.USER_WARNINGS,
+      params,
+    },
+  });
+}
+
+
+export async function acknowledgeUserWarnings(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.AcknowledgeUserWarnings = {},
+): Promise<RestResponsesRaw.AcknowledgeUserWarnings> {
+  const body = {
+    warning_ids: options.warningIds,
+  };
+  const params = {userId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.USER_WARNINGS_ACKNOWLEDGE,
       params,
     },
   });
@@ -4473,6 +4536,7 @@ export async function mediaIVManipulationCropFace(
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
+    zoom: options.zoom,
   };
   return request(context, {
     file: options.file,
@@ -6161,6 +6225,29 @@ export async function mediaIVManipulationLegofy(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_LEGOFY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationLightRays(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationLightRays,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    sensitivity: options.sensitivity,
+    strength: options.strength,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LIGHT_RAYS,
     },
   });
 }

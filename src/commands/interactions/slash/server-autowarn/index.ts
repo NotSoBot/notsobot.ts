@@ -1,6 +1,8 @@
-import { I18n } from '../../../../../utils';
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
-import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
+import { I18n } from '../../../../utils';
+
+import { BaseSlashCommand } from '../../basecommand';
 
 import { ServerAutowarnAutomodCommand } from './automod';
 import { ServerAutowarnBlockedCommand } from './blocked';
@@ -10,11 +12,18 @@ import { ServerAutowarnMentionsCommand } from './mentions';
 import { ServerAutowarnRemoveCommand } from './remove';
 
 
-export class ServerAutowarnGroupCommand extends BaseInteractionCommandOptionGroup {
+// was `/server autowarn` until /server hit discord's 8000 character limit, the ids stay `server.autowarn.*`
+export default class ServerAutowarnGroupCommand extends BaseSlashCommand {
   description = 'Warn members automatically for too many mentions, blocked commands or AutoMod';
   descriptionLocalizations = I18n.localizations('commands.autowarn.description');
-  name = 'autowarn';
-  nameLocalizations = I18n.localizations('commands.autowarn.name');
+  name = 'server-autowarn';
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+  ];
 
   constructor() {
     super({

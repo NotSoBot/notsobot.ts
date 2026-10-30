@@ -123,6 +123,12 @@ export namespace RestOptions {
     type: GuildLoggerTypes,
   }
 
+  export interface EditGuildLogger {
+    channelId: string,
+    ignoredIds: Array<string>,
+    type: GuildLoggerTypes,
+  }
+
   export interface DeleteTags {
     content?: string,
     name?: string,
@@ -160,6 +166,7 @@ export namespace RestOptions {
   export interface EditGuildSettings {
     blocked?: boolean,
     blockedReason?: null | string,
+    blockedUntil?: null | string,
     locale?: string | null,
     mlDiffusionModel?: string | null,
     mlLLMModel?: string | null,
@@ -219,7 +226,18 @@ export namespace RestOptions {
   export interface EditUser {
     blocked?: boolean,
     blockedReason?: null | string,
+    // iso time the block lifts on its own, null when blocking makes it permanent
+    blockedUntil?: null | string,
     channelId?: null | string,
+  }
+
+  export interface CreateUserWarning {
+    reason: string,
+  }
+
+  export interface AcknowledgeUserWarnings {
+    // only these, none: every pending one
+    warningIds?: Array<string>,
   }
 
   export interface CreateUserLLMMemory {
@@ -1134,6 +1152,7 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationCropFace extends MediaBaseOptions {
     face?: number,
+    zoom?: boolean,
   }
 
   export interface MediaIVManipulationDance extends MediaBaseOptions {
@@ -1290,6 +1309,11 @@ export namespace RestOptions {
     dither?: boolean,
     palette?: string,
     size?: number,
+  }
+
+  export interface MediaIVManipulationLightRays extends MediaBaseOptions {
+    sensitivity?: number,
+    strength?: number,
   }
 
   export interface MediaIVManipulationLUT extends MediaBaseOptions {
@@ -2059,6 +2083,7 @@ export namespace RestResponses {
   export type DeleteGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
   export type DeleteGuildRules = GuildSettings;
+  export type EditGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteVoice = null;
 
   export type EditGuildRule = GuildSettings;
@@ -2286,6 +2311,7 @@ export namespace RestResponsesRaw {
   export type DeleteTagsDirectoryTagVerification = TagDirectory;
   export type DeleteTagVariable = null;
 
+  export type EditGuildLogger = Array<GuildLogger>;
   export type EditGuildRule = Array<GuildRule>;
   export type EditGuildSettings = GuildSettings;
   export type EditServerSettings = ServerSettings;
@@ -2760,6 +2786,28 @@ export namespace RestResponsesRaw {
 
   export type DeleteUserPremiumServer = FetchUserPremiumServers;
 
+  // a warning from NotSoBot staff (`owner warn user`)
+  export interface UserWarning {
+    acknowledged: null | string,
+    block: boolean,
+    created: string,
+    dm_sent: boolean,
+    id: string,
+    moderator_id: string,
+    reason: null | string,
+    user_id: string,
+  }
+
+  export interface CreateUserWarning {
+    // every warning they have from staff, this one included
+    count: number,
+    warning: UserWarning,
+  }
+
+  export interface AcknowledgeUserWarnings {
+    acknowledged: number,
+  }
+
   export interface FetchPremiumServers {
     items: Array<{server_id: string, user_id: string}>,
   }
@@ -2983,6 +3031,7 @@ export namespace RestResponsesRaw {
     channel_id: string,
     disabled_events: number,
     guild_id: string,
+    ignored_ids: Array<string>,
     type: number,
     user_id: string | null,
     webhook_id?: string,

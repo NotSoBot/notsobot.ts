@@ -1,10 +1,10 @@
 import { Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { GuildWarningAutoTriggers } from '../../../../../constants';
-import { Formatter, I18n, Parameters } from '../../../../../utils';
+import { GuildWarningAutoTriggers } from '../../../../constants';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 import { automodRuleOption, channelOption } from './shared';
 

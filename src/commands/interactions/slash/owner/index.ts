@@ -16,6 +16,7 @@ import { OwnerSeenOnCommand } from './seenon';
 import { OwnerShardsLeftCommand } from './shards-left';
 import { OwnerUnblockGroupCommand } from './unblock';
 import { OwnerUploadCommandsCommand } from './upload-commands';
+import { OwnerWarnCommand } from './warn';
 
 
 export default class OwnerGroupCommand extends BaseSlashCommand {
@@ -49,6 +50,7 @@ export default class OwnerGroupCommand extends BaseSlashCommand {
         new OwnerShardsLeftCommand(),
         new OwnerUnblockGroupCommand(),
         new OwnerUploadCommandsCommand(),
+        new OwnerWarnCommand(),
       ],
     });
   }

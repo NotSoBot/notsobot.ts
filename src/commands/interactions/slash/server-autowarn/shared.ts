@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { MAX_GUILD_WARNING_WEIGHT } from '../../../../../constants';
-import { Formatter, I18n, Parameters } from '../../../../../utils';
+import { MAX_GUILD_WARNING_WEIGHT } from '../../../../constants';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 
 // where the rule goes, server-wide without one

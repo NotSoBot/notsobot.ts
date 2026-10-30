@@ -9,10 +9,26 @@ import {
 import { BaseStructure } from './basestructure';
 
 
+export interface UserWarningPending {
+  // made by blocking them, shown once a timed block lifts
+  block: boolean,
+  created: string,
+  id: string,
+  // only a block's can be empty
+  reason: string | null,
+}
+
+
+export function isBlockExpired(blockedUntil: string | null): boolean {
+  return !!blockedUntil && Date.parse(blockedUntil) <= Date.now();
+}
+
+
 const keysUser = new Collections.BaseSet<string>([
   NotSoApiKeys.AVATAR,
   NotSoApiKeys.BLOCKED,
   NotSoApiKeys.BLOCKED_REASON,
+  NotSoApiKeys.BLOCKED_UNTIL,
   NotSoApiKeys.BOT,
   NotSoApiKeys.DISCRIMINATOR,
   NotSoApiKeys.FLAGS,
@@ -26,6 +42,7 @@ export class User extends BaseStructure {
   avatar: string | null = null;
   blocked: boolean = false;
   blockedReason: string | null = null;
+  blockedUntil: string | null = null;
   bot: boolean = false;
   discriminator: string = '0000';
   flags: number = 0;
@@ -37,6 +54,11 @@ export class User extends BaseStructure {
     if (data) {
       this.merge(data);
     }
+  }
+
+  // a timed block is over once its time passes, even before the api's cleaner lifts it (it runs every minute)
+  get isBlocked(): boolean {
+    return this.blocked && !isBlockExpired(this.blockedUntil);
   }
 
   get isPremium(): boolean {
@@ -57,6 +79,7 @@ const keysUserFull = new Collections.BaseSet<string>([
   NotSoApiKeys.AVATAR,
   NotSoApiKeys.BLOCKED,
   NotSoApiKeys.BLOCKED_REASON,
+  NotSoApiKeys.BLOCKED_UNTIL,
   NotSoApiKeys.BOT,
   NotSoApiKeys.CHANNEL_ID,
   NotSoApiKeys.DISCRIMINATOR,
@@ -64,6 +87,7 @@ const keysUserFull = new Collections.BaseSet<string>([
   NotSoApiKeys.ID,
   NotSoApiKeys.PREMIUM_TYPE,
   NotSoApiKeys.USERNAME,
+  NotSoApiKeys.WARNINGS_PENDING,
 ]);
 
 export class UserFull extends User {
@@ -72,12 +96,15 @@ export class UserFull extends User {
   avatar: string | null = null;
   blocked: boolean = false;
   blockedReason: string | null = null;
+  blockedUntil: string | null = null;
   bot: boolean = false;
   channelId: string | null = null;
   discriminator: string = '0000';
   flags: number = 0;
   id: string = '';
   premiumType: UserPremiumTypes = UserPremiumTypes.NONE;
+  // warnings from NotSoBot staff they haven't seen yet, shown in place of their next command
+  warningsPending: Array<UserWarningPending> = [];
 
   constructor(data: Structures.BaseStructureData) {
     super();

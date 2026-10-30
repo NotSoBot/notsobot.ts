@@ -28,6 +28,12 @@ export class MediaIVToolsCropFaceCommand extends BaseInteractionImageOrVideoComm
           minValue: 0,
           maxValue: 99,
         },
+        {
+          name: 'zoom',
+          description: 'Crop Each Frame to Its Face and Scale It Up to the Biggest Face (Default: False)',
+          ...I18n.optionLocalizations('commands.media_iv_tools.crop_face.zoom'),
+          type: Boolean,
+        },
       ],
     });
   }

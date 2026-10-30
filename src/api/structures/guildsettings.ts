@@ -20,11 +20,13 @@ import {
 import { RestResponsesRaw } from '../types';
 
 import { BaseStructure } from './basestructure';
+import { isBlockExpired } from './user';
 
 
 const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.BLOCKED,
   NotSoApiKeys.BLOCKED_REASON,
+  NotSoApiKeys.BLOCKED_UNTIL,
   NotSoApiKeys.DISABLED_LOGGER_EVENTS,
   NotSoApiKeys.FEATURES,
   NotSoApiKeys.ICON,
@@ -47,6 +49,7 @@ export class GuildSettings extends BaseStructure {
 
   blocked: boolean = false;
   blockedReason: string | null = null;
+  blockedUntil: string | null = null;
   disabledLoggerEvents: number = 0;
   features = new Collections.BaseSet<string>();
   icon: string | null = null;
@@ -59,6 +62,11 @@ export class GuildSettings extends BaseStructure {
   constructor(data: Structures.BaseStructureData) {
     super();
     this.merge(data);
+  }
+
+  // like `User.isBlocked`, a timed block is over once its time passes
+  get isBlocked(): boolean {
+    return this.blocked && !isBlockExpired(this.blockedUntil);
   }
 
   get loggers(): Collections.BaseCollection<string, GuildSettingsLogger> {
@@ -252,6 +260,7 @@ const keysGuildSettingsLogger = new Collections.BaseSet<string>([
   NotSoApiKeys.CHANNEL_ID,
   NotSoApiKeys.DISABLED_EVENTS,
   NotSoApiKeys.GUILD_ID,
+  NotSoApiKeys.IGNORED_IDS,
   NotSoApiKeys.TYPE,
   NotSoApiKeys.USER_ID,
   NotSoApiKeys.WEBHOOK_ID,
@@ -265,6 +274,8 @@ export class GuildSettingsLogger extends BaseStructure {
   channelId: string = '';
   disabledEvents: number = 0;
   guildId: string = '';
+  // channel ids (a category covers its channels, a channel its threads) or role ids, see `GUILD_LOGGER_IGNORE_TYPES`
+  ignoredIds: Array<string> = [];
   type!: GuildLoggerTypes;
   userId: string = '';
   webhookId?: string;

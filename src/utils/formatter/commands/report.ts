@@ -1,10 +1,11 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
+import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 
 import { createReport, fetchCommandsResponses } from '../../../api';
-import { RestResponsesRaw } from '../../../api/types';
-import { getTranslator } from '../../i18n';
-import { ReportTypes, StatusEmojis } from '../../../constants';
+import { RestOptions, RestResponsesRaw } from '../../../api/types';
+import { getTranslator, Translator } from '../../i18n';
+import { EmbedColors, ReportTypes, StatusEmojis } from '../../../constants';
 import { DisplayPayload, displayReply, isSnowflake } from '../../../utils';
 
 
@@ -29,24 +30,109 @@ export interface CommandArgs {
   user?: Structures.Member | Structures.User | null,
 }
 
+// how long the Send Report button works
+const CONFIRM_TIMEOUT = 5 * 60 * 1000;
+
+// for the commands without a modal (prefixed ones, `/tag report`): the warning against report spam with a Send Report
+// button, nothing is sent until it's pressed. Anything wrong with the report errors right away instead
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return displayReply(context, await createPayload(context, args));
+  const { translate } = await getTranslator(context);
+  const resolved = await resolveReport(context, args, translate);
+  if ('error' in resolved) {
+    return displayReply(context, resolved.error);
+  }
+
+  const payload: DisplayPayload = {
+    color: EmbedColors.DEFAULT,
+    description: `${StatusEmojis.WARNING} ${translate('report.spam_warning')}`,
+    ephemeral: true,
+    title: translate('report.confirm'),
+  };
+  // once it's answered the buttons are gone, the payload is replaced
+  const finish = (ctx: ComponentContext | null, update: DisplayPayload) => {
+    components.clear();
+    return displayReply(context, {ephemeral: true, ...update}, (ctx) ? {replyTo: ctx} : undefined);
+  };
+
+  const components = new Components({timeout: CONFIRM_TIMEOUT});
+  components.createButton({
+    label: translate('report.confirm_send'),
+    style: MessageComponentButtonStyles.DANGER,
+    run: async (ctx: ComponentContext) => {
+      if (ctx.userId !== context.userId) {
+        return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      }
+      let update: DisplayPayload;
+      try {
+        update = sentPayload(translate, await createReport(context, resolved.options));
+      } catch(error: any) {
+        update = {color: EmbedColors.ERROR, description: `${StatusEmojis.WARNING} ${(error && error.message) || String(error)}`};
+      }
+      await finish(ctx, update);
+    },
+  });
+  components.createButton({
+    label: translate('report.confirm_cancel'),
+    style: MessageComponentButtonStyles.SECONDARY,
+    run: async (ctx: ComponentContext) => {
+      if (ctx.userId !== context.userId) {
+        return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      }
+      await finish(ctx, {description: translate('report.confirm_cancelled')});
+    },
+  });
+  components.onTimeout = async () => {
+    try {
+      // edits the response for both prefixed commands and interactions
+      await finish(null, {description: translate('report.confirm_expired')});
+    } catch(error) {
+
+    }
+  };
+  return displayReply(context, {...payload, components});
 }
 
 
-// the slash command responds through its modal's context, so this only creates the report and returns what to show
+// the modals respond through their own context (the warning was in the modal), so this only creates the report and
+// returns what to show
 export async function createPayload(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ): Promise<DisplayPayload> {
   const { translate } = await getTranslator(context);
+  const resolved = await resolveReport(context, args, translate);
+  if ('error' in resolved) {
+    return resolved.error;
+  }
+  return sentPayload(translate, await createReport(context, resolved.options));
+}
+
+
+function sentPayload(translate: Translator['translate'], report: {id: string}): DisplayPayload {
+  return {
+    description: [
+      `${StatusEmojis.YES} ${translate('report.sent')}`,
+      translate('report.report_id', {id: Markup.codestring(report.id)}),
+    ].join('\n'),
+    ephemeral: true,
+  };
+}
+
+
+// what the api needs for the report, or what to tell them when it can't be sent
+async function resolveReport(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+  translate: Translator['translate'],
+): Promise<{error: DisplayPayload} | {options: RestOptions.CreateReport}> {
+  const warn = (text: string) => ({error: {description: `${StatusEmojis.WARNING} ${text}`, ephemeral: true}});
 
   const content = (args.content || '').trim();
   if (!content) {
-    return {description: `${StatusEmojis.WARNING} ${translate('report.needs_content')}`, ephemeral: true};
+    return warn(translate('report.needs_content'));
   }
 
   let channelId: string | undefined = context.channelId;
@@ -57,20 +143,20 @@ export async function createPayload(
   switch (args.type) {
     case ReportTypes.USER: {
       if (args.user === undefined) {
-        return {description: `${StatusEmojis.WARNING} ${translate('report.needs_user')}`, ephemeral: true};
+        return warn(translate('report.needs_user'));
       }
       if (!args.user) {
-        return {description: `${StatusEmojis.WARNING} ${translate('report.unknown_user')}`, ephemeral: true};
+        return warn(translate('report.unknown_user'));
       }
       if (args.user.id === context.userId) {
-        return {description: `${StatusEmojis.WARNING} ${translate('report.cannot_report_yourself')}`, ephemeral: true};
+        return warn(translate('report.cannot_report_yourself'));
       }
       targetId = args.user.id;
     }; break;
     case ReportTypes.SERVER: {
       targetId = args.server || context.guildId;
       if (!targetId || !isSnowflake(targetId)) {
-        return {description: `${StatusEmojis.WARNING} ${translate('report.needs_server')}`, ephemeral: true};
+        return warn(translate('report.needs_server'));
       }
     }; break;
     case ReportTypes.MESSAGE: {
@@ -91,32 +177,16 @@ export async function createPayload(
     }; break;
     case ReportTypes.TAG: {
       if (!args.tag) {
-        return {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`, ephemeral: true};
+        return warn(translate('tag.unknown'));
       }
       if (args.tag.user.id === context.userId) {
-        return {description: `${StatusEmojis.WARNING} ${translate('report.cannot_report_yourself')}`, ephemeral: true};
+        return warn(translate('report.cannot_report_yourself'));
       }
       targetId = args.tag.id;
     }; break;
   }
 
-  const report = await createReport(context, {
-    channelId,
-    content,
-    guildId,
-    messageId,
-    tagId,
-    targetId,
-    type: args.type,
-  });
-
-  return {
-    description: [
-      `${StatusEmojis.YES} ${translate('report.sent')}`,
-      translate('report.report_id', {id: Markup.codestring(report.id)}),
-    ].join('\n'),
-    ephemeral: true,
-  };
+  return {options: {channelId, content, guildId, messageId, tagId, targetId, type: args.type}};
 }
 
 

@@ -1,9 +1,9 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { Formatter, I18n } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export interface CommandArgs {

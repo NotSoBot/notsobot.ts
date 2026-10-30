@@ -6,7 +6,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import { CommandCategories, EmbedColors, GuildLoggerTypes, StatusEmojis } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { DisplayPayload, I18n, Paginator, Parameters, chunkArray, displayReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, Formatter, I18n, Paginator, Parameters, chunkArray, displayReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -80,10 +80,15 @@ export async function createLoggersEmbed(
         {
           const description: Array<string> = page.map((logger, i) => {
             const type = getLoggerTypeText(translate, logger.type);
-            return [
+            const lines = [
               translate('moderation.entry_added', {index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1, type, when: moment(logger.added).locale(language).fromNow()}),
               `-> ${translate('loggers.by_in', {channel: `<#${logger.channelId}>`, user: `<@${logger.userId}>`})}`,
-            ].join('\n');
+            ];
+            if (logger.ignoredIds.length) {
+              const targets = logger.ignoredIds.map((id) => Formatter.Commands.ServerLoggersIgnore.formatIgnoredId(logger.type, id)).join(', ');
+              lines.push(`-> ${translate('loggers.ignore.ignoring', {targets})}`);
+            }
+            return lines.join('\n');
           });
 
           payload.description = description.join('\n');

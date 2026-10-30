@@ -18,8 +18,13 @@ export enum GuildLoggingCustomEvents {
 
 export type GuildLoggingEventItemAudits = [Structures.AuditLog, ...Array<Structures.AuditLog>];
 
+// where an event happened, for the loggers' ignore lists. each place is an id followed by what it's in (a channel and its
+// category, a thread and its channel and category), a logger skips the event when it ignores something in every place
+export type GuildLoggingIgnoreTargets = Array<Array<string>>;
+
 export type GuildLoggingEventItem = {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     channel: Structures.Channel,
   },
@@ -29,6 +34,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ChannelCreate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     channel: Structures.Channel,
   },
@@ -38,6 +44,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ChannelDelete,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     channel: Structures.Channel,
     old: Structures.Channel,
@@ -48,18 +55,21 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ChannelUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: ClientEvents.GUILD_BAN_ADD,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildBanAdd,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: ClientEvents.GUILD_BAN_REMOVE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildBanRemove,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     from?: ClientStatusType,
     memberCount: number,
@@ -70,6 +80,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberAdd,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     memberCount: number,
   },
@@ -79,6 +90,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberRemove,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     avatars?: {
       current?: {filename: string, value: Buffer},
@@ -93,6 +105,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberUpdate,
 } | /*{
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     attachments: Collections.BaseCollection<string, Structures.Attachment>,
     content: string,
@@ -106,18 +119,21 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageCreate,
 } | */{
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: ClientEvents.MESSAGE_DELETE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageDelete,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: ClientEvents.MESSAGE_DELETE_BULK,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageDeleteBulk,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     message: Structures.Message,
     old: Structures.Message | null,
@@ -128,6 +144,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     avatars?: {
       current?: {filename: string, value: Buffer},
@@ -143,6 +160,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UsersUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     old: Structures.VoiceState | null,
     voiceState: Structures.VoiceState,
@@ -153,6 +171,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.VoiceStateUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     role: Structures.Role,
   },
@@ -162,12 +181,14 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleCreate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: ClientEvents.GUILD_ROLE_DELETE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   cached: {
     icons?: {
       current?: {filename: string, value: Buffer},
@@ -182,6 +203,7 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: GuildLoggingCustomEvents.GUILD_WARNING_ADD,
@@ -194,6 +216,7 @@ export type GuildLoggingEventItem = {
   },
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,
@@ -205,6 +228,7 @@ export type GuildLoggingEventItem = {
   },
 } | {
   audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
   guildId: string,
   happened: number,
   name: GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR,

@@ -217,6 +217,7 @@ import * as MediaIVManipulationLabelsTriggered3 from './media.iv.manipulation.la
 import * as MediaIVManipulationLatte from './media.iv.manipulation.latte';
 import * as MediaIVManipulationLayer from './media.iv.manipulation.layer';
 import * as MediaIVManipulationLegofy from './media.iv.manipulation.legofy';
+import * as MediaIVManipulationLightRays from './media.iv.manipulation.light.rays';
 import * as MediaIVManipulationLUT from './media.iv.manipulation.lut';
 import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
 import * as MediaIVManipulationMagikAnimated from './media.iv.manipulation.magik.animated';
@@ -531,6 +532,7 @@ import * as ModerationWarningsRemove from './moderation.warnings.remove';
 
 import * as ServerBans from './server.bans';
 import * as ServerInvites from './server.invites';
+import * as ServerLoggersIgnore from './server.loggers.ignore';
 
 import * as MusicEffect from './music.effect';
 import * as MusicCrossfade from './music.crossfade';
@@ -569,6 +571,7 @@ import * as OwnerSeenOn from './owner.seenon';
 import * as OwnerShardsLeft from './owner.shards.left';
 import * as OwnerUnblockGuild from './owner.unblock.guild';
 import * as OwnerUnblockUser from './owner.unblock.user';
+import * as OwnerWarn from './owner.warn';
 import * as OwnerUploadCommands from './owner.upload.commands';
 
 import * as PrefixesAdd from './prefixes.add';
@@ -929,6 +932,7 @@ export {
   MediaIVManipulationLatte,
   MediaIVManipulationLayer,
   MediaIVManipulationLegofy,
+  MediaIVManipulationLightRays,
   MediaIVManipulationLUT,
   MediaIVManipulationMagik,
   MediaIVManipulationMagikAnimated,
@@ -1243,6 +1247,7 @@ export {
 
   ServerBans,
   ServerInvites,
+  ServerLoggersIgnore,
 
   MusicEffect,
   MusicCrossfade,
@@ -1281,6 +1286,7 @@ export {
   OwnerShardsLeft,
   OwnerUnblockGuild,
   OwnerUnblockUser,
+  OwnerWarn,
   OwnerUploadCommands,
 
   PrefixesAdd,

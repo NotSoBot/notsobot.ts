@@ -405,6 +405,25 @@ export async function deleteGuildRules(
 }
 
 
+export async function editGuildLogger(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.EditGuildLogger,
+): Promise<RestResponses.EditGuildLogger> {
+  const data = await raw.editGuildLogger(context, guildId, options);
+  const collection = new Collections.BaseCollection<string, GuildSettingsLogger>();
+  for (let raw of data) {
+    const item = new GuildSettingsLogger(raw);
+    collection.set(item.key, item);
+  }
+  if (GuildSettingsStore.has(guildId)) {
+    const settings = GuildSettingsStore.get(guildId)!;
+    settings.merge({loggers: data});
+  }
+  return collection;
+}
+
+
 export async function editGuildRule(
   context: RequestContext,
   guildId: string,
@@ -495,6 +514,31 @@ export async function editUser(
     UserStore.set(user.id, user);
   }
   return user;
+}
+
+
+export async function createUserWarning(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.CreateUserWarning,
+) {
+  return raw.createUserWarning(context, userId, options);
+}
+
+
+// the api publishes the user's update (their `warningsPending` without these), this drops them from the cache right away
+export async function acknowledgeUserWarnings(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.AcknowledgeUserWarnings = {},
+) {
+  const data = await raw.acknowledgeUserWarnings(context, userId, options);
+  if (UserStore.has(userId)) {
+    const user = UserStore.get(userId)!;
+    const ids = options.warningIds && new Set(options.warningIds);
+    user.warningsPending = (ids) ? user.warningsPending.filter((x) => !ids.has(x.id)) : [];
+  }
+  return data;
 }
 
 
@@ -2414,6 +2458,14 @@ export async function mediaIVManipulationLegofy(
   options: RestOptions.MediaIVManipulationLegofy,
 ) {
   return raw.mediaIVManipulationLegofy(context, options);
+}
+
+
+export async function mediaIVManipulationLightRays(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationLightRays,
+) {
+  return raw.mediaIVManipulationLightRays(context, options);
 }
 
 
