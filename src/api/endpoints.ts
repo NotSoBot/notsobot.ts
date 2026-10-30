@@ -264,6 +264,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/distort',
   MEDIA_IV_MANIPULATION_DRAW_FACES:
     '/media/iv/manipulation/draw-faces',
+  MEDIA_IV_MANIPULATION_DRAW_OBJECTS:
+    '/media/iv/manipulation/draw-objects',
   MEDIA_IV_MANIPULATION_EDGE_DETECT:
     '/media/iv/manipulation/edge/detect',
   MEDIA_IV_MANIPULATION_EMBOSS:

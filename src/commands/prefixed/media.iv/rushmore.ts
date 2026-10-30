@@ -13,6 +13,9 @@ export default class RushmoreCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'face', aliases: ['f'], type: Number},
+      ],
       aliases: ['mountrushmore'],
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -20,9 +23,10 @@ export default class RushmoreCommand extends BaseImageOrVideoCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} -face 1`,
         ],
         id: Formatter.Commands.MediaIVManipulationFaceMountRushmore.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-face <number>)',
       },
     });
   }

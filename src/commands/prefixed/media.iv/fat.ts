@@ -15,16 +15,18 @@ export default class FatCommand extends BaseImageOrVideoCommand {
 
       args: [
         {name: 'size', aliases: ['s'], type: Parameters.oneOf({choices: MediaFaceFatSizes})},
+        {name: 'face', aliases: ['f'], type: Number},
       ],
       metadata: {
         description: 'Fattify an Image or Video\'s face',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} -face 1`,
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationFaceFat.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-size <choice>)',
+        usage: '?<emoji,user:id|mention|name,url> (-size <choice>) (-face <number>)',
       },
     });
   }

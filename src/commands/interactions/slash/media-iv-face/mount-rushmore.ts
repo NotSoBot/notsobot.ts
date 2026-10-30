@@ -4,6 +4,8 @@ import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
+import { FACE_OPTION } from './options';
+
 
 export const COMMAND_NAME = 'mount-rushmore';
 
@@ -15,6 +17,14 @@ export class MediaIVMountRushmoreCommand extends BaseInteractionImageOrVideoComm
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_5.face.mount_rushmore.name');
+
+  constructor() {
+    super({
+      options: [
+        FACE_OPTION,
+      ],
+    });
+  }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationFaceMountRushmore.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationFaceMountRushmore.createMessage(context, args);

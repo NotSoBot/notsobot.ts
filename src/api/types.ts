@@ -988,15 +988,19 @@ export namespace RestOptions {
     url: string,
   }
 
-  export interface MediaIVManipulationFaceAnime extends MediaBaseOptions {
+  export interface MediaIVManipulationFace extends MediaBaseOptions {
+    face?: number,
+  }
+
+  export interface MediaIVManipulationFaceAnime extends MediaIVManipulationFace {
     eyes?: string,
   }
 
-  export interface MediaIVManipulationFaceFat extends MediaBaseOptions {
-    size?: number,
+  export interface MediaIVManipulationFaceFat extends MediaIVManipulationFace {
+    size?: string,
   }
 
-  export interface MediaIVManipulationFaceForehead extends MediaBaseOptions {
+  export interface MediaIVManipulationFaceForehead extends MediaIVManipulationFace {
     size?: string,
   }
 
@@ -1148,6 +1152,10 @@ export namespace RestOptions {
     width: string,
     x?: string,
     y?: string,
+  }
+
+  export interface MediaIVManipulationCropAuto extends MediaBaseOptions {
+    zoom?: boolean,
   }
 
   export interface MediaIVManipulationCropFace extends MediaBaseOptions {

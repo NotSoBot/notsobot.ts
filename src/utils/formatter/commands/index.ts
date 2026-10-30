@@ -128,6 +128,7 @@ import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDice from './media.iv.manipulation.dice';
 import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
 import * as MediaIVManipulationDrawFaces from './media.iv.manipulation.draw.faces';
+import * as MediaIVManipulationDrawObjects from './media.iv.manipulation.draw.objects';
 import * as MediaIVManipulationEdges2Emoji from './media.iv.manipulation.edges2emoji';
 import * as MediaIVManipulationEdges2Flesh from './media.iv.manipulation.edges2flesh';
 import * as MediaIVManipulationEdgeDetect from './media.iv.manipulation.edge.detect';
@@ -843,6 +844,7 @@ export {
   MediaIVManipulationDice,
   MediaIVManipulationDistort,
   MediaIVManipulationDrawFaces,
+  MediaIVManipulationDrawObjects,
   MediaIVManipulationEdges2Emoji,
   MediaIVManipulationEdges2Flesh,
   MediaIVManipulationEdgeDetect,

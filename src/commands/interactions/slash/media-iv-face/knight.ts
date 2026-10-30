@@ -4,6 +4,8 @@ import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
+import { FACE_OPTION } from './options';
+
 
 export const COMMAND_NAME = 'knight';
 
@@ -15,6 +17,14 @@ export class MediaIVKnightCommand extends BaseInteractionImageOrVideoCommandOpti
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_5.face.knight.name');
+
+  constructor() {
+    super({
+      options: [
+        FACE_OPTION,
+      ],
+    });
+  }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationFaceKnight.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationFaceKnight.createMessage(context, args);

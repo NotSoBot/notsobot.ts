@@ -5,6 +5,8 @@ import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
+import { FACE_OPTION } from './options';
+
 
 const DEFAULT_EYES = Formatter.Commands.MediaIVManipulationFaceAnime.DEFAULT_EYES;
 
@@ -27,6 +29,7 @@ export class MediaIVAnimeCommand extends BaseInteractionImageOrVideoCommandOptio
           ...I18n.optionLocalizations('commands.media_iv_5.face.anime.eyes'),
           choices: Parameters.Slash.oneOf({choices: MediaFaceAnimeEyes, defaultChoice: DEFAULT_EYES}),
         },
+        FACE_OPTION,
       ],
     });
   }

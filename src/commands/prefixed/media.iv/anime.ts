@@ -16,17 +16,19 @@ export default class AnimeCommand extends BaseImageOrVideoCommand {
       aliases: ['animeyes', 'animeeyes'],
       args: [
         {name: 'eyes', aliases: ['e'], type: Parameters.oneOf({choices: MediaFaceAnimeEyes})},
+        {name: 'face', aliases: ['f'], type: Number},
       ],
       metadata: {
         description: 'Animeify an Image or Video\'s face',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} -face 1`,
           `${COMMAND_NAME} notsobot -eyes purple`,
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationFaceAnime.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-eyes <choice>)',
+        usage: '?<emoji,user:id|mention|name,url> (-eyes <choice>) (-face <number>)',
       },
     });
   }

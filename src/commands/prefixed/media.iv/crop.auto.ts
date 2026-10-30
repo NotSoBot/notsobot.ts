@@ -13,15 +13,19 @@ export default class CropAutoCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'zoom', aliases: ['z'], type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.CONVERSION,
         description: 'Crop an Image or Video automatically',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} -zoom`,
         ],
         id: Formatter.Commands.MediaIVManipulationCropAuto.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-zoom)',
       },
     });
   }

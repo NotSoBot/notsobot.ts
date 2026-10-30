@@ -1839,7 +1839,7 @@ export async function mediaIVManipulationCrop(
 
 export async function mediaIVManipulationCropAuto(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationCropAuto,
 ) {
   return raw.mediaIVManipulationCropAuto(context, options);
 }
@@ -1949,6 +1949,14 @@ export async function mediaIVManipulationDrawFaces(
 }
 
 
+export async function mediaIVManipulationDrawObjects(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationDrawObjects(context, options);
+}
+
+
 export async function mediaIVManipulationEdgeDetect(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEdgeDetect,
@@ -2007,7 +2015,7 @@ export async function mediaIVManipulationEyes(
 
 export async function mediaIVManipulationFaceAlien(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ) {
   return raw.mediaIVManipulationFaceAlien(context, options);
 }
@@ -2023,7 +2031,7 @@ export async function mediaIVManipulationFaceAnime(
 
 export async function mediaIVManipulationFaceClown(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ) {
   return raw.mediaIVManipulationFaceClown(context, options);
 }
@@ -2031,7 +2039,7 @@ export async function mediaIVManipulationFaceClown(
 
 export async function mediaIVManipulationFaceFat(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFaceFat,
 ) {
   return raw.mediaIVManipulationFaceFat(context, options);
 }
@@ -2079,7 +2087,7 @@ export async function mediaIVManipulationFaceJoy(
 
 export async function mediaIVManipulationFaceKnight(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ) {
   return raw.mediaIVManipulationFaceKnight(context, options);
 }
@@ -2095,7 +2103,7 @@ export async function mediaIVManipulationFaceLenin(
 
 export async function mediaIVManipulationFaceMonaLisa(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ) {
   return raw.mediaIVManipulationFaceMonaLisa(context, options);
 }
@@ -2103,7 +2111,7 @@ export async function mediaIVManipulationFaceMonaLisa(
 
 export async function mediaIVManipulationFaceMountRushmore(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ) {
   return raw.mediaIVManipulationFaceMountRushmore(context, options);
 }

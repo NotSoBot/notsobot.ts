@@ -4486,13 +4486,14 @@ export async function mediaIVManipulationCrop(
 
 export async function mediaIVManipulationCropAuto(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationCropAuto,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
+    zoom: options.zoom,
   };
   return request(context, {
     file: options.file,
@@ -4794,6 +4795,27 @@ export async function mediaIVManipulationDrawFaces(
 }
 
 
+export async function mediaIVManipulationDrawObjects(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DRAW_OBJECTS,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationEdgeDetect(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEdgeDetect,
@@ -4961,10 +4983,11 @@ export async function mediaIVManipulationEyes(
 
 export async function mediaIVManipulationFaceAlien(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
@@ -4987,6 +5010,7 @@ export async function mediaIVManipulationFaceAnime(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     eyes: options.eyes,
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
@@ -5004,10 +5028,11 @@ export async function mediaIVManipulationFaceAnime(
 
 export async function mediaIVManipulationFaceClown(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
@@ -5029,6 +5054,7 @@ export async function mediaIVManipulationFaceFat(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     size: options.size,
@@ -5051,6 +5077,7 @@ export async function mediaIVManipulationFaceForehead(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     size: options.size,
@@ -5163,10 +5190,11 @@ export async function mediaIVManipulationFaceJoy(
 
 export async function mediaIVManipulationFaceKnight(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
@@ -5205,10 +5233,11 @@ export async function mediaIVManipulationFaceLenin(
 
 export async function mediaIVManipulationFaceMonaLisa(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
@@ -5226,10 +5255,11 @@ export async function mediaIVManipulationFaceMonaLisa(
 
 export async function mediaIVManipulationFaceMountRushmore(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationFace,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    face: options.face,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,

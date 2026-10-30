@@ -15,16 +15,18 @@ export default class ForeheadCommand extends BaseImageOrVideoCommand {
 
       args: [
         {name: 'size', aliases: ['s'], type: Parameters.oneOf({choices: MediaFaceForeheadSizes})},
+        {name: 'face', aliases: ['f'], type: Number},
       ],
       metadata: {
         description: 'Give an Image or Video\'s face a bigger forehead',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} -face 1`,
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationFaceForehead.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-size <choice>)',
+        usage: '?<emoji,user:id|mention|name,url> (-size <choice>) (-face <number>)',
       },
     });
   }

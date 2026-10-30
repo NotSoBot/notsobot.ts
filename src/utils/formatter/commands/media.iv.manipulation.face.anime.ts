@@ -24,6 +24,7 @@ export const DEFAULT_EYES = MediaFaceAnimeEyes.NORMAL;
 
 export interface CommandArgs {
   eyes?: string,
+  face?: number,
   url: string,
 }
 

@@ -16,6 +16,19 @@ export class MediaIVToolsCropAutoCommand extends BaseInteractionImageOrVideoComm
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_tools.crop_auto.name');
 
+  constructor() {
+    super({
+      options: [
+        {
+          name: 'zoom',
+          description: 'Follow the Subjects, Cropping Each Frame to Them and Scaling It Up (Default: False)',
+          ...I18n.optionLocalizations('commands.media_iv_tools.crop_auto.zoom'),
+          type: Boolean,
+        },
+      ],
+    });
+  }
+
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCropAuto.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationCropAuto.createMessage(context, args);
   }

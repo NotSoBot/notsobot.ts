@@ -5,6 +5,8 @@ import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
+import { FACE_OPTION } from './options';
+
 
 const DEFAULT_SIZE = Formatter.Commands.MediaIVManipulationFaceForehead.DEFAULT_SIZE;
 
@@ -28,6 +30,7 @@ export class MediaIVForeheadCommand extends BaseInteractionImageOrVideoCommandOp
           ...I18n.optionLocalizations('commands.media_iv_5.face.forehead.size'),
           choices: Parameters.Slash.oneOf({choices: MediaFaceForeheadSizes, defaultChoice: DEFAULT_SIZE}),
         },
+        FACE_OPTION,
       ],
     });
   }

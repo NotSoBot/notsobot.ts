@@ -13,15 +13,19 @@ export default class KnightCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'face', aliases: ['f'], type: Number},
+      ],
       metadata: {
         category: CommandCategories.EFFECTS,
         description: 'Put an Image or Video\'s face on a knight with a sword',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} -face 1`,
         ],
         id: Formatter.Commands.MediaIVManipulationFaceKnight.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-face <number>)',
       },
     });
   }

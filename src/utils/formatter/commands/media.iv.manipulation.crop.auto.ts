@@ -21,6 +21,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 
 export interface CommandArgs {
   url: string,
+  zoom?: boolean,
 }
 
 export function createJob(

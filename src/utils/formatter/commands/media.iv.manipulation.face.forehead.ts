@@ -23,6 +23,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 export const DEFAULT_SIZE = MediaFaceForeheadSizes.FIVEHEAD;
 
 export interface CommandArgs {
+  face?: number,
   size?: string,
   url: string,
 }
