@@ -19,6 +19,9 @@ export default class TagInfoCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['t info', 'tag owner', 't owner', 'tag raw', 't raw'],
+      args: [
+        {name: 'nofile', aliases: ['pages'], type: Boolean},
+      ],
       label: 'tag',
       metadata: {
         category: CommandCategories.TAGS,
@@ -26,9 +29,10 @@ export default class TagInfoCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} something`,
           `${COMMAND_NAME} some tag`,
+          `${COMMAND_NAME} some tag -nofile`,
         ],
         id: Formatter.Commands.TagInfo.COMMAND_ID,
-        usage: '<tagname>',
+        usage: '<tagname> (-nofile)',
       },
       type: Parameters.NotSoTag,
     });

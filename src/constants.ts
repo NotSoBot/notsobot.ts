@@ -1112,6 +1112,9 @@ export const WARNINGS_WINDOW_MIN = 60 * 60;
 export const WARNINGS_WINDOW_MAX = 365 * 24 * 60 * 60;
 export const WARNINGS_EXPIRE_MIN = 24 * 60 * 60;
 export const WARNINGS_EXPIRE_MAX = 5 * 365 * 24 * 60 * 60;
+// seconds of messages `ban` deletes when the moderator doesn't pick (the server's `ban_clean`), up to discord's limit
+export const BAN_CLEAN_DEFAULT = 24 * 60 * 60;
+export const BAN_CLEAN_MAX = 7 * 24 * 60 * 60;
 // a server's warning ladder: its steps, and how far back a kick/ban step can delete messages (discord's limit)
 export const MAX_GUILD_WARNING_ACTIONS = 10;
 export const WARNING_ACTION_CLEAN_MAX = 7 * 24 * 60 * 60;
@@ -1140,6 +1143,26 @@ export enum GuildFeatures {
   // music's premium perks (24/7, the bigger queue), like a premium server
   MUSIC_ACCESS = 'MUSIC_ACCESS',
 }
+
+
+// a server's `moderation_dm_disabled`, the dms about what moderators (or auto-warn) did that members don't get. Stored
+// as the ones turned off so a kind added later is on for every server
+export enum GuildModerationDmFlags {
+  BAN = 1 << 0,
+  KICK = 1 << 1,
+  MUTE = 1 << 2,
+  WARN = 1 << 3,
+  // warnings from the server's auto-warn rules
+  AUTOWARN = 1 << 4,
+}
+
+export const GUILD_MODERATION_DM_ALL = (
+  GuildModerationDmFlags.BAN |
+  GuildModerationDmFlags.KICK |
+  GuildModerationDmFlags.MUTE |
+  GuildModerationDmFlags.WARN |
+  GuildModerationDmFlags.AUTOWARN
+);
 
 
 export enum GuildLoggerFlags {
@@ -2796,6 +2819,7 @@ export const NotSoApiKeys = Object.freeze({
   ADMIN_BYPASS: 'admin_bypass',
   ACTION: 'action',
   AVATAR: 'avatar',
+  BAN_CLEAN: 'ban_clean',
   BLOCKED: 'blocked',
   BLOCKED_REASON: 'blocked_reason',
   BLOCKED_UNTIL: 'blocked_until',
@@ -2840,6 +2864,7 @@ export const NotSoApiKeys = Object.freeze({
   ML_DIFFUSION_MODEL: 'ml_diffusion_model',
   ML_LLM_MODEL: 'ml_llm_model',
   ML_LLM_PERSONALITY: 'ml_llm_personality',
+  MODERATION_DM_DISABLED: 'moderation_dm_disabled',
   MUSIC_DJ_ROLE_ID: 'music_dj_role_id',
   NAME: 'name',
   PREFIX: 'prefix',

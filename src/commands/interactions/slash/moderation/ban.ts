@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export interface CommandArgs {
-  clean: number,
+  clean?: number,
   duration?: number,
   reason?: string,
   users: Parameters.BanPayload,
@@ -51,10 +51,9 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
         {name: 'reason', description: 'Reason (shown in the Audit Log)', ...I18n.optionLocalizations('commands.moderation.ban.reason')},
         {
           name: 'clean',
-          description: 'Delete their recent messages (Default: Previous 24 Hours)',
+          description: 'Delete their recent messages (Default: the server\'s setting, 24 hours unless changed)',
           ...I18n.optionLocalizations('commands.moderation.ban.clean'),
           choices: CLEAN_CHOICES,
-          default: 24 * 60 * 60,
           type: Number,
         },
         {

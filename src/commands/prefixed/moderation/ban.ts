@@ -16,7 +16,8 @@ export default class BanCommand extends BaseCommand {
 
       aliases: ['hackban'],
       args: [
-        {name: 'clean', default: 1 * 24 * 60 * 60, type: (value: string, context: Command.Context) => Parameters.seconds(value, false, context)},
+        // the server's setting without it
+        {name: 'clean', type: (value: string, context: Command.Context) => Parameters.seconds(value, false, context)},
         // the bot unbans them once it's over
         {name: 'for', aliases: ['duration', 'time', 't'], label: 'duration', type: Parameters.secondsWithOptions({float: false})},
       ],

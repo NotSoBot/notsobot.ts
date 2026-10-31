@@ -6,7 +6,7 @@ import { Store } from './store';
 
 import { RequestContext, fetchGuildSettings, putGuildSettings, sweepGuild } from '../api';
 import { GuildSettings } from '../api/structures/guildsettings';
-import { GuildRuleTargetTypes, RedisChannels } from '../constants';
+import { BAN_CLEAN_DEFAULT, GuildModerationDmFlags, GuildRuleTargetTypes, RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 
@@ -64,6 +64,18 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       }
     }
     return settings;
+  }
+
+  // seconds of messages a ban deletes when the moderator doesn't pick, the default when the settings can't be fetched
+  async getBanClean(context: RequestContext, guildId: string): Promise<number> {
+    const settings = await this.getOrFetch(context, guildId);
+    return (settings) ? settings.settings.banClean : BAN_CLEAN_DEFAULT;
+  }
+
+  // if members get this kind of moderation dm, still sent when the settings can't be fetched
+  async canModerationDm(context: RequestContext, guildId: string, flag: GuildModerationDmFlags): Promise<boolean> {
+    const settings = await this.getOrFetch(context, guildId);
+    return !settings || (settings.settings.moderationDmDisabled & flag) !== flag;
   }
 
   async fetch(context: RequestContext, guildId: string): Promise<GuildSettings | null> {

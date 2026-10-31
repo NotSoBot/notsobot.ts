@@ -624,6 +624,8 @@ import * as SettingsAIMemoryForget from './settings.ai.memory.forget';
 import * as SettingsAIMemoryList from './settings.ai.memory.list';
 
 import * as SettingsServerSetAIPersonality from './settings.server.set.ai.personality';
+import * as SettingsServerSetBanClean from './settings.server.set.ban.clean';
+import * as SettingsServerSetDms from './settings.server.set.dms';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetResponseDisplay from './settings.server.set.response.display';
 import * as SettingsServerSetSearchProvider from './settings.server.set.search.provider';
@@ -1339,6 +1341,8 @@ export {
   SettingsAIMemoryForget,
   SettingsAIMemoryList,
   SettingsServerSetAIPersonality,
+  SettingsServerSetBanClean,
+  SettingsServerSetDms,
   SettingsServerSetLocale,
   SettingsServerSetResponseDisplay,
   SettingsServerSetSearchProvider,

@@ -2,21 +2,23 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
+import GuildSettingsStore from '../../../stores/guildsettings';
 import { deleteGuildTimedBans, putGuildTimedBans } from '../../../api';
 import { getApiError } from '../../../api/errors';
-import { ApiErrorCodes, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
+import { ApiErrorCodes, BAN_CLEAN_MAX, DateMomentLogFormat, EmbedColors, GuildModerationDmFlags, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
 import { DisplayPayload, DisplayReplyOptions, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 
 export interface CommandArgsBefore {
-  clean: number,
+  clean?: number,
   duration?: number,
   payload: Parameters.BanPayload | null,
 }
 
 export interface CommandArgs {
-  clean: number,
+  // seconds of their messages to delete, the server's `ban_clean` without it
+  clean?: number,
   // seconds until the bot lifts the ban, a permanent ban without it
   duration?: number,
   payload: Parameters.BanPayload,
@@ -116,10 +118,8 @@ export async function createMessage(
     until = new Date(Date.now() + args.duration * 1000);
   }
 
-  let deleteMessageSeconds: number = 0;
-  if (args.clean) {
-    deleteMessageSeconds = Math.max(Math.min(args.clean, 7 * 24 * 60 * 60), 0);
-  }
+  const clean = (args.clean === undefined || args.clean === null) ? await GuildSettingsStore.getBanClean(context, context.guildId!) : args.clean;
+  const deleteMessageSeconds = Math.max(Math.min(clean, BAN_CLEAN_MAX), 0);
 
   // built in a given language: the server's for the audit log (the whole server sees it), the member's for their dm
   // the reason goes last since it can be multiple lines (discord caps audit log reasons at 512 characters, so only the
@@ -177,7 +177,7 @@ export async function createMessage(
 
   // dm'd before any of the bans, they can't get it once they don't share a server with the bot anymore
   const dms = new Map<string, Structures.Message>();
-  if (guild) {
+  if (guild && canEdit.length && await GuildSettingsStore.canModerationDm(context, guild.id, GuildModerationDmFlags.BAN)) {
     for (let memberOrUser of canEdit) {
       if (memberOrUser instanceof Structures.Member) {
         try {

@@ -1,7 +1,8 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
+import GuildSettingsStore from '../../../stores/guildsettings';
+import { DateMomentLogFormat, EmbedColors, GuildModerationDmFlags, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
 import { DisplayPayload, DisplayReplyOptions, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
@@ -85,6 +86,7 @@ export async function createMessage(
   };
   const audit = await getGuildTranslator(context);
   const reason = createReason(audit);
+  const sendDms = !!context.guild && await GuildSettingsStore.canModerationDm(context, context.guild.id, GuildModerationDmFlags.MUTE);
 
   const muted: Array<Structures.Member> = [];
   const unable: Array<string> = [];
@@ -102,7 +104,7 @@ export async function createMessage(
       unable.push(`-> ${formatMember(member)}: ${translate('moderation_mute.reason_failed')} ${formatError(error)}`);
       continue;
     }
-    if (context.guild) {
+    if (context.guild && sendDms) {
       try {
         // in their language (or the server's), not the moderator's
         const dm = await getTranslatorForUser(context, member.id);

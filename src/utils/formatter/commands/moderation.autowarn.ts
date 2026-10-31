@@ -10,6 +10,7 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import {
   DateMomentLogFormat,
   EmbedColors,
+  GuildModerationDmFlags,
   GuildWarningAutoTriggers,
   MAX_GUILD_WARNING_WEIGHT,
   MAX_GUILD_WARNINGS_AUTO,
@@ -612,28 +613,30 @@ export async function runAutoWarn(
 
   const audit = await getGuildTranslator(languageContext);
   // before the step, a kick or ban would stop them getting it
-  try {
-    const dm = await getTranslatorForUser(languageContext, member.id);
-    const details = [
-      dm.translate('moderation_mute.moderator', {user: formatUserTag(moderator), user2: moderator.id}),
-      dm.translate('moderation_mute.date', {timestamp: createTimestampMomentFromGuild(Date.now(), guild.id).format(DateMomentLogFormat)}),
-      dm.translate('moderation_mute.reason', {text: options.reason}),
-    ].join('\n');
-    await member.createMessage([
-      dm.translate('moderation_autowarn.you_have_been_warned_in', {guild: guild.id, name: Markup.escape.all(guild.name)}),
-      '',
-      dm.translate('moderation_mute.details', {reason: Markup.codeblock(details)}),
-      displayDetailsLine([
-        (1 < rule.warnings) && formatWarningWeight(dm, rule.warnings),
-        formatCounts(dm, counts),
-      ]),
-      (step) ? displayDetailsLine([
-        dm.translate('moderation_warn.auto_reached', {count: step.threshold.toLocaleString(dm.language)}),
-        formatWarningAction(dm, step),
-      ]) : '',
-    ].join('\n').trim());
-  } catch(error) {
-    // they have dms closed
+  if ((options.settings.settings.moderationDmDisabled & GuildModerationDmFlags.AUTOWARN) !== GuildModerationDmFlags.AUTOWARN) {
+    try {
+      const dm = await getTranslatorForUser(languageContext, member.id);
+      const details = [
+        dm.translate('moderation_mute.moderator', {user: formatUserTag(moderator), user2: moderator.id}),
+        dm.translate('moderation_mute.date', {timestamp: createTimestampMomentFromGuild(Date.now(), guild.id).format(DateMomentLogFormat)}),
+        dm.translate('moderation_mute.reason', {text: options.reason}),
+      ].join('\n');
+      await member.createMessage([
+        dm.translate('moderation_autowarn.you_have_been_warned_in', {guild: guild.id, name: Markup.escape.all(guild.name)}),
+        '',
+        dm.translate('moderation_mute.details', {reason: Markup.codeblock(details)}),
+        displayDetailsLine([
+          (1 < rule.warnings) && formatWarningWeight(dm, rule.warnings),
+          formatCounts(dm, counts),
+        ]),
+        (step) ? displayDetailsLine([
+          dm.translate('moderation_warn.auto_reached', {count: step.threshold.toLocaleString(dm.language)}),
+          formatWarningAction(dm, step),
+        ]) : '',
+      ].join('\n').trim());
+    } catch(error) {
+      // they have dms closed
+    }
   }
 
   const stepDone = (step) ? await runWarningStep(context, member, step, audit, options.reason) : false;

@@ -736,6 +736,7 @@ export async function editGuildSettings(
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponsesRaw.EditGuildSettings> {
   const body = {
+    ban_clean: options.banClean,
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
     blocked_until: options.blockedUntil,
@@ -743,6 +744,7 @@ export async function editGuildSettings(
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
+    moderation_dm_disabled: options.moderationDmDisabled,
     prefixes: options.prefixes,
     response_display: options.responseDisplay,
     rules_admin_bypass: options.rulesAdminBypass,

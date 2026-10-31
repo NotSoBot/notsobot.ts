@@ -1,4 +1,5 @@
 import { Interaction } from 'detritus-client';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { RestResponsesRaw } from '../../../../api/types';
 import { StatusEmojis } from '../../../../constants';
@@ -30,6 +31,12 @@ export class TagInfoCommand extends BaseInteractionCommandOption {
           required: true,
           value: Parameters.NotSoTag,
           onAutoComplete: Parameters.AutoComplete.tags,
+        },
+        {
+          name: 'nofile',
+          description: 'Show long content in pages instead of uploading a file',
+          ...I18n.optionLocalizations('commands.tag.info.nofile'),
+          type: ApplicationCommandOptionTypes.BOOLEAN,
         },
       ],
     });

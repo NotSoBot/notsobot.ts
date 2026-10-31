@@ -9,6 +9,7 @@ import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
+  Paginator,
   createTagDirectoryUrl,
   createUserString,
   displayReply,
@@ -22,12 +23,32 @@ export const COMMAND_ID = 'tag.info';
 const TAG_CONTENT_MAX_INLINE_LENGTH = 1000;
 
 export interface CommandArgs {
+  // page through long content instead of uploading it as a file
+  nofile?: boolean,
   tag: RestResponsesRaw.Tag,
 }
 
 // relative only to keep the line short, discord shows the full date when hovering it
 function formatTimestamp(value: string): string {
   return Markup.timestamp(Date.parse(value), MarkupTimestampStyles.RELATIVE);
+}
+
+// cut at the last line break in the second half of a page (the break itself is the page boundary), hard cut otherwise,
+// nothing else is trimmed so the pages together are the exact content
+function splitContent(content: string, size: number): Array<string> {
+  const pages: Array<string> = [];
+  while (size < content.length) {
+    const newline = content.lastIndexOf('\n', size);
+    if (size / 2 < newline) {
+      pages.push(content.slice(0, newline));
+      content = content.slice(newline + 1);
+    } else {
+      pages.push(content.slice(0, size));
+      content = content.slice(size);
+    }
+  }
+  pages.push(content);
+  return pages;
 }
 
 export async function createMessage(
@@ -40,6 +61,9 @@ export async function createMessage(
   const payload: DisplayPayload = {};
   payload.color = EmbedColors.DEFAULT;
   payload.title = tag.name;
+
+  // the content's codeblocks, only more than one with -nofile
+  let pages: Array<string> = [];
 
   // where the tag comes from goes in its own block between the tag info and the invoker line, so the content stays right under the title
   // plain text since embed footers (where embeds show it) don't render markdown, the title links to the directory page instead
@@ -61,14 +85,15 @@ export async function createMessage(
   } else if (tag.is_on_directory) {
     payload.url = createTagDirectoryUrl(tag.id);
     payload.note = translate('tag_info.tag_from_the_tag_directory');
-  } else if (TAG_CONTENT_MAX_INLINE_LENGTH < tag.content.length) {
+  } else if (TAG_CONTENT_MAX_INLINE_LENGTH < tag.content.length && !args.nofile) {
     const filename = tag.name.replace(/[^\w.+-]/g, '_').slice(0, 64);
     payload.files = [{filename: `${tag.id}.${filename}.txt`, value: tag.content}];
   } else {
-    payload.description = Markup.codeblock(tag.content);
+    pages = splitContent(tag.content, TAG_CONTENT_MAX_INLINE_LENGTH);
   }
 
   // two small lines under the content instead of a labelled line for each, nsfw only shows when it is
+  let details: string;
   {
     const owner = await fetchMemberOrUserById(context, tag.user.id);
     const first = [
@@ -85,8 +110,25 @@ export async function createMessage(
     }
     second.push(translate('tag_info.id', {tag: Markup.codestring(tag.id)}));
 
-    payload.description = [payload.description, `-# ${first.join(' • ')}`, `-# ${second.join(' • ')}`].filter(Boolean).join('\n');
+    details = `-# ${first.join(' • ')}\n-# ${second.join(' • ')}`;
   }
 
-  return displayReply(context, payload);
+  if (pages.length <= 1) {
+    payload.description = [(pages.length) ? Markup.codeblock(pages[0]) : null, details].filter(Boolean).join('\n');
+    return displayReply(context, payload);
+  }
+
+  const paginator = new Paginator(context, {
+    pageLimit: pages.length,
+    onPage: (pageNumber) => {
+      return {
+        display: {
+          ...payload,
+          description: `${Markup.codeblock(pages[pageNumber - 1])}\n${details}`,
+          footer: translate('common.page_of', {page: pageNumber, total: pages.length}),
+        },
+      };
+    },
+  });
+  return await paginator.start();
 }

@@ -164,6 +164,8 @@ export namespace RestOptions {
   }
 
   export interface EditGuildSettings {
+    // seconds, null resets it to 1 day
+    banClean?: number | null,
     blocked?: boolean,
     blockedReason?: null | string,
     blockedUntil?: null | string,
@@ -171,6 +173,8 @@ export namespace RestOptions {
     mlDiffusionModel?: string | null,
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
+    // `GuildModerationDmFlags` members don't get, null resets it to 0 (every dm)
+    moderationDmDisabled?: number | null,
     prefixes?: Array<string>,
     responseDisplay?: GuildSettingsResponseDisplayTypes | null,
     // null resets it to on
@@ -3003,9 +3007,11 @@ export namespace RestResponsesRaw {
     prefixes: Array<GuildPrefix>,
     rules: Array<GuildRule>,
     settings: {
+      ban_clean: number,
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
+      moderation_dm_disabled: number,
       response_display: number | null,
       rules_admin_bypass: boolean,
       search_provider_images: number | null,

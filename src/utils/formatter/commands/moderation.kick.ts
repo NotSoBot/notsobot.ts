@@ -2,7 +2,8 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from '../../../constants';
+import GuildSettingsStore from '../../../stores/guildsettings';
+import { DateMomentLogFormat, EmbedColors, GuildModerationDmFlags, PermissionsText, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
 import { DisplayPayload, DisplayReplyOptions, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
@@ -96,7 +97,7 @@ export async function createMessage(
   const guild = context.guild;
   // dm'd before any of the kicks, they can't get it once they don't share a server with the bot anymore
   const dms = new Map<string, Structures.Message>();
-  if (guild) {
+  if (guild && canEdit.length && await GuildSettingsStore.canModerationDm(context, guild.id, GuildModerationDmFlags.KICK)) {
     for (let member of canEdit) {
       try {
         // in their language (or the server's), not the moderator's

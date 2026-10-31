@@ -4,6 +4,7 @@ import { Collections, ShardClient, Structures } from 'detritus-client';
 
 import { deleteGuildLogger } from '../../api';
 import {
+  BAN_CLEAN_DEFAULT,
   GuildLoggerFlags,
   GuildLoggerTypes,
   GuildRuleActions,
@@ -332,9 +333,11 @@ export class GuildSettingsPrefix extends BaseStructure {
 
 
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
+  NotSoApiKeys.BAN_CLEAN,
   NotSoApiKeys.ML_DIFFUSION_MODEL,
   NotSoApiKeys.ML_LLM_MODEL,
   NotSoApiKeys.ML_LLM_PERSONALITY,
+  NotSoApiKeys.MODERATION_DM_DISABLED,
   NotSoApiKeys.MUSIC_DJ_ROLE_ID,
   NotSoApiKeys.RESPONSE_DISPLAY,
   NotSoApiKeys.RULES_ADMIN_BYPASS,
@@ -350,9 +353,13 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
 export class GuildSettingsChild extends BaseStructure {
   readonly _keys = keysGuildSettingsChild;
 
+  // seconds of a member's messages `ban` deletes when the moderator doesn't pick (0: none)
+  banClean: number = BAN_CLEAN_DEFAULT;
   mlDiffusionModel: null | string = null;
   mlLLMModel: null | string = null;
   mlLLMPersonality: null | string = null;
+  // the `GuildModerationDmFlags` members don't get dm'd about, 0: all of them
+  moderationDmDisabled: number = 0;
   // the role that makes someone a music dj (with manage server), null falls back to roles named "notsomusic"
   musicDjRoleId: null | string = null;
   // null uses each user's preference, then our latest format

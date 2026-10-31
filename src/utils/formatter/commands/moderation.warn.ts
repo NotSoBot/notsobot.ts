@@ -15,6 +15,7 @@ import {
   Markup,
 } from 'detritus-client/lib/utils';
 
+import GuildSettingsStore from '../../../stores/guildsettings';
 import { deleteGuildTimedBans, deleteGuildWarning, fetchGuildWarnings, putGuildWarnings } from '../../../api';
 import { getApiError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
@@ -23,6 +24,7 @@ import {
   ApiErrorCodes,
   DateMomentLogFormat,
   EmbedColors,
+  GuildModerationDmFlags,
   MAX_GUILD_WARNING_REASON_LENGTH,
   MAX_GUILD_WARNING_USER_AMOUNT,
   MAX_GUILD_WARNING_USERS,
@@ -63,8 +65,19 @@ export type WarnAction = 'ban' | 'kick' | 'mute';
 
 // what the duration field starts as, a ban emptied out is permanent
 const ACTION_DEFAULT_DURATIONS: Partial<Record<WarnAction, string>> = {ban: '7d', mute: '1h'};
-// what the delete messages field starts as, emptied out deletes none
-const ACTION_DEFAULT_CLEANS: Partial<Record<WarnAction, string>> = {ban: '1d'};
+// what the ban's delete messages field starts as (the server's `ban_clean`), in the biggest unit it fits so it reads like
+// what someone would type, emptied out deletes none
+export function formatCleanInput(seconds: number): string | undefined {
+  if (!seconds) {
+    return undefined;
+  }
+  for (let [ unit, size ] of [['d', 24 * 60 * 60], ['h', 60 * 60], ['m', 60]] as const) {
+    if (seconds % size === 0) {
+      return `${seconds / size}${unit}`;
+    }
+  }
+  return `${seconds}s`;
+}
 // discord only deletes messages from up to a week back
 const MAX_CLEAN = 7 * 24 * 60 * 60;
 
@@ -249,7 +262,7 @@ export async function createMessage(
   const dms = new Map<string, Structures.Message>();
   const sendDms = async (): Promise<void> => {
     const guild = context.guild;
-    if (!guild) {
+    if (!guild || !(await GuildSettingsStore.canModerationDm(context, guild.id, GuildModerationDmFlags.WARN))) {
       return;
     }
     const audit = await getGuildTranslator(context);
@@ -384,6 +397,7 @@ export async function createMessage(
   // any action stops the pages too, the warning stays on the page it was on without buttons
   const components = createActionComponents(context, translator, {
     added,
+    banClean: await GuildSettingsStore.getBanClean(context, context.guildId!),
     // an undo before they've all gone out waits for them
     getFollowUps: async () => {
       const done = await followUps;
@@ -464,6 +478,8 @@ function createActionComponents(
   options: {
     // the warnings just made
     added: Array<string>,
+    // what the ban modal's delete messages field starts as, the server's `ban_clean`
+    banClean: number,
     // the dms and the ladder steps that went through, once they're done
     getFollowUps: () => Promise<{automatic: Array<AutomaticAction>, dms: Array<Structures.Message>}>,
     members: Array<Structures.Member>,
@@ -473,7 +489,7 @@ function createActionComponents(
   },
 ): Components | null {
   const { translate } = translator;
-  const { added, getFollowUps, members, reason, stop } = options;
+  const { added, banClean, getFollowUps, members, reason, stop } = options;
   if (!members.length || !added.length) {
     return null;
   }
@@ -572,7 +588,7 @@ function createActionComponents(
         maxLength: 50,
         required: false,
         style: MessageComponentInputTextStyles.SHORT,
-        value: ACTION_DEFAULT_CLEANS[action],
+        value: (action === 'ban') ? formatCleanInput(banClean) : undefined,
       });
     }
     modal.createLabel({description: translate(reasonKey), label: translate('moderation_warn.reason')}).createInputText({
