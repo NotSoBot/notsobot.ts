@@ -4384,6 +4384,7 @@ export const Korean: Translations = Object.freeze({
   'moderation_warn.auto_clean': '메시지 {duration} 분량 삭제',
   'moderation_warn.auto_skipped_you': '건너뜀, {permission} 권한이 필요합니다',
   'moderation_warn.auto_skipped_me': '건너뜀, 봇에 {permission} 권한이 필요합니다',
+  'moderation_warn.auto_skipped_left': '건너뜀, 더 이상 서버에 없습니다',
   'moderation_warn.auto_reverted': '자동 뮤트 또는 차단도 해제되었습니다',
   'moderation_warn.undo_audit_reason': '{user}님이 경고를 취소했습니다',
   'moderation_autowarn.trigger_blocked_command': '차단된 명령어 사용',

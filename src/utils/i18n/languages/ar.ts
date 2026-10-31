@@ -4384,6 +4384,7 @@ export const Arabic: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'يحذف {duration} من رسائله',
   'moderation_warn.auto_skipped_you': 'تم التخطي، تحتاج إلى {permission}',
   'moderation_warn.auto_skipped_me': 'تم التخطي، أحتاج إلى {permission}',
+  'moderation_warn.auto_skipped_left': 'تم التخطي، لم يعودوا في الخادم',
   'moderation_warn.auto_reverted': 'تم رفع الإسكات أو الحظر التلقائي أيضًا',
   'moderation_warn.undo_audit_reason': 'تراجع {user} عن التحذير',
   'moderation_autowarn.trigger_blocked_command': 'استخدام أمر محظور',

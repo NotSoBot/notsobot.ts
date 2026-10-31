@@ -112,20 +112,22 @@ const ACTIONS: Record<WarnAction, {
   },
 };
 
+// users who left can be warned too, it's only kept on their record here
 export interface CommandArgsBefore {
-  payload: Parameters.BanPayloadMembersOnly | null,
+  payload: Parameters.BanPayload | null,
 }
 
 export interface CommandArgs {
-  payload: Parameters.BanPayloadMembersOnly,
+  payload: Parameters.BanPayload,
 }
 
 export type MemberCheckFailure = 'bot' | 'self' | 'your_role';
 
-// why this member can't be warned (or null if they can), a warning isn't a discord action so only the moderator's role matters
+// why this member can't be warned (or null if they can), a warning isn't a discord action so only the moderator's role
+// matters, and someone who left has no roles to be above
 export function checkMember(
   context: Command.Context | Interaction.InteractionContext,
-  member: Structures.Member,
+  member: Structures.Member | Structures.User,
 ): MemberCheckFailure | null {
   if ((context.me && context.me.id === member.id) || context.userId === member.id) {
     return 'self';
@@ -133,18 +135,22 @@ export function checkMember(
   if (member.bot) {
     return 'bot';
   }
-  if (!context.member || !context.member.canEdit(member)) {
+  if (member instanceof Structures.Member && (!context.member || !context.member.canEdit(member))) {
     return 'your_role';
   }
   return null;
 }
 
+function isMember(member: Structures.Member | Structures.User): member is Structures.Member {
+  return member instanceof Structures.Member;
+}
+
 // "Active: 2 • Total: 5", for a member's warnings
 // a ladder step's members (the ones whose warning reached it), and the permission that's missing if it can't be done:
-// the moderator's skips it for someone who can, the bot's too
+// the moderator's skips it for someone who can, the bot's too. A mute or kick also skips the ones who left (a ban doesn't)
 export interface AutomaticAction {
-  members: Array<Structures.Member>,
-  missing: null | {permission: bigint, who: 'me' | 'you'},
+  members: Array<Structures.Member | Structures.User>,
+  missing: null | {permission: bigint, who: 'me' | 'you'} | {who: 'left'},
   step: RestResponsesRaw.GuildWarningAction,
 }
 
@@ -187,7 +193,7 @@ export async function createMessage(
 
   const reason = payload.text.slice(0, MAX_GUILD_WARNING_REASON_LENGTH);
 
-  const warnable: Array<Structures.Member> = [];
+  const warnable: Array<Structures.Member | Structures.User> = [];
   const unable: Array<string> = [];
   for (let member of payload.membersOrUsers) {
     const failure = checkMember(context, member);
@@ -221,7 +227,7 @@ export async function createMessage(
             guildId: context.guildId!,
             happened: Date.now(),
             name: GuildLoggingCustomEvents.GUILD_WARNING_ADD,
-            payload: {counts: counts[member.id] || {active: 1, total: 1}, moderator: context.user, user: member.user, warning},
+            payload: {counts: counts[member.id] || {active: 1, total: 1}, moderator: context.user, user: (isMember(member)) ? member.user : member, warning},
           });
         }
       }
@@ -290,13 +296,17 @@ export async function createMessage(
     if (!step) {
       continue;
     }
-    const existing = automatic.find((x) => x.step.threshold === step.threshold);
+    // a mute or kick can't happen to someone who isn't here anymore, they get their own line
+    const left = step.action !== 'ban' && !isMember(member);
+    const existing = automatic.find((x) => {
+      return x.step.threshold === step.threshold && (!!x.missing && x.missing.who === 'left') === left;
+    });
     if (existing) {
       existing.members.push(member);
       continue;
     }
-    let missing: AutomaticAction['missing'] = null;
-    for (let permission of getWarningActionPermissions(step)) {
+    let missing: AutomaticAction['missing'] = (left) ? {who: 'left'} : null;
+    for (let permission of (missing) ? [] : getWarningActionPermissions(step)) {
       if (!context.member || !context.member.can(permission)) {
         missing = {permission, who: 'you'};
       } else if (!context.me || !context.me.can(permission)) {
@@ -323,12 +333,14 @@ export async function createMessage(
         reason,
       ].filter(Boolean).join(': ');
       const payload = {membersOrUsers: action.members, notFound: [], text};
+      // the ones who left went on their own (skipped) step, unless it's a ban
+      const membersPayload = {...payload, membersOrUsers: action.members.filter(isMember)};
       const options = {followUp: true};
       try {
         switch (step.action) {
           case 'ban': await ModerationBan.createMessage(context, {clean: step.clean, duration: step.duration ?? undefined, payload}, options); break;
-          case 'kick': await ModerationKick.createMessage(context, {clean: step.clean, payload}, options); break;
-          case 'mute': await ModerationMute.createMessage(context, {duration: step.duration ?? undefined, payload}, options); break;
+          case 'kick': await ModerationKick.createMessage(context, {clean: step.clean, payload: membersPayload}, options); break;
+          case 'mute': await ModerationMute.createMessage(context, {duration: step.duration ?? undefined, payload: membersPayload}, options); break;
         }
         done.push(action);
       } catch(error) {
@@ -357,7 +369,9 @@ export async function createMessage(
     }
     for (let { members, missing, step } of automatic) {
       let skipped: string | null = null;
-      if (missing) {
+      if (missing && missing.who === 'left') {
+        skipped = translate('moderation_warn.auto_skipped_left');
+      } else if (missing) {
         const permission = Markup.codestring(label('permissions', (PermissionsText as any)[String(missing.permission)]));
         skipped = translate((missing.who === 'you') ? 'moderation_warn.auto_skipped_you' : 'moderation_warn.auto_skipped_me', {permission});
       }
@@ -482,7 +496,7 @@ function createActionComponents(
     banClean: number,
     // the dms and the ladder steps that went through, once they're done
     getFollowUps: () => Promise<{automatic: Array<AutomaticAction>, dms: Array<Structures.Message>}>,
-    members: Array<Structures.Member>,
+    members: Array<Structures.Member | Structures.User>,
     reason: string,
     // the message's buttons go (or stay for the caller to replace the whole thing)
     stop: (clearButtons: boolean) => Promise<unknown>,
@@ -493,7 +507,12 @@ function createActionComponents(
   if (!members.length || !added.length) {
     return null;
   }
+  // a mute or kick needs them all still here, a ban doesn't
+  const allMembers = members.every(isMember);
   const actions = (Object.keys(ACTIONS) as Array<WarnAction>).filter((action) => {
+    if (action !== 'ban' && !allMembers) {
+      return false;
+    }
     const { permission } = ACTIONS[action];
     return !!context.member && context.member.can(permission) && !!context.me && context.me.can(permission);
   });
@@ -553,11 +572,13 @@ function createActionComponents(
     await stop(true).catch(() => null);
 
     const payload = {membersOrUsers: members, notFound: [], text: String(args.reason || '').trim()};
+    // only shown when they're all members
+    const membersPayload = {...payload, membersOrUsers: members.filter(isMember)};
     const options = {replyTo: modalContext};
     switch (action) {
       case 'ban': return ModerationBan.createMessage(context, {clean, duration, payload}, options);
-      case 'kick': return ModerationKick.createMessage(context, {clean, payload}, options);
-      case 'mute': return ModerationMute.createMessage(context, {duration, payload}, options);
+      case 'kick': return ModerationKick.createMessage(context, {clean, payload: membersPayload}, options);
+      case 'mute': return ModerationMute.createMessage(context, {duration, payload: membersPayload}, options);
     }
   };
 
@@ -643,7 +664,7 @@ function createActionComponents(
       for (let { members, step } of automatic) {
         for (let member of members) {
           try {
-            if (step.action === 'mute') {
+            if (step.action === 'mute' && isMember(member)) {
               await member.edit({communicationDisabledUntil: null, reason: undoReason});
               reverted = true;
             } else if (step.action === 'ban') {

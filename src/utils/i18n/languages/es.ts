@@ -4384,6 +4384,7 @@ export const Spanish: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'borra {duration} de sus mensajes',
   'moderation_warn.auto_skipped_you': 'omitido, necesitas {permission}',
   'moderation_warn.auto_skipped_me': 'omitido, necesito {permission}',
+  'moderation_warn.auto_skipped_left': 'omitido, ya no está en el servidor',
   'moderation_warn.auto_reverted': 'Su silencio o baneo automático también se quitó',
   'moderation_warn.undo_audit_reason': 'Advertencia deshecha por {user}',
   'moderation_autowarn.trigger_blocked_command': 'Usar un comando bloqueado',

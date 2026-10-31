@@ -4384,6 +4384,7 @@ export const Romanian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'șterge {duration} din mesajele lor',
   'moderation_warn.auto_skipped_you': 'omis, ai nevoie de {permission}',
   'moderation_warn.auto_skipped_me': 'omis, am nevoie de {permission}',
+  'moderation_warn.auto_skipped_left': 'omis, nu mai este pe server',
   'moderation_warn.auto_reverted': 'Amuțirea sau banul automat a fost ridicat și el',
   'moderation_warn.undo_audit_reason': 'Avertisment anulat de {user}',
   'moderation_autowarn.trigger_blocked_command': 'Folosirea unei comenzi blocate',

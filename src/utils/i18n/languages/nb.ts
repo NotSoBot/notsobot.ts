@@ -4384,6 +4384,7 @@ export const Norwegian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'sletter {duration} av meldingene deres',
   'moderation_warn.auto_skipped_you': 'hoppet over, du trenger {permission}',
   'moderation_warn.auto_skipped_me': 'hoppet over, jeg trenger {permission}',
+  'moderation_warn.auto_skipped_left': 'hoppet over, de er ikke på serveren lenger',
   'moderation_warn.auto_reverted': 'Den automatiske dempingen eller utestengelsen ble også opphevet',
   'moderation_warn.undo_audit_reason': 'Advarsel angret av {user}',
   'moderation_autowarn.trigger_blocked_command': 'Bruk av en blokkert kommando',

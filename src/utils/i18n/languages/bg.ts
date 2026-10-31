@@ -4384,6 +4384,7 @@ export const Bulgarian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'изтрива {duration} от съобщенията му',
   'moderation_warn.auto_skipped_you': 'пропуснато, нужно ти е {permission}',
   'moderation_warn.auto_skipped_me': 'пропуснато, нужно ми е {permission}',
+  'moderation_warn.auto_skipped_left': 'пропуснато, вече не са в сървъра',
   'moderation_warn.auto_reverted': 'Автоматичното заглушаване или бан също беше премахнато',
   'moderation_warn.undo_audit_reason': 'Предупреждението е отменено от {user}',
   'moderation_autowarn.trigger_blocked_command': 'Ползване на блокирана команда',

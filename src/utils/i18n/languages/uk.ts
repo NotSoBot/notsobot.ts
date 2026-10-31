@@ -4384,6 +4384,7 @@ export const Ukrainian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'видаляє {duration} їхніх повідомлень',
   'moderation_warn.auto_skipped_you': 'пропущено, потрібне право {permission}',
   'moderation_warn.auto_skipped_me': 'пропущено, мені потрібне право {permission}',
+  'moderation_warn.auto_skipped_left': 'пропущено, їх більше немає на сервері',
   'moderation_warn.auto_reverted': 'Автоматичний мют або бан теж знято',
   'moderation_warn.undo_audit_reason': 'Попередження скасував {user}',
   'moderation_autowarn.trigger_blocked_command': 'Використання заблокованої команди',

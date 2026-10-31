@@ -4384,6 +4384,7 @@ export const Turkish: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'mesajlarının {duration} kadarını siler',
   'moderation_warn.auto_skipped_you': 'atlandı, {permission} yetkisi gerekiyor',
   'moderation_warn.auto_skipped_me': 'atlandı, bana {permission} yetkisi gerekiyor',
+  'moderation_warn.auto_skipped_left': 'atlandı, artık sunucuda değil',
   'moderation_warn.auto_reverted': 'Otomatik susturma veya yasaklama da kaldırıldı',
   'moderation_warn.undo_audit_reason': 'Uyarıyı {user} geri aldı',
   'moderation_autowarn.trigger_blocked_command': 'Engelli bir komut kullanmak',

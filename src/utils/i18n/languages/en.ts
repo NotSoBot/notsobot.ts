@@ -4382,6 +4382,7 @@ export const English = Object.freeze({
   'moderation_warn.auto_clean': 'deletes {duration} of their messages',
   'moderation_warn.auto_skipped_you': 'skipped, you need {permission}',
   'moderation_warn.auto_skipped_me': 'skipped, I need {permission}',
+  'moderation_warn.auto_skipped_left': 'skipped, they\'re not in the server anymore',
   'moderation_warn.auto_reverted': 'Their automatic mute or ban was lifted too',
   'moderation_warn.undo_audit_reason': 'Warning undone by {user}',
   'moderation_autowarn.trigger_blocked_command': 'Using a blocked command',

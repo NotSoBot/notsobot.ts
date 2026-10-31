@@ -4384,6 +4384,7 @@ export const Polish: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'usuwa {duration} ich wiadomości',
   'moderation_warn.auto_skipped_you': 'pominięto, potrzebujesz {permission}',
   'moderation_warn.auto_skipped_me': 'pominięto, potrzebuję {permission}',
+  'moderation_warn.auto_skipped_left': 'pominięto, nie ma ich już na serwerze',
   'moderation_warn.auto_reverted': 'Automatyczne wyciszenie lub ban również zostały zdjęte',
   'moderation_warn.undo_audit_reason': 'Ostrzeżenie cofnięte przez {user}',
   'moderation_autowarn.trigger_blocked_command': 'Użycie zablokowanej komendy',

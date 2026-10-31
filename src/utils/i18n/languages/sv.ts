@@ -4384,6 +4384,7 @@ export const Swedish: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'raderar {duration} av deras meddelanden',
   'moderation_warn.auto_skipped_you': 'hoppades över, du behöver {permission}',
   'moderation_warn.auto_skipped_me': 'hoppades över, jag behöver {permission}',
+  'moderation_warn.auto_skipped_left': 'hoppades över, de är inte kvar på servern',
   'moderation_warn.auto_reverted': 'Deras automatiska tystning eller bannlysning hävdes också',
   'moderation_warn.undo_audit_reason': 'Varning ångrad av {user}',
   'moderation_autowarn.trigger_blocked_command': 'Använda ett blockerat kommando',

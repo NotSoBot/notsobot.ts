@@ -4384,6 +4384,7 @@ export const Lithuanian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'ištrina {duration} jų žinučių',
   'moderation_warn.auto_skipped_you': 'praleista, reikia {permission}',
   'moderation_warn.auto_skipped_me': 'praleista, man reikia {permission}',
+  'moderation_warn.auto_skipped_left': 'praleista, jų nebėra serveryje',
   'moderation_warn.auto_reverted': 'Automatinis nutildymas ar užblokavimas taip pat atšauktas',
   'moderation_warn.undo_audit_reason': 'Įspėjimą atšaukė {user}',
   'moderation_autowarn.trigger_blocked_command': 'Užblokuotos komandos naudojimas',

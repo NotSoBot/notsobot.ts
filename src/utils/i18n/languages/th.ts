@@ -4384,6 +4384,7 @@ export const Thai: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'ลบข้อความ {duration} ของพวกเขา',
   'moderation_warn.auto_skipped_you': 'ข้าม คุณต้องมีสิทธิ์ {permission}',
   'moderation_warn.auto_skipped_me': 'ข้าม บอทต้องมีสิทธิ์ {permission}',
+  'moderation_warn.auto_skipped_left': 'ข้าม ไม่ได้อยู่ในเซิร์ฟเวอร์แล้ว',
   'moderation_warn.auto_reverted': 'การปิดเสียงหรือแบนอัตโนมัติถูกยกเลิกด้วย',
   'moderation_warn.undo_audit_reason': '{user} ยกเลิกคำเตือน',
   'moderation_autowarn.trigger_blocked_command': 'ใช้คำสั่งที่ถูกบล็อก',

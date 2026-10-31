@@ -4384,6 +4384,7 @@ export const Indonesian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'menghapus {duration} pesan mereka',
   'moderation_warn.auto_skipped_you': 'dilewati, kamu perlu {permission}',
   'moderation_warn.auto_skipped_me': 'dilewati, aku perlu {permission}',
+  'moderation_warn.auto_skipped_left': 'dilewati, mereka sudah tidak ada di server',
   'moderation_warn.auto_reverted': 'Bisukan atau ban otomatis mereka juga dicabut',
   'moderation_warn.undo_audit_reason': 'Peringatan diurungkan oleh {user}',
   'moderation_autowarn.trigger_blocked_command': 'Memakai perintah yang diblokir',

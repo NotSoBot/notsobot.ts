@@ -4384,6 +4384,7 @@ export const Hindi: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'उनके {duration} के संदेश हटाता है',
   'moderation_warn.auto_skipped_you': 'छोड़ा गया, आपको {permission} चाहिए',
   'moderation_warn.auto_skipped_me': 'छोड़ा गया, मुझे {permission} चाहिए',
+  'moderation_warn.auto_skipped_left': 'छोड़ा गया, वे अब सर्वर में नहीं हैं',
   'moderation_warn.auto_reverted': 'उनका स्वचालित म्यूट या बैन भी हटा दिया गया',
   'moderation_warn.undo_audit_reason': '{user} ने चेतावनी वापस ली',
   'moderation_autowarn.trigger_blocked_command': 'ब्लॉक कमांड इस्तेमाल करना',

@@ -4384,6 +4384,7 @@ export const Finnish: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'poistaa {duration} heidän viestejään',
   'moderation_warn.auto_skipped_you': 'ohitettu, tarvitset {permission}',
   'moderation_warn.auto_skipped_me': 'ohitettu, tarvitsen {permission}',
+  'moderation_warn.auto_skipped_left': 'ohitettu, ei ole enää palvelimella',
   'moderation_warn.auto_reverted': 'Heidän automaattinen mykistys tai porttikielto poistettiin myös',
   'moderation_warn.undo_audit_reason': 'Varoituksen kumosi {user}',
   'moderation_autowarn.trigger_blocked_command': 'Estetyn komennon käyttö',

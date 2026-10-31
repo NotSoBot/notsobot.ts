@@ -4384,6 +4384,7 @@ export const Greek: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'διαγράφει {duration} από τα μηνύματά του',
   'moderation_warn.auto_skipped_you': 'παραλείφθηκε, χρειάζεσαι {permission}',
   'moderation_warn.auto_skipped_me': 'παραλείφθηκε, χρειάζομαι {permission}',
+  'moderation_warn.auto_skipped_left': 'παραλείφθηκε, δεν είναι πια στον διακομιστή',
   'moderation_warn.auto_reverted': 'Η αυτόματη σίγαση ή ο αποκλεισμός άρθηκε επίσης',
   'moderation_warn.undo_audit_reason': 'Η προειδοποίηση αναιρέθηκε από {user}',
   'moderation_autowarn.trigger_blocked_command': 'Χρήση αποκλεισμένης εντολής',

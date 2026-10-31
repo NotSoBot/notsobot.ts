@@ -46,7 +46,7 @@ export function checkMember(
   return null;
 }
 
-export function formatMember(member: Structures.Member): string {
+export function formatMember(member: Structures.Member | Structures.User): string {
   return `${member.mention} ${Markup.spoiler(`(${member})`)}`;
 }
 

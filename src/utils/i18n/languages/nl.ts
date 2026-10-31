@@ -4384,6 +4384,7 @@ export const Dutch: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'verwijdert {duration} van hun berichten',
   'moderation_warn.auto_skipped_you': 'overgeslagen, je hebt {permission} nodig',
   'moderation_warn.auto_skipped_me': 'overgeslagen, ik heb {permission} nodig',
+  'moderation_warn.auto_skipped_left': 'overgeslagen, niet meer in de server',
   'moderation_warn.auto_reverted': 'Hun automatische demping of ban is ook opgeheven',
   'moderation_warn.undo_audit_reason': 'Waarschuwing ongedaan gemaakt door {user}',
   'moderation_autowarn.trigger_blocked_command': 'Een geblokkeerd commando gebruiken',

@@ -4384,6 +4384,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'moderation_warn.auto_clean': '删除其 {duration} 内的消息',
   'moderation_warn.auto_skipped_you': '已跳过，你需要 {permission} 权限',
   'moderation_warn.auto_skipped_me': '已跳过，我需要 {permission} 权限',
+  'moderation_warn.auto_skipped_left': '已跳过，对方已不在服务器中',
   'moderation_warn.auto_reverted': '其自动禁言或封禁也已解除',
   'moderation_warn.undo_audit_reason': '{user} 撤销了警告',
   'moderation_autowarn.trigger_blocked_command': '使用被屏蔽的命令',

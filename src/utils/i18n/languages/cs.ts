@@ -4384,6 +4384,7 @@ export const Czech: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'smaže {duration} jeho zpráv',
   'moderation_warn.auto_skipped_you': 'přeskočeno, potřebuješ {permission}',
   'moderation_warn.auto_skipped_me': 'přeskočeno, potřebuji {permission}',
+  'moderation_warn.auto_skipped_left': 'přeskočeno, už nejsou na serveru',
   'moderation_warn.auto_reverted': 'Jeho automatické umlčení nebo ban byly také zrušeny',
   'moderation_warn.undo_audit_reason': 'Varování vrátil zpět {user}',
   'moderation_autowarn.trigger_blocked_command': 'Použití blokovaného příkazu',

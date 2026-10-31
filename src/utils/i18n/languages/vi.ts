@@ -4384,6 +4384,7 @@ export const Vietnamese: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'xóa {duration} tin nhắn của họ',
   'moderation_warn.auto_skipped_you': 'đã bỏ qua, bạn cần quyền {permission}',
   'moderation_warn.auto_skipped_me': 'đã bỏ qua, tôi cần quyền {permission}',
+  'moderation_warn.auto_skipped_left': 'đã bỏ qua, họ không còn ở trong máy chủ',
   'moderation_warn.auto_reverted': 'Lệnh tắt tiếng hoặc cấm tự động cũng đã được gỡ',
   'moderation_warn.undo_audit_reason': 'Cảnh cáo được {user} hoàn tác',
   'moderation_autowarn.trigger_blocked_command': 'Dùng lệnh bị chặn',

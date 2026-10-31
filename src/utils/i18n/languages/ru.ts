@@ -4384,6 +4384,7 @@ export const Russian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'удаляет {duration} их сообщений',
   'moderation_warn.auto_skipped_you': 'пропущено, нужно право {permission}',
   'moderation_warn.auto_skipped_me': 'пропущено, мне нужно право {permission}',
+  'moderation_warn.auto_skipped_left': 'пропущено, их больше нет на сервере',
   'moderation_warn.auto_reverted': 'Автоматический мут или бан тоже снят',
   'moderation_warn.undo_audit_reason': 'Предупреждение отменил {user}',
   'moderation_autowarn.trigger_blocked_command': 'Использование заблокированной команды',

@@ -4384,6 +4384,7 @@ export const Hungarian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'törli {duration} üzeneteit',
   'moderation_warn.auto_skipped_you': 'kihagyva, {permission} jog kell',
   'moderation_warn.auto_skipped_me': 'kihagyva, {permission} jog kell nekem',
+  'moderation_warn.auto_skipped_left': 'kihagyva, már nincs a szerveren',
   'moderation_warn.auto_reverted': 'Az automatikus némítás vagy kitiltás is fel lett oldva',
   'moderation_warn.undo_audit_reason': 'A figyelmeztetést visszavonta: {user}',
   'moderation_autowarn.trigger_blocked_command': 'Tiltott parancs használata',

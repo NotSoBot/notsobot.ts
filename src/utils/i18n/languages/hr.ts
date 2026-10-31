@@ -4384,6 +4384,7 @@ export const Croatian: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'briše {duration} njihovih poruka',
   'moderation_warn.auto_skipped_you': 'preskočeno, trebaš {permission}',
   'moderation_warn.auto_skipped_me': 'preskočeno, trebam {permission}',
+  'moderation_warn.auto_skipped_left': 'preskočeno, više nisu na serveru',
   'moderation_warn.auto_reverted': 'Njihovo automatsko utišavanje ili zabrana također su ukinuti',
   'moderation_warn.undo_audit_reason': 'Upozorenje poništio {user}',
   'moderation_autowarn.trigger_blocked_command': 'Korištenje blokirane naredbe',

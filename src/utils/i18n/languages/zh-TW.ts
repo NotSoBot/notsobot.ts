@@ -4384,6 +4384,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'moderation_warn.auto_clean': '刪除其 {duration} 內的訊息',
   'moderation_warn.auto_skipped_you': '已略過，你需要 {permission} 權限',
   'moderation_warn.auto_skipped_me': '已略過，我需要 {permission} 權限',
+  'moderation_warn.auto_skipped_left': '已略過，對方已不在伺服器中',
   'moderation_warn.auto_reverted': '其自動禁言或停權也已解除',
   'moderation_warn.undo_audit_reason': '{user} 撤銷了警告',
   'moderation_autowarn.trigger_blocked_command': '使用被封鎖的指令',

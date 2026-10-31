@@ -4384,6 +4384,7 @@ export const Hebrew: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'מוחק {duration} מההודעות שלו',
   'moderation_warn.auto_skipped_you': 'דולג, צריך {permission}',
   'moderation_warn.auto_skipped_me': 'דולג, אני צריך {permission}',
+  'moderation_warn.auto_skipped_left': 'דולג, הם כבר לא בשרת',
   'moderation_warn.auto_reverted': 'גם ההשתקה או ההרחקה האוטומטית בוטלו',
   'moderation_warn.undo_audit_reason': 'האזהרה בוטלה על ידי {user}',
   'moderation_autowarn.trigger_blocked_command': 'שימוש בפקודה חסומה',

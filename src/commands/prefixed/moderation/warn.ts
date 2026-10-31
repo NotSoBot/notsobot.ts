@@ -29,7 +29,7 @@ export default class WarnCommand extends BaseCommand {
         usage: '...?<user:id|mention> <reason:string>',
       },
       permissions: [Permissions.MODERATE_MEMBERS],
-      type: Parameters.banPayload({limit: MAX_GUILD_WARNING_USERS, membersOnly: true}),
+      type: Parameters.banPayload({limit: MAX_GUILD_WARNING_USERS}),
     });
   }
 

@@ -4384,6 +4384,7 @@ export const Japanese: Translations = Object.freeze({
   'moderation_warn.auto_clean': '{duration} 分のメッセージを削除',
   'moderation_warn.auto_skipped_you': 'スキップ、{permission} が必要です',
   'moderation_warn.auto_skipped_me': 'スキップ、ボットに {permission} が必要です',
+  'moderation_warn.auto_skipped_left': 'スキップ、サーバーにもういません',
   'moderation_warn.auto_reverted': '自動ミュートまたは BAN も解除されました',
   'moderation_warn.undo_audit_reason': '{user} が警告を取り消しました',
   'moderation_autowarn.trigger_blocked_command': 'ブロックされたコマンドの使用',

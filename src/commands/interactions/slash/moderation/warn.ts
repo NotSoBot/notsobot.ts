@@ -9,7 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 export interface CommandArgs {
   reason?: string,
-  users: Parameters.BanPayloadMembersOnly,
+  users: Parameters.BanPayload,
 }
 
 export const COMMAND_NAME = 'warn';
@@ -32,7 +32,7 @@ export class ModerationWarnCommand extends BaseInteractionCommandOption {
           description: 'Members to warn (Mentions or User IDs, separated by spaces)',
           ...I18n.optionLocalizations('commands.moderation.warn.users'),
           required: true,
-          value: Parameters.Slash.banPayload({limit: MAX_GUILD_WARNING_USERS, membersOnly: true}),
+          value: Parameters.Slash.banPayload({limit: MAX_GUILD_WARNING_USERS}),
         },
         {name: 'reason', description: 'Reason (sent to them)', ...I18n.optionLocalizations('commands.moderation.warn.reason')},
       ],

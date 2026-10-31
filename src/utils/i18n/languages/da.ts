@@ -4384,6 +4384,7 @@ export const Danish: Translations = Object.freeze({
   'moderation_warn.auto_clean': 'sletter {duration} af deres beskeder',
   'moderation_warn.auto_skipped_you': 'sprunget over, du skal have {permission}',
   'moderation_warn.auto_skipped_me': 'sprunget over, jeg skal have {permission}',
+  'moderation_warn.auto_skipped_left': 'sprunget over, de er ikke på serveren længere',
   'moderation_warn.auto_reverted': 'Deres automatiske mute eller udelukkelse blev også ophævet',
   'moderation_warn.undo_audit_reason': 'Advarsel fortrudt af {user}',
   'moderation_autowarn.trigger_blocked_command': 'Brug af en blokeret kommando',
