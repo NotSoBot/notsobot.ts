@@ -2,6 +2,7 @@ import { Collections, Command, CommandAttributes, CommandClient, GatewayClientEv
 import { ClientEvents, LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
 import { acknowledgeUserWarnings, fetchCommandsResponses } from './api';
+import { RestResponsesRaw } from './api/types';
 import { CommandResults, setCommandResult } from './commandresults';
 import { BaseInteractionCommand } from './commands/interactions/basecommand';
 import { replyWarning } from './commands/errors';
@@ -314,20 +315,27 @@ export class NotSoCommandClient extends CommandClient {
       }
       return;
     }
-    if (context.metadata.blockedByRule) {
-      this.autoWarnBlockedCommand(context, command.name).catch(() => null);
+    const AutoWarn = Formatter.Commands.ModerationAutowarn;
+    const autoWarnRule = (context.metadata.blockedByRule) ? this.resolveBlockedCommandAutoWarn(context) : null;
+    const deleteReplies = !!autoWarnRule && AutoWarn.deletesBlockedCommand(autoWarnRule);
+    if (deleteReplies) {
+      // nothing left to cancel, deleting the trigger shouldn't mark the blocked run as cancelled
+      untrackCommandRun(context);
+      AutoWarn.deleteTriggerLater(context.message);
+    }
+    // the rule's message, once per user in a channel every so often
+    let blockedMessage: null | string = null;
+    if (context.metadata.blockedMessage && context.canReply) {
+      const key = `${context.channelId}.${context.userId}`;
+      if (!blockedMessageReplies.has(key)) {
+        blockedMessageReplies.set(key, Date.now());
+        blockedMessage = context.metadata.blockedMessage;
+      }
+    }
+    if (autoWarnRule || blockedMessage) {
+      await this.replyBlockedCommand(context, command.name, autoWarnRule, blockedMessage).catch(() => null);
     }
     if (context.metadata.blockedMessage) {
-      const key = `${context.channelId}.${context.userId}`;
-      if (blockedMessageReplies.has(key) || !context.canReply) {
-        return;
-      }
-      blockedMessageReplies.set(key, Date.now());
-      try {
-        await replyWarning(context, context.metadata.blockedMessage);
-      } catch(error) {
-
-      }
       return;
     }
     if (!context.metadata.settingsFetchFailed) {
@@ -392,26 +400,65 @@ export class NotSoCommandClient extends CommandClient {
     }
   }
 
-  // the server's auto-warn for running a command its rules block for them, told in the channel (the dm might not get there)
-  async autoWarnBlockedCommand(context: Command.Context, commandName: string): Promise<void> {
+  // the server's auto-warn rule for a blocked command here, unless it skips them
+  resolveBlockedCommandAutoWarn(context: Command.Context): RestResponsesRaw.GuildWarningAuto | null {
     const AutoWarn = Formatter.Commands.ModerationAutowarn;
     const member = context.member;
     const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
-    if (!member || !settings) {
-      return;
+    if (!member || member.bot || !settings) {
+      return null;
     }
     const rule = AutoWarn.resolveGuildWarningAuto(settings, GuildWarningAutoTriggers.BLOCKED_COMMAND, context.channel || null, context.channelId);
-    if (!rule) {
-      return;
+    if (!rule || AutoWarn.isGuildWarningAutoExempt(settings, rule, member)) {
+      return null;
     }
-    const audit = await I18n.getGuildTranslator(context);
-    const reason = AutoWarn.createAutoWarnReason(audit, rule, {command: commandName});
-    const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule, settings});
-    if (result && context.canReply) {
-      await context.reply({
-        allowedMentions: {parse: [], users: [member.id]},
-        content: AutoWarn.formatAutoWarnNotice(audit, member, rule, result, reason),
+    return rule;
+  }
+
+  // one reply for a blocked command: the rule's message and the server's auto-warn notice (the dm might not get there),
+  // whichever of them there is. It goes with their message when the auto-warn rule deletes it
+  async replyBlockedCommand(
+    context: Command.Context,
+    commandName: string,
+    rule: RestResponsesRaw.GuildWarningAuto | null,
+    blockedMessage: null | string,
+  ): Promise<void> {
+    const AutoWarn = Formatter.Commands.ModerationAutowarn;
+    const member = context.member!;
+    let notice: null | string = null;
+    if (rule) {
+      try {
+        const settings = GuildSettingsStore.get(context.guildId!)!;
+        const audit = await I18n.getGuildTranslator(context);
+        const reason = AutoWarn.createAutoWarnReason(audit, rule, {command: commandName});
+        const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule, settings});
+        if (result) {
+          notice = AutoWarn.formatAutoWarnNotice(audit, member, rule, result, reason);
+        }
+      } catch(error) {
+        // the rule's message still goes out
+      }
+    }
+
+    let reply: Structures.Message | null = null;
+    if (blockedMessage) {
+      reply = await replyWarning(context, [blockedMessage, notice].filter(Boolean).join('\n\n'), {
+        allowedMentions: (notice) ? {users: [member.id]} : undefined,
       });
+    } else if (notice && context.canReply) {
+      reply = await context.reply({
+        allowedMentions: {parse: [], users: [member.id]},
+        content: notice,
+        messageReference: {
+          channelId: context.channelId,
+          failIfNotExists: false,
+          guildId: context.guildId,
+          messageId: context.messageId,
+        },
+      });
+    }
+    if (rule && AutoWarn.deletesBlockedCommand(rule)) {
+      AutoWarn.deleteWithTrigger(context.messageId, reply);
     }
   }
 

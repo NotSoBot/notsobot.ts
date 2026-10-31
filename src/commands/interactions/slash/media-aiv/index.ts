@@ -15,6 +15,7 @@ import { MediaAIVAndroidCommand } from './android';
 import { MediaAIVConcatCommand } from './concat';
 import { MediaAIVFadeInCommand } from './fade-in';
 import { MediaAIVFadeOutCommand } from './fade-out';
+import { MediaAIVFadeOverlayCommand } from './fade-overlay';
 import { MediaAIVInterpolateCommand } from './interpolate';
 import { MediaAIVJoinCommand } from './join';
 import { MediaAIVOverlayCommand } from './overlay';
@@ -53,6 +54,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
         new MediaAIVExtractGroupCommand(),
         new MediaAIVFadeInCommand(),
         new MediaAIVFadeOutCommand(),
+        new MediaAIVFadeOverlayCommand(),
         new MediaAIVInterpolateCommand(),
         new MediaAIVJoinCommand(),
         new MediaAIVOverlayCommand(),

@@ -701,6 +701,9 @@ export namespace RestOptions {
   export interface MediaAIVManipulationOverlay extends MediaBaseOptionsMultiple {
     blend?: number,
     color?: string,
+    fade?: boolean,
+    fadeDuration?: number,
+    fadeStart?: number,
     noloop?: boolean,
     opacity?: number,
     resize?: string,
@@ -1374,6 +1377,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationOffset extends MediaBaseOptions {
+    background?: string,
     x?: string,
     y?: string,
   }
@@ -2645,6 +2649,8 @@ export namespace RestResponsesRaw {
     // automod: the discord AutoMod rule, null for any of them (and for the other triggers)
     automod_rule_id?: string | null,
     channel_id: string | null,
+    // blocked_command: delete the blocked command's message, missing or null: yes (null for the other triggers)
+    delete_message?: boolean | null,
     // who this rule skips, on top of the server's
     exempt?: GuildWarningAutoExempt | null,
     // mentions: the most users and roles one message can mention, null for the others

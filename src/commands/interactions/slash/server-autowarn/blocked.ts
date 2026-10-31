@@ -1,5 +1,5 @@
 import { Interaction, Structures } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { GuildWarningAutoTriggers } from '../../../../constants';
 import { Formatter, I18n } from '../../../../utils';
@@ -11,6 +11,7 @@ import { channelOption, exemptOptions, warningsOption } from './shared';
 
 export interface CommandArgs {
   channel?: Structures.Channel | null,
+  delete?: boolean,
   'exempt-permissions'?: bigint,
   'exempt-roles'?: Array<Structures.Role>,
   warnings?: number,
@@ -31,6 +32,12 @@ export class ServerAutowarnBlockedCommand extends BaseInteractionCommandOption {
       options: [
         warningsOption('commands.autowarn.blocked'),
         channelOption('commands.autowarn.blocked'),
+        {
+          name: 'delete',
+          description: 'Delete their message and my reply after 10 seconds (Default: True)',
+          ...I18n.optionLocalizations('commands.autowarn.blocked.delete'),
+          type: ApplicationCommandOptionTypes.BOOLEAN,
+        },
         ...exemptOptions('commands.autowarn.blocked'),
       ],
     });
@@ -39,6 +46,7 @@ export class ServerAutowarnBlockedCommand extends BaseInteractionCommandOption {
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
     return Formatter.Commands.ModerationAutowarn.createSetMessage(context, {
       channel: args.channel || null,
+      deleteMessage: args.delete,
       exemptPermissions: args['exempt-permissions'],
       exemptRoles: args['exempt-roles'],
       trigger: GuildWarningAutoTriggers.BLOCKED_COMMAND,

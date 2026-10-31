@@ -32,6 +32,8 @@ export interface ErrorPayload {
 }
 
 export interface ErrorReplyOptions {
+  // nobody by default
+  allowedMentions?: Command.EditOrReply['allowedMentions'],
   ephemeral?: boolean,
 }
 
@@ -65,6 +67,7 @@ export async function replyError(
 ): Promise<any> {
   const { translate } = await I18n.getTranslator(context);
   return displayReply(context, {
+    allowedMentions: options.allowedMentions,
     color: EmbedColors.ERROR,
     description: payload.description,
     ephemeral: options.ephemeral,

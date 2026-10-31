@@ -2866,6 +2866,9 @@ export async function mediaAIVManipulationOverlay(
   const body = {
     blend: options.blend,
     color: options.color,
+    fade: options.fade,
+    fade_duration: options.fadeDuration,
+    fade_start: options.fadeStart,
     loop: !options.noloop,
     max_file_size: maxFileSize,
     opacity: options.opacity,
@@ -6564,6 +6567,7 @@ export async function mediaIVManipulationOffset(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    background: options.background,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,

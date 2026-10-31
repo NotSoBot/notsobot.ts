@@ -25,6 +25,7 @@ import { Parameters, createTimestampMomentFromGuild, displayDetailsLine, display
 import { GuildLoggingCustomEvents } from '../loggers';
 
 import { formatCounts, formatWarningAction, getWarningActionPermissions } from './moderation.warn';
+import { DM_OFF_VALUES, DM_ON_VALUES } from './settings.server.set.dms';
 
 
 export const COMMAND_ID = 'server.autowarn.list';
@@ -39,6 +40,9 @@ export const COMMAND_ID_REMOVE = 'server.autowarn.remove';
 export const AUTO_WARN_COOLDOWN = 10 * 1000;
 // how long a message stays warned for, an edit to it (which runs it through again) doesn't warn them twice
 export const AUTO_WARN_MESSAGE_MEMORY = 15 * 60 * 1000;
+
+// a blocked command rule's `delete_message`: how long their message and my replies to it stay up, like `undo`'s
+export const AUTO_WARN_DELETE_DELAY = 10 * 1000;
 
 // `guild id.user id.trigger` -> when they were last auto-warned for it
 const cooldowns = new Collections.BaseCollection<string, number>({expire: AUTO_WARN_COOLDOWN});
@@ -151,6 +155,66 @@ export function matchesGuildWarningAutoExempt(
 }
 
 // if auto-warn skips them for this rule, the server's exemption or the rule's own
+// blocked command rules delete by default, older rules don't have the field
+export function deletesBlockedCommand(rule: RestResponsesRaw.GuildWarningAuto): boolean {
+  return rule.trigger === GuildWarningAutoTriggers.BLOCKED_COMMAND && rule.delete_message !== false;
+}
+
+// trigger message id -> it and my replies to it, waiting out `AUTO_WARN_DELETE_DELAY`
+const pendingDeletes = new Map<string, Array<Structures.Message>>();
+
+// starts a blocked command's delay, my replies to it join with `deleteWithTrigger` and all go together
+export function deleteTriggerLater(trigger: Structures.Message): void {
+  if (pendingDeletes.has(trigger.id)) {
+    return;
+  }
+  pendingDeletes.set(trigger.id, [trigger]);
+  setTimeout(() => {
+    const messages = pendingDeletes.get(trigger.id) || [];
+    pendingDeletes.delete(trigger.id);
+    deleteMessages(messages).catch(() => null);
+  }, AUTO_WARN_DELETE_DELAY);
+}
+
+// a reply to a blocked command, deleted with it (or on its own delay when it came after the trigger was deleted)
+export function deleteWithTrigger(triggerId: string, message: Structures.Message | null | undefined): void {
+  if (!message) {
+    return;
+  }
+  const pending = pendingDeletes.get(triggerId);
+  if (pending) {
+    pending.push(message);
+  } else {
+    setTimeout(() => deleteMessages([message]).catch(() => null), AUTO_WARN_DELETE_DELAY);
+  }
+}
+
+// one bulk delete when I have manage messages (they're seconds old, well under its 14 days), otherwise each one I can
+// delete by itself (my own replies, theirs needs manage messages)
+async function deleteMessages(messages: Array<Structures.Message>): Promise<void> {
+  const deletable = messages.filter((message) => !message.deleted && message.canDelete);
+  if (!deletable.length) {
+    return;
+  }
+  const { channel, channelId, client } = deletable[0];
+  if (2 <= deletable.length && channel && channel.canManageMessages) {
+    try {
+      await client.rest.bulkDeleteMessages(channelId, deletable.map((message) => message.id));
+      return;
+    } catch(error) {
+      // fall back to deleting them one by one
+    }
+  }
+  for (let message of deletable) {
+    try {
+      await message.delete();
+    } catch(error) {
+
+    }
+  }
+}
+
+
 export function isGuildWarningAutoExempt(
   settings: GuildSettings,
   rule: RestResponsesRaw.GuildWarningAuto,
@@ -179,6 +243,21 @@ const PERMISSION_NAMES: Record<string, bigint> = (() => {
 
 // the values for clearing an exemption's roles or permissions
 export const NONE_VALUES = ['none', 'off', 'clear', 'nobody'];
+
+// what `autowarn blocked -delete` takes
+export function deleteParser(value: string, context: Command.Context | Interaction.InteractionContext): boolean | undefined {
+  const text = value.trim().toLowerCase();
+  if (!text) {
+    return undefined;
+  }
+  if (DM_ON_VALUES.includes(text)) {
+    return true;
+  }
+  if (DM_OFF_VALUES.includes(text)) {
+    return false;
+  }
+  throw new Error(getCachedTranslator(context).translate('moderation_autowarn.invalid_delete'));
+}
 
 export function exemptPermissionsParser(value: string, context: Command.Context | Interaction.InteractionContext): bigint | undefined {
   const text = value.trim();
@@ -295,6 +374,9 @@ export function formatGuildWarningAuto(
     describeGuildWarningAuto(translator.translate, rule, automodRuleNames),
     (rule.channel_id) ? `<#${rule.channel_id}>` : translator.translate('moderation_autowarn.anywhere'),
     formatWarningWeight(translator, rule.warnings),
+    (rule.trigger === GuildWarningAutoTriggers.BLOCKED_COMMAND) && translator.translate(
+      (deletesBlockedCommand(rule)) ? 'moderation_autowarn.deletes_message' : 'moderation_autowarn.keeps_message',
+    ),
   ]);
   if (!rule.exempt) {
     return line;
@@ -391,6 +473,8 @@ export interface SetArgs {
   automodRule?: AutomodRuleChoice,
   // null: anywhere
   channel: Structures.Channel | null,
+  // blocked_command: delete their message and my replies to it, undefined keeps what an existing rule had (on for a new one)
+  deleteMessage?: boolean,
   // who the rule skips (on top of the server's), undefined keeps what an existing rule had and empty clears it
   exemptPermissions?: bigint,
   exemptRoles?: Array<Structures.Role>,
@@ -450,7 +534,19 @@ export async function createSetMessage(
     // changing a rule keeps who it skipped unless that's given too
     const existing = rules.find(isSame);
     const exempt = createGuildWarningAutoExempt(existing && existing.exempt, args.exemptRoles, args.exemptPermissions);
-    rule = {automod_rule_id: automodRuleId, channel_id: channelId, exempt, limit, trigger: args.trigger, warnings};
+    let deleteMessage: boolean | null = null;
+    if (args.trigger === GuildWarningAutoTriggers.BLOCKED_COMMAND) {
+      deleteMessage = (args.deleteMessage === undefined) ? (!existing || deletesBlockedCommand(existing)) : args.deleteMessage;
+    }
+    rule = {
+      automod_rule_id: automodRuleId,
+      channel_id: channelId,
+      delete_message: deleteMessage,
+      exempt,
+      limit,
+      trigger: args.trigger,
+      warnings,
+    };
   }
 
   const { settings: updated } = await editGuildSettings(context, context.guildId!, {
@@ -471,6 +567,10 @@ export async function createSetMessage(
   // blocked commands only come from the server's rules
   if (rule && rule.trigger === GuildWarningAutoTriggers.BLOCKED_COMMAND && !settings.rules.some((x) => !x.allows)) {
     description.push(`-# ${translate('moderation_autowarn.no_block_rules')}`);
+  }
+  // without it only my own replies go, their message stays
+  if (rule && deletesBlockedCommand(rule) && !(context.me && context.me.can(Permissions.MANAGE_MESSAGES))) {
+    description.push(`-# ${translate('moderation_autowarn.delete_needs_manage_messages')}`);
   }
   return displayReply(context, {color: EmbedColors.DEFAULT, description: description.join('\n'), ephemeral: true});
 }

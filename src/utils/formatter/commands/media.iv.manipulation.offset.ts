@@ -20,6 +20,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 };
 
 export interface CommandArgs {
+  background?: string,
   x?: string,
   y?: string,
   url: string,

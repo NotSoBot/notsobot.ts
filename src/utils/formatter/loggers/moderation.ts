@@ -25,7 +25,8 @@ export function getWarningModerationLines(
   const { translate } = translator;
   const description: Array<string> = [`**${byText}**: ${createUserString(moderator.id, moderator)}`];
   if (reason) {
-    description.push(`**${translate('logger.reason')}**: ${Markup.codeblock(reason)}`);
+    // on its own line so the container keeps it a codeblock (`collapseCodeblock` only shortens one after a label)
+    description.push(`**${translate('logger.reason')}**:`, Markup.codeblock(reason));
   }
   description.push(displayDetailsLine(details, true));
   return description;

@@ -21,6 +21,7 @@ export class MediaIVToolsOffsetCommand extends BaseInteractionImageOrVideoComman
       options: [
         {name: 'x', description: 'X Offset', ...I18n.optionLocalizations('commands.media_iv_tools.offset.x')},
         {name: 'y', description: 'Y Offset', ...I18n.optionLocalizations('commands.media_iv_tools.offset.y')},
+        {name: 'background', description: 'Color, mostused or transparent to move without wrapping around', ...I18n.optionLocalizations('commands.media_iv_tools.offset.background')},
       ],
     });
   }
