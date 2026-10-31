@@ -26,6 +26,12 @@ export class TagRemoveTagCommand extends BaseInteractionCommandOption {
           value: Parameters.NotSoTag,
           onAutoComplete: Parameters.AutoComplete.tags,
         },
+        {
+          name: 'force',
+          description: 'Skip the Confirmation When Removing Someone Else\'s Tag',
+          ...I18n.optionLocalizations('commands.tag.remove.tag.force'),
+          type: Boolean,
+        },
       ],
     });
   }

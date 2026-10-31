@@ -18,7 +18,7 @@ import {
 import { deleteGuildTimedBans, deleteGuildWarning, fetchGuildWarnings, putGuildWarnings } from '../../../api';
 import { getApiError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
-import GuildLoggingStore from '../../../stores/guildlogging';
+import GuildLoggingListener from '../../../listeners/guildlogging';
 import {
   ApiErrorCodes,
   DateMomentLogFormat,
@@ -204,7 +204,7 @@ export async function createMessage(
       for (let warning of response.warnings) {
         const member = warnable.find((member) => member.id === warning.user_id);
         if (member) {
-          GuildLoggingStore.logModeration(context.client, {
+          GuildLoggingListener.logModeration(context.client, {
             guildId: context.guildId!,
             happened: Date.now(),
             name: GuildLoggingCustomEvents.GUILD_WARNING_ADD,
@@ -598,7 +598,7 @@ function createActionComponents(
       for (let id of added) {
         try {
           const warning = await deleteGuildWarning(context, context.guildId!, id);
-          GuildLoggingStore.logModeration(context.client, {
+          GuildLoggingListener.logModeration(context.client, {
             guildId: context.guildId!,
             happened: Date.now(),
             name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,

@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { deleteGuildTimedBans, editGuildSettings, putGuildTimedBans, putGuildWarnings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { RestResponsesRaw } from '../../../api/types';
-import GuildLoggingStore from '../../../stores/guildlogging';
+import GuildLoggingListener from '../../../listeners/guildlogging';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import {
   DateMomentLogFormat,
@@ -603,7 +603,7 @@ export async function runAutoWarn(
   const counts = response.counts[member.id] || {active: rule.warnings, total: rule.warnings};
   const step = (response.actions || {})[member.id] || null;
 
-  GuildLoggingStore.logModeration(context.client, {
+  GuildLoggingListener.logModeration(context.client, {
     guildId: guild.id,
     happened: Date.now(),
     name: GuildLoggingCustomEvents.GUILD_WARNING_ADD,

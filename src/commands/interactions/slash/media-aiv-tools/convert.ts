@@ -31,6 +31,11 @@ export class MediaAIVConvertCommand extends BaseInteractionMediaCommandOption {
           ...I18n.optionLocalizations('commands.media_aiv_tools.convert.noaudio'),
           type: Boolean,
         },
+        {
+          name: 'size',
+          description: 'WIDTHxHEIGHT or the Longest Side (e.g. 512 or 640x480)',
+          ...I18n.optionLocalizations('commands.media_aiv_tools.convert.size'),
+        },
       ],
     });
   }

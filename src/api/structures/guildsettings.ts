@@ -1,12 +1,9 @@
 import moment from 'moment';
 
 import { Collections, ShardClient, Structures } from 'detritus-client';
-import { DiscordAbortCodes } from 'detritus-client/lib/constants';
-import { RequestTypes } from 'detritus-client-rest';
 
 import { deleteGuildLogger } from '../../api';
 import {
-  EmbedBrands,
   GuildLoggerFlags,
   GuildLoggerTypes,
   GuildRuleActions,
@@ -298,43 +295,12 @@ export class GuildSettingsLogger extends BaseStructure {
     return (this.disabledEvents & flag) === flag;
   }
 
+  // sending through the webhook is `GuildLoggingListener.execute`, so `refresh -listeners` reloads it
   async delete(shard: ShardClient) {
     return deleteGuildLogger({client: shard}, this.guildId, {
       channelId: this.channelId,
       type: this.type,
     });
-  }
-
-  async execute(
-    shard: ShardClient,
-    options: RequestTypes.ExecuteWebhook | string = {},
-    compatibleType?: string,
-  ) {
-    if (!this.webhookId || !this.webhookToken) {
-      throw new Error('Webhook ID or Webhook Token missing');
-    }
-    // add checks that if this fails because it got deleted, delete it from the server
-    options = Object.assign({
-      avatarUrl: EmbedBrands.NOTSOBOT,
-      username: 'NotSoBot',
-    }, options);
-    // discord ignores webhook components unless `with_components=true` is in the query (even for webhooks we own)
-    if (typeof(options) === 'object' && options.components && !compatibleType) {
-      options.withComponents = true;
-    }
-    try {
-      return await shard.rest.executeWebhook(this.webhookId, this.webhookToken, options, compatibleType);
-    } catch(error) {
-      switch (error.code) {
-        case DiscordAbortCodes.INVALID_WEBHOOK_TOKEN:
-        case DiscordAbortCodes.UNKNOWN_WEBHOOK: {
-          return this.delete(shard);
-        };
-        default: {
-          throw error;
-        };
-      }
-    }
   }
 }
 

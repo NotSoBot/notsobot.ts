@@ -202,6 +202,11 @@ export async function locale(
   throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: locales.join(', ')}));
 }
 
+// for `.help` and the commands page (see `getArgChoices`)
+Object.assign(locale, {
+  choices: Object.entries(GoogleLocalesText).map(([value, description]) => ({description, value})),
+});
+
 
 const localeDiscordSearch = new MiniSearch({
   fields: ['id', 'key', 'name'],
@@ -1252,6 +1257,11 @@ export async function textToSpeechVoice(
   }
   return {voice};
 }
+
+// the built-in voices for `.help` and the commands page (see `getArgChoices`), cloned ones are per user
+Object.assign(textToSpeechVoice, {
+  choices: oneOfTextToSpeechVoices.choices.filter((choice) => choice.value !== TTSVoices.CLONED),
+});
 
 
 /* Discord Values */

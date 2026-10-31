@@ -34,6 +34,7 @@ import { Domains } from '../../../api/endpoints';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import { GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import { RestResponsesRaw } from '../../../api/types';
+import GuildLoggingListener from '../../../listeners/guildlogging';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserSettingsStore from '../../../stores/usersettings';
 import {
@@ -369,7 +370,7 @@ export async function postReportLog(
   // legacy and no embed both stay as embeds, same as the other loggers
   const componentsV2 = !!settings.settings && (settings.settings.responseDisplay ?? GuildSettingsResponseDisplayTypes.DEFAULT) === GuildSettingsResponseDisplayTypes.DEFAULT;
   const payload = createReportLogMessage(getReportLogTranslator(shard, report.guild_id), report, target, componentsV2);
-  const results = await Promise.allSettled(loggers.map((logger) => logger.execute(shard, {...payload, wait: true})));
+  const results = await Promise.allSettled(loggers.map((logger) => GuildLoggingListener.execute(shard, logger, {...payload, wait: true})));
   const messages: Array<RestResponsesRaw.GuildReportLogMessage> = [];
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
@@ -1020,7 +1021,7 @@ async function executeInReportThread(
   // a thread made from a message has the message's id
   const threadId = logMessage.message_id;
   try {
-    return await logger.execute(shard, {...create(true), threadId, wait: true});
+    return await GuildLoggingListener.execute(shard, logger, {...create(true), threadId, wait: true});
   } catch(error) {
     if (error.code !== DiscordAbortCodes.UNKNOWN_CHANNEL) {
       throw error;
@@ -1037,10 +1038,10 @@ async function executeInReportThread(
     }
     // no Create Public Threads there (or a channel that can't have them), so it goes in the channel
     if (error.code !== THREAD_ALREADY_CREATED) {
-      return logger.execute(shard, {...create(false), wait: true});
+      return GuildLoggingListener.execute(shard, logger, {...create(false), wait: true});
     }
   }
-  return logger.execute(shard, {...create(true), threadId, wait: true});
+  return GuildLoggingListener.execute(shard, logger, {...create(true), threadId, wait: true});
 }
 
 // "@moderator replied to the reporter" (or "The reporter, @member, replied") with the reply, in the server's display format

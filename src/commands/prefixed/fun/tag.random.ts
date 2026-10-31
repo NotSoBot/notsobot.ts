@@ -14,6 +14,11 @@ export default class TagRandomCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['t random'],
+      args: [
+        {name: 'content', type: Parameters.string({maxLength: 1000})},
+        {name: 'name', type: Parameters.string({maxLength: 64})},
+        {name: 'user', type: Parameters.memberOrUser({allowBots: false})},
+      ],
       label: 'arguments',
       metadata: {
         category: CommandCategories.TAGS,
@@ -22,7 +27,7 @@ export default class TagRandomCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.TagRandom.COMMAND_ID,
-        usage: '<...arguments>',
+        usage: '<...arguments> (-content <text>) (-name <text>) (-user <user:id|mention|name>)',
       },
     });
   }

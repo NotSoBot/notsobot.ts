@@ -50,23 +50,29 @@ function nameLocalizations(invoker: Interaction.InteractionCommand | Interaction
 }
 
 // a slash command's options in the same shape as a prefixed command's args, with no prefix and `required` set. names,
-// descriptions and choice labels carry their translations, the api picks the one for the site's language
-function slashArgs(invoker: Interaction.InteractionCommand | Interaction.InteractionCommandOption) {
+// descriptions and choice labels carry their translations, the api picks the one for the site's language. an
+// autocomplete option has no choices of its own, it lists the prefixed command's arg of the same name
+function slashArgs(
+  invoker: Interaction.InteractionCommand | Interaction.InteractionCommandOption,
+  prefixedChoices: Map<string, Array<Parameters.ArgChoice>>,
+  id: string,
+) {
   const args: Array<any> = [];
   if (invoker._options) {
     for (let [, option] of invoker._options) {
       if (option.isSubCommand || option.isSubCommandGroup) {
         continue;
       }
+      const choices = (option.choices || []).map((choice) => {
+        return {
+          description: choice.name,
+          description_localizations: I18n.translationsFromDiscordLocales(choice.nameLocalizations),
+          value: String(choice.value),
+        };
+      });
       args.push({
         aliases: [],
-        choices: (option.choices || []).map((choice) => {
-          return {
-            description: choice.name,
-            description_localizations: I18n.translationsFromDiscordLocales(choice.nameLocalizations),
-            value: String(choice.value),
-          };
-        }),
+        choices: (!choices.length && option.onAutoComplete) ? (prefixedChoices.get(`${id} ${option.name}`) || []) : choices,
         description: option.description || '',
         description_localizations: I18n.translationsFromDiscordLocales(option.descriptionLocalizations),
         name: option.name,
@@ -101,6 +107,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
 ) {
   const commands: Array<any> = [];
+  // a prefixed arg's choices by `id name` and `id label`, for the slash autocomplete options (see `slashArgs`)
+  const prefixedChoices = new Map<string, Array<Parameters.ArgChoice>>();
   if (context.commandClient) {
     for (let command of context.commandClient.commands) {
       if (!command.metadata || !command.metadata.category) {
@@ -157,6 +165,16 @@ export async function createMessage(
         type: CommandTypes.PREFIXED,
         usage: metadata.usage || '',
       });
+
+      // `.imagine -use` is `/imagine model`, its label
+      const id = metadata.id || name.split(' ').join('.');
+      for (let arg of args) {
+        const choices = Parameters.getArgChoices(arg);
+        if (choices.length) {
+          prefixedChoices.set(`${id} ${arg.name}`, choices);
+          prefixedChoices.set(`${id} ${arg.label}`, choices);
+        }
+      }
     }
   }
   const prefixedCategories = new Map<string, CommandCategories>();
@@ -199,7 +217,7 @@ export async function createMessage(
       const id = invoker.metadata.id || invoker.fullName.split(' ').join('.');
 
       commands.push({
-        args: slashArgs(invoker),
+        args: slashArgs(invoker, prefixedChoices, id),
         category: resolveInteractionCategory(id, invoker.metadata.category, prefixedCategories),
         credits: invoker.metadata.credits || [],
         enabled: true,

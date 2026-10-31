@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, MediaMemeFonts, MediaMemeFontsToText } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
@@ -18,6 +18,9 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'font', aliases: ['f'], type: Parameters.oneOf({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText})},
+      ],
       metadata: {
         category: CommandCategories.EFFECTS,
         description: 'Add Meme Text to an Image or Video',
@@ -26,7 +29,7 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} @NotSoBot what an idiot | lmao`,
         ],
         id: Formatter.Commands.MediaIVManipulationMeme.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> <...text>',
+        usage: '?<emoji,user:id|mention,url> <...text> (-font <choice>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

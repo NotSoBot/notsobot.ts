@@ -14,6 +14,7 @@ export default class ConvertCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       args: [
+        {name: 'noaudio', aliases: ['na'], type: Boolean},
         {name: 'size', aliases: ['s']},
       ],
       metadata: {
@@ -27,7 +28,7 @@ export default class ConvertCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 mov`,
         ],
         id: Formatter.Commands.MediaAIVManipulationConvert.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>)',
+        usage: '<emoji,user:id|mention,url> <...format> (-noaudio) (-size <number|(width)x(height)>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional()},

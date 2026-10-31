@@ -15,6 +15,7 @@ export default class RetroCommand extends BaseCommand {
 
       args: [
         {name: 'type', label: 'background'},
+        {name: 'textstyle', aliases: ['ts'], label: 'textStyle', type: Number, metadata: {description: '1 to 4'}},
       ],
       label: 'text',
       metadata: {
@@ -26,7 +27,7 @@ export default class RetroCommand extends BaseCommand {
           `${COMMAND_NAME} line1 | line2 | line3 -type 2`,
         ],
         id: Formatter.Commands.MediaICreateRetrowave.COMMAND_ID,
-        usage: '?<text> (-type <retro-type>)',
+        usage: '?<text> (-type <retro-type>) (-textstyle <1-4>)',
       },
     });
   }

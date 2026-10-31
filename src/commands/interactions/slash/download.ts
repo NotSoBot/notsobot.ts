@@ -63,6 +63,12 @@ export default class DownloadCommand extends BaseSlashCommand {
           ...I18n.optionLocalizations('commands.download.spoiler'),
           type: Boolean,
         },
+        {
+          name: 'locale',
+          description: 'Language to Fetch the Page in',
+          ...I18n.optionLocalizations('commands.download.locale'),
+          value: Parameters.locale,
+        },
       ],
     });
   }

@@ -7,7 +7,7 @@ import { Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { createPruneMessage } from './prune';
+import { MAX_MESSAGES_BEFORE_CONFIRMATION, createPruneMessage } from './prune';
 
 
 export const MAX_AMOUNT = 100;
@@ -102,6 +102,7 @@ export async function createCleanMessage(
     // `amount` is how many command uses to delete, each with all of its messages
     group: (message: Structures.Message) => getExecutionId(context, message),
     partialKey: 'prune.found_partial_commands',
+    skipConfirmationUpTo: MAX_MESSAGES_BEFORE_CONFIRMATION,
     filter: (message: Structures.Message) => {
       // our replies, including slash command/context menu/component responses
       if (message.author.id === userId) {

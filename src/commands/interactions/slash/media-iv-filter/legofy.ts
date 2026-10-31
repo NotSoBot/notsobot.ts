@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter, I18n } from '../../../../utils';
+import { MediaLegofyPalettes } from '../../../../constants';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
@@ -18,8 +19,8 @@ export class MediaIVLegofyCommand extends BaseInteractionImageOrVideoCommandOpti
   constructor() {
     super({
       options: [
-        // add palette
         {name: 'dither', description: 'Add Random Noise', ...I18n.optionLocalizations('commands.media_iv.fun.legofy.dither'), type: Boolean},
+        {name: 'palette', description: 'Lego Color Palette', ...I18n.optionLocalizations('commands.media_iv.fun.legofy.palette'), choices: Parameters.Slash.oneOf({choices: MediaLegofyPalettes})},
         {name: 'size', description: 'Size of each Lego Block', ...I18n.optionLocalizations('commands.media_iv.fun.legofy.size'), type: Number},
       ],
     });

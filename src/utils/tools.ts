@@ -1625,14 +1625,23 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 
 
 // a length of time in words (`7 days`, `1 hour, 30 minutes`) in the given language, zero units are left out
-export function formatDuration(ms: number, language: string): string {
+// `units` keeps only that many of the largest non-zero units (`2 days, 3 hours` instead of `2 days, 3 hours, 14 minutes, 5 seconds`)
+export function formatDuration(ms: number, language: string, units: number = 4): string {
   const seconds = Math.max(Math.round(ms / 1000), 0);
-  const duration = {
+  const duration: Record<'days' | 'hours' | 'minutes' | 'seconds', number> = {
     days: Math.floor(seconds / 86400),
     hours: Math.floor(seconds / 3600) % 24,
     minutes: Math.floor(seconds / 60) % 60,
     seconds: seconds % 60,
   };
+  let kept = 0;
+  for (const key of ['days', 'hours', 'minutes', 'seconds'] as const) {
+    if (kept >= units) {
+      duration[key] = 0;
+    } else if (duration[key] || kept) {
+      kept++;
+    }
+  }
   // without any units it would be an empty string
   return new Intl.DurationFormat(language, {style: 'long', secondsDisplay: (seconds) ? 'auto' : 'always'}).format(duration);
 }

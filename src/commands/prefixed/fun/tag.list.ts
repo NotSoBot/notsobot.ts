@@ -11,6 +11,9 @@ export interface CommandArgsBefore {
 }
 
 export interface CommandArgs {
+  content?: string,
+  global?: boolean,
+  name?: string,
   user: Structures.Member | Structures.User,
 }
 
@@ -22,6 +25,11 @@ export default class TagListCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['t list'],
+      args: [
+        {name: 'content', type: Parameters.string({maxLength: 1000})},
+        {name: 'global', type: Boolean},
+        {name: 'name', type: Parameters.string({maxLength: 64})},
+      ],
       default: DefaultParameters.authorOrReplyAuthor({allowBots: false}),
       label: 'user',
       metadata: {
@@ -33,7 +41,7 @@ export default class TagListCommand extends BaseCommand {
           `${COMMAND_NAME} <@439205512425504771>`,
         ],
         id: Formatter.Commands.TagListUser.COMMAND_ID,
-        usage: '?<user:id|mention|name>',
+        usage: '?<user:id|mention|name> (-content <text>) (-global) (-name <text>)',
       },
       type: Parameters.memberOrUser({allowBots: false}),
     });

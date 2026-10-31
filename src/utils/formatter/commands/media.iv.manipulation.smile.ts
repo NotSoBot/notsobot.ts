@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationFaceFeaturesExpressionMood } from '../../../api';
 import type { RestOptions } from '../../../api/types';
+import { MediaFaceSmileLevels } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
@@ -18,6 +19,8 @@ export const PREVIEW: RestOptions.CommandPreview = {
     'render img image/webp',
   ].join('\n'),
 };
+
+export const DEFAULT_LEVEL = MediaFaceSmileLevels.BIG;
 
 export interface CommandArgs {
   level?: string,

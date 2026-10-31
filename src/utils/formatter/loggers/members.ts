@@ -3,7 +3,7 @@ import { AuditLogActions, AuditLogChangeKeys, MAX_ATTACHMENT_SIZE } from 'detrit
 import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
 import { EmbedColors } from '../../../constants';
-import { createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
+import { createTimestampStringFromGuild, createUserEmbed, createUserString, formatDuration } from '../../../utils';
 
 import type { Translator } from '../../i18n';
 import {
@@ -125,7 +125,7 @@ export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMember
   footer: string,
   footerUnix: number,
   information: Array<string>,
-  joined: Array<JoinedTimestamp>,
+  joined: Array<string>,
   moderation: Array<string>,
   user: Structures.User | null,
 } {
@@ -177,12 +177,17 @@ export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMember
     information.push(`**${translate('info.guild.members')}**: ${(memberCount + 1).toLocaleString(language)} -> ${memberCount.toLocaleString(language)}`);
   }
 
-  const joined: Array<JoinedTimestamp> = [];
+  const timestamps: Array<JoinedTimestamp> = [];
   if (user) {
-    joined.push({title: translate('user.joined_discord'), unix: user.createdAtUnix});
+    timestamps.push({title: translate('user.joined_discord'), unix: user.createdAtUnix});
     if (member && member.joinedAtUnix) {
-      joined.push({title: translate('user.joined_guild'), unix: member.joinedAtUnix});
+      timestamps.push({title: translate('user.joined_guild'), unix: member.joinedAtUnix});
     }
+  }
+  const joined = createJoinedLines(timestamps);
+  if (user && member && member.joinedAtUnix) {
+    // measured to when they left, the relative timestamp above keeps counting from whenever the log is viewed
+    joined.push(`**${translate('logger.member.time_in_guild')}**: ${formatDuration(happened - member.joinedAtUnix, language, 2)}`);
   }
 
   return {footer, footerUnix: happened, information, joined, moderation, user};
@@ -215,7 +220,7 @@ export function formatGuildMemberRemove(
   }
   embed.addField(translate('common.information'), information.join('\n'), true);
   if (joined.length) {
-    embed.addField(translate('user.joined'), createJoinedLines(joined).join('\n'), true);
+    embed.addField(translate('user.joined'), joined.join('\n'), true);
   }
 }
 
@@ -237,7 +242,7 @@ export function formatGuildMemberRemoveComponents(
   addContainerHeader(container, [...createUserHeaderLines(userId, user, translator), ...information], (user) ? user.avatarUrlFormat(null, {size: 1024}) : null);
   addContainerBody(container, [
     {title: translate('logger.moderation_action'), lines: moderation},
-    {title: translate('user.joined'), lines: createJoinedLines(joined)},
+    {title: translate('user.joined'), lines: joined},
   ]);
   addContainerFooter(container, `${footer} • ${createFooterTimestamp(footerUnix)}`);
 }

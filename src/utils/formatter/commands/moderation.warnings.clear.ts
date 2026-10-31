@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildWarnings } from '../../../api';
 import { EmbedColors, MAX_GUILD_WARNING_USERS, StatusEmojis } from '../../../constants';
-import GuildLoggingStore from '../../../stores/guildlogging';
+import GuildLoggingListener from '../../../listeners/guildlogging';
 import { getTranslator } from '../../i18n';
 import { Parameters, displayReply } from '../../../utils';
 
@@ -43,7 +43,7 @@ export async function createMessage(
       const text = (memberOrUser instanceof Structures.Member) ? formatMember(memberOrUser) : `${memberOrUser.mention} ${Markup.spoiler(`(${memberOrUser})`)}`;
       const count = deleted[memberOrUser.id] || 0;
       if (count) {
-        GuildLoggingStore.logModeration(context.client, {
+        GuildLoggingListener.logModeration(context.client, {
           guildId: context.guildId!,
           happened: Date.now(),
           name: GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR,

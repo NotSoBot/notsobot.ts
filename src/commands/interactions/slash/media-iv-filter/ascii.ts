@@ -19,6 +19,7 @@ export class MediaIVAsciiCommand extends BaseInteractionImageOrVideoCommandOptio
     super({
       options: [
         {name: 'invert', description: 'Invert the Colors', ...I18n.optionLocalizations('commands.media_iv.fun.ascii.invert'), type: Boolean},
+        {name: 'zoom', description: 'Shrink the Frame First for Bigger Characters (Default: False)', ...I18n.optionLocalizations('commands.media_iv.fun.ascii.zoom'), type: Boolean},
       ],
     });
   }

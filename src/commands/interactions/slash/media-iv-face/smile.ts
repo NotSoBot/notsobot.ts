@@ -1,9 +1,12 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter, I18n } from '../../../../utils';
+import { MediaFaceSmileLevels } from '../../../../constants';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
+
+const DEFAULT_LEVEL = Formatter.Commands.MediaIVManipulationSmile.DEFAULT_LEVEL;
 
 export const COMMAND_NAME = 'smile';
 
@@ -15,6 +18,19 @@ export class MediaIVSmileCommand extends BaseInteractionImageOrVideoCommandOptio
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_6.mood.smile.name');
+
+  constructor() {
+    super({
+      options: [
+        {
+          name: 'level',
+          description: `Level (Default: ${DEFAULT_LEVEL})`,
+          ...I18n.optionLocalizations('commands.media_iv_6.mood.smile.level'),
+          choices: Parameters.Slash.oneOf({choices: MediaFaceSmileLevels, defaultChoice: DEFAULT_LEVEL}),
+        },
+      ],
+    });
+  }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationSmile.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationSmile.createMessage(context, args);

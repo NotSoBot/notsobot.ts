@@ -10,7 +10,16 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { DefaultParameters, I18n, Parameters, createTimestampMomentFromGuild, displayReply, formatUserForAuditLog } from '../../../utils';
+import {
+  DefaultParameters,
+  I18n,
+  Parameters,
+  createTimestampMomentFromGuild,
+  displayDetail,
+  displayDetailsLine,
+  displayReply,
+  formatUserForAuditLog,
+} from '../../../utils';
 
 import { formatPermissions, replyWarning } from '../../errors';
 import { BaseCommand } from '../basecommand';
@@ -161,6 +170,9 @@ export interface PruneOptions {
   group?: (message: Structures.Message) => string,
   // `prune.found_partial` but for when `amount` counts groups
   partialKey?: I18n.TranslationKey,
+  // delete without the continue/cancel confirmation when finding this many or fewer (and the whole range was walked),
+  // `prune` leaves it unset so it always asks
+  skipConfirmationUpTo?: number,
 }
 
 
@@ -278,6 +290,12 @@ export async function createPruneMessage(
   let reachedEnd = false;
   // set once `amount` is reached and nothing older can be part of what we've taken
   let reachedAmount = false;
+  // set when walking backwards hits the start of the channel, so a search with nothing found didn't stop early
+  let reachedStart = false;
+  // how many messages in the range were looked at, shown when nothing was found before we stopped searching
+  let checked = 0;
+  // the filters this prune was given, listed on the confirmation
+  let filters = '';
 
   isExecuting.prune = true;
   try {
@@ -300,6 +318,8 @@ export async function createPruneMessage(
     } else {
       before = snowflakeFromNow();
     }
+    // before the upper bound below fills in `before`, so only a given `before` (or the replied to message) is listed
+    filters = formatPruneFilters(context, args, channelId, translator);
     // always filter by the upper bound so `-after` (which walks forwards) never picks up the command message or anything newer
     if (!args.before) {
       args.before = before;
@@ -327,36 +347,8 @@ export async function createPruneMessage(
       }
     }
 
-    if (args.in) {
-      let messages = args.in.messages.toArray();
-      if (!after) {
-        messages = messages.reverse();
-      }
-
-      for (let message of messages) {
-        if (context instanceof Command.Context && message.id === context.messageId) {
-          continue;
-        }
-        // when walking backwards, everything past `until` is older, so stop
-        if (!after && until !== undefined && BigInt(message.id) < until) {
-          reachedUntil = true;
-          break;
-        }
-        if (isMatch(message) && counter.take(message)) {
-          if (canBulkDelete && shouldBulkDelete(message.createdAtUnix)) {
-            bulk.set(message.id, message);
-          } else {
-            manual.set(message.id, message);
-          }
-        }
-        before = message.id;
-        if ((after) ? counter.isFull : counter.isDone(message.id)) {
-          reachedAmount = true;
-          break;
-        }
-      }
-    }
-
+    // always fetch instead of walking the cached messages first, the cache is in insertion order (an edit re-caches an old
+    // message at the end) and has gaps from expiry, so hitting an old cached message would stop at `until` early
     let tries = 0;
     while (!reachedUntil && !reachedEnd && !reachedAmount && tries++ < MAX_FETCHES) {
       let messages: Array<Structures.Message>;
@@ -375,8 +367,11 @@ export async function createPruneMessage(
         const cache = await context.rest.fetchMessages(channelId, {before, limit: 100});
         messages = cache.toArray();
         // hit the start of the channel, so everything after `until` has been seen
-        if (until !== undefined && messages.length < 100) {
-          reachedUntil = true;
+        if (messages.length < 100) {
+          reachedStart = true;
+          if (until !== undefined) {
+            reachedUntil = true;
+          }
         }
       }
       if (!messages.length) {
@@ -388,6 +383,7 @@ export async function createPruneMessage(
           reachedUntil = true;
           break;
         }
+        checked++;
         if (isMatch(message) && counter.take(message)) {
           if (canBulkDelete && shouldBulkDelete(message.createdAtUnix)) {
             bulk.set(message.id, message);
@@ -426,7 +422,7 @@ export async function createPruneMessage(
   const isComplete = counter.isFull || reachedUntil || reachedEnd;
   const timeout = new Timers.Timeout();
   if (total) {
-    if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && isComplete) {
+    if (options.skipConfirmationUpTo !== undefined && total <= options.skipConfirmationUpTo && isComplete) {
       try {
         const message = await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})});
         const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
@@ -505,6 +501,9 @@ export async function createPruneMessage(
           requested: args.amount.toLocaleString(language),
         });
       }
+      if (filters) {
+        content += `\n${filters}`;
+      }
 
       const message = await displayReply(context, {components, description: content}).catch((error) => {
         isExecuting.prune = false;
@@ -520,7 +519,11 @@ export async function createPruneMessage(
     }
   } else {
     isExecuting.prune = false;
-    const message = await displayReply(context, {description: translate('prune.none'), ephemeral: true});
+    // say how far we looked when the search stopped (fetch limit or 2 week mark) before covering the whole range
+    const description = (isComplete || reachedStart) ? translate('prune.none') : translate('prune.none_partial', {
+      count: checked.toLocaleString(language),
+    });
+    const message = await displayReply(context, {description, ephemeral: true});
     clearMessages(timeout, messagesToClear(context, message));
   }
 }
@@ -571,6 +574,29 @@ export async function clearMessages(timeout: Timers.Timeout, messages: Array<Str
       resolve();
     });
   });
+}
+
+// a subtext line of the filters a prune was given, labeled with the localized slash option names
+export function formatPruneFilters(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+  channelId: string,
+  translator: I18n.Translator,
+): string {
+  const { translate } = translator;
+  const messageLink = (messageId: string) => `https://discord.com/channels/${context.guildId || '@me'}/${channelId}/${messageId}`;
+  return displayDetailsLine([
+    (args.from) && displayDetail(translate('commands.moderation.prune.from.name'), args.from.map((user) => user.mention).join(', ')),
+    (args.with) && displayDetail(translate('commands.moderation.prune.with.name'), Markup.codestring(args.with)),
+    (args.in && args.in.id !== context.channelId) && displayDetail(translate('commands.moderation.prune.in.name'), args.in.mention),
+    (args.after) && displayDetail(translate('commands.moderation.prune.after.name'), messageLink(args.after)),
+    (args.before) && displayDetail(translate('commands.moderation.prune.before.name'), messageLink(args.before)),
+    (args.until) && displayDetail(translate('commands.moderation.prune.until.name'), messageLink(args.until)),
+    (args.bots) && translate('commands.moderation.prune.bots.name'),
+    (args.attachments) && translate('commands.moderation.prune.attachments.name'),
+    (args.embeds) && translate('commands.moderation.prune.embeds.name'),
+    (args.images) && translate('commands.moderation.prune.images.name'),
+  ], true);
 }
 
 export function shouldBulkDelete(timestamp: number): boolean {

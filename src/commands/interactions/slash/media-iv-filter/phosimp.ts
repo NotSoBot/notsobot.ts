@@ -1,4 +1,5 @@
 import { Interaction } from 'detritus-client';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { Formatter, I18n, Parameters } from '../../../../utils';
 
@@ -20,6 +21,8 @@ export class MediaIVPhoSimpCommand extends BaseInteractionImageOrVideoCommandOpt
     super({
       options: [
         {name: 'filters', description: 'PhoSimp Filters, separated with space', ...I18n.optionLocalizations('commands.media_iv_3.fun.phosimp.filters'), value: Parameters.phosimpFilters},
+        {name: 'grid-x', description: 'Filter Grid Columns (1..16)', ...I18n.optionLocalizations('commands.media_iv_3.fun.phosimp.grid_x'), label: 'gridx', maxValue: 16, minValue: 1, type: ApplicationCommandOptionTypes.INTEGER},
+        {name: 'grid-y', description: 'Filter Grid Rows (1..16)', ...I18n.optionLocalizations('commands.media_iv_3.fun.phosimp.grid_y'), label: 'gridy', maxValue: 16, minValue: 1, type: ApplicationCommandOptionTypes.INTEGER},
       ],
     });
   }

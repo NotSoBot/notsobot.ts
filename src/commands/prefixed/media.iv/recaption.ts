@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, MediaMemeFonts, MediaMemeFontsToText } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
@@ -14,6 +14,7 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
+        {name: 'font', aliases: ['f'], type: Parameters.oneOf({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText})},
         {name: 'tolerance', aliases: ['t'], type: Number, metadata: {description: '0 to 255'}},
       ],
       metadata: {
@@ -24,7 +25,7 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} @NotSoBot what an idiot -tolerance 50`,
         ],
         id: Formatter.Commands.MediaIVManipulationRecaption.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...text> (-tolerance <number>)',
+        usage: '<emoji,user:id|mention,url> <...text> (-font <choice>) (-tolerance <number>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

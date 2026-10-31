@@ -8,6 +8,7 @@ export { default as BotGuildsListener } from './botguilds';
 export { default as ClusterInfoInterval } from './clusterinfointerval';
 export { default as ComponentsListener } from './components';
 export { default as EntitlementsListener } from './entitlements';
+export { default as GuildLoggingListener } from './guildlogging';
 export { default as MetricsInterval } from './metricsinterval';
 export { default as ReminderInterval } from './reminders';
 export { default as ReportMessagesListener } from './reportmessages';

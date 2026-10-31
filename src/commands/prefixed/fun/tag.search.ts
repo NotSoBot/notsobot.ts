@@ -7,11 +7,13 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
+  content?: string,
   name: string,
   user?: Structures.Member | Structures.User | null,
 }
 
 export interface CommandArgs {
+  content?: string,
   name: string,
   user?: Structures.Member | Structures.User,
 }
@@ -25,7 +27,8 @@ export default class TagSearchCommand extends BaseCommand {
 
       aliases: ['t search'],
       args: [
-        {name: 'user', type: Parameters.memberOrUser({allowBots: false})}
+        {name: 'content', type: Parameters.string({maxLength: 1000})},
+        {name: 'user', type: Parameters.memberOrUser({allowBots: false})},
       ],
       label: 'name',
       metadata: {
@@ -38,14 +41,14 @@ export default class TagSearchCommand extends BaseCommand {
           `${COMMAND_NAME} -user <@439205512425504771>`,
         ],
         id: Formatter.Commands.TagListServer.COMMAND_ID,
-        usage: '?<query> (-user ?<user:id|mention|name>)',
+        usage: '?<query> (-content <text>) (-user ?<user:id|mention|name>)',
       },
       type: Parameters.tagName,
     });
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return !!args.name || !!args.user;
+    return !!args.name || !!args.content || !!args.user;
   }
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {

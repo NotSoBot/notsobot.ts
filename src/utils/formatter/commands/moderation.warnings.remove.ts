@@ -5,7 +5,7 @@ import { deleteGuildWarning } from '../../../api';
 import { getApiError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import { ApiErrorCodes, EmbedColors, StatusEmojis } from '../../../constants';
-import GuildLoggingStore from '../../../stores/guildlogging';
+import GuildLoggingListener from '../../../listeners/guildlogging';
 import { getTranslator } from '../../i18n';
 import { displayReply, isSnowflake } from '../../../utils';
 
@@ -47,7 +47,7 @@ export async function createMessage(
     try {
       const warning = await deleteGuildWarning(context, context.guildId!, id);
       removed.push(warning);
-      GuildLoggingStore.logModeration(context.client, {
+      GuildLoggingListener.logModeration(context.client, {
         guildId: context.guildId!,
         happened: Date.now(),
         name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,

@@ -17,6 +17,14 @@ export class MediaIVToolsUncaptionCommand extends BaseInteractionImageOrVideoCom
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_tools.uncaption.name');
 
+  constructor() {
+    super({
+      options: [
+        {name: 'tolerance', description: 'White Color Tolerance (0..255) (Default: 35)', ...I18n.optionLocalizations('commands.media_iv_tools.uncaption.tolerance'), maxValue: 255, minValue: 0, type: ApplicationCommandOptionTypes.INTEGER},
+      ],
+    });
+  }
+
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationUncaption.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationUncaption.createMessage(context, args);
   }

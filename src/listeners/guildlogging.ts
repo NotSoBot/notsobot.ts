@@ -4,6 +4,7 @@ import {
   AuditLogChangeKeys,
   ClientEvents,
   DetritusKeys,
+  DiscordAbortCodes,
   DiscordKeys,
   MessageFlags,
 } from 'detritus-client/lib/constants';
@@ -11,13 +12,17 @@ import { Components, Embed } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 import { EventSubscription, Timers } from 'detritus-utils';
 
-import GuildSettingsStore from './guildsettings';
-import UserAvatarDecorationStore, { UserAvatarDecorationStored } from './useravatardecorations';
-import { Store } from './store';
-
 import type { GuildSettingsLogger } from '../api/structures/guildsettings';
-import { GuildLoggerFlags, GuildLoggerTypes, GuildSettingsResponseDisplayTypes, RedisChannels } from '../constants';
+import {
+  EmbedBrands,
+  GuildLoggerFlags,
+  GuildLoggerTypes,
+  GuildSettingsResponseDisplayTypes,
+  RedisChannels,
+} from '../constants';
 import { ApiEventsSpewer } from '../apievents';
+import GuildSettingsStore from '../stores/guildsettings';
+import UserAvatarDecorationStore, { UserAvatarDecorationStored } from '../stores/useravatardecorations';
 import { RedisPayloads } from '../types';
 import { Languages, languageFromLocale } from '../utils/i18n';
 import {
@@ -32,6 +37,8 @@ import {
   createLogPayload,
   getComponentsInfo,
 } from '../utils/formatter/loggers';
+
+import { Listener } from './listener';
 
 
 export interface GuildLogStorage {
@@ -74,8 +81,12 @@ export const MAX_QUEUE_LENGTH = 200;
 
 export const MAX_EMBED_SIZE = 6000;
 
-// <guildId, GuildLogStorage>
-class GuildLoggingStore extends Store<string, GuildLogStorage> {
+// a listener so `refresh -listeners` reloads the logging, the refresh keeps the old object's fields so `storage` (the
+// queued logs) survives it
+class GuildLoggingListener extends Listener {
+  // <guildId, GuildLogStorage>
+  storage = new Collections.BaseCollection<string, GuildLogStorage>();
+
   async add(guildId: string, type: GuildLoggerTypes, shard: ShardClient, event: GuildLoggingEventItem): Promise<void> {
     await Timers.sleep(250); // add a slight delay for the audit log to be populated
     const storage = this.getOrCreate(guildId, shard);
@@ -96,8 +107,8 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 
   getOrCreate(guildId: string, shard: ShardClient): GuildLogStorage {
     let storage: GuildLogStorage;
-    if (this.has(guildId)) {
-      storage = this.get(guildId) as GuildLogStorage;
+    if (this.storage.has(guildId)) {
+      storage = this.storage.get(guildId) as GuildLogStorage;
     } else {
       storage = {
         queues: new Collections.BaseCollection<GuildLoggerTypes, Array<GuildLoggingEventItem>>(),
@@ -105,13 +116,45 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         shard,
         timeout: new Timers.Timeout(),
       };
-      this.set(guildId, storage);
+      this.storage.set(guildId, storage);
     }
     return storage;
   }
 
+  async execute(
+    shard: ShardClient,
+    logger: GuildSettingsLogger,
+    options: RequestTypes.ExecuteWebhook | string = {},
+    compatibleType?: string,
+  ) {
+    if (!logger.webhookId || !logger.webhookToken) {
+      throw new Error('Webhook ID or Webhook Token missing');
+    }
+    options = Object.assign({
+      avatarUrl: EmbedBrands.NOTSOBOT,
+      username: 'NotSoBot',
+    }, options);
+    // discord ignores webhook components unless `with_components=true` is in the query (even for webhooks we own)
+    if (typeof(options) === 'object' && options.components && !compatibleType) {
+      options.withComponents = true;
+    }
+    try {
+      return await shard.rest.executeWebhook(logger.webhookId, logger.webhookToken, options, compatibleType);
+    } catch(error) {
+      switch (error.code) {
+        case DiscordAbortCodes.INVALID_WEBHOOK_TOKEN:
+        case DiscordAbortCodes.UNKNOWN_WEBHOOK: {
+          return logger.delete(shard);
+        };
+        default: {
+          throw error;
+        };
+      }
+    }
+  }
+
   startTimeout(guildId: string, delay: number = COLLECTION_TIME): void {
-    const storage = this.get(guildId);
+    const storage = this.storage.get(guildId);
     if (!storage) {
       return;
     }
@@ -143,7 +186,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
                 // each logger skips what it ignores
                 const kept = logPayloads.filter((logPayload, index) => !isEventIgnoredByLogger(logger, events[index]));
                 for (let payload of createWebhookPayloads(kept)) {
-                  promises.push(logger.execute(shard, payload));
+                  promises.push(this.execute(shard, logger, payload));
                 }
               }
             } else {
@@ -174,7 +217,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       } catch(error) {
         console.error(`Guild Logging failed for ${guildId}`, error);
       }
-      this.delete(guildId);
+      this.storage.delete(guildId);
     });
   }
 
@@ -852,7 +895,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
   }
 }
 
-export default new GuildLoggingStore();
+export default new GuildLoggingListener();
 
 
 // split the log payloads into webhook requests, keeping the order of the logs

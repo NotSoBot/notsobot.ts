@@ -23,6 +23,8 @@ export const CREDITS = [{id: '533042282903896085', name: 'KANJICODER', url: 'htt
 
 export interface CommandArgs {
   filters: Array<number>,
+  gridx?: number,
+  gridy?: number,
   url: string,
 }
 
