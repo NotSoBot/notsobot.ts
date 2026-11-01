@@ -61,6 +61,7 @@ export class ServerSettings extends BaseStructure {
 
 
 const keysServerSettingsChild = new Collections.BaseSet<string>([
+  NotSoApiKeys.MEDIA_FONT,
   NotSoApiKeys.ML_DIFFUSION_MODEL,
   NotSoApiKeys.ML_LLM_MODEL,
   NotSoApiKeys.ML_LLM_PERSONALITY,
@@ -69,6 +70,7 @@ const keysServerSettingsChild = new Collections.BaseSet<string>([
 export class ServerSettingsChild extends BaseStructure {
   readonly _keys = keysServerSettingsChild;
 
+  mediaFont: null | string = null;
   mlDiffusionModel: null | string = null;
   mlLLMModel: null | string = null;
   mlLLMPersonality: null | string = null;

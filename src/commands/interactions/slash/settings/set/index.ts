@@ -11,6 +11,7 @@ import { SettingsSetFallbacksMediaImageCommand } from './fallbacks-media-image';
 import { SettingsSetFileUploadThresholdCommand } from './file-upload-threshold';
 import { SettingsSetFileUploadTypeCommand } from './file-upload-type';
 import { SettingsSetFileVanityCommand } from './file-vanity';
+import { SettingsSetFontCommand } from './font';
 import { SettingsSetLocaleCommand } from './locale';
 import { SettingsSetMLImagineModelCommand } from './ml-imagine-model';
 import { SettingsSetResponseDisplayCommand } from './response-display';
@@ -38,6 +39,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new SettingsSetFileUploadThresholdCommand(),
         new SettingsSetFileUploadTypeCommand(),
         new SettingsSetFileVanityCommand(),
+        new SettingsSetFontCommand(),
         new SettingsSetLocaleCommand(),
         new SettingsSetMLImagineModelCommand(),
         new SettingsSetResponseDisplayCommand(),

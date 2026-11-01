@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MediaMemeFonts, MediaMemeFontsToText } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
@@ -19,7 +19,8 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'font', aliases: ['f'], type: Parameters.oneOf({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText})},
+        // a bundled font or a font file's link, an attached font file works too
+        {name: 'font', aliases: ['f'], type: Parameters.mediaFontOrUrl},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -29,7 +30,7 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} @NotSoBot what an idiot | lmao`,
         ],
         id: Formatter.Commands.MediaIVManipulationMeme.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> <...text> (-font <choice>)',
+        usage: '?<emoji,user:id|mention,url> <...text> (-font <choice or font url>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
@@ -49,7 +50,8 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
     return super.onCancelRun(context, args);
   }
 
-  run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationMeme.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationMeme.createMessage(context, args);
+  async run(context: Command.Context, args: Omit<Formatter.Commands.MediaIVManipulationMeme.CommandArgs, 'font'> & {font?: Parameters.MediaFontArgs}) {
+    const fontUrl = args.font?.fontUrl || await Parameters.fontFileUrl(context);
+    return Formatter.Commands.MediaIVManipulationMeme.createMessage(context, {...args, font: args.font?.font, fontUrl});
   }
 }

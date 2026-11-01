@@ -25,6 +25,8 @@ export const DEFAULT_FONT = MediaMemeFonts.IMPACT;
 
 export interface CommandArgs {
   font?: MediaMemeFonts,
+  // a font file of their own (a link or an attachment's), instead of `font`
+  fontUrl?: string,
   text: string,
   url: string,
 }

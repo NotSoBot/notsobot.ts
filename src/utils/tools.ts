@@ -624,6 +624,8 @@ export function findSearchCommandUrl(message: Structures.Message): null | string
 }
 
 
+const X_MEDIA_PREVIEW_URL_PREFIX = 'https://jf.x.com/images/media-preview/';
+
 export function findMediaUrlInEmbed(
   embed: Structures.MessageEmbed,
   ignoreGIFV: boolean = false,
@@ -647,6 +649,11 @@ export function findMediaUrlInEmbed(
       return embed.url;
     }
     return null;
+  }
+  // x.com gives discordbot a generated card for video/gif posts (a still with a play button drawn on it), not the media
+  // https://jf.x.com/images/media-preview/2116934542149697990, so use the post url and let the api's x downloader get it
+  if (embed.url && embed.image && embed.image.url && embed.image.url.startsWith(X_MEDIA_PREVIEW_URL_PREFIX)) {
+    return embed.url;
   }
   const { video } = embed;
   if (video && (video.height || video.width)) {

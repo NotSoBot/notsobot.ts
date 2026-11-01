@@ -24,6 +24,8 @@ import {
   GoogleLocales,
   GoogleLocalesText,
   GuildFeatures,
+  MediaMemeFonts,
+  MediaMemeFontsToText,
   Mimetypes,
   MimetypesToExtension,
   MLDiffusionModels,
@@ -92,6 +94,34 @@ const mlDiffusionModelSearch = new MiniSearch({
 mlDiffusionModelSearch.addAll(Object.values(MLDiffusionModels).map((value) => {
   return {id: value, name: MLDiffusionModelsToText[value] || value};
 }));
+
+const mediaMemeFontSearch = new MiniSearch({
+  fields: ['id', 'name'],
+  storeFields: ['id', 'name'],
+  searchOptions: {
+    boost: {name: 2},
+    fuzzy: true,
+    prefix: true,
+  },
+});
+mediaMemeFontSearch.addAll(Object.values(MediaMemeFonts).map((value) => {
+  return {id: value, name: MediaMemeFontsToText[value] || value};
+}));
+
+// the bundled fonts for the Default Font settings (fixed choices would count towards the command's size)
+export async function mediaMemeFont(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}>;
+  if (context.value) {
+    choices = mediaMemeFontSearch.search(context.value).slice(0, 25).map((result) => {
+      return {name: result.name, value: result.id};
+    });
+  } else {
+    choices = Object.values(MediaMemeFonts).map((value) => {
+      return {name: MediaMemeFontsToText[value] || value, value};
+    });
+  }
+  return context.respond({choices});
+}
 
 export async function mlDiffusionModel(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}>;

@@ -324,6 +324,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/flip',
   MEDIA_IV_MANIPULATION_FLOP:
     '/media/iv/manipulation/flop',
+  MEDIA_IV_MANIPULATION_GIGGLES:
+    '/media/iv/manipulation/giggles',
   MEDIA_IV_MANIPULATION_GLASS:
     '/media/iv/manipulation/glass',
   MEDIA_IV_MANIPULATION_GLITCH:

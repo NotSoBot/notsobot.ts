@@ -2189,6 +2189,14 @@ export async function mediaIVManipulationFlop(
 }
 
 
+export async function mediaIVManipulationGiggles(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationGiggles(context, options);
+}
+
+
 export async function mediaIVManipulationGlass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,

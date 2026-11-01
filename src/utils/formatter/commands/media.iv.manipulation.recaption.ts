@@ -25,6 +25,8 @@ export const PREVIEW: RestOptions.CommandPreview = {
 
 export interface CommandArgs {
   font?: MediaMemeFonts,
+  // a font file of their own (a link or an attachment's), instead of `font`
+  fontUrl?: string,
   text: string,
   tolerance?: number,
   url: string,
@@ -40,6 +42,7 @@ export async function createJob(
     bottom,
     file: args.file,
     font: args.font,
+    fontUrl: args.fontUrl,
     safe: args.safe || DefaultParameters.safe(context),
     tolerance: args.tolerance,
     top,

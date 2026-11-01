@@ -170,6 +170,8 @@ export namespace RestOptions {
     blockedReason?: null | string,
     blockedUntil?: null | string,
     locale?: string | null,
+    // a `MediaMemeFonts` name, null clears it
+    mediaFont?: string | null,
     mlDiffusionModel?: string | null,
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
@@ -197,6 +199,7 @@ export namespace RestOptions {
   export interface EditServerSettings {
     blocked?: boolean,
     blockedReason?: null | string,
+    mediaFont?: string | null,
     mlDiffusionModel?: string,
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
@@ -261,6 +264,7 @@ export namespace RestOptions {
     fileUploadThreshold?: null | UserSettingsUploadThresholdTypes,
     fileUploadType?: null | UserSettingsUploadTypes,
     locale?: null | string,
+    mediaFont?: null | string,
     mlDiffusionModel?: null | string,
     mlLLMMemoryDisabled?: boolean,
     mlLLMModel?: null | string,
@@ -1133,7 +1137,10 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationCaption extends MediaBaseOptions {
     bottom?: string,
+    // unset: the user's Default Font setting, then the server's, then the command's own (the api picks)
     font?: MediaMemeFonts,
+    // a font file of their own instead, checked and laid out in the api's font sandbox
+    fontUrl?: string,
     top?: string,
   }
 
@@ -1358,6 +1365,7 @@ export namespace RestOptions {
   export interface MediaIVManipulationMeme extends MediaBaseOptions {
     bottom?: string,
     font?: MediaMemeFonts,
+    fontUrl?: string,
     top: string,
   }
 
@@ -3014,6 +3022,7 @@ export namespace RestResponsesRaw {
     rules: Array<GuildRule>,
     settings: {
       ban_clean: number,
+      media_font: string | null,
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
@@ -4010,6 +4019,7 @@ export namespace RestResponsesRaw {
     blocked_reason: string | null,
     id: string,
     settings: {
+      media_font: string | null,
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
@@ -4298,6 +4308,7 @@ export namespace RestResponsesRaw {
     file_upload_type: number,
     file_upload_vanity: string | null,
     locale: string | null,
+    media_font: string | null,
     ml_diffusion_model: string | null,
     ml_llm_memory_disabled: boolean,
     ml_llm_model: string | null,

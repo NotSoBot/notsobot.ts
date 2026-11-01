@@ -334,6 +334,7 @@ export class GuildSettingsPrefix extends BaseStructure {
 
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.BAN_CLEAN,
+  NotSoApiKeys.MEDIA_FONT,
   NotSoApiKeys.ML_DIFFUSION_MODEL,
   NotSoApiKeys.ML_LLM_MODEL,
   NotSoApiKeys.ML_LLM_PERSONALITY,
@@ -355,6 +356,8 @@ export class GuildSettingsChild extends BaseStructure {
 
   // seconds of a member's messages `ban` deletes when the moderator doesn't pick (0: none)
   banClean: number = BAN_CLEAN_DEFAULT;
+  // a `MediaMemeFonts` name, caption/meme/recaption use it after the user's own (the api picks)
+  mediaFont: null | string = null;
   mlDiffusionModel: null | string = null;
   mlLLMModel: null | string = null;
   mlLLMPersonality: null | string = null;

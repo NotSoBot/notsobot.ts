@@ -36,6 +36,8 @@ import {
   GoogleLocales,
   GoogleLocalesText,
   MEDIA_HISTORY_LIMIT,
+  MediaMemeFonts,
+  MediaMemeFontsToText,
   TimezoneSearchPreferences,
   TimezonesToText,
   TTSVoices,
@@ -1174,6 +1176,47 @@ export async function targetTextWithParsedMentions(
 
 
 const oneOfTextToSpeechVoices = Prefixed.oneOf<TTSVoices>({choices: TTSVoices, descriptions: TTSVoicesToText});
+
+
+// the font files caption, meme and recaption take (the api checks the file itself, these only pick the attachment)
+export const FONT_FILE_EXTENSIONS = ['.ttf', '.otf', '.woff', '.woff2'];
+
+export interface MediaFontArgs {
+  font?: MediaMemeFonts,
+  fontUrl?: string,
+}
+
+const oneOfMediaMemeFonts = Prefixed.oneOf<MediaMemeFonts>({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText});
+
+// `-font` on caption, meme and recaption: a bundled font (like `oneOf`), or a link to a font file of their own. The
+// link is checked first, the fuzzy font search would match one to some font
+export const mediaFontOrUrl = Object.assign(
+  (value: string, context?: Command.Context | Interaction.InteractionContext): MediaFontArgs => {
+    const text = value.trim();
+    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, text) as {matches: Array<{text: string}>};
+    if (matches.length && matches[0].text === text) {
+      return {fontUrl: text};
+    }
+    return {font: oneOfMediaMemeFonts(text, context) ?? undefined};
+  },
+  {choices: oneOfMediaMemeFonts.choices},
+);
+
+// a font file attached to the command's message, or to the message it replies to
+export async function fontFileUrl(context: Command.Context): Promise<string | undefined> {
+  for (const message of [context.message, await fetchReplyMessage(context)]) {
+    if (!message) {
+      continue;
+    }
+    for (const extension of FONT_FILE_EXTENSIONS) {
+      const url = findFileUrlInMessage(message, extension);
+      if (url) {
+        return url;
+      }
+    }
+  }
+  return undefined;
+}
 
 // like the api's mediascript `find_tts_voice`: a voice's name in any case (spaces as `_`), or with `partial` the end of
 // exactly one voice's name compared on whole `_` parts (`sam` is Microsoft Sam, `elf` is SAM_ELF). the fuzzy search

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MediaMemeFonts, MediaMemeFontsToText } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
@@ -14,7 +14,8 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'font', aliases: ['f'], type: Parameters.oneOf({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText})},
+        // a bundled font or a font file's link, an attached font file works too
+        {name: 'font', aliases: ['f'], type: Parameters.mediaFontOrUrl},
         {name: 'tolerance', aliases: ['t'], type: Number, metadata: {description: '0 to 255'}},
       ],
       metadata: {
@@ -25,7 +26,7 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} @NotSoBot what an idiot -tolerance 50`,
         ],
         id: Formatter.Commands.MediaIVManipulationRecaption.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...text> (-font <choice>) (-tolerance <number>)',
+        usage: '<emoji,user:id|mention,url> <...text> (-font <choice or font url>) (-tolerance <number>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
@@ -45,7 +46,8 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
     return super.onCancelRun(context, args);
   }
 
-  run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationRecaption.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationRecaption.createMessage(context, args);
+  async run(context: Command.Context, args: Omit<Formatter.Commands.MediaIVManipulationRecaption.CommandArgs, 'font'> & {font?: Parameters.MediaFontArgs}) {
+    const fontUrl = args.font?.fontUrl || await Parameters.fontFileUrl(context);
+    return Formatter.Commands.MediaIVManipulationRecaption.createMessage(context, {...args, font: args.font?.font, fontUrl});
   }
 }

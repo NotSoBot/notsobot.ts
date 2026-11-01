@@ -182,6 +182,7 @@ import * as MediaIVManipulationFisheye from './media.iv.manipulation.fisheye';
 import * as MediaIVManipulationFlash from './media.iv.manipulation.flash';
 import * as MediaIVManipulationFlip from './media.iv.manipulation.flip';
 import * as MediaIVManipulationFlop from './media.iv.manipulation.flop';
+import * as MediaIVManipulationGiggles from './media.iv.manipulation.giggles';
 import * as MediaIVManipulationGlass from './media.iv.manipulation.glass';
 import * as MediaIVManipulationGlitch from './media.iv.manipulation.glitch';
 import * as MediaIVManipulationGlitchAnimated from './media.iv.manipulation.glitch.animated';
@@ -627,6 +628,7 @@ import * as SettingsAIMemoryList from './settings.ai.memory.list';
 import * as SettingsServerSetAIPersonality from './settings.server.set.ai.personality';
 import * as SettingsServerSetBanClean from './settings.server.set.ban.clean';
 import * as SettingsServerSetDms from './settings.server.set.dms';
+import * as SettingsServerSetFont from './settings.server.set.font';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetResponseDisplay from './settings.server.set.response.display';
 import * as SettingsServerSetSearchProvider from './settings.server.set.search.provider';
@@ -642,6 +644,7 @@ import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
 import * as SettingsSetFileUploadType from './settings.set.file.upload.type';
 import * as SettingsSetFileVanity from './settings.set.file.vanity';
+import * as SettingsSetFont from './settings.set.font';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
 import * as SettingsSetResponseDisplay from './settings.set.response.display';
@@ -901,6 +904,7 @@ export {
   MediaIVManipulationFlash,
   MediaIVManipulationFlip,
   MediaIVManipulationFlop,
+  MediaIVManipulationGiggles,
   MediaIVManipulationGlass,
   MediaIVManipulationGlitch,
   MediaIVManipulationGlitchAnimated,
@@ -1345,6 +1349,7 @@ export {
   SettingsServerSetAIPersonality,
   SettingsServerSetBanClean,
   SettingsServerSetDms,
+  SettingsServerSetFont,
   SettingsServerSetLocale,
   SettingsServerSetResponseDisplay,
   SettingsServerSetSearchProvider,
@@ -1360,6 +1365,7 @@ export {
   SettingsSetFileUploadThreshold,
   SettingsSetFileUploadType,
   SettingsSetFileVanity,
+  SettingsSetFont,
   SettingsSetLocale,
   SettingsSetMLImagineModel,
   SettingsSetResponseDisplay,

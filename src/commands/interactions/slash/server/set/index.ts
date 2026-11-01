@@ -5,6 +5,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { ServerSetAIPersonalityCommand } from './set.ai.personality';
 import { ServerSetBanCleanCommand } from './set.ban-clean';
 import { ServerSetDmsCommand } from './set.dms';
+import { ServerSetFontCommand } from './set.font';
 import { ServerSetLocaleCommand } from './set.locale';
 import { ServerSetResponseDisplayCommand } from './set.response-display';
 import { ServerSetSearchProviderCommand } from './set.search-provider';
@@ -24,6 +25,7 @@ export class ServerSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new ServerSetAIPersonalityCommand(),
         new ServerSetBanCleanCommand(),
         new ServerSetDmsCommand(),
+        new ServerSetFontCommand(),
         new ServerSetLocaleCommand(),
         new ServerSetResponseDisplayCommand(),
         new ServerSetSearchProviderCommand(),

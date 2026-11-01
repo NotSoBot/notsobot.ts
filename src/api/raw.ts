@@ -741,6 +741,7 @@ export async function editGuildSettings(
     blocked_reason: options.blockedReason,
     blocked_until: options.blockedUntil,
     locale: options.locale,
+    media_font: options.mediaFont,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
@@ -777,6 +778,7 @@ export async function editServerSettings(
   const body = {
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
+    media_font: options.mediaFont,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
@@ -979,6 +981,7 @@ export async function editUserSettings(
     file_upload_threshold: options.fileUploadThreshold,
     file_upload_type: options.fileUploadType,
     locale: options.locale,
+    media_font: options.mediaFont,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_memory_disabled: options.mlLLMMemoryDisabled,
     ml_llm_model: options.mlLLMModel,
@@ -4355,6 +4358,7 @@ export async function mediaIVManipulationCaption(
   const body = {
     bottom: options.bottom,
     font: options.font,
+    font_url: options.fontUrl,
     max_file_size: maxFileSize,
     safe: options.safe,
     top: options.top,
@@ -5476,6 +5480,27 @@ export async function mediaIVManipulationFlop(
 }
 
 
+export async function mediaIVManipulationGiggles(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_GIGGLES,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationGlass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -6393,6 +6418,7 @@ export async function mediaIVManipulationMeme(
   const query = {
     bottom: options.bottom,
     font: options.font,
+    font_url: options.fontUrl,
     max_file_size: maxFileSize,
     safe: options.safe,
     top: options.top,
@@ -11487,6 +11513,7 @@ export async function mediaIVManipulationRecaption(
   const body = {
     bottom: options.bottom,
     font: options.font,
+    font_url: options.fontUrl,
     max_file_size: maxFileSize,
     safe: options.safe,
     tolerance: options.tolerance,

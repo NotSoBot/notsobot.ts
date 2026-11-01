@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MediaMemeFonts, MediaMemeFontsToText } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
@@ -14,7 +14,8 @@ export default class CaptionCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'font', aliases: ['f'], type: Parameters.oneOf({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText})},
+        // a bundled font or a font file's link, an attached font file works too
+        {name: 'font', aliases: ['f'], type: Parameters.mediaFontOrUrl},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -23,7 +24,7 @@ export default class CaptionCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} @NotSoBot what an idiot`,
         ],
         id: Formatter.Commands.MediaIVManipulationCaption.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> <...text> (-font <choice>)',
+        usage: '?<emoji,user:id|mention,url> <...text> (-font <choice or font url>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
@@ -36,7 +37,8 @@ export default class CaptionCommand extends BaseImageOrVideoCommand {
     return !!args.text && super.onBeforeRun(context, args);
   }
 
-  run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCaption.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationCaption.createMessage(context, args);
+  async run(context: Command.Context, args: Omit<Formatter.Commands.MediaIVManipulationCaption.CommandArgs, 'font'> & {font?: Parameters.MediaFontArgs}) {
+    const fontUrl = args.font?.fontUrl || await Parameters.fontFileUrl(context);
+    return Formatter.Commands.MediaIVManipulationCaption.createMessage(context, {...args, font: args.font?.font, fontUrl});
   }
 }

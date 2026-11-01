@@ -1,4 +1,5 @@
-import { Interaction } from 'detritus-client';
+import { Interaction, Structures } from 'detritus-client';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { MediaMemeFonts, MediaMemeFontsToText } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
@@ -36,11 +37,20 @@ export class MediaIVMemeCommand extends BaseInteractionImageOrVideoCommandOption
             descriptions: MediaMemeFontsToText,
           }),
         },
+        {
+          name: 'font-file',
+          description: 'A font file of your own (.ttf, .otf, .woff, .woff2)',
+          ...I18n.optionLocalizations('commands.media_iv_text.font_file'),
+          label: 'fontFile',
+          type: ApplicationCommandOptionTypes.ATTACHMENT,
+        },
       ],
-    });
+    }, {skipFiles: Parameters.FONT_FILE_EXTENSIONS});
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationMeme.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationMeme.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationMeme.CommandArgs & {fontFile?: Structures.Attachment}) {
+    const { fontFile, ...rest } = args;
+    const fontUrl = (fontFile) ? fontFile.url || fontFile.proxyUrl || undefined : undefined;
+    return Formatter.Commands.MediaIVManipulationMeme.createMessage(context, {...rest, fontUrl});
   }
 }
