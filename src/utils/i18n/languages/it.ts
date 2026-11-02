@@ -2652,6 +2652,7 @@ export const Italian: Translations = Object.freeze({
   'errors.argument_title': 'Errore di argomento {label}',
   'errors.bot_missing_permissions': '{label} {command} richiede che il bot abbia {permissions} per funzionare.',
   'errors.cancel_run': '{label} {command} ha dato un errore strano, per favore invia una segnalazione agli sviluppatori.',
+  'errors.connection_lost': 'La connessione si è interrotta prima che arrivasse il risultato, prova a eseguirlo di nuovo.',
   'errors.dm_blocked': '{label} {command} non può essere usato nei DM.',
   'errors.field.details': 'Dettagli',
   'errors.field.metadata': 'Metadati',

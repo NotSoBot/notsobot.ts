@@ -3,9 +3,11 @@ import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { RequestTypes } from 'detritus-client-rest';
 import { RequestFile, Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
+import { Timers } from 'detritus-utils';
+import { Readable } from 'stream';
 
 import { Api, Domains } from './endpoints';
-import { IS_NOTSOBOT_API_ERROR } from './errors';
+import { IS_NOTSOBOT_API_ERROR, isConnectionDropError } from './errors';
 import { recordApiRequest } from '../metrics';
 import { RestOptions, RestResponsesRaw, RestResponses } from './types';
 
@@ -122,19 +124,43 @@ export async function request(
   }
 
   const route = (options.route && options.route.path) || 'unknown';
-  const started = Date.now();
-  try {
-    const response = await client.rest.request(options);
-    recordApiRequest(route, '2xx', started);
-    return response;
-  } catch(error) {
-    if (error && error.response) {
-      error[IS_NOTSOBOT_API_ERROR] = true;
+  const canRetry = isRetryable(options);
+  for (let attempt = 1; ; attempt++) {
+    const started = Date.now();
+    try {
+      const response = await client.rest.request(options);
+      recordApiRequest(route, '2xx', started);
+      return response;
+    } catch(error) {
+      if (error && error.response) {
+        error[IS_NOTSOBOT_API_ERROR] = true;
+      }
+      const status = (error && error.response) ? `${Math.floor(error.response.statusCode / 100)}xx` : 'error';
+      recordApiRequest(route, status, started);
+      if (canRetry && attempt < CONNECTION_DROP_ATTEMPTS && isConnectionDropError(error)) {
+        await Timers.sleep(CONNECTION_DROP_RETRY_DELAY);
+        continue;
+      }
+      throw error;
     }
-    const status = (error && error.response) ? `${Math.floor(error.response.statusCode / 100)}xx` : 'error';
-    recordApiRequest(route, status, started);
-    throw error;
   }
+}
+
+
+// a dropped connection gets one more try, the server usually finished it fine (the drop is between us and cloudflare)
+const CONNECTION_DROP_ATTEMPTS = 2;
+const CONNECTION_DROP_RETRY_DELAY = 500;
+
+// only requests that are fine to run twice: reads, and media routes (they just render, nothing is stored)
+// a stream can only be sent once, so those can't go again
+function isRetryable(options: RequestOptions): boolean {
+  const method = ((options.route && options.route.method) || options.method || '').toUpperCase();
+  const path = (options.route && options.route.path) || '';
+  if (method !== HTTPMethods.GET && method !== HTTPMethods.HEAD && !path.startsWith('/media/')) {
+    return false;
+  }
+  const values = [options.body, ...(options.files || []).map((file) => file.value)];
+  return !values.some((value) => value instanceof Readable);
 }
 
 

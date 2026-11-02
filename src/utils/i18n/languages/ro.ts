@@ -2652,6 +2652,7 @@ export const Romanian: Translations = Object.freeze({
   'errors.argument_title': 'Eroare de argument {label}',
   'errors.bot_missing_permissions': '{label} {command} necesită ca botul să aibă {permissions} ca să meargă.',
   'errors.cancel_run': '{label} {command} a dat o eroare ciudată, te rog trimite un raport dezvoltatorilor.',
+  'errors.connection_lost': 'Conexiunea s-a întrerupt înainte să vină rezultatul, încearcă să-l rulezi din nou.',
   'errors.dm_blocked': '{label} {command} nu poate fi folosită în MD.',
   'errors.field.details': 'Detalii',
   'errors.field.metadata': 'Metadate',

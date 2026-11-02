@@ -2652,6 +2652,7 @@ export const Croatian: Translations = Object.freeze({
   'errors.argument_title': '{label} – pogreška argumenta',
   'errors.bot_missing_permissions': '{label} {command} zahtijeva da bot ima {permissions} da bi radila.',
   'errors.cancel_run': '{label} {command} je čudno pukla, molimo pošalji prijavu developerima.',
+  'errors.connection_lost': 'Veza se prekinula prije nego što je stigao rezultat, pokušaj ponovno.',
   'errors.dm_blocked': '{label} {command} ne može se koristiti u izravnim porukama.',
   'errors.field.details': 'Detalji',
   'errors.field.metadata': 'Metapodaci',

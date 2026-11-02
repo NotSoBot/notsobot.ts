@@ -29,6 +29,8 @@ const CLOSE_TIMEOUT = 3 * 1000;
 // how long a node keeps our players playing after our websocket closes (we restarted), in seconds
 const RESUME_TIMEOUT = 120;
 const RECONNECT_DELAY = 2000;
+// the node closed our websocket because a newer process of this cluster resumed the session
+const NODE_CLOSE_REPLACED = 4000;
 // a node that's been down this long has its guilds moved to another node (failover)
 const FAILOVER_DELAY = 10 * 1000;
 // guilds moved at once in a failover, the rest wait so they spread over the nodes by their counts
@@ -312,9 +314,21 @@ export class NodeConnection {
           };
         }
       });
-      ws.on('close', () => {
+      ws.on('close', (code) => {
         clearTimeout(timeout);
         reject(new Error(`The voice node ${this.info.name} connection closed`));
+        if (this.ws === ws && code === NODE_CLOSE_REPLACED) {
+          // a newer process of this cluster resumed our session (we were stuck), its players are its now. reconnecting
+          // would take them back and the two of us would keep taking turns
+          console.warn(`voice node ${this.info.name} session was taken over by a newer process, not reconnecting`);
+          this.ws = null;
+          this.sessionId = null;
+          if (this.watchdog) {
+            clearInterval(this.watchdog);
+            this.watchdog = null;
+          }
+          return;
+        }
         if (this.ws === ws) {
           this.ws = null;
           this.failedAt = Date.now();

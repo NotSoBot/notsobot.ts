@@ -2652,6 +2652,7 @@ export const Swedish: Translations = Object.freeze({
   'errors.argument_title': '{label} Argumentfel',
   'errors.bot_missing_permissions': '{label} {command} kräver att boten har {permissions} för att fungera.',
   'errors.cancel_run': '{label} {command} fick ett konstigt fel, skicka en rapport till utvecklarna.',
+  'errors.connection_lost': 'Anslutningen bröts innan resultatet kom tillbaka, försök köra det igen.',
   'errors.dm_blocked': '{label} {command} kan inte användas i DM.',
   'errors.field.details': 'Detaljer',
   'errors.field.metadata': 'Metadata',

@@ -2652,6 +2652,7 @@ export const Hebrew: Translations = Object.freeze({
   'errors.argument_title': 'שגיאת ארגומנט ב{label}',
   'errors.bot_missing_permissions': '{label} {command} דורשת שלבוט יהיו {permissions} כדי לעבוד.',
   'errors.cancel_run': '{label} {command} נתקלה בשגיאה מוזרה, בבקשה שלח דיווח למפתחים.',
+  'errors.connection_lost': 'החיבור נותק לפני שהתוצאה הגיעה, נסה להריץ שוב.',
   'errors.dm_blocked': 'אי אפשר להשתמש ב{label} {command} בהודעה פרטית.',
   'errors.field.details': 'פרטים',
   'errors.field.metadata': 'מטא-דאטה',

@@ -2652,6 +2652,7 @@ export const Hindi: Translations = Object.freeze({
   'errors.argument_title': '{label} आर्ग्युमेंट एरर',
   'errors.bot_missing_permissions': '{label} {command} के काम करने के लिए बॉट के पास {permissions} होनी चाहिए।',
   'errors.cancel_run': '{label} {command} में अजीब एरर आया, कृपया डेवलपर्स को रिपोर्ट भेजें।',
+  'errors.connection_lost': 'नतीजा आने से पहले कनेक्शन टूट गया, इसे फिर से चलाकर देखें।',
   'errors.dm_blocked': '{label} {command} DM में इस्तेमाल नहीं किया जा सकता।',
   'errors.field.details': 'विवरण',
   'errors.field.metadata': 'मेटाडेटा',

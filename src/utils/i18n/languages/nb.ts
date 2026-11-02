@@ -2652,6 +2652,7 @@ export const Norwegian: Translations = Object.freeze({
   'errors.argument_title': '{label} argumentfeil',
   'errors.bot_missing_permissions': '{label} {command} krever at boten har {permissions} for å fungere.',
   'errors.cancel_run': '{label} {command} feilet på en merkelig måte, send gjerne en rapport til utviklerne.',
+  'errors.connection_lost': 'Forbindelsen ble brutt før resultatet kom tilbake, prøv å kjøre den på nytt.',
   'errors.dm_blocked': '{label} {command} kan ikke brukes i en DM.',
   'errors.field.details': 'Detaljer',
   'errors.field.metadata': 'Metadata',

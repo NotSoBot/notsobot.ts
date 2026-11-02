@@ -2652,6 +2652,7 @@ export const Polish: Translations = Object.freeze({
   'errors.argument_title': 'Błąd argumentu ({label})',
   'errors.bot_missing_permissions': '{label} {command} wymaga, żeby bot miał uprawnienia: {permissions}.',
   'errors.cancel_run': '{label} {command} wywaliła dziwny błąd, wyślij zgłoszenie do devów.',
+  'errors.connection_lost': 'Połączenie zostało zerwane, zanim wrócił wynik, spróbuj uruchomić ponownie.',
   'errors.dm_blocked': '{label} {command} nie może być używana w wiadomościach prywatnych.',
   'errors.field.details': 'Szczegóły',
   'errors.field.metadata': 'Metadane',

@@ -2652,6 +2652,7 @@ export const Turkish: Translations = Object.freeze({
   'errors.argument_title': '{label} Argüman Hatası',
   'errors.bot_missing_permissions': '{label} {command} çalışması için botun {permissions} iznine sahip olması gerekir.',
   'errors.cancel_run': '{label} {command} garip bir hata verdi, lütfen geliştiricilere bir rapor gönder.',
+  'errors.connection_lost': 'Sonuç gelmeden bağlantı koptu, tekrar çalıştırmayı dene.',
   'errors.dm_blocked': '{label} {command} DM\'de kullanılamaz.',
   'errors.field.details': 'Ayrıntılar',
   'errors.field.metadata': 'Meta Veri',

@@ -2652,6 +2652,7 @@ export const Russian: Translations = Object.freeze({
   'errors.argument_title': 'Ошибка аргумента ({label})',
   'errors.bot_missing_permissions': '{label} {command}: боту нужны права {permissions}.',
   'errors.cancel_run': '{label} {command}: произошла странная ошибка, пожалуйста, сообщите разработчикам.',
+  'errors.connection_lost': 'Соединение оборвалось до получения результата, попробуйте запустить ещё раз.',
   'errors.dm_blocked': '{label} {command} нельзя использовать в личных сообщениях.',
   'errors.field.details': 'Подробности',
   'errors.field.metadata': 'Метаданные',

@@ -2652,6 +2652,7 @@ export const French: Translations = Object.freeze({
   'errors.argument_title': 'Erreur d\'argument {label}',
   'errors.bot_missing_permissions': '{label} {command} nécessite que le bot ait {permissions} pour fonctionner.',
   'errors.cancel_run': '{label} {command} a planté bizarrement, envoie un rapport aux devs s\'il te plaît.',
+  'errors.connection_lost': 'La connexion a été perdue avant que le résultat n\'arrive, réessaie de le lancer.',
   'errors.dm_blocked': '{label} {command} ne peut pas être utilisé en MP.',
   'errors.field.details': 'Détails',
   'errors.field.metadata': 'Métadonnées',

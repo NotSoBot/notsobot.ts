@@ -2652,6 +2652,7 @@ export const Danish: Translations = Object.freeze({
   'errors.argument_title': '{label} argumentfejl',
   'errors.bot_missing_permissions': '{label} {command} kræver, at botten har {permissions} for at virke.',
   'errors.cancel_run': '{label} {command} fejlede mærkeligt, send venligst en rapport til udviklerne.',
+  'errors.connection_lost': 'Forbindelsen blev afbrudt, før resultatet kom tilbage, prøv at køre den igen.',
   'errors.dm_blocked': '{label} {command} kan ikke bruges i en DM.',
   'errors.field.details': 'Detaljer',
   'errors.field.metadata': 'Metadata',

@@ -2652,6 +2652,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'errors.argument_title': '{label}參數錯誤',
   'errors.bot_missing_permissions': '{label} {command} 需要機器人擁有 {permissions} 才能運作。',
   'errors.cancel_run': '{label} {command} 發生了奇怪的錯誤，請回報給開發者。',
+  'errors.connection_lost': '在傳回結果之前連線已中斷，請再執行一次。',
   'errors.dm_blocked': '{label} {command} 無法在私人訊息中使用。',
   'errors.field.details': '詳細資訊',
   'errors.field.metadata': '中繼資料',

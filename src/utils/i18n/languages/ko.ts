@@ -2652,6 +2652,7 @@ export const Korean: Translations = Object.freeze({
   'errors.argument_title': '{label} 인수 오류',
   'errors.bot_missing_permissions': '{label} {command}을(를) 사용하려면 봇에게 {permissions} 권한이 필요해요.',
   'errors.cancel_run': '{label} {command}에서 이상한 오류가 발생했어요. 개발자에게 신고해 주세요.',
+  'errors.connection_lost': '결과를 받기 전에 연결이 끊겼어요. 다시 실행해 보세요.',
   'errors.dm_blocked': '{label} {command}은(는) DM에서 사용할 수 없어요.',
   'errors.field.details': '세부 정보',
   'errors.field.metadata': '메타데이터',

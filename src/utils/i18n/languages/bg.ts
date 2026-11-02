@@ -2652,6 +2652,7 @@ export const Bulgarian: Translations = Object.freeze({
   'errors.argument_title': '{label} грешка в аргумент',
   'errors.bot_missing_permissions': '{label} {command} изисква ботът да има {permissions}, за да работи.',
   'errors.cancel_run': '{label} {command} даде странна грешка, моля, пратете доклад на разработчиците.',
+  'errors.connection_lost': 'Връзката прекъсна, преди да дойде резултатът, опитай да го пуснеш отново.',
   'errors.dm_blocked': '{label} {command} не може да се ползва в ЛС.',
   'errors.field.details': 'Подробности',
   'errors.field.metadata': 'Метаданни',

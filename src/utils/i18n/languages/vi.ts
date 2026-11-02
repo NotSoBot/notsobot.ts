@@ -2652,6 +2652,7 @@ export const Vietnamese: Translations = Object.freeze({
   'errors.argument_title': 'Lỗi tham số {label}',
   'errors.bot_missing_permissions': '{label} {command} cần bot có quyền {permissions} để hoạt động.',
   'errors.cancel_run': '{label} {command} gặp lỗi lạ, vui lòng gửi báo cáo cho dev.',
+  'errors.connection_lost': 'Mất kết nối trước khi nhận được kết quả, hãy thử chạy lại.',
   'errors.dm_blocked': '{label} {command} không thể dùng trong tin nhắn trực tiếp.',
   'errors.field.details': 'Chi tiết',
   'errors.field.metadata': 'Metadata',

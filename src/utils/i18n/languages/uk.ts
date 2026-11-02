@@ -2652,6 +2652,7 @@ export const Ukrainian: Translations = Object.freeze({
   'errors.argument_title': 'Помилка аргументу ({label})',
   'errors.bot_missing_permissions': '{label} {command}: боту потрібні права {permissions}.',
   'errors.cancel_run': '{label} {command}: сталася дивна помилка, будь ласка, повідомте розробникам.',
+  'errors.connection_lost': 'З’єднання обірвалося до отримання результату, спробуйте запустити ще раз.',
   'errors.dm_blocked': '{label} {command} не можна використовувати в особистих повідомленнях.',
   'errors.field.details': 'Подробиці',
   'errors.field.metadata': 'Метадані',

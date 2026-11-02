@@ -2652,6 +2652,7 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'errors.argument_title': 'Erro de argumento ({label})',
   'errors.bot_missing_permissions': '{label} {command} precisa que o bot tenha {permissions} para funcionar.',
   'errors.cancel_run': '{label} {command} deu um erro estranho, por favor envia um relatório aos devs.',
+  'errors.connection_lost': 'A ligação caiu antes de o resultado chegar, tenta executar novamente.',
   'errors.dm_blocked': '{label} {command} não pode ser usado numa DM.',
   'errors.field.details': 'Detalhes',
   'errors.field.metadata': 'Metadados',

@@ -5,7 +5,7 @@ import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
-import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, readErrorBody } from '../api/errors';
+import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, isConnectionDropError, readErrorBody } from '../api/errors';
 import { ApiErrorCodes, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
 import { I18n, displayReply, formatMemory } from '../utils';
 
@@ -266,6 +266,8 @@ export async function createRunErrorPayload(
     const message = String(error.message || error.stack);
     if (message.includes('reason: connect ECONNREFUSED 127.0.0.1:80')) {
       description = [translate('errors.api_restarting')];
+    } else if (isConnectionDropError(error)) {
+      description = [translate('errors.connection_lost')];
     } else {
       description = [message];
     }

@@ -37,6 +37,11 @@ export async function createMessage(
   const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const tagName = args.name || args.tag.name;
+  // a tag from your DMs can be an alias itself (from an earlier `tag get`), and aliases can't point at aliases,
+  // so add the tag it points at instead, still named after the alias
+  if (args.tag.reference_tag) {
+    args = {...args, tag: args.tag.reference_tag};
+  }
 
   if (isFromInteraction && !context.isFromGuildInstall && context.guildId && context.guildPartial) {
     // create server in database

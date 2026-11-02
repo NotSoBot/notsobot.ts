@@ -60,6 +60,26 @@ export async function isApiDownError(error: any): Promise<boolean> {
 }
 
 
+// the socket closed under us: a reused keep-alive connection the other side already closed, or one cut mid-response
+// somewhere between us and the server (cloudflare). timeouts are left out, trying again would just wait that long again
+const CONNECTION_DROP_CODES: ReadonlyArray<string> = ['ECONNRESET', 'EPIPE', 'UND_ERR_CLOSED', 'UND_ERR_SOCKET'];
+
+// undici's fetch says `fetch failed` (before the response) or `terminated` (while reading the body) with the socket
+// error as the `cause`, so dig through those too
+export function isConnectionDropError(error: any, depth: number = 0): boolean {
+  if (!error || typeof(error) !== 'object' || error.response || 5 < depth) {
+    return false;
+  }
+  if (typeof(error.code) === 'string' && CONNECTION_DROP_CODES.includes(error.code)) {
+    return true;
+  }
+  if (error instanceof TypeError && error.message === 'terminated') {
+    return true;
+  }
+  return isConnectionDropError(error.cause, depth + 1);
+}
+
+
 // `if (await isApiError(error, ApiErrorCodes.UNKNOWN_TAG)) {...}`
 export async function isApiError(error: any, ...codes: Array<ApiErrorCodes>): Promise<boolean> {
   const information = await getApiError(error);

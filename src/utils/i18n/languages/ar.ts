@@ -2652,6 +2652,7 @@ export const Arabic: Translations = Object.freeze({
   'errors.argument_title': 'خطأ في وسيط {label}',
   'errors.bot_missing_permissions': '{label} {command} يتطلب أن يملك البوت {permissions} ليعمل.',
   'errors.cancel_run': '{label} {command} واجه خطأ غريبًا، يرجى إرسال بلاغ إلى المطورين.',
+  'errors.connection_lost': 'انقطع الاتصال قبل وصول النتيجة، حاول تشغيله مرة أخرى.',
   'errors.dm_blocked': 'لا يمكن استخدام {label} {command} في الرسائل الخاصة.',
   'errors.field.details': 'التفاصيل',
   'errors.field.metadata': 'البيانات الوصفية',

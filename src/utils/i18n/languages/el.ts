@@ -2652,6 +2652,7 @@ export const Greek: Translations = Object.freeze({
   'errors.argument_title': 'Σφάλμα ορίσματος {label}',
   'errors.bot_missing_permissions': '{label} Το {command} χρειάζεται το bot να έχει {permissions} για να δουλέψει.',
   'errors.cancel_run': '{label} Το {command} έβγαλε περίεργο σφάλμα, στείλε μια αναφορά στους devs.',
+  'errors.connection_lost': 'Η σύνδεση χάθηκε πριν έρθει το αποτέλεσμα, δοκίμασε να το τρέξεις ξανά.',
   'errors.dm_blocked': '{label} Το {command} δεν μπορεί να χρησιμοποιηθεί σε DM.',
   'errors.field.details': 'Λεπτομέρειες',
   'errors.field.metadata': 'Μεταδεδομένα',

@@ -2652,6 +2652,7 @@ export const Czech: Translations = Object.freeze({
   'errors.argument_title': '{label} – chyba argumentu',
   'errors.bot_missing_permissions': '{label} {command} vyžaduje, aby bot měl {permissions}.',
   'errors.cancel_run': '{label} {command} skončil podivnou chybou, pošli prosím hlášení vývojářům.',
+  'errors.connection_lost': 'Spojení se přerušilo dřív, než dorazil výsledek, zkus to spustit znovu.',
   'errors.dm_blocked': '{label} {command} nejde použít v DM.',
   'errors.field.details': 'Podrobnosti',
   'errors.field.metadata': 'Metadata',

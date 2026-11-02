@@ -2652,6 +2652,7 @@ export const Lithuanian: Translations = Object.freeze({
   'errors.argument_title': '{label} argumento klaida',
   'errors.bot_missing_permissions': '{label} {command}: kad veiktų, botui reikia leidimų {permissions}.',
   'errors.cancel_run': '{label} {command} keistai sugedo, praneškite kūrėjams.',
+  'errors.connection_lost': 'Ryšys nutrūko anksčiau, nei grįžo rezultatas, pabandyk paleisti dar kartą.',
   'errors.dm_blocked': '{label} {command} negalima naudoti tiesioginėse žinutėse.',
   'errors.field.details': 'Išsami informacija',
   'errors.field.metadata': 'Metaduomenys',

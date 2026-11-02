@@ -2652,6 +2652,7 @@ export const Hungarian: Translations = Object.freeze({
   'errors.argument_title': '{label} – argumentumhiba',
   'errors.bot_missing_permissions': '{label} {command}: a működéshez a botnak ezek az engedélyek kellenek: {permissions}.',
   'errors.cancel_run': '{label} {command}: furcsa hiba történt, kérlek, jelezd a fejlesztőknek.',
+  'errors.connection_lost': 'Megszakadt a kapcsolat, mielőtt megérkezett volna az eredmény, próbáld újra futtatni.',
   'errors.dm_blocked': '{label} {command}: nem használható közvetlen üzenetben.',
   'errors.field.details': 'Részletek',
   'errors.field.metadata': 'Metaadatok',

@@ -2652,6 +2652,7 @@ export const Finnish: Translations = Object.freeze({
   'errors.argument_title': '{label}: argumenttivirhe',
   'errors.bot_missing_permissions': '{label} {command} vaatii botilta oikeudet {permissions} toimiakseen.',
   'errors.cancel_run': '{label} {command} kaatui oudosti, lähetä raportti kehittäjille.',
+  'errors.connection_lost': 'Yhteys katkesi ennen kuin tulos saapui, yritä suorittaa se uudelleen.',
   'errors.dm_blocked': '{label} {command} ei toimi yksityisviesteissä.',
   'errors.field.details': 'Lisätiedot',
   'errors.field.metadata': 'Metatiedot',

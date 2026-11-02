@@ -2652,6 +2652,7 @@ export const Thai: Translations = Object.freeze({
   'errors.argument_title': 'ข้อผิดพลาดอาร์กิวเมนต์ของ{label}',
   'errors.bot_missing_permissions': '{label} {command} ต้องให้บอทมีสิทธิ์ {permissions} จึงจะทำงานได้',
   'errors.cancel_run': '{label} {command} เกิดข้อผิดพลาดแปลกๆ โปรดส่งรายงานถึงผู้พัฒนา',
+  'errors.connection_lost': 'การเชื่อมต่อขาดก่อนที่ผลลัพธ์จะกลับมา ลองรันอีกครั้ง',
   'errors.dm_blocked': '{label} {command} ไม่สามารถใช้ใน DM ได้',
   'errors.field.details': 'รายละเอียด',
   'errors.field.metadata': 'เมทาดาทา',

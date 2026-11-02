@@ -2652,6 +2652,7 @@ export const Indonesian: Translations = Object.freeze({
   'errors.argument_title': 'Error Argumen {label}',
   'errors.bot_missing_permissions': '{label} {command} butuh bot punya izin {permissions} agar bisa jalan.',
   'errors.cancel_run': '{label} {command} error dengan aneh, tolong kirim laporan ke developer.',
+  'errors.connection_lost': 'Koneksi terputus sebelum hasilnya kembali, coba jalankan lagi.',
   'errors.dm_blocked': '{label} {command} tidak bisa dipakai di DM.',
   'errors.field.details': 'Detail',
   'errors.field.metadata': 'Metadata',

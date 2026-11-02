@@ -2652,6 +2652,7 @@ export const Japanese: Translations = Object.freeze({
   'errors.argument_title': '{label}引数エラー',
   'errors.bot_missing_permissions': '{label} {command}を使うにはBotに{permissions}の権限が必要です。',
   'errors.cancel_run': '{label} {command}で謎のエラーが発生しました。開発者に報告してください。',
+  'errors.connection_lost': '結果が返ってくる前に接続が切れました。もう一度実行してみてください。',
   'errors.dm_blocked': '{label} {command}はDMでは使えません。',
   'errors.field.details': '詳細',
   'errors.field.metadata': 'メタデータ',

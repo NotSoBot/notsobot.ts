@@ -2652,6 +2652,7 @@ export const Dutch: Translations = Object.freeze({
   'errors.argument_title': '{label} argumentfout',
   'errors.bot_missing_permissions': '{label} {command} werkt alleen als de bot {permissions} heeft.',
   'errors.cancel_run': '{label} {command} gaf een vreemde fout, stuur alsjeblieft een melding naar de devs.',
+  'errors.connection_lost': 'De verbinding viel weg voordat het resultaat terugkwam, probeer het opnieuw.',
   'errors.dm_blocked': '{label} {command} kan niet in een DM worden gebruikt.',
   'errors.field.details': 'Details',
   'errors.field.metadata': 'Metadata',

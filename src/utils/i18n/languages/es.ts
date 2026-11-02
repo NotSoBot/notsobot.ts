@@ -2652,6 +2652,7 @@ export const Spanish: Translations = Object.freeze({
   'errors.argument_title': '{label}: error de argumentos',
   'errors.bot_missing_permissions': '{label} {command} necesita que el bot tenga {permissions} para funcionar.',
   'errors.cancel_run': '{label} {command} falló de forma extraña, envía un reporte a los desarrolladores por favor.',
+  'errors.connection_lost': 'Se perdió la conexión antes de recibir el resultado, intenta ejecutarlo de nuevo.',
   'errors.dm_blocked': '{label} {command} no se puede usar en mensajes directos.',
   'errors.field.details': 'Detalles',
   'errors.field.metadata': 'Metadatos',

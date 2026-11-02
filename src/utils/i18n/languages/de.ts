@@ -2652,6 +2652,7 @@ export const German: Translations = Object.freeze({
   'errors.argument_title': '{label}-Argumentfehler',
   'errors.bot_missing_permissions': '{label} {command} braucht für den Bot die Berechtigung(en) {permissions}.',
   'errors.cancel_run': '{label} {command} hat einen seltsamen Fehler verursacht, bitte melde das den Devs.',
+  'errors.connection_lost': 'Die Verbindung ist abgebrochen, bevor das Ergebnis ankam, versuch es nochmal.',
   'errors.dm_blocked': '{label} {command} kann nicht in DMs benutzt werden.',
   'errors.field.details': 'Details',
   'errors.field.metadata': 'Metadaten',

@@ -2652,6 +2652,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'errors.argument_title': '{label}参数错误',
   'errors.bot_missing_permissions': '{label} {command} 需要机器人拥有 {permissions} 权限才能使用。',
   'errors.cancel_run': '{label} {command} 出现了奇怪的错误，请向开发者报告。',
+  'errors.connection_lost': '在返回结果之前连接已断开，请再运行一次。',
   'errors.dm_blocked': '{label} {command} 不能在私信中使用。',
   'errors.field.details': '详情',
   'errors.field.metadata': '元数据',

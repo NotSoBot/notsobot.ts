@@ -2650,6 +2650,7 @@ export const English = Object.freeze({
   'errors.argument_title': '{label} Argument Error',
   'errors.bot_missing_permissions': '{label} {command} requires the bot to have {permissions} to work.',
   'errors.cancel_run': '{label} {command} errored strangely, please send a report to the devs.',
+  'errors.connection_lost': 'Lost the connection before the result came back, try running it again.',
   'errors.dm_blocked': '{label} {command} cannot be used in a DM.',
   'errors.field.details': 'Details',
   'errors.field.metadata': 'Metadata',
