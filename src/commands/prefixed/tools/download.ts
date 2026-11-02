@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, DownloadQualities, Mimetypes, MimetypesToExtension, StatusEmojis } from '../../../constants';
+import { CommandCategories, CommandRatelimits, DownloadQualities, Mimetypes, MimetypesToExtension, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -32,6 +32,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
         id: Formatter.Commands.ToolsDownload.COMMAND_ID,
         usage: '<url> (-format <choice>) (-locale <language>) (-position <number>) (-quality <choice>) (-spoiler)',
       },
+      ratelimits: CommandRatelimits.BROWSER,
       type: Parameters.url,
     });
   }

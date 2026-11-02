@@ -8,9 +8,11 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaAVAudioAutotuneCommand } from './autotune';
 import { MediaAVAudioMultiPitchCommand } from './multipitch';
 import { MediaAVAudioPitchCommand } from './pitch';
 import { MediaAVAudioVocoderChordCommand } from './vocoder-chord';
+import { MediaAVAudioVocoderMelodyCommand } from './vocoder-melody';
 import { MediaAVAudioVocoderCommand } from './vocoder';
 
 
@@ -33,9 +35,11 @@ export default class MediaAVPitchGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new MediaAVAudioAutotuneCommand(),
         new MediaAVAudioMultiPitchCommand(),
         new MediaAVAudioPitchCommand(),
         new MediaAVAudioVocoderChordCommand(),
+        new MediaAVAudioVocoderMelodyCommand(),
         new MediaAVAudioVocoderCommand(),
       ],
     });

@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
+import { CommandRatelimits, MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionMediasCommandOption } from '../../../basecommand';
@@ -46,10 +46,7 @@ export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
       ],
       maxAmount: 3,
       minAmount: 1,
-      ratelimits: [
-        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},
-        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.ML_IMAGE,
     });
   }
 

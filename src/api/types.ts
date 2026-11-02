@@ -745,6 +745,7 @@ export namespace RestOptions {
   }
 
   export interface MediaAIVManipulationSpeed extends MediaBaseOptions {
+    pitch?: boolean,
     speed: number,
   }
 
@@ -767,11 +768,24 @@ export namespace RestOptions {
     start?: number,
   }
 
+  export interface MediaAVManipulationAudioAutotune extends MediaBaseOptions {
+    key?: string,
+    strength?: number,
+  }
+
   export interface MediaAVManipulationAudioBitcrush extends MediaBaseOptions {
     bits?: number,
     mix?: number,
     mode?: MediaAudioBitcrushModes,
     samples?: number,
+  }
+
+  export interface MediaAVManipulationAudioChorus extends MediaBaseOptions {
+    delay?: number,
+    depth?: number,
+    mix?: number,
+    rate?: number,
+    voices?: number,
   }
 
   export interface MediaAVManipulationAudioCompress extends MediaBaseOptions {
@@ -781,6 +795,12 @@ export namespace RestOptions {
   export interface MediaAVManipulationAudioDelay extends MediaBaseOptions {
     delay?: number,
     snip?: boolean,
+  }
+
+  export interface MediaAVManipulationAudioDistortion extends MediaBaseOptions {
+    drive?: number,
+    lowPass?: number,
+    mix?: number,
   }
 
   export interface MediaAVManipulationAudioEqualizer extends MediaBaseOptions {
@@ -802,6 +822,12 @@ export namespace RestOptions {
     width?: number,
   }
 
+  export interface MediaAVManipulationAudioGapper extends MediaBaseOptions {
+    frequency?: number,
+    length?: number,
+    snip?: boolean,
+  }
+
   export interface MediaAVManipulationAudioMultiPitch extends MediaBaseOptions {
     engine?: MediaAudioMultiPitchEngines,
     normalize?: boolean,
@@ -817,6 +843,11 @@ export namespace RestOptions {
     stretch?: number,
   }
 
+  export interface MediaAVManipulationAudioPingPong extends MediaBaseOptions {
+    keepLength?: boolean,
+    length?: number,
+  }
+
   export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
     scale?: number,
   }
@@ -825,6 +856,12 @@ export namespace RestOptions {
     decay?: number,
     delay?: number,
     volume?: number,
+  }
+
+  export interface MediaAVManipulationAudioSentenceMix extends MediaBaseOptions {
+    gap?: number,
+    sentence: string,
+    skipMissing?: boolean,
   }
 
   export interface MediaAVManipulationAudioTremolo extends MediaBaseOptions {
@@ -843,8 +880,22 @@ export namespace RestOptions {
     synth?: string,
   }
 
+  export interface MediaAVManipulationAudioVocoderMelody extends MediaBaseOptions {
+    bands?: number,
+    bpm?: number,
+    // the notes, or a .mid's url
+    melody?: string,
+    midiUrl?: string,
+    synth?: string,
+  }
+
   export interface MediaAVManipulationAudioVolume extends MediaBaseOptions {
     volume?: number,
+  }
+
+  export interface MediaAVManipulationAudioWahWah extends MediaBaseOptions {
+    depth?: number,
+    rate?: number,
   }
 
   export interface MediaAVManipulationSetBitRate extends MediaBaseOptions {

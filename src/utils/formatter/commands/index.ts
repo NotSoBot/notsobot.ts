@@ -57,26 +57,34 @@ import * as MediaAIVManipulationWlmp from './media.aiv.manipulation.wlmp';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
 
+import * as MediaAVManipulationAudioAutotune from './media.av.manipulation.audio.autotune';
 import * as MediaAVManipulationAudioBitcrush from './media.av.manipulation.audio.bitcrush';
 import * as MediaAVManipulationAudioBoostBass from './media.av.manipulation.audio.boost.bass';
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
 import * as MediaAVManipulationAudioChannelsInvert from './media.av.manipulation.audio.channels.invert';
+import * as MediaAVManipulationAudioChorus from './media.av.manipulation.audio.chorus';
 import * as MediaAVManipulationAudioCompress from './media.av.manipulation.audio.compress';
 import * as MediaAVManipulationAudioDelay from './media.av.manipulation.audio.delay';
 import * as MediaAVManipulationAudioDestroy from './media.av.manipulation.audio.destroy';
+import * as MediaAVManipulationAudioDistortion from './media.av.manipulation.audio.distortion';
 import * as MediaAVManipulationAudioEqualizer from './media.av.manipulation.audio.equalizer';
 import * as MediaAVManipulationAudioFlanger from './media.av.manipulation.audio.flanger';
+import * as MediaAVManipulationAudioGapper from './media.av.manipulation.audio.gapper';
 import * as MediaAVManipulationAudioMultiPitch from './media.av.manipulation.audio.multipitch';
 import * as MediaAVManipulationAudioVocoder from './media.av.manipulation.audio.vocoder';
 import * as MediaAVManipulationAudioVocoderChord from './media.av.manipulation.audio.vocoder.chord';
+import * as MediaAVManipulationAudioVocoderMelody from './media.av.manipulation.audio.vocoder.melody';
 import * as MediaAVManipulationAudioNormalize from './media.av.manipulation.audio.normalize';
 import * as MediaAVManipulationAudioPaulstretch from './media.av.manipulation.audio.paulstretch';
+import * as MediaAVManipulationAudioPingPong from './media.av.manipulation.audio.pingpong';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationAudioReverb from './media.av.manipulation.audio.reverb';
 import * as MediaAVManipulationAudioReverse from './media.av.manipulation.audio.reverse';
+import * as MediaAVManipulationAudioSentenceMix from './media.av.manipulation.audio.sentencemix';
 import * as MediaAVManipulationAudioTremolo from './media.av.manipulation.audio.tremolo';
 import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.vibrato';
 import * as MediaAVManipulationAudioVolume from './media.av.manipulation.audio.volume';
+import * as MediaAVManipulationAudioWahWah from './media.av.manipulation.audio.wahwah';
 import * as MediaAVManipulationSetBitRate from './media.av.manipulation.set.bitrate';
 import * as MediaAVManipulationStammer from './media.av.manipulation.stammer';
 import * as MediaAVManipulationWaveform from './media.av.manipulation.waveform';
@@ -519,10 +527,15 @@ import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur'
 
 import * as ModerationAutowarn from './moderation.autowarn';
 import * as ModerationBan from './moderation.ban';
+import * as ModerationClean from './moderation.clean';
 import * as ModerationCommandsUsage from './moderation.commands.usage';
 import * as ModerationKick from './moderation.kick';
 import * as ModerationMute from './moderation.mute';
 import * as ModerationNick from './moderation.nick';
+import * as ModerationNickMass from './moderation.nick.mass';
+import * as ModerationNickMassReset from './moderation.nick.mass.reset';
+import * as ModerationPin from './moderation.pin';
+import * as ModerationPrune from './moderation.prune';
 import * as ModerationReports from './moderation.reports';
 import * as ModerationRules from './moderation.rules';
 import * as ModerationRulesAdd from './moderation.rules.add';
@@ -543,6 +556,8 @@ import * as ServerFontsList from './server.fonts.list';
 import * as ServerFontsRemove from './server.fonts.remove';
 import * as ServerFontsRename from './server.fonts.rename';
 import * as ServerInvites from './server.invites';
+import * as ServerLoggers from './server.loggers';
+import * as ServerLoggersAdd from './server.loggers.add';
 import * as ServerLoggersIgnore from './server.loggers.ignore';
 
 import * as MusicAutopause from './music.autopause';
@@ -788,26 +803,34 @@ export {
 
   MediaAIVPipe,
 
+  MediaAVManipulationAudioAutotune,
   MediaAVManipulationAudioBitcrush,
   MediaAVManipulationAudioBoostBass,
   MediaAVManipulationAudioChannelsCombine,
   MediaAVManipulationAudioChannelsInvert,
+  MediaAVManipulationAudioChorus,
   MediaAVManipulationAudioCompress,
   MediaAVManipulationAudioDelay,
   MediaAVManipulationAudioDestroy,
+  MediaAVManipulationAudioDistortion,
   MediaAVManipulationAudioEqualizer,
   MediaAVManipulationAudioFlanger,
+  MediaAVManipulationAudioGapper,
   MediaAVManipulationAudioMultiPitch,
   MediaAVManipulationAudioVocoder,
   MediaAVManipulationAudioVocoderChord,
+  MediaAVManipulationAudioVocoderMelody,
   MediaAVManipulationAudioNormalize,
   MediaAVManipulationAudioPaulstretch,
+  MediaAVManipulationAudioPingPong,
   MediaAVManipulationAudioPitch,
   MediaAVManipulationAudioReverb,
   MediaAVManipulationAudioReverse,
+  MediaAVManipulationAudioSentenceMix,
   MediaAVManipulationAudioTremolo,
   MediaAVManipulationAudioVibrato,
   MediaAVManipulationAudioVolume,
+  MediaAVManipulationAudioWahWah,
   MediaAVManipulationSetBitRate,
   MediaAVManipulationStammer,
   MediaAVManipulationWaveform,
@@ -1250,10 +1273,15 @@ export {
 
   ModerationAutowarn,
   ModerationBan,
+  ModerationClean,
   ModerationCommandsUsage,
   ModerationKick,
   ModerationMute,
   ModerationNick,
+  ModerationNickMass,
+  ModerationNickMassReset,
+  ModerationPin,
+  ModerationPrune,
   ModerationReports,
   ModerationRules,
   ModerationRulesAdd,
@@ -1274,6 +1302,8 @@ export {
   ServerFontsRemove,
   ServerFontsRename,
   ServerInvites,
+  ServerLoggers,
+  ServerLoggersAdd,
   ServerLoggersIgnore,
 
   MusicAutopause,

@@ -7,6 +7,7 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { CommandRatelimits } from '../../../../constants';
 import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
@@ -49,6 +50,7 @@ export default class SearchGroupCommand extends BaseSlashCommand {
 
   constructor() {
     super({
+      ratelimits: CommandRatelimits.SEARCH,
       options: [
         new Search4ChanCommand(),
         new SearchBingGroupCommand(),

@@ -423,9 +423,12 @@ export function isFileAttachment(attachment: Structures.Attachment, extensions?:
 }
 
 
-export function findFileUrlInMessage(message: Structures.Message, extension: string): null | string {
+export function findFileUrlInMessage(message: Structures.Message, extensions: string | Array<string>): null | string {
+  if (!Array.isArray(extensions)) {
+    extensions = [extensions];
+  }
   for (let [attachmentId, attachment] of message.attachments) {
-    if (isFileAttachment(attachment, [extension])) {
+    if (isFileAttachment(attachment, extensions)) {
       return attachment.url || attachment.proxyUrl || null;
     }
   }

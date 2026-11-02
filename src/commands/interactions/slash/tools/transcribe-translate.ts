@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { CommandRatelimits } from '../../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
@@ -18,6 +19,7 @@ export class ToolsTranscribeTranslateCommand extends BaseInteractionAudioOrVideo
 
   constructor() {
     super({
+      ratelimits: CommandRatelimits.ML,
       options: [
         {name: 'to', description: 'Language to translate to', ...I18n.optionLocalizations('commands.tools.transcribe_translate.to'), default: DefaultParameters.locale, value: Parameters.locale},
       ],

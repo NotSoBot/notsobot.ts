@@ -20,6 +20,7 @@ export class MediaAIVSpeedCommand extends BaseInteractionMediaCommandOption {
     super({
       options: [
         {name: 'speed', description: 'Number to double the speed by, floats included', ...I18n.optionLocalizations('commands.media_aiv.speed.speed'), type: 'number'},
+        {name: 'pitch', description: 'Let the pitch change with the speed, like a sped up tape', ...I18n.optionLocalizations('commands.media_aiv.speed.pitch'), type: Boolean},
       ],
     });
   }

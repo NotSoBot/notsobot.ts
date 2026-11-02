@@ -1,0 +1,312 @@
+import { Command, Interaction, Structures } from 'detritus-client';
+import { InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags } from 'detritus-client/lib/constants';
+import { ComponentContext, Components } from 'detritus-client/lib/utils';
+
+import { EmbedColors } from '../../../constants';
+import ServerExecutionsStore from '../../../stores/serverexecutions';
+import { DisplayPayload, I18n, displayReply, formatUserForAuditLog, renderDisplay } from '../../../utils';
+
+import {
+  ERROR_CODES_IGNORE,
+  RATELIMIT_TIME,
+  expireWithDisplay,
+  finishWithDisplay,
+  replyWithMessage,
+} from './moderation.nick.mass';
+
+
+export const COMMAND_ID = 'moderation.nick.mass.reset';
+
+export interface CommandArgsBefore {
+  nobots?: boolean,
+  nousers?: boolean,
+  role?: null | Structures.Role,
+  text: string,
+}
+
+export interface CommandArgs {
+  nobots: boolean,
+  nousers: boolean,
+  role?: null | Structures.Role,
+  text: string,
+}
+
+
+export async function createMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  const { language, translate } = await I18n.getTranslator(context);
+  const guild = context.guild as Structures.Guild;
+  const me = guild.me as Structures.Member;
+
+  // the person running it has to outrank them too, not just the bot (this let someone with a low role rename admins)
+  const invoker = context.member;
+  const canInvokerEdit = (member: Structures.Member) => {
+    return !!invoker && (invoker.isOwner || invoker.id === member.id || invoker.canEdit(member));
+  };
+
+  const members = guild.members.filter((member) => {
+    if (args.nobots && member.bot) {
+      return false;
+    }
+    if (args.nousers && !member.bot) {
+      return false;
+    }
+    if (args.role && !member.roles.has(args.role.id)) {
+      return false;
+    }
+    return me.canEdit(member) && canInvokerEdit(member);
+  });
+  const membersThatWillBeSkipped = members.filter((x) => !x.nick).length;
+
+  const [ amount, time ] = RATELIMIT_TIME;
+
+  const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
+  if (isExecuting.nick) {
+    return displayReply(context, {description: translate('nickmass.in_progress')});
+  }
+
+  if (members.length) {
+    const membersThatWillBeEdited = members.length - membersThatWillBeSkipped;
+
+    const payload: DisplayPayload = {fields: []};
+    payload.color = EmbedColors.DEFAULT;
+    payload.title = translate('nickmass.reset_can_clear', {count: membersThatWillBeEdited.toLocaleString(language), total: guild.members.length.toLocaleString(language)});
+    payload.description = [
+      translate('nickmass.reset_estimate', {seconds: ((membersThatWillBeEdited / amount) * time).toLocaleString(language)}),
+      translate('nickmass.reset_no_nickname', {count: membersThatWillBeSkipped.toLocaleString(language)}),
+    ].join('\n');
+
+    const components = new Components({timeout: 5 * (60 * 1000)});
+    components.createButton({
+      label: translate('common.continue'),
+      style: MessageComponentButtonStyles.DANGER,
+      run: async (ctx: ComponentContext) => {
+        if (ctx.userId !== context.userId) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
+
+        // checked again here, two prompts could both be continued and rename everyone twice at the same time
+        if (isExecuting.nick) {
+          return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+            content: translate('nickmass.in_progress'),
+            flags: MessageFlags.EPHEMERAL,
+          });
+        }
+        isExecuting.nick = true;
+
+        const amounts = {
+          changed: 0,
+          failed: 0,
+          skipped: 0,
+        };
+        const errors: Array<any> = [];
+        // in the server's language since the whole server sees it
+        const reason = I18n.getCachedGuildTranslator(context).translate('nickmass.reset_audit_reason', {user: formatUserForAuditLog(context.user)});
+
+        {
+          payload.description = translate('nickmass.reset_starting', {count: membersThatWillBeEdited.toLocaleString(language), seconds: ((membersThatWillBeEdited / amount) * time).toLocaleString(language)});
+          payload.color = EmbedColors.LOG_UPDATE;
+
+          const components = new Components({timeout: 20 * (60 * 1000)});
+          components.createButton({
+            label: translate('common.refresh'),
+            style: MessageComponentButtonStyles.SECONDARY,
+            run: async (ctx: ComponentContext) => {
+              const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+              const description: Array<string> = [];
+              description.push(translate('nickmass.reset_finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+              if (finished) {
+                if (amounts.changed) {
+                  description.push(translate('nickmass.reset_cleared', {count: amounts.changed.toLocaleString(language)}));
+                }
+                if (amounts.skipped) {
+                  description.push(translate('nickmass.reset_skipped', {count: amounts.skipped.toLocaleString(language)}));
+                }
+                if (amounts.failed) {
+                  description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
+                }
+                if (errors.length) {
+                  description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
+                }
+              }
+              if (members.length !== finished) {
+                description.push('');
+                description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
+              }
+              payload.description = description.join('\n');
+
+              ctx.editOrRespond(await renderDisplay(context, {...payload, components}));
+            },
+          });
+          components.createButton({
+            label: translate('common.stop'),
+            style: MessageComponentButtonStyles.SECONDARY,
+            run: async (ctx: ComponentContext) => {
+              // stop it and give the number of people edited
+              if (ctx.userId !== context.userId) {
+                return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+              }
+              isExecuting.nick = false;
+
+              payload.color = EmbedColors.ERROR;
+              payload.title = translate('nickmass.reset_cancelled_title');
+              {
+                const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+                const description: Array<string> = [];
+                description.push(translate('nickmass.reset_cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+                if (finished) {
+                  if (amounts.changed) {
+                    description.push(translate('nickmass.reset_cleared', {count: amounts.changed.toLocaleString(language)}));
+                  }
+                  if (amounts.skipped) {
+                    description.push(translate('nickmass.reset_skipped', {count: amounts.skipped.toLocaleString(language)}));
+                  }
+                  if (amounts.failed) {
+                    description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
+                  }
+                  if (errors.length) {
+                    description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
+                  }
+                }
+                payload.description = description.join('\n');
+              }
+              return displayReply(context, payload, {replyTo: ctx});
+            },
+          });
+          try {
+            await displayReply(context, {...payload, components}, {replyTo: ctx});
+          } catch(error) {
+            isExecuting.nick = false;
+            throw error;
+          }
+        }
+
+        isExecuting.nick = true;
+        for (let member of members) {
+          if (!isExecuting.nick) {
+            break;
+          }
+
+          if (!member.nick) {
+            amounts.skipped++;
+            continue;
+          }
+
+          if (member.isMe) {
+            if (!me.canChangeNickname) {
+              amounts.failed++;
+              continue;
+            }
+          } else if (!me.canEdit(member) || !me.canChangeNicknames) {
+            amounts.failed++;
+            continue;
+          }
+
+          try {
+            await member.editNick('', {reason});
+            amounts.changed++;
+          } catch(error) {
+            if (error.response && ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
+              errors.push(error);
+            } else {
+              error.metadata = {
+                canEdit: me.canEdit(member),
+                canChangeNicknames: me.canChangeNicknames,
+                user: member.user,
+              };
+              // otherwise the server stays "in progress" until a restart
+              isExecuting.nick = false;
+              throw error;
+            }
+          }
+        }
+
+        if (!isExecuting.nick) {
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('nickmass.reset_cancelled_title');
+          {
+            const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+            const description: Array<string> = [];
+            description.push(translate('nickmass.reset_cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+            if (finished) {
+              if (amounts.changed) {
+                description.push(translate('nickmass.reset_reset', {count: amounts.changed.toLocaleString(language)}));
+              }
+              if (amounts.skipped) {
+                description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+              }
+              if (amounts.failed) {
+                description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
+              }
+              if (errors.length) {
+                description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
+              }
+            }
+            payload.description = description.join('\n');
+          }
+
+          return finishWithDisplay(context, ctx, message, payload);
+        }
+        isExecuting.nick = false;
+
+        {
+          const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+          const description: Array<string> = [];
+          description.push(translate('nickmass.reset_finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+          if (finished) {
+            if (amounts.changed) {
+              description.push(translate('nickmass.reset_reset', {count: amounts.changed.toLocaleString(language)}));
+            }
+            if (amounts.skipped) {
+              description.push(translate('nickmass.reset_skipped', {count: amounts.skipped.toLocaleString(language)}));
+            }
+            if (amounts.failed) {
+              description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
+            }
+            if (errors.length) {
+              description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
+            }
+          }
+          payload.color = EmbedColors.LOG_CREATION;
+          payload.description = description.join('\n');
+        }
+
+        return finishWithDisplay(context, ctx, message, payload);
+      },
+    });
+
+    components.createButton({
+      label: translate('common.cancel'),
+      style: MessageComponentButtonStyles.SECONDARY,
+      run: async (ctx: ComponentContext) => {
+        if (ctx.userId !== context.userId) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
+
+        payload.color = EmbedColors.ERROR;
+        payload.title = translate('nickmass.reset_cancelled_title');
+        payload.description = translate('nickmass.reset_cancelled_before', {count: members.length.toLocaleString(language)});
+        await displayReply(context, payload, {replyTo: ctx});
+      },
+    });
+
+    const message = await replyWithMessage(context, await renderDisplay(context, {...payload, components}));
+    components.onTimeout = async () => {
+      try {
+        payload.color = EmbedColors.ERROR;
+        payload.footer = translate('nickmass.expired');
+        await expireWithDisplay(context, message, payload);
+      } catch(error) {
+
+      }
+    };
+    return message || undefined;
+  }
+  return displayReply(context, {description: translate('nickmass.reset_none')});
+}

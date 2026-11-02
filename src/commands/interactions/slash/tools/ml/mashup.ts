@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
+import { CommandRatelimits, MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionMediasCommandOption } from '../../../basecommand';
@@ -32,10 +32,7 @@ export class ToolsMLMashupCommand extends BaseInteractionMediasCommandOption {
         {name: 'strength', description: 'Strength of Prompt (0.01 to 1)', ...I18n.optionLocalizations('commands.tools.ml.mashup.strength')},
       ],
       minAmount: 2,
-      ratelimits: [
-        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLMashup.COMMAND_ID, type: 'guild'},
-        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLMashup.COMMAND_ID, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.ML_IMAGE,
     });
   }
 

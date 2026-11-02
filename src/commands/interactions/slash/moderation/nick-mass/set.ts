@@ -1,8 +1,7 @@
 import { Interaction } from 'detritus-client';
 
-import { I18n } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
-import { createNickMassMessage } from '../../../../prefixed/moderation/nick.mass';
 
 import { BaseNickMassCommandOption, CommandArgs as BaseCommandArgs, nickMassFilterOptions } from './base';
 
@@ -32,6 +31,6 @@ export class ModerationNickMassSetCommand extends BaseNickMassCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return createNickMassMessage(context, {...args, text: args.nickname});
+    return Formatter.Commands.ModerationNickMass.createMessage(context, {...args, text: args.nickname});
   }
 }

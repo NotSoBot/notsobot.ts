@@ -13,6 +13,9 @@ export default class SpeedCommand extends BaseMediaCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'pitch', aliases: ['usepitch'], type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.CONVERSION,
         description: 'Edit an Animated Image/Audio/Video\'s Speed',
@@ -20,9 +23,10 @@ export default class SpeedCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 0.5`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 1.5 -pitch`,
         ],
         id: Formatter.Commands.MediaAIVManipulationSpeed.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> ?<speed multiplier:float>',
+        usage: '?<emoji,user:id|mention,url> ?<speed multiplier:float> (-pitch)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional()},

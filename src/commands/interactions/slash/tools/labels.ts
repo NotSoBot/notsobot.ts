@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../basecommand';
@@ -18,6 +19,7 @@ export class ToolsLabelsCommand extends BaseInteractionImageCommandOption {
 
   constructor() {
     super({
+      ratelimits: CommandRatelimits.ML,
     });
   }
 

@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/node';
 import { URL } from 'url';
 
 import { ClusterClient, ShardClient } from 'detritus-client';
+import { CommandRatelimiter } from 'detritus-client/lib/commandratelimit';
 import {
   ActivityTypes,
   ClientEvents,
@@ -214,12 +215,16 @@ const cluster = new ClusterClient('', {
     const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
     console.log(`${shardsText} - Loaded`);
 
+    // one ratelimiter for both clients, so the shared keys in `CommandRatelimits` cover `.command` and `/command` together
+    const ratelimiter = new CommandRatelimiter();
+
     {
       const notSoCommandBot = new NotSoCommandClient(cluster, {
         activateOnEdits: true,
         maxEditDuration: COMMAND_EDIT_DURATION,
         mentionsEnabled: true,
         prefix: '.',
+        ratelimiter,
         ratelimits: [
           {duration: 60000, limit: 50, type: 'guild'},
           {duration: 5000, limit: 5, type: 'channel'},
@@ -263,7 +268,7 @@ const cluster = new ClusterClient('', {
     }
 
     {
-      const notSoInteractionBot = new NotSoInteractionClient(cluster);
+      const notSoInteractionBot = new NotSoInteractionClient(cluster, {ratelimiter});
       connectCommandResults(notSoInteractionBot);
       connectCommandErrorReporting(notSoInteractionBot);
       await notSoInteractionBot.addMultipleIn('./commands/interactions');

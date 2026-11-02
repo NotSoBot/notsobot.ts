@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GoogleLocales } from '../../../constants';
+import { CommandCategories, CommandRatelimits, GoogleLocales } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -38,6 +38,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
         id: Formatter.Commands.ToolsOCRTranslate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-to <language>)',
       },
+      ratelimits: CommandRatelimits.ML,
     });
   }
 

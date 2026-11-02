@@ -2,9 +2,8 @@ import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { GuildLoggerTypes, StatusEmojis } from '../../../../../constants';
-import { I18n, displayReply } from '../../../../../utils';
+import { Formatter, I18n, displayReply } from '../../../../../utils';
 
-import { createLogger, getLoggerAddWarning } from '../../../../prefixed/moderation/loggers.add.base';
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 import { LOGGER_TYPE_CHOICES } from './constants';
@@ -51,16 +50,16 @@ export class ServerLoggersAddCommand extends BaseInteractionCommandOption {
   }
 
   async onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    return !(await getLoggerAddWarning(context, args));
+    return !(await Formatter.Commands.ServerLoggersAdd.getLoggerAddWarning(context, args));
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    const warning = await getLoggerAddWarning(context, args);
+    const warning = await Formatter.Commands.ServerLoggersAdd.getLoggerAddWarning(context, args);
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${warning || translate('errors.unknown_lol')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return createLogger(context, args);
+    return Formatter.Commands.ServerLoggersAdd.createLogger(context, args);
   }
 }

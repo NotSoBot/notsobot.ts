@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
+import { CommandCategories, CommandRatelimits, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -35,10 +35,7 @@ export default class ImagineCommand extends BaseCommand {
         id: Formatter.Commands.ToolsMLImagine.COMMAND_ID,
         usage: '<...query> (-seed <number>) (-steps <number>) (-use <choice>)',
       },
-      ratelimits: [
-        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},
-        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.ML_IMAGE,
       type: Parameters.targetTextWithParsedMentions,
     });
   }

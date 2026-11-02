@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
@@ -15,6 +16,10 @@ export class ToolsTranscribeCommand extends BaseInteractionAudioOrVideoCommandOp
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.tools.transcribe.name');
+
+  constructor() {
+    super({ratelimits: CommandRatelimits.ML});
+  }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ToolsTranscribe.CommandArgs) {
     return Formatter.Commands.ToolsTranscribe.createMessage(context, args);

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, CommandRatelimits } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -23,6 +23,7 @@ export default class LabelsCommand extends BaseImageCommand<Formatter.Commands.T
         id: Formatter.Commands.ToolsLabels.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
+      ratelimits: CommandRatelimits.ML,
     });
   }
 

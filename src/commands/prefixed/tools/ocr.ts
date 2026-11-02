@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, CommandRatelimits } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -37,6 +37,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
         id: Formatter.Commands.ToolsOCR.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
+      ratelimits: CommandRatelimits.ML,
       type: Parameters.lastMediaUrl({audio: false, video: false}),
     });
   }

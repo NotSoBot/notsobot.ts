@@ -1424,6 +1424,14 @@ export async function mediaAIVToolsExif(
 }
 
 
+export async function mediaAVManipulationAudioAutotune(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioAutotune,
+) {
+  return raw.mediaAVManipulationAudioAutotune(context, options);
+}
+
+
 export async function mediaAVManipulationAudioBitcrush(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioBitcrush,
@@ -1456,6 +1464,14 @@ export async function mediaAVManipulationAudioChannelsInvert(
 }
 
 
+export async function mediaAVManipulationAudioChorus(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioChorus,
+) {
+  return raw.mediaAVManipulationAudioChorus(context, options);
+}
+
+
 export async function mediaAVManipulationAudioCompress(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioCompress,
@@ -1469,6 +1485,14 @@ export async function mediaAVManipulationAudioDestroy(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaAVManipulationAudioDestroy(context, options);
+}
+
+
+export async function mediaAVManipulationAudioDistortion(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioDistortion,
+) {
+  return raw.mediaAVManipulationAudioDistortion(context, options);
 }
 
 
@@ -1488,11 +1512,27 @@ export async function mediaAVManipulationAudioFlanger(
 }
 
 
+export async function mediaAVManipulationAudioGapper(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioGapper,
+) {
+  return raw.mediaAVManipulationAudioGapper(context, options);
+}
+
+
 export async function mediaAVManipulationAudioVocoder(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioVocoder,
 ) {
   return raw.mediaAVManipulationAudioVocoder(context, options);
+}
+
+
+export async function mediaAVManipulationAudioVocoderMelody(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioVocoderMelody,
+) {
+  return raw.mediaAVManipulationAudioVocoderMelody(context, options);
 }
 
 
@@ -1517,6 +1557,14 @@ export async function mediaAVManipulationAudioPaulstretch(
   options: RestOptions.MediaAVManipulationAudioPaulstretch,
 ) {
   return raw.mediaAVManipulationAudioPaulstretch(context, options);
+}
+
+
+export async function mediaAVManipulationAudioPingPong(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioPingPong,
+) {
+  return raw.mediaAVManipulationAudioPingPong(context, options);
 }
 
 
@@ -1552,6 +1600,14 @@ export async function mediaAVManipulationAudioReverse(
 }
 
 
+export async function mediaAVManipulationAudioSentenceMix(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioSentenceMix,
+) {
+  return raw.mediaAVManipulationAudioSentenceMix(context, options);
+}
+
+
 export async function mediaAVManipulationAudioTremolo(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioTremolo,
@@ -1573,6 +1629,14 @@ export async function mediaAVManipulationAudioVolume(
   options: RestOptions.MediaAVManipulationAudioVolume,
 ) {
   return raw.mediaAVManipulationAudioVolume(context, options);
+}
+
+
+export async function mediaAVManipulationAudioWahWah(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioWahWah,
+) {
+  return raw.mediaAVManipulationAudioWahWah(context, options);
 }
 
 

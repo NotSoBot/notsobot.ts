@@ -1,0 +1,180 @@
+import { Command, Interaction, Structures } from 'detritus-client';
+import { ChannelTypes, OverwriteTypes, Permissions } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
+import { RequestTypes } from 'detritus-client-rest';
+
+import { createGuildLogger } from '../../../api';
+import { GuildLoggerTypes } from '../../../constants';
+import GuildSettingsStore from '../../../stores/guildsettings';
+import { I18n } from '../../../utils';
+
+import { createLoggersEmbed, getLoggerTypeText } from './server.loggers';
+
+
+export const MAX_LOGGERS = 10;
+
+export const LOGGER_CHANNEL_NAMES: Record<GuildLoggerTypes, string> = {
+  [GuildLoggerTypes.BANS]: 'ban-logs',
+  [GuildLoggerTypes.CHANNELS]: 'channel-logs',
+  [GuildLoggerTypes.MEMBERS]: 'member-logs',
+  [GuildLoggerTypes.MESSAGES]: 'message-logs',
+  [GuildLoggerTypes.MODERATION]: 'mod-logs',
+  [GuildLoggerTypes.REPORTS]: 'reports',
+  [GuildLoggerTypes.ROLES]: 'role-logs',
+  [GuildLoggerTypes.USERS]: 'user-logs',
+  [GuildLoggerTypes.VOICE]: 'voice-logs',
+};
+
+export interface LoggerAddOptions {
+  channel?: Structures.Channel,
+  in?: Structures.Channel,
+  type: GuildLoggerTypes,
+}
+
+// Returns a translated warning if the logger can't be created, shared by the prefixed and slash commands
+export async function getLoggerAddWarning(
+  context: Command.Context | Interaction.InteractionContext,
+  options: LoggerAddOptions,
+): Promise<string | null> {
+  const { label, translate } = await I18n.getTranslator(context);
+  if (options.channel && options.in) {
+    return translate('moderation.logger_channel_and_in');
+  }
+
+  const guild = context.guild as Structures.Guild;
+  if (options.channel) {
+    // slash command resolved channels don't include overwrites, so prefer the cached one
+    const channel = context.channels.get(options.channel.id) || options.channel;
+    if (!channel.canManageWebhooks) {
+      return translate('moderation.logger_needs_manage_webhooks', {
+        channel: `${channel}`,
+        permission: Markup.codestring(label('permissions', 'Manage Webhooks')),
+      });
+    }
+  } else {
+    // we will be making a channel now, so we need the permissions in the category or the guild itself
+    let canManageChannels: boolean;
+    let canManageWebhooks: boolean;
+    let where: string;
+    if (options.in) {
+      const category = context.channels.get(options.in.id) || options.in;
+      canManageChannels = category.canEdit;
+      // `canManageWebhooks` is always false on categories (it requires a text channel), the new channel inherits these overwrites
+      canManageWebhooks = category.can([Permissions.VIEW_CHANNEL, Permissions.MANAGE_WEBHOOKS]);
+      where = `${category}`;
+    } else {
+      canManageChannels = !!(guild.me && guild.me.canManageChannels);
+      canManageWebhooks = !!(guild.me && guild.me.canManageWebhooks);
+      where = Markup.bold(Markup.escape.all(guild.name));
+    }
+    if (!canManageChannels) {
+      return translate('moderation.logger_needs_manage_channels', {permission: Markup.codestring(label('permissions', 'Manage Channels'))});
+    }
+    if (!canManageWebhooks) {
+      return translate('moderation.logger_needs_manage_webhooks', {
+        channel: where,
+        permission: Markup.codestring(label('permissions', 'Manage Webhooks')),
+      });
+    }
+  }
+
+  const settings = await GuildSettingsStore.getOrFetch(context, guild.id);
+  if (!settings) {
+    return translate('errors.unknown_lol');
+  }
+  if (MAX_LOGGERS <= settings.loggers.length) {
+    return translate('moderation.logger_max', {max: MAX_LOGGERS});
+  }
+  if (options.channel) {
+    const channelId = options.channel.id;
+    if (settings.loggers.some((logger) => logger.type === options.type && logger.channelId === channelId)) {
+      return translate('api_errors.guild_logger_type_conflict');
+    }
+  }
+  return null;
+}
+
+// a channel made for a reports logger says who reported who, so it's only for the moderators (roles that can time out
+// members, admins see it anyway) and whoever added it, instead of whatever the server or category lets everyone see
+function createReportsChannelOverwrites(
+  context: Command.Context | Interaction.InteractionContext,
+  guild: Structures.Guild,
+): Array<RequestTypes.CreateChannelOverwrite> {
+  const view = Permissions.VIEW_CHANNEL;
+  const overwrites: Array<RequestTypes.CreateChannelOverwrite> = [
+    {allow: '0', deny: String(view), id: guild.id, type: OverwriteTypes.ROLE},
+    {allow: String(view | Permissions.MANAGE_WEBHOOKS), deny: '0', id: context.client.userId, type: OverwriteTypes.MEMBER},
+  ];
+  if (context.userId !== context.client.userId) {
+    overwrites.push({allow: String(view), deny: '0', id: context.userId, type: OverwriteTypes.MEMBER});
+  }
+  for (let [roleId, role] of guild.roles) {
+    if (roleId !== guild.id && !role.managed && (role.permissions & Permissions.MODERATE_MEMBERS) === Permissions.MODERATE_MEMBERS) {
+      overwrites.push({allow: String(view), deny: '0', id: roleId, type: OverwriteTypes.ROLE});
+    }
+  }
+  // discord's limit per channel
+  return overwrites.slice(0, 100);
+}
+
+export async function createLogger(
+  context: Command.Context | Interaction.InteractionContext,
+  options: LoggerAddOptions,
+) {
+  const guild = context.guild as Structures.Guild;
+  const { translate } = await I18n.getTranslator(context);
+
+  let channel: Structures.Channel;
+  let createdChannel = false;
+  if (options.channel) {
+    channel = options.channel;
+  } else {
+    channel = await guild.createChannel({
+      name: LOGGER_CHANNEL_NAMES[options.type],
+      parentId: (options.in) ? options.in.id : undefined,
+      permissionOverwrites: (options.type === GuildLoggerTypes.REPORTS) ? createReportsChannelOverwrites(context, guild) : undefined,
+      type: ChannelTypes.GUILD_TEXT,
+    });
+    createdChannel = true;
+  }
+
+  let webhook: Structures.Webhook | undefined;
+  let loggers: Awaited<ReturnType<typeof createGuildLogger>>;
+  try {
+    webhook = await channel.createWebhook({name: 'NotSoLogs'});
+    loggers = await createGuildLogger(context, guild.id, {
+      channelId: channel.id,
+      type: options.type,
+      webhookId: webhook.id,
+      webhookToken: webhook.token!,
+    });
+  } catch (error) {
+    // don't leave a dead channel/webhook behind if the api rejected the logger
+    if (createdChannel) {
+      await channel.delete().catch(() => {});
+    } else if (webhook) {
+      await webhook.delete().catch(() => {});
+    }
+    throw error;
+  }
+
+  const title = translate('loggers.created', {
+    channel: `${channel}`,
+    id: channel.id,
+    type: getLoggerTypeText(translate, options.type),
+  });
+  // reported messages' text is only kept for 30 days, moderators should know before they rely on it
+  const note = (options.type === GuildLoggerTypes.REPORTS) ? translate('loggers.reports_text_notice') : undefined;
+  return createLoggersEmbed(context, loggers, {note, title});
+}
+
+
+export interface CommandArgsBefore {
+  channel: Structures.Channel | null | undefined,
+  in: Structures.Channel | null | undefined,
+}
+
+export interface CommandArgs {
+  channel: Structures.Channel | undefined,
+  in: Structures.Channel | undefined,
+}

@@ -20,6 +20,7 @@ import { createUserCommand } from '../../api';
 import { CommandResults, getCommandResult, setCommandResult } from '../../commandresults';
 import {
   CommandCategories,
+  CommandRatelimits,
   CommandTypes,
   DiscordSkuIds,
   GuildFeatures,
@@ -278,6 +279,37 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     }));
   }
 
+  // detritus checks ratelimits before the defer, every interaction has to get a response or discord shows it as failed
+  async onRatelimit(
+    context: Interaction.InteractionContext,
+    ratelimits: Array<Interaction.CommandRatelimitInfo>,
+    metadata: Interaction.CommandRatelimitMetadata,
+  ) {
+    const { language, translate } = await I18n.getTranslator(context);
+    const { global } = metadata;
+    // the longest wait, the shorter ones don't matter until it's over
+    const { ratelimit, remaining } = ratelimits.reduce((x, y) => (x.remaining < y.remaining) ? y : x);
+
+    const command = Markup.codestring(context.name);
+    const seconds = (remaining / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
+    let content: string;
+    switch (ratelimit.type) {
+      case 'channel': {
+        content = (global) ? translate('ratelimit.global.channel', {seconds}) : translate('ratelimit.command.channel', {command, seconds});
+      }; break;
+      case 'guild': {
+        content = (global) ? translate('ratelimit.global.guild', {seconds}) : translate('ratelimit.command.guild', {command, seconds});
+      }; break;
+      case 'user': {
+        content = (global) ? translate('ratelimit.global.user', {seconds}) : translate('ratelimit.command.user', {command, seconds});
+      }; break;
+      default: {
+        content = (global) ? translate('ratelimit.global.default', {seconds}) : translate('ratelimit.command.default', {command, seconds});
+      };
+    }
+    return replyWarning(context, content);
+  }
+
   async onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
     captureCommandError(context, error);
     const translator = await I18n.getTranslator(context);
@@ -370,12 +402,14 @@ export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommand
 
 
 export class BaseInteractionAudioOrVideoCommandOption extends BaseInteractionCommandOption {
-  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+  // `skipFiles` leaves out attachments that aren't the media (a `.mid`)
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}, mediaSearchOptions: FindMediaUrlOptions = {}) {
     super({
+      ratelimits: CommandRatelimits.MEDIA,
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'url', description: 'Emoji/Media URL/User', ...I18n.optionLocalizations('commands.options.media.url'), label: 'url', default: DefaultParameters.lastMediaUrl({image: false}), value: Parameters.lastMediaUrl({image: false})},
+        {name: 'url', description: 'Emoji/Media URL/User', ...I18n.optionLocalizations('commands.options.media.url'), label: 'url', default: DefaultParameters.lastMediaUrl({...mediaSearchOptions, image: false}), value: Parameters.lastMediaUrl({...mediaSearchOptions, image: false})},
         {name: 'attachment', description: 'Audio/Video File', ...I18n.optionLocalizations('commands.options.audio_video.attachment'), type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
@@ -400,6 +434,7 @@ export class BaseInteractionAudioOrVideoCommandOption extends BaseInteractionCom
 export class BaseInteractionImageCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
+      ratelimits: CommandRatelimits.MEDIA,
       ...data,
       options: [
         ...(data.options || []),
@@ -439,6 +474,7 @@ export class BaseInteractionImageCommandOption extends BaseInteractionCommandOpt
 export class BaseInteractionImageOrVideoCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}, mediaSearchOptions: FindMediaUrlOptions = {}) {
     super({
+      ratelimits: CommandRatelimits.MEDIA,
       ...data,
       options: [
         ...(data.options || []),
@@ -467,6 +503,7 @@ export class BaseInteractionImageOrVideoCommandOption extends BaseInteractionCom
 export class BaseInteractionMediaCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}, mediaSearchOptions: FindMediaUrlOptions = {}) {
     super({
+      ratelimits: CommandRatelimits.MEDIA,
       ...data,
       options: [
         ...(data.options || []),
@@ -517,6 +554,7 @@ export class BaseInteractionMediasCommandOption extends BaseInteractionCommandOp
     });
 
     super({
+      ratelimits: CommandRatelimits.MEDIA,
       ...data,
       options: [
         ...(data.options || []),
@@ -563,6 +601,7 @@ export class BaseInteractionMediasCommandOption extends BaseInteractionCommandOp
 export class BaseInteractionVideoCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
+      ratelimits: CommandRatelimits.MEDIA,
       ...data,
       options: [
         ...(data.options || []),

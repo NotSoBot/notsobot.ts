@@ -1184,6 +1184,20 @@ const oneOfTextToSpeechVoices = Prefixed.oneOf<TTSVoices>({choices: TTSVoices, d
 // the font files caption, meme and recaption take (the api checks the file itself, these only pick the attachment)
 export const FONT_FILE_EXTENSIONS = ['.ttf', '.otf', '.woff', '.woff2'];
 
+// a Vegas Pro project, or a Vegas Movie Studio one (`.vf`, the same chunks with another root GUID, the api reads both)
+export const VEG_FILE_EXTENSIONS = ['.veg', '.vf'];
+export const MIDI_FILE_EXTENSIONS = ['.mid', '.midi'];
+
+// an attachment with one of `extensions` on the message, or on the one it replies to
+export async function findFileUrl(context: Command.Context, extensions: Array<string>): Promise<null | string> {
+  const file = findFileUrlInMessage(context.message, extensions);
+  if (file) {
+    return file;
+  }
+  const message = await fetchReplyMessage(context);
+  return (message) ? findFileUrlInMessage(message, extensions) : null;
+}
+
 export interface MediaFontArgs {
   // a bundled font, or one of their saved fonts' names
   font?: MediaMemeFonts | string,
@@ -2588,20 +2602,24 @@ export interface FilePayload {
   url?: null | string,
 }
 
-// `veg <veg url> <media>`, an attachment with `extension` (on the message or the one it replies to) takes the leading
-// url's place
+// `veg <veg url> <media>`, an attachment with one of `extensions` (on the message or the one it replies to) takes the
+// leading url's place
 export function filePayload(
-  extension: string,
+  extensions: string | Array<string>,
   mediaSearchOptions: FindMediaUrlOptions = {},
 ): (x: string, context: Command.Context) => Promise<FilePayload> {
-  const customLastMediaUrl = lastMediaUrl({...mediaSearchOptions, skipFiles: [extension]});
+  if (!Array.isArray(extensions)) {
+    extensions = [extensions];
+  }
+  const skipFiles = extensions;
+  const customLastMediaUrl = lastMediaUrl({...mediaSearchOptions, skipFiles});
 
   return async (value: string, context: Command.Context) => {
-    let file = findFileUrlInMessage(context.message, extension);
+    let file = findFileUrlInMessage(context.message, skipFiles);
     if (!file) {
       const message = await fetchReplyMessage(context);
       if (message) {
-        file = findFileUrlInMessage(message, extension);
+        file = findFileUrlInMessage(message, skipFiles);
       }
     }
 

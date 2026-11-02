@@ -4,6 +4,7 @@ import {
   InteractionContextTypes,
 } from 'detritus-client/lib/constants';
 
+import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n, displayReply, findMediaUrlInMessages } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
@@ -31,6 +32,10 @@ export default class OCRCommand extends BaseContextMenuMessageCommand {
     ApplicationIntegrationTypes.GUILD_INSTALL,
     ApplicationIntegrationTypes.USER_INSTALL,
   ];
+
+  constructor() {
+    super({ratelimits: CommandRatelimits.ML});
+  }
 
   onBeforeRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {
     args.url = findMediaUrlInMessages([args.message], {audio: false, video: false});

@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { CommandRatelimits } from '../../../../../constants';
 import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../../basecommand';
@@ -15,6 +16,10 @@ export class SearchGoogleReverseCommand extends BaseInteractionImageCommandOptio
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.search.google.google_reverse.name');
+
+  constructor() {
+    super({ratelimits: CommandRatelimits.SEARCH});
+  }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.SearchGoogleReverse.CommandArgs) {
     return Formatter.Commands.SearchGoogleReverse.createMessage(context, args);

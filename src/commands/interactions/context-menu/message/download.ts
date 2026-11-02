@@ -4,6 +4,7 @@ import {
   InteractionContextTypes,
 } from 'detritus-client/lib/constants';
 
+import { CommandRatelimits } from '../../../../constants';
 import {
   Formatter,
   I18n,
@@ -41,6 +42,10 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
     ApplicationIntegrationTypes.GUILD_INSTALL,
     ApplicationIntegrationTypes.USER_INSTALL,
   ];
+
+  constructor() {
+    super({ratelimits: CommandRatelimits.BROWSER});
+  }
 
   async onBeforeRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
 	args.url = findMediaUrlInMessages([args.message], undefined, undefined, false);

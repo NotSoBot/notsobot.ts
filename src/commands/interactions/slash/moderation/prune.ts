@@ -2,9 +2,8 @@ import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { I18n, Parameters, displayReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
-import { createPruneMessage, snowflakeFromNow } from '../../../prefixed/moderation/prune';
 import { BaseInteractionCommandOption } from '../../basecommand';
 
 
@@ -28,7 +27,7 @@ export class ModerationPruneCommand extends BaseInteractionCommandOption {
   description = 'Delete recent messages in bulk';
   descriptionLocalizations = I18n.localizations('commands.moderation.prune.description');
   metadata = {
-    id: 'moderation.prune',
+    id: Formatter.Commands.ModerationPrune.COMMAND_ID,
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.moderation.prune.name');
@@ -57,7 +56,7 @@ export class ModerationPruneCommand extends BaseInteractionCommandOption {
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
       return false;
     }
-    if (args.until && BigInt(snowflakeFromNow()) <= BigInt(args.until)) {
+    if (args.until && BigInt(Formatter.Commands.ModerationPrune.snowflakeFromNow()) <= BigInt(args.until)) {
       return false;
     }
     if (!args.amount) {
@@ -75,7 +74,7 @@ export class ModerationPruneCommand extends BaseInteractionCommandOption {
     let content: string;
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
       content = translate('prune.after_before');
-    } else if (args.until && BigInt(snowflakeFromNow()) <= BigInt(args.until)) {
+    } else if (args.until && BigInt(Formatter.Commands.ModerationPrune.snowflakeFromNow()) <= BigInt(args.until)) {
       content = translate('prune.until_after_current');
     } else {
       content = translate('prune.amount_number');
@@ -84,6 +83,6 @@ export class ModerationPruneCommand extends BaseInteractionCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return createPruneMessage(context, {...args, amount: args.amount!});
+    return Formatter.Commands.ModerationPrune.createMessage(context, {...args, amount: args.amount!});
   }
 }

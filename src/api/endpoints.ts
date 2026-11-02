@@ -123,6 +123,8 @@ export const Api = Object.freeze({
   MEDIA_AIV_TOOLS_EXIF:
     '/media/aiv/tools/exif',
 
+  MEDIA_AV_MANIPULATION_AUDIO_AUTOTUNE:
+    '/media/av/manipulation/audio/autotune',
   MEDIA_AV_MANIPULATION_AUDIO_BITCRUSH:
     '/media/av/manipulation/audio/bitcrush',
   MEDIA_AV_MANIPULATION_AUDIO_BOOST_BASS:
@@ -131,36 +133,50 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/channels/combine',
   MEDIA_AV_MANIPULATION_AUDIO_CHANNELS_INVERT:
     '/media/av/manipulation/audio/channels/invert',
+  MEDIA_AV_MANIPULATION_AUDIO_CHORUS:
+    '/media/av/manipulation/audio/chorus',
   MEDIA_AV_MANIPULATION_AUDIO_COMPRESS:
     '/media/av/manipulation/audio/compress',
   MEDIA_AV_MANIPULATION_AUDIO_DELAY:
     '/media/av/manipulation/audio/delay',
   MEDIA_AV_MANIPULATION_AUDIO_DESTROY:
     '/media/av/manipulation/audio/destroy',
+  MEDIA_AV_MANIPULATION_AUDIO_DISTORTION:
+    '/media/av/manipulation/audio/distortion',
   MEDIA_AV_MANIPULATION_AUDIO_EQUALIZER:
     '/media/av/manipulation/audio/equalizer',
   MEDIA_AV_MANIPULATION_AUDIO_FLANGER:
     '/media/av/manipulation/audio/flanger',
+  MEDIA_AV_MANIPULATION_AUDIO_GAPPER:
+    '/media/av/manipulation/audio/gapper',
   MEDIA_AV_MANIPULATION_AUDIO_MULTIPITCH:
     '/media/av/manipulation/audio/multipitch',
   MEDIA_AV_MANIPULATION_AUDIO_NORMALIZE:
     '/media/av/manipulation/audio/normalize',
   MEDIA_AV_MANIPULATION_AUDIO_PAULSTRETCH:
     '/media/av/manipulation/audio/paulstretch',
+  MEDIA_AV_MANIPULATION_AUDIO_PING_PONG:
+    '/media/av/manipulation/audio/pingpong',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
   MEDIA_AV_MANIPULATION_AUDIO_VOCODER:
     '/media/av/manipulation/audio/vocoder',
+  MEDIA_AV_MANIPULATION_AUDIO_VOCODER_MELODY:
+    '/media/av/manipulation/audio/vocoder/melody',
   MEDIA_AV_MANIPULATION_AUDIO_REVERB:
     '/media/av/manipulation/audio/reverb',
   MEDIA_AV_MANIPULATION_AUDIO_REVERSE:
     '/media/av/manipulation/audio/reverse',
+  MEDIA_AV_MANIPULATION_AUDIO_SENTENCE_MIX:
+    '/media/av/manipulation/audio/sentencemix',
   MEDIA_AV_MANIPULATION_AUDIO_TREMOLO:
     '/media/av/manipulation/audio/tremolo',
   MEDIA_AV_MANIPULATION_AUDIO_VIBRATO:
     '/media/av/manipulation/audio/vibrato',
   MEDIA_AV_MANIPULATION_AUDIO_VOLUME:
     '/media/av/manipulation/audio/volume',
+  MEDIA_AV_MANIPULATION_AUDIO_WAH_WAH:
+    '/media/av/manipulation/audio/wahwah',
   MEDIA_AV_MANIPULATION_SET_BITRATE:
     '/media/av/manipulation/set/bitrate',
   MEDIA_AV_MANIPULATION_STAMMER:

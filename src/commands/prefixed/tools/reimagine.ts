@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
+import { CommandCategories, CommandRatelimits, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -34,10 +34,7 @@ export default class ReimagineCommand extends BaseImageCommand {
         id: Formatter.Commands.ToolsMLReimagine.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> (-add <query>) (-seed <number>) (-steps <number>) (-use <choice>)',
       },
-      ratelimits: [
-        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLReimagine.COMMAND_ID, type: 'guild'},
-        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLReimagine.COMMAND_ID, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.ML_IMAGE,
     });
   }
 

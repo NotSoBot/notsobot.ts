@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, CommandRatelimits } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseAudioOrVideoCommand } from '../basecommand';
@@ -27,6 +27,7 @@ export default class TranscribeTranslateCommand extends BaseAudioOrVideoCommand 
         id: Formatter.Commands.ToolsTranscribeTranslate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-to <language>)',
       },
+      ratelimits: CommandRatelimits.ML,
     });
   }
 

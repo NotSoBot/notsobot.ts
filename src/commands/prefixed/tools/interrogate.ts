@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, CommandRatelimits } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -24,6 +24,7 @@ export default class InterrogateCommand extends BaseImageCommand {
         id: Formatter.Commands.ToolsMLInterrogate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
+      ratelimits: CommandRatelimits.ML,
     });
   }
 

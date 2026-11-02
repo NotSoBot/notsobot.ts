@@ -2,9 +2,8 @@ import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { I18n, displayReply } from '../../../../utils';
+import { Formatter, I18n, displayReply } from '../../../../utils';
 
-import { COMMAND_ID, createPinMessage } from '../../../prefixed/moderation/pin';
 import { BaseInteractionCommandOption } from '../../basecommand';
 
 
@@ -20,7 +19,7 @@ export class ModerationPinCommand extends BaseInteractionCommandOption {
   description = 'Pin a message by ID, link, date, or text';
   descriptionLocalizations = I18n.localizations('commands.moderation.pin.description');
   metadata = {
-    id: COMMAND_ID,
+    id: Formatter.Commands.ModerationPin.COMMAND_ID,
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.moderation.pin.name');
@@ -47,6 +46,6 @@ export class ModerationPinCommand extends BaseInteractionCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return createPinMessage(context, {first: args.first, in: args.channel, query: args.message || ''});
+    return Formatter.Commands.ModerationPin.createMessage(context, {first: args.first, in: args.channel, query: args.message || ''});
   }
 }

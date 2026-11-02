@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { DownloadQualities, DownloadQualitiesToTextWithTier, StatusEmojis } from '../../../constants';
+import { CommandRatelimits, DownloadQualities, DownloadQualitiesToTextWithTier, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
@@ -29,6 +29,7 @@ export default class DownloadCommand extends BaseSlashCommand {
   constructor() {
     super({
       permissions: [Permissions.ATTACH_FILES],
+      ratelimits: CommandRatelimits.BROWSER,
       options: [
         {
           default: DefaultParameters.lastUrl,

@@ -4,6 +4,7 @@ import {
   InteractionContextTypes,
 } from 'detritus-client/lib/constants';
 
+import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -36,6 +37,7 @@ export class ToolsToneCommand extends BaseInteractionCommandOption {
 
   constructor() {
     super({
+      ratelimits: CommandRatelimits.ML,
       options: [
         // the api takes up to 4000 characters
         {name: 'text', description: 'Text to score', ...I18n.optionLocalizations('commands.tools.tone.text'), maxLength: 4000, value: Parameters.parsedMentionsText, required: true},

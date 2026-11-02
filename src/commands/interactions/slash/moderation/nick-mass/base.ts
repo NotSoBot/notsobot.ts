@@ -2,9 +2,8 @@ import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../../constants';
-import { I18n, displayReply } from '../../../../../utils';
+import { Formatter, I18n, displayReply } from '../../../../../utils';
 
-import { MAX_MEMBERS } from '../../../../prefixed/moderation/nick.mass';
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
@@ -32,12 +31,12 @@ export class BaseNickMassCommandOption extends BaseInteractionCommandOption {
   }
 
   onBefore(context: Interaction.InteractionContext) {
-    return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= MAX_MEMBERS : false);
+    return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= Formatter.Commands.ModerationNickMass.MAX_MEMBERS : false);
   }
 
   async onCancel(context: Interaction.InteractionContext) {
     const { language, translate } = await I18n.getTranslator(context);
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)})}`, ephemeral: true});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.too_many_members', {max: Formatter.Commands.ModerationNickMass.MAX_MEMBERS.toLocaleString(language)})}`, ephemeral: true});
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {

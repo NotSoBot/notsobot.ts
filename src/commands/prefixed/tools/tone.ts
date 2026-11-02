@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, StatusEmojis } from '../../../constants';
+import { CommandCategories, CommandRatelimits, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -33,6 +33,7 @@ export default class ToneCommand extends BaseCommand {
         id: Formatter.Commands.ToolsTone.COMMAND_ID,
         usage: '<text|message link>',
       },
+      ratelimits: CommandRatelimits.ML,
       type: Parameters.targetTextWithParsedMentions,
     });
   }

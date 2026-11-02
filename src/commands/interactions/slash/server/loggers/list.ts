@@ -3,9 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { GuildLoggerTypes, StatusEmojis } from '../../../../../constants';
 import GuildSettingsStore from '../../../../../stores/guildsettings';
-import { I18n, displayReply } from '../../../../../utils';
-
-import { createLoggersEmbed } from '../../../../prefixed/moderation/loggers';
+import { Formatter, I18n, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -42,6 +40,6 @@ export class ServerLoggersListCommand extends BaseInteractionCommandOption {
       const { translate } = await I18n.getTranslator(context);
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_lol')}`, ephemeral: true});
     }
-    return createLoggersEmbed(context, settings.loggers, {only: (args.only === undefined) ? null : args.only});
+    return Formatter.Commands.ServerLoggers.createLoggersEmbed(context, settings.loggers, {only: (args.only === undefined) ? null : args.only});
   }
 }

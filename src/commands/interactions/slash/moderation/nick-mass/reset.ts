@@ -1,8 +1,7 @@
 import { Interaction } from 'detritus-client';
 
-import { I18n } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
-import { createNickMassResetMessage } from '../../../../prefixed/moderation/nick.mass.reset';
 
 import { BaseNickMassCommandOption, CommandArgs, nickMassFilterOptions } from './base';
 
@@ -25,6 +24,6 @@ export class ModerationNickMassResetCommand extends BaseNickMassCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return createNickMassResetMessage(context, {nobots: !!args.nobots, nousers: !!args.nousers, role: args.role, text: ''});
+    return Formatter.Commands.ModerationNickMassReset.createMessage(context, {nobots: !!args.nobots, nousers: !!args.nousers, role: args.role, text: ''});
   }
 }

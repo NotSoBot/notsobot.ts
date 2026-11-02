@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
+import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -17,6 +18,7 @@ export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
 
   constructor() {
     super({
+      ratelimits: CommandRatelimits.BROWSER,
       permissions: [Permissions.ATTACH_FILES],
       options: [
         {

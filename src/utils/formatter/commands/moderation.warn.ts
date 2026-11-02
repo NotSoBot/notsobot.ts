@@ -51,6 +51,7 @@ import * as ModerationBan from './moderation.ban';
 import * as ModerationKick from './moderation.kick';
 import * as ModerationMute from './moderation.mute';
 import { formatMember } from './moderation.mute';
+import * as ModerationPrune from './moderation.prune';
 import { formatReasonLine, formatWarningDetails } from './moderation.warnings';
 
 
@@ -80,6 +81,14 @@ export function formatCleanInput(seconds: number): string | undefined {
 }
 // discord only deletes messages from up to a week back
 const MAX_CLEAN = 7 * 24 * 60 * 60;
+
+// the prune button, the same limit as the prune command
+const PRUNE_DEFAULT_AMOUNT = 100;
+const PRUNE_MAX_AMOUNT = 500;
+// how far back the prune button goes, the two week bulk delete limit
+const PRUNE_MAX_SINCE = 14 * 24 * 60 * 60;
+// in the warning's channel, for both of us
+const PRUNE_PERMISSIONS = [Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY, Permissions.MANAGE_MESSAGES];
 
 // the permission both the moderator and the bot need for a button to show, plus what its modal asks
 const ACTIONS: Record<WarnAction, {
@@ -483,7 +492,8 @@ function createPastWarningsBlock(
 }
 
 
-// buttons for whoever warned them: undo takes the warning back (and its dm), mute/kick/ban each open a modal with the
+// buttons for whoever warned them: undo takes the warning back (and its dm), prune opens a modal with how many of their
+// messages to delete here, mute/kick/ban each open a modal with the
 // warning's reason filled in (and how long), their result is its own message and the warning only loses its buttons.
 // Only the actions both of us have permissions for
 function createActionComponents(
@@ -522,7 +532,7 @@ function createActionComponents(
   let done = false;
   const components = new Components();
 
-  const refuse = (modalContext: InteractionModalContext, text: string) => {
+  const refuse = (modalContext: ComponentContext | InteractionModalContext, text: string) => {
     return modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
       allowedMentions: {parse: []},
       content: `${StatusEmojis.WARNING} ${text}`,
@@ -691,6 +701,99 @@ function createActionComponents(
       }, {replyTo: ctx});
     },
   });
+
+  // deletes their latest messages in this channel, it isn't a punishment so the other actions stay. Shown for ones who left
+  // too (like ban), it only goes by their ids
+  // checked again on press and on submit with the interaction's member, the warning stays up long enough for either of us
+  // to lose them
+  const getPruneRefusal = (member?: Structures.Member | null): string | null => {
+    const channel = context.channels.get(context.channelId!);
+    const command = Markup.codestring(translate('moderation_warn.prune'));
+    const format = (failed: Array<bigint>) => {
+      return failed.map((permission) => Markup.codestring(translator.label('permissions', (PermissionsText as any)[String(permission)]))).join(', ');
+    };
+    const failedUser = PRUNE_PERMISSIONS.filter((permission) => !channel || !member || !channel.can(permission, member));
+    if (failedUser.length) {
+      return translate('errors.prefix_user_missing_permissions', {command, permissions: format(failedUser)});
+    }
+    const failedBot = PRUNE_PERMISSIONS.filter((permission) => !channel!.can(permission));
+    if (failedBot.length) {
+      return translate('errors.prefix_bot_missing_permissions', {command, permissions: format(failedBot)});
+    }
+    return null;
+  };
+  if (!getPruneRefusal(context.member)) {
+    const pruneModal = (): InteractionModal => {
+      const label = translate('moderation_warn.prune');
+      const title = (members.length === 1) ? `${label}: ${members[0].username}` : label;
+      const modal = new InteractionModal({
+        title: title.slice(0, 45),
+        run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+          const amount = Number(String(args.amount || '').trim());
+          if (!Number.isInteger(amount) || amount < 1 || PRUNE_MAX_AMOUNT < amount) {
+            return refuse(modalContext, translate('moderation_warn.prune_invalid_amount', {max: PRUNE_MAX_AMOUNT.toLocaleString(translator.language)}));
+          }
+          // never further back than two weeks, empty (or 0) goes all the way to it
+          let seconds = PRUNE_MAX_SINCE;
+          const sinceText = String(args.since || '').trim();
+          if (sinceText) {
+            try {
+              seconds = Math.min(Parameters.secondsWithOptions({float: false})(sinceText, context), PRUNE_MAX_SINCE) || PRUNE_MAX_SINCE;
+            } catch(error: any) {
+              return refuse(modalContext, String((error && error.message) || error));
+            }
+          }
+          const since = Date.now() - seconds * 1000;
+          const refusal = getPruneRefusal(modalContext.member);
+          if (refusal) {
+            return refuse(modalContext, refusal);
+          }
+          // a mute/kick/ban from the same warning went through first
+          if (done) {
+            return modalContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+          }
+          // walking back through the channel can take longer than discord waits for a response
+          await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+          // the modal was the confirmation, it only asks again when the search stopped before finding them all
+          return ModerationPrune.createMessage(context, {amount, from: members, since}, {replyTo: modalContext, skipConfirmationUpTo: amount});
+        },
+        onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
+          return displayReply(context, {description: `${StatusEmojis.WARNING} ${ModerationMute.formatError(error)}`}, {replyTo: modalContext});
+        },
+      });
+      modal.createLabel({
+        description: translate('moderation_warn.prune_amount_description', {max: PRUNE_MAX_AMOUNT.toLocaleString(translator.language)}),
+        label: translate('moderation_warn.prune_amount'),
+      }).createInputText({
+        customId: 'amount',
+        maxLength: String(PRUNE_MAX_AMOUNT).length,
+        required: true,
+        style: MessageComponentInputTextStyles.SHORT,
+        value: String(PRUNE_DEFAULT_AMOUNT),
+      });
+      modal.createLabel({description: translate('moderation_warn.prune_since_description'), label: translate('moderation_warn.prune_since')}).createInputText({
+        customId: 'since',
+        maxLength: 50,
+        required: false,
+        style: MessageComponentInputTextStyles.SHORT,
+      });
+      return modal;
+    };
+    components.createButton({
+      label: translate('moderation_warn.prune'),
+      style: MessageComponentButtonStyles.SECONDARY,
+      run: async (ctx: ComponentContext) => {
+        if (ctx.userId !== context.userId || done) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
+        const refusal = getPruneRefusal(ctx.member);
+        if (refusal) {
+          return refuse(ctx, refusal);
+        }
+        return ctx.respond(pruneModal());
+      },
+    });
+  }
 
   for (let action of actions) {
     components.createButton({

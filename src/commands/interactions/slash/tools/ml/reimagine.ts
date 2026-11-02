@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
+import { CommandRatelimits, MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../../basecommand';
@@ -31,10 +31,7 @@ export class ToolsMLReimagineCommand extends BaseInteractionImageCommandOption {
         {name: 'seed', type: Number, description: 'Initial Noise', ...I18n.optionLocalizations('commands.tools.ml.reimagine.seed')},
         {name: 'steps', type: Number, description: 'Number of Samples to take (1..8)', ...I18n.optionLocalizations('commands.tools.ml.reimagine.steps')},
       ],
-      ratelimits: [
-        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLReimagine.COMMAND_ID, type: 'guild'},
-        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLReimagine.COMMAND_ID, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.ML_IMAGE,
     });
   }
 

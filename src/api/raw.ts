@@ -3163,6 +3163,7 @@ export async function mediaAIVManipulationSpeed(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    pitch: options.pitch,
     safe: options.safe,
     speed: options.speed,
     upload: options.upload,
@@ -3274,6 +3275,29 @@ export async function mediaAIVToolsExif(
 }
 
 
+export async function mediaAVManipulationAudioAutotune(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioAutotune,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    key: options.key,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    strength: options.strength,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_AUTOTUNE,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioBitcrush(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioBitcrush,
@@ -3362,6 +3386,32 @@ export async function mediaAVManipulationAudioChannelsInvert(
 }
 
 
+export async function mediaAVManipulationAudioChorus(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioChorus,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    delay: options.delay,
+    depth: options.depth,
+    max_file_size: maxFileSize,
+    mix: options.mix,
+    rate: options.rate,
+    safe: options.safe,
+    url: options.url,
+    voices: options.voices,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_CHORUS,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioCompress(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioCompress,
@@ -3428,6 +3478,30 @@ export async function mediaAVManipulationAudioDestroy(
 }
 
 
+export async function mediaAVManipulationAudioDistortion(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioDistortion,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    drive: options.drive,
+    low_pass: options.lowPass,
+    max_file_size: maxFileSize,
+    mix: options.mix,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_DISTORTION,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioEqualizer(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioEqualizer,
@@ -3483,6 +3557,30 @@ export async function mediaAVManipulationAudioFlanger(
 }
 
 
+export async function mediaAVManipulationAudioGapper(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioGapper,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    frequency: options.frequency,
+    length: options.length,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    snip: options.snip,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_GAPPER,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioVocoder(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioVocoder,
@@ -3503,6 +3601,32 @@ export async function mediaAVManipulationAudioVocoder(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_AUDIO_VOCODER,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationAudioVocoderMelody(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioVocoderMelody,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    bands: options.bands,
+    bpm: options.bpm,
+    max_file_size: maxFileSize,
+    melody: options.melody,
+    midi_url: options.midiUrl,
+    safe: options.safe,
+    synth: options.synth,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_VOCODER_MELODY,
     },
   });
 }
@@ -3577,6 +3701,29 @@ export async function mediaAVManipulationAudioPaulstretch(
 }
 
 
+export async function mediaAVManipulationAudioPingPong(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioPingPong,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    keep_length: options.keepLength,
+    length: options.length,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_PING_PONG,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioPitch(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioPitch,
@@ -3639,6 +3786,30 @@ export async function mediaAVManipulationAudioReverse(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_AUDIO_REVERSE,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationAudioSentenceMix(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioSentenceMix,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    gap: options.gap,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    sentence: options.sentence,
+    skip_missing: options.skipMissing,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_SENTENCE_MIX,
     },
   });
 }
@@ -3707,6 +3878,29 @@ export async function mediaAVManipulationAudioVolume(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_AUDIO_VOLUME,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationAudioWahWah(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioWahWah,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    depth: options.depth,
+    max_file_size: maxFileSize,
+    rate: options.rate,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_WAH_WAH,
     },
   });
 }

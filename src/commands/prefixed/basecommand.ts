@@ -13,10 +13,10 @@ import { createUserCommand } from '../../api';
 import { CommandResults, getCommandResult, setCommandResult } from '../../commandresults';
 import {
   CommandCategories,
+  CommandRatelimits,
   DiscordReactionEmojis,
   DiscordSkuIds,
   GuildFeatures,
-  RatelimitKeys,
   UserFlags,
 } from '../../constants';
 import { captureCommandError } from '../../sentry';
@@ -331,10 +331,7 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
       label: 'url',
       name: '',
       permissionsClient: [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS],
-      ratelimits: [
-        {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
-        {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.MEDIA,
       type: options.type || Parameters.lastMediaUrl(),
       ...options,
     });
@@ -381,10 +378,7 @@ export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
       label: 'urls',
       name: '',
       permissionsClient: [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS],
-      ratelimits: [
-        {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
-        {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.MEDIA,
       type: options.type || Parameters.mediaUrls({
         maxAmount: options.maxAmount,
         minAmount: options.minAmount,
@@ -507,10 +501,7 @@ export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
       label: 'query',
-      ratelimits: [
-        {duration: 5000, limit: 5, key: RatelimitKeys.SEARCH, type: 'guild'},
-        {duration: 1000, limit: 1, key: RatelimitKeys.SEARCH, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.SEARCH,
       ...options,
     });
   }

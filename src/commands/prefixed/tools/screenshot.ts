@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, CommandRatelimits } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -32,6 +32,7 @@ export default class ScreenshotCommand extends BaseCommand {
         id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
         usage: '<url> (-height <number>) (-lightmode) (-timeout <seconds>) (-wait <float>) (-width <number>)',
       },
+      ratelimits: CommandRatelimits.BROWSER,
       type: Parameters.url,
     });
   }

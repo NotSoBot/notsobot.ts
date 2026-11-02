@@ -28,15 +28,15 @@ export default class VegCommand extends BaseMediaCommand {
       label: 'payload',
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Play a Vegas project (.veg) with every one of its sources replaced by an Audio/Image/Video',
+        description: 'Play a Vegas project (.veg, .vf) with every one of its sources replaced by an Audio/Image/Video',
         examples: [
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/preview1280.veg https://cdn.nsb.gg/assets/samples/video.mp4`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/preview1280.veg @cakedan -nocutoff`,
         ],
         id: Formatter.Commands.MediaAIVManipulationVeg.COMMAND_ID,
-        usage: '<.veg url or attachment> ?<emoji,user:id|mention|name,url> (-nocutoff)',
+        usage: '<.veg/.vf url or attachment> ?<emoji,user:id|mention|name,url> (-nocutoff)',
       },
-      type: Parameters.filePayload('.veg'),
+      type: Parameters.filePayload(Parameters.VEG_FILE_EXTENSIONS),
     });
   }
 

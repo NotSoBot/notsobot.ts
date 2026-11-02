@@ -9,6 +9,7 @@ import {
   UserFlags as DiscordUserFlags,
   VerificationLevels,
 } from 'detritus-client/lib/constants';
+import { CommandRatelimitOptions } from 'detritus-client/lib/commandratelimit';
 
 
 export const MAX_MEMBERS_SAFE = 10000;
@@ -1378,6 +1379,7 @@ export enum MediaAudioVocoderSynths {
   CHOIR = 'CHOIR',
   ORGAN = 'ORGAN',
   PAD = 'PAD',
+  POWER = 'POWER',
   ROBOT = 'ROBOT',
   SAW = 'SAW',
 }
@@ -1386,6 +1388,7 @@ export const MediaAudioVocoderSynthsToText: Record<MediaAudioVocoderSynths, stri
   [MediaAudioVocoderSynths.CHOIR]: 'Choir (soft voices with vibrato)',
   [MediaAudioVocoderSynths.ORGAN]: 'Organ',
   [MediaAudioVocoderSynths.PAD]: 'Pad (slow and dark)',
+  [MediaAudioVocoderSynths.POWER]: 'Power (big and buzzy, like Vocodex)',
   [MediaAudioVocoderSynths.ROBOT]: 'Robot (one square wave)',
   [MediaAudioVocoderSynths.SAW]: 'Saw (bright and wide)',
 });
@@ -1962,10 +1965,42 @@ export enum ProxyRequestMethods {
 }
 
 
+// commands with the same key share one bucket per guild/channel, grouped by the backend they use up. the prefixed and
+// slash clients share one ratelimiter (see bot.ts) so `.imagine` and `/tools ml imagine` count against each other too.
+// the `shared.` prefix keeps them apart from detritus' per command keys, the website labels the group by the key
 export const RatelimitKeys = Object.freeze({
-  IMAGE: Math.random().toString(36).substring(7),
-  SEARCH: Math.random().toString(36).substring(7),
+  // the headless browser and the downloader, both hold a worker for seconds
+  BROWSER: 'shared.browser',
+  MEDIA: 'shared.media',
+  // model inference that isn't diffusion (ocr, transcribe, labels, tone, interrogate)
+  ML: 'shared.ml',
+  // diffusion, all of it queues on the one gpu
+  ML_IMAGE: 'shared.ml_image',
+  SEARCH: 'shared.search',
 });
+
+export const CommandRatelimits = Object.freeze({
+  BROWSER: [
+    {duration: 5000, limit: 5, key: RatelimitKeys.BROWSER, type: 'guild'},
+    {duration: 2000, limit: 2, key: RatelimitKeys.BROWSER, type: 'channel'},
+  ],
+  MEDIA: [
+    {duration: 5000, limit: 5, key: RatelimitKeys.MEDIA, type: 'guild'},
+    {duration: 1000, limit: 1, key: RatelimitKeys.MEDIA, type: 'channel'},
+  ],
+  ML: [
+    {duration: 5000, limit: 10, key: RatelimitKeys.ML, type: 'guild'},
+    {duration: 3000, limit: 3, key: RatelimitKeys.ML, type: 'channel'},
+  ],
+  ML_IMAGE: [
+    {duration: 4000, limit: 4, key: RatelimitKeys.ML_IMAGE, type: 'guild'},
+    {duration: 2000, limit: 2, key: RatelimitKeys.ML_IMAGE, type: 'channel'},
+  ],
+  SEARCH: [
+    {duration: 5000, limit: 5, key: RatelimitKeys.SEARCH, type: 'guild'},
+    {duration: 2000, limit: 2, key: RatelimitKeys.SEARCH, type: 'channel'},
+  ],
+} satisfies Record<keyof typeof RatelimitKeys, Array<CommandRatelimitOptions>>);
 
 
 export enum RedditKindTypes {

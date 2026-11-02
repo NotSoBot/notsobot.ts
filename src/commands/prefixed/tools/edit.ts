@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
+import { CommandCategories, CommandRatelimits, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseMediasCommand } from '../basecommand';
@@ -38,10 +38,7 @@ export default class EditCommand extends BaseMediasCommand {
         id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> <...query> (-expand) (-seed <number>) (-steps <number>) (-strength <float>) (-use <choice>)',
       },
-      ratelimits: [
-        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},
-        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'channel'},
-      ],
+      ratelimits: CommandRatelimits.ML_IMAGE,
       type: [
         // both see the whole content, so `.edit @cake @notsobot make them kiss` works without quoting the users
         {name: 'urls', type: Parameters.mediaUrlsLeading({maxAmount: 3, minAmount: 1, audio: false, video: false}), consume: true},

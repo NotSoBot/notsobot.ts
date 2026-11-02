@@ -20,6 +20,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 };
 
 export interface CommandArgs {
+  pitch?: boolean,
   speed: number,
   url: string,
 }
