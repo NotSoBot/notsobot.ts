@@ -40,6 +40,10 @@ export const Api = Object.freeze({
 
   GUILD:
     '/guilds/:guildId',
+  GUILD_LLM_KNOWLEDGE:
+    '/guilds/:guildId/llm/knowledge',
+  GUILD_LLM_KNOWLEDGE_ITEM:
+    '/guilds/:guildId/llm/knowledge/:position',
   GUILD_LOGGERS:
     '/guilds/:guildId/loggers',
   GUILD_LOGGERS_DELETE:

@@ -255,10 +255,18 @@ export namespace RestOptions {
     warningIds?: Array<string>,
   }
 
+  export interface CreateGuildLLMKnowledge {
+    content: string,
+  }
+
   export interface CreateUserLLMMemory {
     content: string,
     // only for the server the request comes from
     server?: boolean,
+  }
+
+  export interface EditGuildLLMKnowledge {
+    content: string,
   }
 
   export interface EditUserLLMMemory {
@@ -539,6 +547,8 @@ export namespace RestOptions {
 
   export interface FetchTagsDirectory {
     limit?: number,
+    // false leaves out nsfw tags
+    nsfw?: boolean,
     // title/description/name, or `id:<tag id>` / `user:<owner id>`
     query?: string,
   }
@@ -2802,6 +2812,20 @@ export namespace RestResponsesRaw {
   export type EditUserLLMMemory = FetchUserLLMMemories;
   export type DeleteUserLLMMemory = FetchUserLLMMemories;
 
+  // every call that changes the server's NotSoAI knowledge returns all of it afterwards, in prompt order
+  export interface GuildLLMKnowledgeList {
+    items: Array<GuildLLMKnowledge>,
+    limits: {amount: number, total_length: number},
+  }
+
+  export interface CreateGuildLLMKnowledge extends GuildLLMKnowledgeList {
+    // false when the same fact was already there
+    created: boolean,
+  }
+
+  export type EditGuildLLMKnowledge = GuildLLMKnowledgeList;
+  export type DeleteGuildLLMKnowledge = GuildLLMKnowledgeList;
+
   export interface PremiumServer {
     created: string,
     // when it can be taken off, servers are locked for a while after getting someone's premium
@@ -4233,6 +4257,15 @@ export namespace RestResponsesRaw {
   export type VoiceCloneEdit = Voice;
 
 
+
+  export interface GuildLLMKnowledge {
+    content: string,
+    created: string,
+    guild_id: string,
+    id: string,
+    // who added or last edited it
+    user_id: string,
+  }
 
   export interface LLMMemory {
     content: string,

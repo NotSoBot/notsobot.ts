@@ -273,6 +273,15 @@ export async function deleteReminderPositional(
 }
 
 
+export async function createGuildLLMKnowledge(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.CreateGuildLLMKnowledge,
+) {
+  return raw.createGuildLLMKnowledge(context, guildId, options);
+}
+
+
 export async function createUserLLMMemory(
   context: RequestContext,
   userId: string,
@@ -290,12 +299,31 @@ export async function deleteUserLLMMemories(
 }
 
 
+export async function deleteGuildLLMKnowledge(
+  context: RequestContext,
+  guildId: string,
+  position: number | string,
+) {
+  return raw.deleteGuildLLMKnowledge(context, guildId, position);
+}
+
+
 export async function deleteUserLLMMemory(
   context: RequestContext,
   userId: string,
   position: number | string,
 ) {
   return raw.deleteUserLLMMemory(context, userId, position);
+}
+
+
+export async function editGuildLLMKnowledge(
+  context: RequestContext,
+  guildId: string,
+  position: number | string,
+  options: RestOptions.EditGuildLLMKnowledge,
+) {
+  return raw.editGuildLLMKnowledge(context, guildId, position, options);
 }
 
 

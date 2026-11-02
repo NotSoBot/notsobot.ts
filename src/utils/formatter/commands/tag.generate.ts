@@ -1,5 +1,6 @@
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
+import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 
 import CommandResponsesStore, { TRACK_DURATION } from '../../../stores/commandresponses';
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -317,9 +318,11 @@ async function generateAndRunTag(
     });
   }
 
-  const startedAt = Date.now();
+  // moved up by however long they took to answer a confirmation, the run's time limit is pushed back the same
+  let startedAt = Date.now();
   // most generated tagscript is done right away, only switch to its countdown once it's actually taking a while
   thinking.setStatus((translate) => tagTimeLimitText(context, translate, startedAt), THINKING_REPLY_AFTER);
+  const confirmAction = createAIConfirmAction(context, thinking, (waited) => startedAt += waited);
   try {
     const parsedTag = await TagFormatter.parse(context, response.text, '', {
       defaultPersonality: TAG_GENERATION_PERSONALITY_DEFAULT,
@@ -332,7 +335,7 @@ async function generateAndRunTag(
       [TagFormatter.PrivateVariables.SETTINGS]: {
         [TagFormatter.TagSettings.AI_MODEL]: args.model,
       },
-    } as any);
+    } as any, {confirmAction});
 
     // always say when NotSoAI changed what it remembers, instead of trusting it to mention it
     const memoryChanges = TagFormatter.getAIMemoryChanges(parsedTag);
@@ -344,6 +347,10 @@ async function generateAndRunTag(
     if (parsedTag.variables[TagFormatter.PrivateVariables.AI_WRITES_BLOCKED]) {
       const { translate } = await getTranslator(context);
       parsedTag.text = [parsedTag.text.trimEnd(), `-# ${translate('tag_generate.untrusted_prompt_blocked')}`].join('\n');
+    }
+    if (parsedTag.variables[TagFormatter.PrivateVariables.AI_WRITES_DECLINED]) {
+      const { translate } = await getTranslator(context);
+      parsedTag.text = [parsedTag.text.trimEnd(), `-# ${translate('tag_generate.confirm_declined')}`].join('\n');
     }
     await thinking.stop();
     return await createTagMessage(context, parsedTag);
@@ -387,6 +394,72 @@ async function generateAndRunTag(
   }
 }
 
+
+
+// how long NotSoAI's confirmation buttons wait, no answer counts as Cancel
+export const AI_CONFIRM_TIMEOUT = 60 * 1000;
+
+// NotSoAI asking before a function runs (`TagFormatter.confirmAIAction`): the call itself on the thinking reply with
+// Allow and Cancel, only the command user's presses count. `onWait` gets how long it waited, for the countdown
+function createAIConfirmAction(
+  context: Command.Context | Interaction.InteractionContext,
+  thinking: ThinkingReply,
+  onWait: (waited: number) => void,
+): TagFormatter.AIConfirmAction {
+  return (call, reason) => thinking.hold(async () => {
+    const { translate } = await getTranslator(context);
+    const startedAt = Date.now();
+    try {
+      return await new Promise<boolean>((resolve, reject) => {
+        let answered = false;
+        const answer = (allowed: boolean) => {
+          if (!answered) {
+            answered = true;
+            components.clear();
+            resolve(allowed);
+          }
+        };
+
+        const components = new Components({timeout: AI_CONFIRM_TIMEOUT, onTimeout: () => answer(false)});
+        // answered before the press is acknowledged, a failed acknowledgement shouldn't leave the run waiting it out
+        const press = (allowed: boolean) => async (ctx: ComponentContext) => {
+          if (ctx.userId === context.userId) {
+            answer(allowed);
+          }
+          await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        };
+        components.createButton({
+          label: translate('tag_generate.confirm_allow'),
+          run: press(true),
+          style: MessageComponentButtonStyles.SUCCESS,
+        });
+        components.createButton({
+          label: translate('tag_generate.confirm_cancel'),
+          run: press(false),
+          style: MessageComponentButtonStyles.SECONDARY,
+        });
+
+        const endsAt = Math.round((startedAt + AI_CONFIRM_TIMEOUT) / 1000);
+        const content = [
+          `**${translate('tag_generate.confirm_title')}**`,
+          Markup.codeblock(call),
+          `-# ${translate((reason === TagFormatter.AIConfirmReasons.UNTRUSTED) ? 'tag_generate.confirm_untrusted' : 'tag_generate.confirm_destructive')}`,
+          `-# ${translate('tag_generate.confirm_footer', {time: `<t:${endsAt}:R>`, user: `<@${context.userId}>`})}`,
+        ].join('\n');
+        // nothing to press if the reply can't be edited, the run goes on as if they cancelled
+        editOrReply(context, {components, content}).catch((error) => {
+          if (!answered) {
+            answered = true;
+            components.clear();
+            reject(error);
+          }
+        });
+      });
+    } finally {
+      onWait(Date.now() - startedAt);
+    }
+  });
+}
 
 
 // what the api's static check found, and whether the reply was repaired because of it

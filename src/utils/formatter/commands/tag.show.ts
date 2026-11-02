@@ -52,6 +52,8 @@ export type ThinkingStatus = (translate: Translator['translate']) => Promise<str
 // status changes after that. the same random thinking text stays on top. interactions get nothing, they already defer
 export class ThinkingReply {
   context: Command.Context | Interaction.InteractionContext;
+  // something else is on the reply (NotSoAI asking to confirm, see `hold`), status edits wait for it
+  held: boolean = false;
   pending: Promise<void> = Promise.resolve();
   sent: boolean = false;
   status: ThinkingStatus | null;
@@ -108,10 +110,28 @@ export class ThinkingReply {
     await this.pending;
   }
 
+  // the reply shows what `callback` puts on it until it's done (NotSoAI's confirmation buttons), then the thinking text
+  // goes back on it, the reply is out either way now. edits already started finish first
+  async hold<T>(callback: () => Promise<T>): Promise<T> {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    this.held = true;
+    await this.pending;
+    try {
+      return await callback();
+    } finally {
+      this.held = false;
+      this.sent = true;
+      this.render();
+    }
+  }
+
   // edits go one at a time, so a slow first reply can't land after the edit meant to replace it
   private render(): void {
     this.pending = this.pending.then(async () => {
-      if (this.stopped) {
+      if (this.stopped || this.held) {
         return;
       }
       const { translate } = await getTranslator(this.context);

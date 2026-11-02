@@ -239,6 +239,26 @@ export async function createReminder(
 }
 
 
+export async function createGuildLLMKnowledge(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.CreateGuildLLMKnowledge,
+): Promise<RestResponsesRaw.CreateGuildLLMKnowledge> {
+  const body = {
+    content: options.content,
+  };
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_LLM_KNOWLEDGE,
+      params,
+    },
+  });
+}
+
+
 export async function createUserLLMMemory(
   context: RequestContext,
   userId: string,
@@ -697,6 +717,22 @@ export async function deleteUserLLMMemories(
 }
 
 
+export async function deleteGuildLLMKnowledge(
+  context: RequestContext,
+  guildId: string,
+  position: number | string,
+): Promise<RestResponsesRaw.DeleteGuildLLMKnowledge> {
+  const params = {guildId, position};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.GUILD_LLM_KNOWLEDGE_ITEM,
+      params,
+    },
+  });
+}
+
+
 export async function deleteUserLLMMemory(
   context: RequestContext,
   userId: string,
@@ -1015,6 +1051,27 @@ export async function acknowledgeUserWarnings(
     route: {
       method: HTTPMethods.POST,
       path: Api.USER_WARNINGS_ACKNOWLEDGE,
+      params,
+    },
+  });
+}
+
+
+export async function editGuildLLMKnowledge(
+  context: RequestContext,
+  guildId: string,
+  position: number | string,
+  options: RestOptions.EditGuildLLMKnowledge,
+): Promise<RestResponsesRaw.EditGuildLLMKnowledge> {
+  const body = {
+    content: options.content,
+  };
+  const params = {guildId, position};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.GUILD_LLM_KNOWLEDGE_ITEM,
       params,
     },
   });
@@ -2060,6 +2117,7 @@ export async function fetchTagsDirectory(
 ): Promise<RestResponsesRaw.FetchTagsDirectory> {
   const query = {
     limit: options.limit,
+    nsfw: options.nsfw,
     query: options.query,
   };
   return request(context, {

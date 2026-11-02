@@ -18,21 +18,30 @@ import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
 
 import {
+  createGuildLLMKnowledge,
   createReminder,
+  createReport,
   createUserLLMMemory,
+  deleteGuildLLMKnowledge,
+  deleteTag,
   deleteUserLLMMemories,
   deleteUserLLMMemory,
+  editGuildLLMKnowledge,
   editGuildSettings,
   editUserLLMMemory,
   deleteReminderPositional,
   editReminder,
   editUserSettings,
+  fetchCommandsResponses,
+  fetchGuildMusic,
   fetchTag,
   fetchTagBlobs,
   fetchTagId,
   fetchTagVariable,
   fetchReminderPositional,
   fetchTagVariables,
+  fetchTagsDirectory,
+  fetchTagsServer,
   fetchUserReminders,
   fetchUserVoices,
   deleteTagVariable,
@@ -84,6 +93,8 @@ import { RestOptions, RestResponses, RestResponsesRaw } from '../../api/types';
 import {
   ApiErrorCodes,
   CodeLanguages,
+  CommandTypes,
+  DEFAULT_MUSIC_VOLUME,
   DownloadQualities,
   GoogleLocales,
   GuildSettingsResponseDisplayTypes,
@@ -92,6 +103,7 @@ import {
   MLDiffusionModels,
   MLDiffusionModelsToText,
   ProxyRequestMethods,
+  ReportTypes,
   SearchProvidersText,
   TagBlobStorageTypes,
   TagGenerationModels,
@@ -113,6 +125,16 @@ import {
 } from '../../constants';
 
 import { ReminderInterval } from '../../listeners';
+import VoiceNode from '../../voicenode';
+import {
+  MusicVoteKinds,
+  clearMusicVotes,
+  musicDjRefusal,
+  musicItemPosition,
+  musicSoundSettingRefusal,
+  musicVote,
+} from '../formatter/commands/music.shared';
+import { parseMusicVolume } from '../formatter/commands/music.volume';
 import { getAIPersonality } from '../formatter/commands/tag.generate';
 import { increaseUsage } from '../formatter/commands/tag.show';
 
@@ -361,7 +383,9 @@ const REGEX_INVITE_CODE = /^(?:(?:https?:\/\/)?(?:www\.)?discord(?:app)?\.(?:gg|
 export enum PrivateVariables {
   AI_EXECUTIONS = '__aiExecutions',
   AI_PROMPT_UNTRUSTED = '__aiPromptUntrusted',
+  AI_CONFIRMATIONS = '__aiConfirmations',
   AI_WRITES_BLOCKED = '__aiWritesBlocked',
+  AI_WRITES_DECLINED = '__aiWritesDeclined',
   API_MANIPULATIONS = '__apiManipulations',
   ARGS = '__args',
   ARGS_STRING = '__argsString',
@@ -443,21 +467,29 @@ export const TAG_IF_COMPARISONS = [
 // maybe make {argattachment}
 export enum TagFunctions {
   AI = 'AI',
+  AI_KNOWLEDGE_ADD = 'AI_KNOWLEDGE_ADD',
+  AI_KNOWLEDGE_DELETE = 'AI_KNOWLEDGE_DELETE',
+  AI_KNOWLEDGE_EDIT = 'AI_KNOWLEDGE_EDIT',
   AI_MEMORY_ADD = 'AI_MEMORY_ADD',
   AI_MEMORY_CLEAR = 'AI_MEMORY_CLEAR',
   AI_MEMORY_DELETE = 'AI_MEMORY_DELETE',
   AI_MEMORY_EDIT = 'AI_MEMORY_EDIT',
   API_AUDIO_IDENTIFY = 'API_AUDIO_IDENTIFY',
   API_CREATE_REMINDER = 'API_CREATE_REMINDER',
+  API_CREATE_REPORT = 'API_CREATE_REPORT',
   API_DELETE_REMINDER = 'API_DELETE_REMINDER',
   API_EDIT_REMINDER = 'API_EDIT_REMINDER',
+  API_FETCH_COMMANDS = 'API_FETCH_COMMANDS',
+  API_FETCH_MUSIC = 'API_FETCH_MUSIC',
   API_FETCH_REMINDERS = 'API_FETCH_REMINDERS',
+  API_FETCH_TAGS = 'API_FETCH_TAGS',
   API_INFO_INVITE = 'API_INFO_INVITE',
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
   API_SEARCH_IMAGES = 'API_SEARCH_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
   API_SEARCH_REDDIT = 'API_SEARCH_REDDIT',
   API_SEARCH_STEAM = 'API_SEARCH_STEAM',
+  API_SEARCH_TAGS = 'API_SEARCH_TAGS',
   API_SEARCH_URBAN = 'API_SEARCH_URBAN',
   API_SEARCH_WEB = 'API_SEARCH_WEB',
   API_SEARCH_WIKIHOW = 'API_SEARCH_WIKIHOW',
@@ -563,6 +595,7 @@ export enum TagFunctions {
   MESSAGE_RANDOM_ID = 'MESSAGE_RANDOM_ID',
   MESSAGE_USER_ID = 'MESSAGE_USER_ID',
   NSFW = 'NSFW',
+  MUSIC_CONTROL = 'MUSIC_CONTROL',
   NSFW_FILTER = 'NSFW_FILTER',
   PAGE_JSON = 'PAGE_JSON',
   PREFIX = 'PREFIX',
@@ -616,6 +649,8 @@ export enum TagFunctions {
   TAG = 'TAG',
   TAG_CONTENT = 'TAG_CONTENT',
   TAG_CREATE = 'TAG_CREATE',
+  TAG_DELETE = 'TAG_DELETE',
+  TAG_EDIT = 'TAG_EDIT',
   TAG_ID = 'TAG_ID',
   TAG_NAME = 'TAG_NAME',
   TAG_OWNER_ID = 'TAG_OWNER_ID',
@@ -654,21 +689,29 @@ export const TagFunctionsToString = Object.freeze({
   NOTE: ['note'],
 
   [TagFunctions.AI]: ['ai'],
+  [TagFunctions.AI_KNOWLEDGE_ADD]: ['ai.knowledge.add'],
+  [TagFunctions.AI_KNOWLEDGE_DELETE]: ['ai.knowledge.delete'],
+  [TagFunctions.AI_KNOWLEDGE_EDIT]: ['ai.knowledge.edit'],
   [TagFunctions.AI_MEMORY_ADD]: ['ai.memory.add'],
   [TagFunctions.AI_MEMORY_CLEAR]: ['ai.memory.clear'],
   [TagFunctions.AI_MEMORY_DELETE]: ['ai.memory.delete'],
   [TagFunctions.AI_MEMORY_EDIT]: ['ai.memory.edit'],
   [TagFunctions.API_AUDIO_IDENTIFY]: ['api.audio.identify'],
   [TagFunctions.API_CREATE_REMINDER]: ['api.create.reminder'],
+  [TagFunctions.API_CREATE_REPORT]: ['api.create.report'],
   [TagFunctions.API_DELETE_REMINDER]: ['api.delete.reminder'],
   [TagFunctions.API_EDIT_REMINDER]: ['api.edit.reminder'],
+  [TagFunctions.API_FETCH_COMMANDS]: ['api.fetch.commands'],
+  [TagFunctions.API_FETCH_MUSIC]: ['api.fetch.music'],
   [TagFunctions.API_FETCH_REMINDERS]: ['api.fetch.reminders'],
+  [TagFunctions.API_FETCH_TAGS]: ['api.fetch.tags'],
   [TagFunctions.API_INFO_INVITE]: ['api.info.invite'],
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
   [TagFunctions.API_SEARCH_IMAGES]: ['api.search.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
   [TagFunctions.API_SEARCH_REDDIT]: ['api.search.reddit'],
   [TagFunctions.API_SEARCH_STEAM]: ['api.search.steam'],
+  [TagFunctions.API_SEARCH_TAGS]: ['api.search.tags'],
   [TagFunctions.API_SEARCH_URBAN]: ['api.search.urban'],
   [TagFunctions.API_SEARCH_WEB]: ['api.search.web'],
   [TagFunctions.API_SEARCH_WIKIHOW]: ['api.search.wikihow'],
@@ -774,6 +817,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MESSAGE_RANDOM_ID]: ['randmessageid'],
   [TagFunctions.MESSAGE_USER_ID]: ['messageuserid'],
   [TagFunctions.NSFW]: ['nsfw'],
+  [TagFunctions.MUSIC_CONTROL]: ['music.control'],
   [TagFunctions.NSFW_FILTER]: ['nsfwfilter'],
   [TagFunctions.PAGE_JSON]: ['pagejson'],
   [TagFunctions.PREFIX]: ['prefix'],
@@ -827,6 +871,8 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.TAG]: ['tag'],
   [TagFunctions.TAG_CONTENT]: ['tagcontent'],
   [TagFunctions.TAG_CREATE]: ['tag.create'],
+  [TagFunctions.TAG_DELETE]: ['tag.delete'],
+  [TagFunctions.TAG_EDIT]: ['tag.edit'],
   [TagFunctions.TAG_ID]: ['tagid'],
   [TagFunctions.TAG_NAME]: ['tagname'],
   [TagFunctions.TAG_OWNER_ID]: ['tagownerid'],
@@ -928,6 +974,7 @@ export enum TagUserSettings {
   FILE_UPLOAD_TYPE = 'FILE_UPLOAD_TYPE',
   FILE_VANITY = 'FILE_VANITY',
   IMAGINE_MODEL = 'IMAGINE_MODEL',
+  MEDIA_FONT = 'MEDIA_FONT',
   RESPONSE_DISPLAY = 'RESPONSE_DISPLAY',
   SEARCH_PROVIDER_IMAGES = 'SEARCH_PROVIDER_IMAGES',
   SEARCH_PROVIDER_WEB = 'SEARCH_PROVIDER_WEB',
@@ -1035,6 +1082,14 @@ const TAG_USER_SETTINGS: Record<TagUserSettings, TagUserSetting> = {
   },
   [TagUserSettings.IMAGINE_MODEL]: createEnumUserSetting('ml_diffusion_model', 'mlDiffusionModel', MLDiffusionModels, null, MLDiffusionModelsToText),
   // cleared follows the server's setting
+  [TagUserSettings.MEDIA_FONT]: {
+    cleared: null,
+    field: 'media_font',
+    option: 'mediaFont',
+    parse: (value, context) => parseMediaFontSetting(value, context, 'user'),
+    text: (value) => value || '',
+  },
+  // cleared follows the server's setting
   [TagUserSettings.RESPONSE_DISPLAY]: createEnumUserSetting('response_display', 'responseDisplay', UserSettingsResponseDisplayTypes, null),
   // cleared follows the server's setting, then the default (Google for images, DuckDuckGo for web)
   [TagUserSettings.SEARCH_PROVIDER_IMAGES]: createEnumUserSetting(
@@ -1073,6 +1128,19 @@ const TAG_USER_SETTINGS: Record<TagUserSettings, TagUserSetting> = {
   [TagUserSettings.UNITS]: createEnumUserSetting('units', 'units', MeasurementUnits, null),
 };
 
+// the Default Font settings: a bundled font or one of their own saved fonts (or the server's for the server setting)
+async function parseMediaFontSetting(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+  scope: 'guild' | 'user',
+): Promise<string> {
+  const font = await Parameters.mediaFont(value, context, scope);
+  if (!font) {
+    throw new TagError(`Unknown font \`${value.slice(0, 64)}\``);
+  }
+  return font;
+}
+
 const CLONED_TTS_VOICE_PREFIX = `${TTSVoices.CLONED}_`;
 // `CLONED` alone isn't a voice you can save
 const TTS_VOICE_BUILT_IN = createEnumSetting(
@@ -1096,6 +1164,7 @@ export enum TagServerSettings {
   AI_PERSONALITY = 'AI_PERSONALITY',
   IMAGINE_MODEL = 'IMAGINE_MODEL',
   LOCALE = 'LOCALE',
+  MEDIA_FONT = 'MEDIA_FONT',
   RESPONSE_DISPLAY = 'RESPONSE_DISPLAY',
   SEARCH_PROVIDER_IMAGES = 'SEARCH_PROVIDER_IMAGES',
   SEARCH_PROVIDER_WEB = 'SEARCH_PROVIDER_WEB',
@@ -1140,6 +1209,12 @@ const TAG_SERVER_SETTINGS: Record<TagServerSettings, TagServerSetting> = {
     get: (settings) => settings.locale,
     option: 'locale',
     parse: (value, context) => Parameters.locale(value, context),
+    text: (value) => value || '',
+  },
+  [TagServerSettings.MEDIA_FONT]: {
+    get: (settings) => settings.settings.mediaFont,
+    option: 'mediaFont',
+    parse: (value, context) => parseMediaFontSetting(value, context, 'guild'),
     text: (value) => value || '',
   },
   [TagServerSettings.RESPONSE_DISPLAY]: createEnumServerSetting(
@@ -1246,7 +1321,16 @@ async function searchImagesWithProvider(
 }
 
 type TagResultsCaches = TagVariables[PrivateVariables.RESULTS];
-type TagResultsCacheKey = Exclude<keyof TagResultsCaches, TagFunctions.AI | TagFunctions.AI_MEMORY_ADD | TagFunctions.TAG_CREATE>;
+type TagResultsCacheKey = Exclude<
+  keyof TagResultsCaches,
+  | TagFunctions.AI
+  | TagFunctions.AI_KNOWLEDGE_ADD
+  | TagFunctions.AI_MEMORY_ADD
+  | TagFunctions.API_CREATE_REPORT
+  | TagFunctions.MUSIC_CONTROL
+  | TagFunctions.TAG_CREATE
+  | TagFunctions.TAG_EDIT
+>;
 
 // a function's responses this execution, by query. no prototype, `{api.search.web:constructor}` found
 // `Object.prototype.constructor` in a plain `{}` and used it as the response
@@ -1361,7 +1445,10 @@ async function setServerSetting(
 export interface TagVariables {
   [PrivateVariables.AI_EXECUTIONS]: number,
   [PrivateVariables.AI_PROMPT_UNTRUSTED]: number,
+  // how many times NotSoAI asked the user to confirm this run, -1 once they cancelled one (it stops asking)
+  [PrivateVariables.AI_CONFIRMATIONS]: number,
   [PrivateVariables.AI_WRITES_BLOCKED]: number,
+  [PrivateVariables.AI_WRITES_DECLINED]: number,
   [PrivateVariables.API_MANIPULATIONS]: number,
   [PrivateVariables.ARGS]: Array<string>,
   [PrivateVariables.ARGS_STRING]: string,
@@ -1378,15 +1465,20 @@ export interface TagVariables {
   [PrivateVariables.PARENT_TAG_ID]: string,
   [PrivateVariables.RESULTS]: {
     [TagFunctions.AI]?: RestResponsesRaw.GenerateTag,
+    // how many times NotSoAI changed the server's knowledge this execution
+    [TagFunctions.AI_KNOWLEDGE_ADD]?: number,
     // every change to the ai's memory this execution, for the limit and the receipt under NotSoAI's reply
     [TagFunctions.AI_MEMORY_ADD]?: AIMemoryChanges,
     [TagFunctions.API_AUDIO_IDENTIFY]?: Record<string, Array<Record<string, any>>>,
+    // the report NotSoAI sent this execution, it can only send one
+    [TagFunctions.API_CREATE_REPORT]?: string,
     [TagFunctions.API_INFO_INVITE]?: Record<string, Record<string, any>>,
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
     [TagFunctions.API_SEARCH_IMAGES]?: Record<string, TagSearchResults<TagSearchImageResult>>,
     [TagFunctions.API_SEARCH_IMGUR]?: Record<string, RestResponsesRaw.SearchImgur>,
     [TagFunctions.API_SEARCH_REDDIT]?: Record<string, {results: Array<Record<string, any>>}>,
     [TagFunctions.API_SEARCH_STEAM]?: Record<string, RestResponsesRaw.SearchSteam>,
+    [TagFunctions.API_SEARCH_TAGS]?: Record<string, {count: number, tags: Array<Record<string, any>>}>,
     [TagFunctions.API_SEARCH_URBAN]?: Record<string, RestResponsesRaw.SearchUrbanDictionary>,
     [TagFunctions.API_SEARCH_WEB]?: Record<string, TagSearchResults<TagSearchWebResult>>,
     [TagFunctions.API_SEARCH_WIKIHOW]?: Record<string, RestResponsesRaw.SearchWikihow>,
@@ -1394,10 +1486,14 @@ export interface TagVariables {
     [TagFunctions.API_UTILITIES_EXIF]?: Record<string, Record<string, any>>,
     [TagFunctions.API_UTILITIES_LOCATIONS]?: Record<string, RestResponsesRaw.UtilitiesLocations>,
     [TagFunctions.API_UTILITIES_WEATHER]?: Record<string, RestResponsesRaw.UtilitiesWeather>,
+    // how many times NotSoAI controlled the music this execution
+    [TagFunctions.MUSIC_CONTROL]?: number,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
     // the tag NotSoAI created this execution, it can only make one
     [TagFunctions.TAG_CREATE]?: string,
+    // how many of the command user's tags NotSoAI edited or deleted this execution
+    [TagFunctions.TAG_EDIT]?: number,
   },
   [PrivateVariables.SETTINGS]: {
     [TagSettings.AI_MODEL]?: string,
@@ -1413,11 +1509,22 @@ export interface TagVariables {
   [key: string]: number | string | Array<string> | Record<string, any>,
 }
 
+// why NotSoAI asks before a function runs: someone else's text was in its prompt, or it can't be undone
+export enum AIConfirmReasons {
+  DESTRUCTIVE = 'DESTRUCTIVE',
+  UNTRUSTED = 'UNTRUSTED',
+}
+
+// shows `call` (the function exactly as it'll run) to the command user and resolves with whether they allowed it
+export type AIConfirmAction = (call: string, reason: AIConfirmReasons) => Promise<boolean>;
+
 export interface TagContext {
   // functions that error instead of running, for callers that run user scripts somewhere tags normally can't (like nick-mass)
   blockedFunctions?: ReadonlySet<TagFunctions>,
   // whether code blocks (`{js:...}`, `{py:...}`) error instead of running
   blocksCode?: boolean,
+  // NotSoAI's reply can ask the command user before some functions run (`confirmAIAction`), only `tag generate` has one
+  confirmAction?: AIConfirmAction,
   // the tag being run is a verified directory listing (staff reviewed it), it gets premium limits like a premium user's
   // run would. Tags it calls share the caller's context, so only the tag that was run decides
   directoryVerified?: boolean,
@@ -1517,6 +1624,8 @@ export async function parse(
     (variables as any)[PrivateVariables.AI_PROMPT_UNTRUSTED] = 0;
   }
   if (!(PrivateVariables.AI_WRITES_BLOCKED in variables)) {
+    (variables as any)[PrivateVariables.AI_CONFIRMATIONS] = 0;
+    (variables as any)[PrivateVariables.AI_WRITES_DECLINED] = 0;
     (variables as any)[PrivateVariables.AI_WRITES_BLOCKED] = 0;
   }
   if (!(PrivateVariables.API_MANIPULATIONS in variables)) {
@@ -1997,22 +2106,112 @@ export const MAX_AI_TAG_NAME_LENGTH = 64;
 export const MAX_AI_TAG_CONTENT_LENGTH = 2000;
 // same as the api's `MAX_LLM_MEMORY_LENGTH`
 export const MAX_AI_MEMORY_LENGTH = 200;
+// changes to the server's knowledge and to their existing tags, each per message
+export const MAX_AI_KNOWLEDGE_CHANGES = 3;
+export const MAX_AI_TAG_CHANGES = 3;
+// same as the api's `MAX_GUILD_LLM_KNOWLEDGE_TOTAL_LENGTH`, every fact together
+export const MAX_AI_KNOWLEDGE_LENGTH = 1000;
+// what {api.fetch.tags} lists, newest first
+const MAX_AI_FETCH_TAGS = 50;
+const MAX_AI_FETCH_TAG_CONTENT_LENGTH = 100;
+// {api.fetch.commands}: their last few commands in this channel, each one's text cut down (the files are kept whole)
+const MAX_AI_FETCH_COMMANDS = 5;
+const MAX_AI_FETCH_COMMAND_TEXT_LENGTH = 200;
+// {api.fetch.music}'s queue, {api.search.tags}'s results
+const MAX_AI_FETCH_MUSIC_QUEUE = 10;
+const MAX_AI_SEARCH_TAGS = 10;
+const MAX_AI_SEARCH_TAG_DESCRIPTION_LENGTH = 200;
+// same as `report`'s
+const MAX_AI_REPORT_LENGTH = 2000;
+export const MAX_AI_MUSIC_CONTROLS = 3;
 
 // only NotSoAI's own reply can touch the command user's memory, settings, reminders and tags, not a button it made. a
 // press still runs with the command user's context, and NotSoAI can let everyone press its buttons
 // (`ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE`), so anyone could have changed their settings or deleted their reminders
-// it also can't when someone else's text was in its prompt (a message it replied to, a file or link, or tagscript made
-// while running like {ai}'s answer or {eval}'s result), they could have told it to change or read out the command
-// user's things. those are counted so NotSoAI's reply can say it skipped them
-export function canChangeAIMemory(context: Command.Context | Interaction.InteractionContext, tag: TagResult): boolean {
+// when someone else's text was in its prompt (a message it replied to, a file or link, or tagscript made while running
+// like {ai}'s answer or {eval}'s result), they could have told it to change or read out the command user's things, so
+// it asks the command user first (`confirmAIAction`). ones it couldn't ask about are counted so NotSoAI's reply can say
+// it skipped them. `deferConfirm` is for the functions that check their arguments first and confirm themselves
+// (`confirmAIDestructive`), so nobody is asked about something that would error anyway
+export async function canChangeAIMemory(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  func: TagFunctions,
+  arg: string,
+  options: {deferConfirm?: boolean} = {},
+): Promise<boolean> {
   if (!isFromAI(context, tag) || 0 < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS]) {
     return false;
   }
-  if (tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED]) {
-    tag.variables[PrivateVariables.AI_WRITES_BLOCKED]++;
-    return false;
+  if (tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED] && !options.deferConfirm) {
+    return confirmAIAction(context, tag, func, arg, AIConfirmReasons.UNTRUSTED);
   }
   return true;
+}
+
+// at most this many questions per run, and none after they cancel one
+export const MAX_AI_CONFIRMATIONS = 3;
+const MAX_AI_CONFIRM_CALL_LENGTH = 400;
+
+// the function as it'll run, `{tag.delete:greet}`, so the question is only ever what we'll do and never NotSoAI's own
+// description of it
+function formatAIFunctionCall(func: TagFunctions, arg: string): string {
+  const name = TagFunctionsToString[func][0];
+  const call = (arg) ? `{${name}${TagSymbols.SPLITTER_FUNCTION}${arg}}` : `{${name}}`;
+  return (MAX_AI_CONFIRM_CALL_LENGTH < call.length) ? `${call.slice(0, MAX_AI_CONFIRM_CALL_LENGTH - 1)}…` : call;
+}
+
+// asks the command user with the reply's buttons (`TagContext.confirmAction`), the run waits and its time limit is
+// pushed back by how long they took. without a way to ask (or out of questions) an untrusted call is blocked like it
+// always was, and a destructive one just runs. a cancel (or no answer) stops every later question this run too
+export async function confirmAIAction(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  func: TagFunctions,
+  arg: string,
+  reason: AIConfirmReasons,
+): Promise<boolean> {
+  const variables = tag.variables;
+  const confirm = tag.context.confirmAction;
+  if (variables[PrivateVariables.AI_CONFIRMATIONS] < 0) {
+    variables[PrivateVariables.AI_WRITES_DECLINED]++;
+    return false;
+  }
+  if (!confirm || MAX_AI_CONFIRMATIONS <= variables[PrivateVariables.AI_CONFIRMATIONS]) {
+    if (reason === AIConfirmReasons.UNTRUSTED) {
+      variables[PrivateVariables.AI_WRITES_BLOCKED]++;
+      return false;
+    }
+    return true;
+  }
+
+  checkDeadline(context, tag);
+  variables[PrivateVariables.AI_CONFIRMATIONS]++;
+  const startedAt = Date.now();
+  let allowed = false;
+  try {
+    allowed = await confirm(formatAIFunctionCall(func, arg), reason);
+  } catch(error) {
+    // the reply couldn't be edited (deleted, no permissions), nobody could have answered
+  } finally {
+    variables[PrivateVariables.DEADLINE] += Date.now() - startedAt;
+  }
+  if (!allowed) {
+    variables[PrivateVariables.AI_CONFIRMATIONS] = -1;
+    variables[PrivateVariables.AI_WRITES_DECLINED]++;
+  }
+  return allowed;
+}
+
+// the functions that can't be undone ask even with a trusted prompt, once their arguments checked out
+async function confirmAIDestructive(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  func: TagFunctions,
+  arg: string,
+): Promise<boolean> {
+  const reason = (tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED]) ? AIConfirmReasons.UNTRUSTED : AIConfirmReasons.DESTRUCTIVE;
+  return confirmAIAction(context, tag, func, arg, reason);
 }
 
 // runs tagscript that only exists at runtime (not what NotSoAI wrote) with the NotSoAI-only functions locked
@@ -2055,6 +2254,140 @@ function parseAIMemoryPosition(value: string): number {
   return position;
 }
 
+function parseAIPosition(value: string, what: string): number {
+  const position = parseInt(value.trim());
+  if (isNaN(position) || position < 1) {
+    throw new TagError(`${what} position must be a positive number`);
+  }
+  return position;
+}
+
+// changing the server's knowledge needs Manage Server, like its settings
+function checkAIKnowledgeChange(context: Command.Context | Interaction.InteractionContext, tag: TagResult): void {
+  if (!context.guildId) {
+    throw new TagError('Server knowledge can only be changed in a server');
+  }
+  if (!canManageServer(context)) {
+    throw new TagError('You need the Manage Server permission to change what NotSoAI knows about this server');
+  }
+  const results = tag.variables[PrivateVariables.RESULTS];
+  if (MAX_AI_KNOWLEDGE_CHANGES <= (results[TagFunctions.AI_KNOWLEDGE_ADD] || 0)) {
+    throw new TagError(`NotSoAI can only change this server's knowledge ${MAX_AI_KNOWLEDGE_CHANGES} times per message`);
+  }
+  results[TagFunctions.AI_KNOWLEDGE_ADD] = (results[TagFunctions.AI_KNOWLEDGE_ADD] || 0) + 1;
+}
+
+async function withAIKnowledgeNotFound<T>(position: number, callback: () => Promise<T>): Promise<T> {
+  try {
+    return await callback();
+  } catch(error) {
+    if (error.response && error.response.statusCode === 404) {
+      throw new TagError(`Unknown server knowledge at position ${position}`);
+    }
+    throw error;
+  }
+}
+
+// one of the command user's own tags in this server for {tag.edit} and {tag.delete}, never someone else's (no force
+// removing like `tag remove` has for moderators), a locked one or a global one
+async function fetchAIOwnTag(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  nameText: string,
+): Promise<RestResponsesRaw.Tag> {
+  const name = Parameters.tagName(nameText || '').trim().toLowerCase();
+  if (!name) {
+    throw new TagError('A tag name is needed');
+  }
+
+  const results = tag.variables[PrivateVariables.RESULTS];
+  if (MAX_AI_TAG_CHANGES <= (results[TagFunctions.TAG_EDIT] || 0)) {
+    throw new TagError(`NotSoAI can only edit or delete ${MAX_AI_TAG_CHANGES} tags per message`);
+  }
+
+  let found: RestResponsesRaw.Tag | null = null;
+  try {
+    found = await withDeadline(context, tag, () => fetchTag(context, {name, serverId: context.guildId || context.channelId!}));
+  } catch(error) {
+    if (!error.response || error.response.statusCode !== 404) {
+      throw error;
+    }
+  }
+  if (!found || found.global) {
+    throw new TagError(`There's no tag named \`${name}\` in this server`);
+  }
+  if (found.user.id !== context.userId) {
+    throw new TagError(`\`${name}\` isn't their tag, only its owner can change it`);
+  }
+  if (found.locked) {
+    throw new TagError(`\`${name}\` is locked and can't be changed`);
+  }
+  results[TagFunctions.TAG_EDIT] = (results[TagFunctions.TAG_EDIT] || 0) + 1;
+  return found;
+}
+
+// a message in this channel from the cache, or fetched (one network request), null when it's gone
+async function fetchAIChannelMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  messageId: string,
+): Promise<null | Structures.Message> {
+  if (context.messages.has(messageId)) {
+    return context.messages.get(messageId)!;
+  }
+  increaseNetworkRequests(tag);
+  try {
+    return await withDeadline(context, tag, () => context.rest.fetchMessage(context.channelId!, messageId));
+  } catch(error) {
+    return null;
+  }
+}
+
+// the files a response holds, its attachments and its embeds' images/videos (links stay as discord gave them)
+function messageFileUrls(message: Structures.Message): Array<string> {
+  const urls: Array<string> = [];
+  for (let [, attachment] of message.attachments) {
+    urls.push(attachment.url);
+  }
+  for (let [, embed] of message.embeds) {
+    for (let media of [embed.image, embed.video, embed.thumbnail]) {
+      if (media && media.url && !urls.includes(media.url)) {
+        urls.push(media.url);
+      }
+    }
+  }
+  return urls;
+}
+
+// {music.control}: what the music commands check first, the music playing here and them in our channel. The reason
+// it can't as a TagError
+function checkAIMusicControl(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+): {channel: Structures.Channel, guildId: string, member: Structures.Member} {
+  const guildId = context.guildId;
+  const guild = (guildId) ? VoiceNode.guilds.get(guildId) : undefined;
+  if (!guildId || !guild || !VoiceNode.isPlaying(guildId)) {
+    throw new TagError('Nothing is playing in this server');
+  }
+  const member = context.member;
+  const channel = member && member.voiceState && member.voiceState.channel;
+  if (!member || !channel || channel.id !== guild.channelId) {
+    throw new TagError(`They need to be in the voice channel the music is playing in (<#${guild.channelId}>)`);
+  }
+  const results = tag.variables[PrivateVariables.RESULTS];
+  if (MAX_AI_MUSIC_CONTROLS <= (results[TagFunctions.MUSIC_CONTROL] || 0)) {
+    throw new TagError(`NotSoAI can only control the music ${MAX_AI_MUSIC_CONTROLS} times per message`);
+  }
+  results[TagFunctions.MUSIC_CONTROL] = (results[TagFunctions.MUSIC_CONTROL] || 0) + 1;
+  return {channel, guildId, member};
+}
+
+// the music commands' refusals start with a status emoji for their reply, a TagError gets just the reason
+function musicRefusalError(refusal: string): TagError {
+  return new TagError(refusal.replace(/^\S+\s+/, ''));
+}
+
 async function withAIMemoryNotFound<T>(position: number, callback: () => Promise<T>): Promise<T> {
   try {
     return await callback();
@@ -2095,6 +2428,17 @@ function addStorageUrlToTag(tag: TagResult, response: RestResponsesRaw.FileRespo
 export function getStorageResponse(tag: TagResult, url: string): RestResponsesRaw.FileResponse | null {
   const responses = storageResponses.get(tag.variables);
   return (responses && responses[url]) || null;
+}
+
+// an nsb.gg upload this execution made itself (`{mediascripturl}` etc) went through the same safe check a download
+// would, so embeds/components can link to it as is. any other nsb.gg link still gets downloaded
+function isTagStorageMediaUrl(tag: TagResult, url: string): boolean {
+  const response = getStorageResponse(tag, url.trim());
+  return !!response && !response.file.has_nsfw;
+}
+
+function isAllowedTagMediaUrl(tag: TagResult, url: string): boolean {
+  return isAllowedMediaUrl(url) || isTagStorageMediaUrl(tag, url);
 }
 
 
@@ -2736,9 +3080,9 @@ function getAttachmentUrlForFile(file: TagResult['files'][number]): string {
   return `attachment://${filename}`;
 }
 
-// `$FILE_n` is that file, attachments and discord's own assets stay as is. anything else (outside urls, discord
-// attachments) gets downloaded into the tag's files like `{attach}` and pointed at, if the tag has room for it.
-// file components need an actual attachment, so discord's assets get downloaded for those too
+// `$FILE_n` is that file, attachments, discord's own assets and the tag's own nsb.gg uploads stay as is. anything else
+// (outside urls, discord attachments) gets downloaded into the tag's files like `{attach}` and pointed at, if the tag
+// has room for it. file components need an actual attachment, so assets/uploads get downloaded for those too
 export async function resolveMediaUrl(
   context: Command.Context | Interaction.InteractionContext,
   tag: TagResult,
@@ -2755,6 +3099,9 @@ export async function resolveMediaUrl(
   }
   if (isAttachmentUrl(url) || (!requireAttachment && isDiscordAssetUrl(url))) {
     return url;
+  }
+  if (!requireAttachment && isTagStorageMediaUrl(tag, url)) {
+    return url.trim();
   }
   // not a url we can download, the parser's check throws the error for it
   if (!/^https?:\/\//i.test(url.trim()) || tag.limits.MAX_ATTACHMENTS === 0) {
@@ -2786,7 +3133,7 @@ export async function resolveEmbedMediaUrls(
   for (let [ object, urlKey ] of targets) {
     if (object && typeof(object[urlKey]) === 'string' && object[urlKey]) {
       object[urlKey] = await resolveMediaUrl(context, tag, object[urlKey]);
-      if (!isAllowedMediaUrl(object[urlKey])) {
+      if (!isAllowedTagMediaUrl(tag, object[urlKey])) {
         throw new TagError(tag.translate('tagscript.embed_media_urls_must_be_attachments'));
       }
     }
@@ -2811,14 +3158,14 @@ export async function resolveComponentMediaUrls(
       case MessageComponentTypes.MEDIA_GALLERY: {
         for (let item of component.items) {
           item.media.url = await resolveMediaUrl(context, tag, item.media.url);
-          if (!isAllowedMediaUrl(item.media.url)) {
+          if (!isAllowedTagMediaUrl(tag, item.media.url)) {
             throw new TagError(tag.translate('tagscript.components.media_gallery_item_url_must_be_an_attachment'));
           }
         }
       }; break;
       case MessageComponentTypes.THUMBNAIL: {
         component.media.url = await resolveMediaUrl(context, tag, component.media.url);
-        if (!isAllowedMediaUrl(component.media.url)) {
+        if (!isAllowedTagMediaUrl(tag, component.media.url)) {
           throw new TagError(tag.translate('tagscript.components.thumbnail_media_object_url_must_be_an_attachment'));
         }
       }; break;
@@ -3903,11 +4250,82 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.AI_KNOWLEDGE_ADD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {ai.knowledge.add:fact}
+    // only NotSoAI can use this, for a member with Manage Server, adds a fact everyone's prompts in this server get
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_KNOWLEDGE_ADD, arg)) {
+      return false;
+    }
+
+    const content = arg.trim().slice(0, MAX_AI_KNOWLEDGE_LENGTH);
+    if (!content) {
+      return true;
+    }
+
+    checkAIKnowledgeChange(context, tag);
+    increaseNetworkRequests(tag);
+
+    const response = await withDeadline(context, tag, () => createGuildLLMKnowledge(context, context.guildId!, {content}));
+    tag.text += String(response.created);
+
+    return true;
+  },
+
+  [TagFunctions.AI_KNOWLEDGE_DELETE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {ai.knowledge.delete:position}
+    // only NotSoAI can use this, for a member with Manage Server, the position is the fact's number in the prompt
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_KNOWLEDGE_DELETE, arg, {deferConfirm: true})) {
+      return false;
+    }
+
+    if (!arg.trim()) {
+      return true;
+    }
+    const position = parseAIPosition(arg, 'Server knowledge');
+
+    checkAIKnowledgeChange(context, tag);
+    if (!await confirmAIDestructive(context, tag, TagFunctions.AI_KNOWLEDGE_DELETE, String(position))) {
+      return false;
+    }
+    increaseNetworkRequests(tag);
+
+    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => deleteGuildLLMKnowledge(context, context.guildId!, position)));
+    tag.text += String(true);
+
+    return true;
+  },
+
+  [TagFunctions.AI_KNOWLEDGE_EDIT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {ai.knowledge.edit:position|fact}
+    // only NotSoAI can use this, for a member with Manage Server, replaces the fact at that position
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_KNOWLEDGE_EDIT, arg)) {
+      return false;
+    }
+
+    const [ positionText, text ] = split(arg, 2);
+    const content = (text || '').trim().slice(0, MAX_AI_KNOWLEDGE_LENGTH);
+    if (!(positionText || '').trim() || !content) {
+      return true;
+    }
+    const position = parseAIPosition(positionText, 'Server knowledge');
+
+    checkAIKnowledgeChange(context, tag);
+    increaseNetworkRequests(tag);
+
+    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => editGuildLLMKnowledge(context, context.guildId!, position, {content})));
+    tag.text += String(true);
+
+    return true;
+  },
+
   [TagFunctions.AI_MEMORY_ADD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {ai.memory.add:fact} {ai.memory.add:fact|server}
     // only NotSoAI can use this, remembers a fact about the command user (everywhere, or only in this server)
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_MEMORY_ADD, arg)) {
       return false;
     }
 
@@ -3934,11 +4352,14 @@ const ScriptTags = Object.freeze({
     // {ai.memory.clear}
     // only NotSoAI can use this, forgets everything about the command user (every server's memories too)
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_MEMORY_CLEAR, arg, {deferConfirm: true})) {
       return false;
     }
 
     checkAIMemoryChanges(tag);
+    if (!await confirmAIDestructive(context, tag, TagFunctions.AI_MEMORY_CLEAR, '')) {
+      return false;
+    }
     increaseNetworkRequests(tag);
 
     const response = await withDeadline(context, tag, () => deleteUserLLMMemories(context, context.userId));
@@ -3954,7 +4375,7 @@ const ScriptTags = Object.freeze({
     // {ai.memory.delete:position}
     // only NotSoAI can use this, the position is the memory's number in the prompt
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_MEMORY_DELETE, arg)) {
       return false;
     }
 
@@ -3977,7 +4398,7 @@ const ScriptTags = Object.freeze({
     // {ai.memory.edit:position|fact}
     // only NotSoAI can use this, replaces the memory at that position
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_MEMORY_EDIT, arg)) {
       return false;
     }
 
@@ -4048,7 +4469,7 @@ const ScriptTags = Object.freeze({
     // {api.create.reminder:time} {api.create.reminder:time|text}
     // only NotSoAI can use this
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_CREATE_REMINDER, arg)) {
       return false;
     }
 
@@ -4090,11 +4511,48 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_CREATE_REPORT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.create.report:text}
+    // only NotSoAI can use this, in its own reply (not a button it made), sends a bug report or feedback to the
+    // NotSoBot staff from the command user, like `report bug`. Reports about people, servers, messages or tags stay
+    // with the `report` commands, they need the evidence picked by the person reporting
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_CREATE_REPORT, arg)) {
+      return false;
+    }
+
+    const text = arg.trim();
+    if (!text) {
+      return true;
+    }
+    if (MAX_AI_REPORT_LENGTH < text.length) {
+      throw new TagError(`Reports can only be ${MAX_AI_REPORT_LENGTH} characters long`);
+    }
+
+    const results = tag.variables[PrivateVariables.RESULTS];
+    if (results[TagFunctions.API_CREATE_REPORT]) {
+      throw new TagError('NotSoAI can only send one report per message');
+    }
+
+    increaseNetworkRequests(tag);
+
+    const report = await withDeadline(context, tag, () => createReport(context, {
+      channelId: context.channelId || undefined,
+      content: text,
+      guildId: context.guildId || undefined,
+      type: ReportTypes.BUG,
+    }));
+    results[TagFunctions.API_CREATE_REPORT] = report.id;
+    tag.text += report.id;
+
+    return true;
+  },
+
   [TagFunctions.API_DELETE_REMINDER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.delete.reminder:position}
     // only NotSoAI can use this, deletes one of the command user's reminders by its position (from {api.fetch.reminders})
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_DELETE_REMINDER, arg)) {
       return false;
     }
 
@@ -4129,7 +4587,7 @@ const ScriptTags = Object.freeze({
     // {api.edit.reminder:position|time} {api.edit.reminder:position|time|text} {api.edit.reminder:position||text}
     // only NotSoAI can use this, an empty time keeps the current time, no text keeps the current text
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_EDIT_REMINDER, arg)) {
       return false;
     }
 
@@ -4176,11 +4634,90 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_FETCH_COMMANDS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.fetch.commands}
+    // only NotSoAI can use this, the command user's last few commands in this channel (newest first) with what they
+    // typed and what we replied, so NotSoAI can redo or build on one ("do that again but bigger")
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_FETCH_COMMANDS, arg)) {
+      return false;
+    }
+    if (!context.channelId) {
+      return true;
+    }
+
+    increaseNetworkRequests(tag);
+
+    const response = await withDeadline(context, tag, () => fetchCommandsResponses(context, {
+      channelId: context.channelId!,
+      limit: MAX_AI_FETCH_COMMANDS,
+      userId: context.userId,
+    }));
+
+    const commands: Array<Record<string, any>> = [];
+    for (let result of response.results) {
+      // a slash command's trigger is its interaction, there's no message with what they typed
+      let input: null | string = null;
+      if (result.message_trigger_type === CommandTypes.PREFIXED) {
+        const trigger = await fetchAIChannelMessage(context, tag, result.message_trigger_id);
+        input = (trigger) ? trigger.content.slice(0, MAX_AI_FETCH_COMMAND_TEXT_LENGTH) : null;
+      }
+      const reply = await fetchAIChannelMessage(context, tag, result.message_response_id);
+      commands.push({
+        command: result.command_id,
+        input,
+        output: (reply) ? {files: messageFileUrls(reply), text: reply.content.slice(0, MAX_AI_FETCH_COMMAND_TEXT_LENGTH)} : null,
+        timestamp: new Date(Snowflake.timestamp(result.message_trigger_id)).toISOString(),
+      });
+    }
+    tag.text += JSON.stringify({commands});
+
+    return true;
+  },
+
+  [TagFunctions.API_FETCH_MUSIC]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.fetch.music}
+    // only NotSoAI can use this, what's playing in this server and what's queued after it, like `music queue`
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_FETCH_MUSIC, arg)) {
+      return false;
+    }
+    if (!context.guildId) {
+      throw new TagError('Music only plays in servers');
+    }
+
+    increaseNetworkRequests(tag);
+
+    const guildId = context.guildId;
+    const guild = VoiceNode.guilds.get(guildId);
+    const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
+    const item = (x: RestResponsesRaw.GuildMusicQueueItem) => ({
+      artist: (x.track) ? x.track.artist : null,
+      duration: (x.track) ? x.track.duration : null,
+      position: musicItemPosition(music, x),
+      queued_by: x.user_id,
+      title: (x.track) ? x.track.title : null,
+      url: x.url,
+    });
+    tag.text += JSON.stringify({
+      channel_id: (guild) ? guild.channelId || null : null,
+      current: (music.current) ? item(music.current) : null,
+      dj_only: music.dj_only,
+      loop: music.loop,
+      paused: (guild) ? !!guild.paused : false,
+      playing: VoiceNode.isPlaying(guildId),
+      queue: music.queue.slice(0, MAX_AI_FETCH_MUSIC_QUEUE).map(item),
+      queue_count: music.queue.length,
+    });
+
+    return true;
+  },
+
   [TagFunctions.API_FETCH_REMINDERS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.fetch.reminders} {api.fetch.reminders:global}
     // only NotSoAI can use this, lists the command user's reminders (for this server, or every server if `global`)
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_FETCH_REMINDERS, arg)) {
       return false;
     }
 
@@ -4193,6 +4730,32 @@ const ScriptTags = Object.freeze({
     tag.text += JSON.stringify({
       count: response.count,
       reminders: response.reminders.map(serializeReminderForTag),
+    });
+
+    return true;
+  },
+
+  [TagFunctions.API_FETCH_TAGS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.fetch.tags}
+    // only NotSoAI can use this, lists the command user's tags in this server (newest first) with the start of each one
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.API_FETCH_TAGS, arg)) {
+      return false;
+    }
+
+    increaseNetworkRequests(tag);
+
+    const serverId = context.guildId || context.channelId!;
+    const response = await withDeadline(context, tag, () => fetchTagsServer(context, serverId, {limit: MAX_AI_FETCH_TAGS, userId: context.userId}));
+    tag.text += JSON.stringify({
+      count: response.count,
+      tags: response.tags.map((x) => ({
+        alias_of: (x.reference_tag) ? x.reference_tag.name : null,
+        content: (x.reference_tag) ? '' : x.content.slice(0, MAX_AI_FETCH_TAG_CONTENT_LENGTH),
+        locked: x.locked,
+        name: x.name,
+        uses: x.uses,
+      })),
     });
 
     return true;
@@ -4386,6 +4949,40 @@ const ScriptTags = Object.freeze({
     }
 
     tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
+  [TagFunctions.API_SEARCH_TAGS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.tags:query}
+    // the public Tag Directory's tags matching the query, nsfw ones only in nsfw channels. Anyone runs one by its id
+    // (`tag <id>`), so NotSoAI can point to one instead of writing it again
+
+    const query = arg.trim().slice(0, 200);
+    if (!query) {
+      return true;
+    }
+
+    const cachedResults = getResultsCache(tag, TagFunctions.API_SEARCH_TAGS);
+    if (!(query in cachedResults)) {
+      increaseNetworkRequests(tag);
+      const nsfw = (context.channel && context.channel.nsfw) ? undefined : false;
+      const response = await withDeadline(context, tag, () => fetchTagsDirectory(context, {limit: MAX_AI_SEARCH_TAGS, nsfw, query}));
+      cachedResults[query] = {
+        count: response.count,
+        tags: response.items.map((x) => ({
+          category: x.category,
+          description: x.description.slice(0, MAX_AI_SEARCH_TAG_DESCRIPTION_LENGTH),
+          id: x.tag.id,
+          name: x.tag.name,
+          servers: x.server_count,
+          title: x.title,
+          uses: x.tag.uses,
+          verified: x.verified,
+        })),
+      };
+    }
+    tag.text += JSON.stringify(cachedResults[query]);
 
     return true;
   },
@@ -7508,6 +8105,91 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.MUSIC_CONTROL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {music.control:pause} {music.control:resume} {music.control:skip} {music.control:volume|150}
+    // only NotSoAI can use this, in its own reply (not a button it made). The same rules as the music commands: them in
+    // our channel, dj mode, and the server's votes (a vote counts as theirs, like running `skip`). Outputs `true` when
+    // it happened, or `voted x/y` when it needs more votes
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.MUSIC_CONTROL, arg)) {
+      return false;
+    }
+
+    const [ actionText, valueText ] = split(arg, 2);
+    const action = (actionText || '').trim().toLowerCase();
+    if (!action) {
+      return true;
+    }
+    if (!['pause', 'resume', 'skip', 'volume'].includes(action)) {
+      throw new TagError('Music actions are `pause`, `resume`, `skip` and `volume`');
+    }
+
+    const { channel, guildId, member } = checkAIMusicControl(context, tag);
+    const translate = tag.translate;
+    increaseNetworkRequests(tag);
+
+    if (action === 'volume') {
+      const volume = parseMusicVolume(valueText || '', context);
+      if (volume === null) {
+        throw new TagError('`volume` needs a value from 0 to 200, like `{music.control:volume|150}`');
+      }
+      const refusal = await withDeadline(context, tag, () => musicSoundSettingRefusal(context, translate, member, guildId));
+      if (refusal) {
+        throw musicRefusalError(refusal);
+      }
+      if (volume !== DEFAULT_MUSIC_VOLUME && !(await withDeadline(context, tag, () => fetchGuildMusic(context, guildId))).premium) {
+        throw new TagError('Volumes other than 100% need a premium server');
+      }
+      if (!await withDeadline(context, tag, () => VoiceNode.setVolume(guildId, volume))) {
+        throw new TagError('Nothing is playing in this server');
+      }
+      tag.text += String(true);
+      return true;
+    }
+
+    const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
+    const refusal = musicDjRefusal(translate, member, music);
+    if (refusal) {
+      throw musicRefusalError(refusal);
+    }
+    if (!music.current) {
+      throw new TagError('Nothing is playing in this server');
+    }
+
+    const guild = VoiceNode.guilds.get(guildId)!;
+    if ((action === 'pause' && guild.paused) || (action === 'resume' && !guild.paused)) {
+      tag.text += String(false);
+      return true;
+    }
+
+    const kind = (action === 'pause') ? MusicVoteKinds.PAUSE : (action === 'resume') ? MusicVoteKinds.RESUME : MusicVoteKinds.SKIP;
+    const voting = (action === 'pause') ? music.vote_pause : (action === 'resume') ? music.vote_resume : music.vote_skip;
+    const vote = musicVote(kind, member, channel, music.current, voting);
+    if (!vote.done) {
+      tag.text += `voted ${vote.votes}/${vote.needed}`;
+      return true;
+    }
+
+    let done: unknown;
+    switch (action) {
+      case 'pause': {
+        done = await withDeadline(context, tag, () => VoiceNode.setPaused(guildId, true));
+        clearMusicVotes(MusicVoteKinds.RESUME, guildId);
+      }; break;
+      case 'resume': {
+        done = await withDeadline(context, tag, () => VoiceNode.setPaused(guildId, false));
+        clearMusicVotes(MusicVoteKinds.PAUSE, guildId);
+      }; break;
+      case 'skip': done = await withDeadline(context, tag, () => VoiceNode.skip(guildId)); break;
+    }
+    if (!done) {
+      throw new TagError('Nothing is playing in this server');
+    }
+    tag.text += String(true);
+
+    return true;
+  },
+
   [TagFunctions.NSFW_FILTER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // returns an empty string if the content is deemed NSFW, will cut to 2000 characters
     // {nsfwfilter:text}
@@ -8117,7 +8799,7 @@ const ScriptTags = Object.freeze({
     // only NotSoAI can use this, in its own reply (not a button it made), for a member with Manage Server
     // no setting outputs every setting as json, no value outputs the current value, `clear` resets it
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.SETTINGS_SET_SERVER, arg)) {
       return false;
     }
 
@@ -8129,7 +8811,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.server.ai.personality:prompt?}
     // same as {settings.set.server:AI_PERSONALITY|prompt}, the personality can have `|` in it
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.SETTINGS_SET_SERVER_AI_PERSONALITY, arg)) {
       return false;
     }
 
@@ -8140,7 +8822,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user} {settings.set.user:SETTING} {settings.set.user:SETTING|value}
     // only NotSoAI can use this, no setting outputs every setting as json, no value outputs the current value, `clear` resets it
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.SETTINGS_SET_USER, arg)) {
       return false;
     }
 
@@ -8193,7 +8875,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user.ai.personality:prompt?}
     // only NotSoAI can use this
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY, arg)) {
       return false;
     }
 
@@ -8226,7 +8908,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user.locale:locale?}
     // only NotSoAI can use this, empty outputs the current locale, `clear` clears it
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.SETTINGS_SET_USER_LOCALE, arg)) {
       return false;
     }
 
@@ -8259,7 +8941,7 @@ const ScriptTags = Object.freeze({
     // {settings.set.user.timezone:timezone?}
     // only NotSoAI can use this, empty outputs the current timezone, `clear` clears it
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.SETTINGS_SET_USER_TIMEZONE, arg)) {
       return false;
     }
 
@@ -8848,7 +9530,7 @@ const ScriptTags = Object.freeze({
     // only NotSoAI can use this, in its own reply (not a button it made), saves a new tag for the command user here
     // the content is parsed like any argument, so NotSoAI wraps code in {ignore:} to save it instead of running it
 
-    if (!canChangeAIMemory(context, tag)) {
+    if (!await canChangeAIMemory(context, tag, TagFunctions.TAG_CREATE, arg)) {
       return false;
     }
 
@@ -8891,6 +9573,61 @@ const ScriptTags = Object.freeze({
     const created = await withDeadline(context, tag, () => putTag(context, {content, name, serverId}));
     results[TagFunctions.TAG_CREATE] = created.id;
     tag.text += created.name;
+
+    return true;
+  },
+
+  [TagFunctions.TAG_DELETE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tag.delete:name}
+    // only NotSoAI can use this, in its own reply (not a button it made), deletes one of the command user's own tags here
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.TAG_DELETE, arg, {deferConfirm: true})) {
+      return false;
+    }
+
+    if (!arg.trim()) {
+      return true;
+    }
+
+    increaseNetworkRequests(tag, 2);
+
+    const found = await fetchAIOwnTag(context, tag, arg);
+    if (!await confirmAIDestructive(context, tag, TagFunctions.TAG_DELETE, found.name)) {
+      return false;
+    }
+    await withDeadline(context, tag, () => deleteTag(context, {name: found.name, serverId: found.server_id!}));
+    tag.text += String(true);
+
+    return true;
+  },
+
+  [TagFunctions.TAG_EDIT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tag.edit:name|content}
+    // only NotSoAI can use this, in its own reply (not a button it made), replaces one of the command user's own tags'
+    // content here. the content is parsed like {tag.create}'s, so NotSoAI wraps code in {ignore:}
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.TAG_EDIT, arg)) {
+      return false;
+    }
+
+    const [ nameText, content ] = split(arg, 2);
+    if (!content || !content.trim()) {
+      throw new TagError('A tag edit needs a name and the new content');
+    }
+    if (MAX_AI_TAG_CONTENT_LENGTH < content.length) {
+      throw new TagError(`Tag content can only be ${MAX_AI_TAG_CONTENT_LENGTH} characters long`);
+    }
+
+    increaseNetworkRequests(tag, 2);
+
+    const found = await fetchAIOwnTag(context, tag, nameText || '');
+    // an alias would turn into a regular tag, `tag edit` asks about that so this doesn't
+    if (found.reference_tag) {
+      throw new TagError(`\`${found.name}\` is an alias of \`${found.reference_tag.name}\`, edit that tag instead`);
+    }
+    // PUT /tags upserts by name in the tag's own server
+    const edited = await withDeadline(context, tag, () => putTag(context, {content, name: found.name, serverId: found.server_id!}));
+    tag.text += edited.name;
 
     return true;
   },
