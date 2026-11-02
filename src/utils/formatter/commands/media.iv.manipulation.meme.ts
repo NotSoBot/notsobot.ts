@@ -24,7 +24,8 @@ export const PREVIEW: RestOptions.CommandPreview = {
 export const DEFAULT_FONT = MediaMemeFonts.IMPACT;
 
 export interface CommandArgs {
-  font?: MediaMemeFonts,
+  // a bundled font or one of their (or the server's) saved fonts' names
+  font?: MediaMemeFonts | string,
   // a font file of their own (a link or an attachment's), instead of `font`
   fontUrl?: string,
   text: string,

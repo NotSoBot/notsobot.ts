@@ -17,6 +17,7 @@ import MiniSearch from 'minisearch';
 import * as moment from 'moment';
 
 import { getServerPremiumUsers } from '../../stores/premiumservers';
+import SavedFontsStore from '../../stores/savedfonts';
 import TagCustomCommandStore from '../../stores/tagcustomcommands';
 import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
@@ -84,9 +85,11 @@ import * as AutoComplete from './autocomplete';
 import * as ContextMenu from './context-menu';
 import * as Prefixed from './prefixed';
 import * as Slash from './slash';
+import { SAVED_FONT_NAME, normalizeSavedFontName } from './fonts';
 
 export { AutoComplete, ContextMenu, Prefixed, Slash };
 
+export * from './fonts';
 export * from './prefixed';
 
 
@@ -1182,22 +1185,80 @@ const oneOfTextToSpeechVoices = Prefixed.oneOf<TTSVoices>({choices: TTSVoices, d
 export const FONT_FILE_EXTENSIONS = ['.ttf', '.otf', '.woff', '.woff2'];
 
 export interface MediaFontArgs {
-  font?: MediaMemeFonts,
+  // a bundled font, or one of their saved fonts' names
+  font?: MediaMemeFonts | string,
   fontUrl?: string,
 }
 
 const oneOfMediaMemeFonts = Prefixed.oneOf<MediaMemeFonts>({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText});
 
-// `-font` on caption, meme and recaption: a bundled font (like `oneOf`), or a link to a font file of their own. The
-// link is checked first, the fuzzy font search would match one to some font
+// one of the caller's saved fonts named exactly `value`, their own before the server's (`scope` only looks in one)
+export async function findSavedFont(
+  context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+  value: string,
+  scope?: 'guild' | 'user',
+): Promise<null | RestResponsesRaw.SavedFont> {
+  const name = normalizeSavedFontName(value);
+  if (!SAVED_FONT_NAME.test(name)) {
+    return null;
+  }
+  const fonts = await SavedFontsStore.getOrFetch(context);
+  for (let key of (scope) ? [scope] : ['user', 'guild'] as const) {
+    const font = fonts[key]?.items.find((item) => item.name === name);
+    if (font) {
+      return font;
+    }
+  }
+  return null;
+}
+
+// a font for caption, meme, recaption and the Default Font settings: a bundled font's exact key, then one of their saved
+// fonts by name (`scope` like `findSavedFont`), then the bundled font it fuzzily matches (like `oneOf`). The saved fonts
+// are only fetched for a name that isn't a bundled key
+export async function mediaFont(
+  value: string,
+  context?: Command.Context | Interaction.InteractionContext,
+  scope?: 'guild' | 'user',
+): Promise<MediaMemeFonts | string | undefined> {
+  const text = value.trim();
+  if (!text) {
+    return undefined;
+  }
+  const key = text.toUpperCase() as MediaMemeFonts;
+  if (Object.values(MediaMemeFonts).includes(key)) {
+    return key;
+  }
+  if (context) {
+    const saved = await findSavedFont(context, text, scope);
+    if (saved) {
+      return saved.name;
+    }
+  }
+  return oneOfMediaMemeFonts(text, context) ?? undefined;
+}
+// the bundled fonts for `.help` and the commands page (see `getArgChoices`), saved ones are per user and server
+Object.assign(mediaFont, {choices: oneOfMediaMemeFonts.choices});
+
+// the Default Font settings, only their own saved fonts or only the server's can be one
+export async function mediaFontUser(value: string, context?: Command.Context | Interaction.InteractionContext) {
+  return mediaFont(value, context, 'user');
+}
+export async function mediaFontServer(value: string, context?: Command.Context | Interaction.InteractionContext) {
+  return mediaFont(value, context, 'guild');
+}
+Object.assign(mediaFontUser, {choices: oneOfMediaMemeFonts.choices});
+Object.assign(mediaFontServer, {choices: oneOfMediaMemeFonts.choices});
+
+// `-font` on caption, meme and recaption: a font like `mediaFont`, or a link to a font file of their own. The link is
+// checked first, the fuzzy font search would match one to some font
 export const mediaFontOrUrl = Object.assign(
-  (value: string, context?: Command.Context | Interaction.InteractionContext): MediaFontArgs => {
+  async (value: string, context?: Command.Context | Interaction.InteractionContext): Promise<MediaFontArgs> => {
     const text = value.trim();
     const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, text) as {matches: Array<{text: string}>};
     if (matches.length && matches[0].text === text) {
       return {fontUrl: text};
     }
-    return {font: oneOfMediaMemeFonts(text, context) ?? undefined};
+    return {font: await mediaFont(text, context)};
   },
   {choices: oneOfMediaMemeFonts.choices},
 );

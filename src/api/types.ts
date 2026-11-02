@@ -100,6 +100,14 @@ export namespace RestOptions {
     result?: string,
   }
 
+  // the server's saved font (the caller checked Manage Server) with `guildId`, the user's own without it
+  export interface CreateSavedFont {
+    file?: RequestFile,
+    guildId?: string,
+    name: string,
+    url?: string,
+  }
+
   export interface CreateVoiceClone {
     file?: RequestFile,
     name?: string,
@@ -1137,8 +1145,9 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationCaption extends MediaBaseOptions {
     bottom?: string,
-    // unset: the user's Default Font setting, then the server's, then the command's own (the api picks)
-    font?: MediaMemeFonts,
+    // a bundled font or a saved font's name (theirs, then the server's). unset: the user's Default Font setting, then
+    // the server's, then the command's own (the api picks)
+    font?: MediaMemeFonts | string,
     // a font file of their own instead, checked and laid out in the api's font sandbox
     fontUrl?: string,
     top?: string,
@@ -1364,7 +1373,7 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationMeme extends MediaBaseOptions {
     bottom?: string,
-    font?: MediaMemeFonts,
+    font?: MediaMemeFonts | string,
     fontUrl?: string,
     top: string,
   }
@@ -2091,6 +2100,15 @@ export namespace RestOptions {
   export interface VoiceCloneAdd {
     file?: RequestFile,
     url?: string,
+  }
+
+  export interface DeleteSavedFont {
+    guildId?: string,
+  }
+
+  export interface EditSavedFont {
+    guildId?: string,
+    name: string,
   }
 
   export interface VoiceCloneEdit {
@@ -2833,6 +2851,21 @@ export namespace RestResponsesRaw {
   export interface AcknowledgeUserWarnings {
     acknowledged: number,
   }
+
+  // what the caller can pick from where they are: their own saved fonts and the server's (null outside a guild)
+  export interface FetchSavedFonts {
+    guild: null | SavedFonts,
+    user: null | SavedFonts,
+  }
+
+  // the scope that changed, after the change
+  export interface EditSavedFonts extends SavedFonts {
+    font: SavedFont,
+    old_name?: string,
+  }
+  export type CreateSavedFont = EditSavedFonts;
+  export type DeleteSavedFont = EditSavedFonts;
+  export type EditSavedFont = EditSavedFonts;
 
   export interface FetchPremiumServers {
     items: Array<{server_id: string, user_id: string}>,
@@ -4319,6 +4352,25 @@ export namespace RestResponsesRaw {
     timezone: string | null,
     tts_voice: string | null,
     units: string | null,
+  }
+
+  export interface SavedFont {
+    created: string,
+    filename: string,
+    guild_id: null | string,
+    id: string,
+    name: string,
+    size: number,
+    uploader_id: string,
+    user_id: null | string,
+  }
+
+  // a user's or a server's saved fonts, without premium they're kept but can't be used or added to
+  export interface SavedFonts {
+    items: Array<SavedFont>,
+    limit: number,
+    max_file_size: number,
+    premium: boolean,
   }
 
   export interface Voice {

@@ -1,6 +1,5 @@
 import { Interaction } from 'detritus-client';
 
-import { MediaMemeFonts, MediaMemeFontsToText } from '../../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -24,8 +23,8 @@ export class SettingsSetFontCommand extends BaseInteractionCommandOption {
           description: 'Font',
           ...I18n.optionLocalizations('commands.settings.set.font.font'),
           // autocompleted, fixed choices would all count towards the command's size
-          value: Parameters.oneOf({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText}),
-          onAutoComplete: Parameters.AutoComplete.mediaMemeFont,
+          value: Parameters.mediaFontUser,
+          onAutoComplete: Parameters.AutoComplete.mediaFontUser,
         },
         {
           name: 'clear',

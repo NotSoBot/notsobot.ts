@@ -387,6 +387,79 @@ export async function createVoiceClone(
 }
 
 
+export async function createSavedFont(
+  context: RequestContext,
+  options: RestOptions.CreateSavedFont,
+): Promise<RestResponsesRaw.CreateSavedFont> {
+  const body = {
+    guild_id: options.guildId,
+    name: options.name,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.FONTS,
+    },
+  });
+}
+
+
+export async function deleteSavedFont(
+  context: RequestContext,
+  fontName: string,
+  options: RestOptions.DeleteSavedFont = {},
+): Promise<RestResponsesRaw.DeleteSavedFont> {
+  const query = {
+    guild_id: options.guildId,
+  };
+  const params = {fontName};
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.FONT,
+      params,
+    },
+  });
+}
+
+
+export async function editSavedFont(
+  context: RequestContext,
+  fontName: string,
+  options: RestOptions.EditSavedFont,
+): Promise<RestResponsesRaw.EditSavedFont> {
+  const body = {
+    guild_id: options.guildId,
+    name: options.name,
+  };
+  const params = {fontName};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.FONT,
+      params,
+    },
+  });
+}
+
+
+export async function fetchSavedFonts(
+  context: RequestContext,
+): Promise<RestResponsesRaw.FetchSavedFonts> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.FONTS,
+    },
+  });
+}
+
+
 export async function sweepGuild(
   context: RequestContext,
   guildId: string,

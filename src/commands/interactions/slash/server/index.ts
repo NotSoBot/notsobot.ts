@@ -6,6 +6,7 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { ServerBansCommand } from './bans';
 import { ServerCommandUsageCommand } from './command-usage';
+import { ServerFontsGroupCommand } from './fonts';
 import { ServerInvitesCommand } from './invites';
 import { ServerLoggersGroupCommand } from './loggers';
 import { ServerPrefixesGroupCommand } from './prefixes';
@@ -31,6 +32,7 @@ export default class ServerGroupCommand extends BaseSlashCommand {
       options: [
         new ServerBansCommand(),
         new ServerCommandUsageCommand(),
+        new ServerFontsGroupCommand(),
         new ServerInvitesCommand(),
         new ServerLoggersGroupCommand(),
         new ServerPrefixesGroupCommand(),

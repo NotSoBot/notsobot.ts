@@ -4,6 +4,7 @@ import { BaseSet } from 'detritus-client/lib/collections';
 import MiniSearch from 'minisearch';
 
 import GuildSettingsStore from '../../stores/guildsettings';
+import SavedFontsStore from '../../stores/savedfonts';
 import TagCustomCommandStore from '../../stores/tagcustomcommands';
 import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
@@ -51,6 +52,8 @@ import {
 } from '../tools';
 import { GUILD_RULE_CATEGORIES } from '../guildrules';
 import { Languages, getTranslatorForLanguage, languageFromLocale } from '../i18n';
+
+import { normalizeSavedFontName } from './fonts';
 
 
 
@@ -108,20 +111,66 @@ mediaMemeFontSearch.addAll(Object.values(MediaMemeFonts).map((value) => {
   return {id: value, name: MediaMemeFontsToText[value] || value};
 }));
 
-// the bundled fonts for the Default Font settings (fixed choices would count towards the command's size)
-export async function mediaMemeFont(context: Interaction.InteractionAutoCompleteContext) {
-  let choices: Array<{name: string, value: string}>;
-  if (context.value) {
-    choices = mediaMemeFontSearch.search(context.value).slice(0, 25).map((result) => {
-      return {name: result.name, value: result.id};
-    });
-  } else {
-    choices = Object.values(MediaMemeFonts).map((value) => {
-      return {name: MediaMemeFontsToText[value] || value, value};
-    });
-  }
-  return context.respond({choices});
+// the bundled fonts and the caller's saved ones (theirs first, then the server's, `scope` only lists one of them) for
+// caption, meme, recaption and the Default Font settings (fixed choices would count towards the command's size). saved
+// fonts go by their name, which can't be a bundled font's
+function mediaFontChoices(scope?: 'guild' | 'user') {
+  return async (context: Interaction.InteractionAutoCompleteContext) => {
+    const { translate } = getTranslatorForLanguage(languageFromLocale(context.locale) || Languages.ENGLISH);
+    const fonts = await SavedFontsStore.getOrFetch(context);
+
+    let saved: Array<{name: string, value: string}> = [];
+    for (let key of (scope) ? [scope] : ['user', 'guild'] as const) {
+      // ones without premium can't be used, so they aren't offered
+      const scoped = fonts[key];
+      if (!scoped || !scoped.premium) {
+        continue;
+      }
+      const label = (key === 'guild') ? 'fonts.autocomplete_server' : 'fonts.autocomplete_user';
+      for (let font of scoped.items) {
+        if (!saved.some((choice) => choice.value === font.name)) {
+          saved.push({name: translate(label, {name: font.name}).slice(0, 100), value: font.name});
+        }
+      }
+    }
+
+    let bundled: Array<{name: string, value: string}>;
+    if (context.value) {
+      const value = normalizeSavedFontName(context.value);
+      saved = saved.filter((choice) => choice.value.includes(value));
+      bundled = mediaMemeFontSearch.search(context.value).map((result) => {
+        return {name: result.name, value: result.id};
+      });
+    } else {
+      bundled = Object.values(MediaMemeFonts).map((value) => {
+        return {name: MediaMemeFontsToText[value] || value, value};
+      });
+    }
+    return context.respond({choices: [...saved, ...bundled].slice(0, 25)});
+  };
 }
+
+export const mediaFont = mediaFontChoices();
+export const mediaFontServer = mediaFontChoices('guild');
+export const mediaFontUser = mediaFontChoices('user');
+
+
+// one of the saved fonts to rename or remove, the caller's own (`fonts`) or the server's (`server fonts`)
+function savedFontChoices(scope: 'guild' | 'user') {
+  return async (context: Interaction.InteractionAutoCompleteContext) => {
+    const fonts = await SavedFontsStore.getOrFetch(context);
+    const scoped = fonts[scope];
+    let names = (scoped) ? scoped.items.map((font) => font.name) : [];
+    if (context.value) {
+      const value = normalizeSavedFontName(context.value);
+      names = names.filter((name) => name.includes(value));
+    }
+    return context.respond({choices: names.slice(0, 25).map((name) => ({name, value: name}))});
+  };
+}
+
+export const savedFontServer = savedFontChoices('guild');
+export const savedFontUser = savedFontChoices('user');
 
 export async function mlDiffusionModel(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}>;

@@ -132,6 +132,37 @@ export async function createVoiceClone(
 }
 
 
+export async function createSavedFont(
+  context: RequestContext,
+  options: RestOptions.CreateSavedFont,
+) {
+  return raw.createSavedFont(context, options);
+}
+
+
+export async function deleteSavedFont(
+  context: RequestContext,
+  fontName: string,
+  options: RestOptions.DeleteSavedFont = {},
+) {
+  return raw.deleteSavedFont(context, fontName, options);
+}
+
+
+export async function editSavedFont(
+  context: RequestContext,
+  fontName: string,
+  options: RestOptions.EditSavedFont,
+) {
+  return raw.editSavedFont(context, fontName, options);
+}
+
+
+export async function fetchSavedFonts(context: RequestContext) {
+  return raw.fetchSavedFonts(context);
+}
+
+
 // channels and roles the server doesn't have anymore, everything it kept for them goes (the channel delete listener and
 // the settings sweep)
 export async function sweepGuild(

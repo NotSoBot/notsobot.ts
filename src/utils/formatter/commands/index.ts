@@ -1,3 +1,7 @@
+import * as FontsAdd from './fonts.add';
+import * as FontsList from './fonts.list';
+import * as FontsRemove from './fonts.remove';
+import * as FontsRename from './fonts.rename';
 import * as FunAsciiFromImage from './fun.ascii.from.image';
 import * as FunAsciiFromText from './fun.ascii.from.text';
 import * as FunAesthetics from './fun.aesthetics';
@@ -534,6 +538,10 @@ import * as ModerationWarningsClear from './moderation.warnings.clear';
 import * as ModerationWarningsRemove from './moderation.warnings.remove';
 
 import * as ServerBans from './server.bans';
+import * as ServerFontsAdd from './server.fonts.add';
+import * as ServerFontsList from './server.fonts.list';
+import * as ServerFontsRemove from './server.fonts.remove';
+import * as ServerFontsRename from './server.fonts.rename';
 import * as ServerInvites from './server.invites';
 import * as ServerLoggersIgnore from './server.loggers.ignore';
 
@@ -720,6 +728,10 @@ import * as VoiceRename from './voice.rename';
 
 
 export {
+  FontsAdd,
+  FontsList,
+  FontsRemove,
+  FontsRename,
   FunAsciiFromImage,
   FunAsciiFromText,
   FunAesthetics,
@@ -1256,6 +1268,10 @@ export {
   ModerationWarningsRemove,
 
   ServerBans,
+  ServerFontsAdd,
+  ServerFontsList,
+  ServerFontsRemove,
+  ServerFontsRename,
   ServerInvites,
   ServerLoggersIgnore,
 

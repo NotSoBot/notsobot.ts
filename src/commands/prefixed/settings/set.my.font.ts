@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MediaMemeFonts, MediaMemeFontsToText } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -27,7 +27,8 @@ export default class SetMyFontCommand extends BaseCommand {
         id: Formatter.Commands.SettingsSetFont.COMMAND_ID,
         usage: '<font> (-clear)',
       },
-      type: Parameters.oneOf({choices: MediaMemeFonts, descriptions: MediaMemeFontsToText, error: false}),
+      // a bundled font, or one of their own saved fonts
+      type: Parameters.mediaFontUser,
     });
   }
 

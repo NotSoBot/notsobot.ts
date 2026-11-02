@@ -1,7 +1,6 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { MediaMemeFonts, MediaMemeFontsToText } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
@@ -32,26 +31,33 @@ export class MediaIVCaptionCommand extends BaseInteractionImageOrVideoCommandOpt
           name: 'font',
           description: 'Font Choice',
           ...I18n.optionLocalizations('commands.media_iv_text.caption.font'),
-          choices: Parameters.Slash.oneOf({
-            choices: MediaMemeFonts,
-            defaultChoice: Formatter.Commands.MediaIVManipulationCaption.DEFAULT_FONT,
-            descriptions: MediaMemeFontsToText,
-          }),
+          // a bundled font or one of their (or the server's) saved fonts, autocompleted since saved ones are per user
+          value: Parameters.mediaFont,
+          onAutoComplete: Parameters.AutoComplete.mediaFont,
         },
         {
-          name: 'font-file',
-          description: 'A font file of your own (.ttf, .otf, .woff, .woff2)',
-          ...I18n.optionLocalizations('commands.media_iv_text.font_file'),
-          label: 'fontFile',
+          name: 'font-attachment',
+          description: 'A font file of your own to attach (.ttf, .otf, .woff, .woff2)',
+          ...I18n.optionLocalizations('commands.media_iv_text.font_attachment'),
+          label: 'fontAttachment',
           type: ApplicationCommandOptionTypes.ATTACHMENT,
+        },
+        {
+          // the api checks the link (and the font) itself
+          name: 'font-url',
+          description: 'A link to a font file of your own (.ttf, .otf, .woff, .woff2)',
+          ...I18n.optionLocalizations('commands.media_iv_text.font_url'),
+          label: 'fontUrl',
+          maxLength: 2048,
         },
       ],
     }, {skipFiles: Parameters.FONT_FILE_EXTENSIONS});
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCaption.CommandArgs & {fontFile?: Structures.Attachment}) {
-    const { fontFile, ...rest } = args;
-    const fontUrl = (fontFile) ? fontFile.url || fontFile.proxyUrl || undefined : undefined;
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCaption.CommandArgs & {fontAttachment?: Structures.Attachment}) {
+    const { fontAttachment, ...rest } = args;
+    // an attached font wins over a link
+    const fontUrl = (fontAttachment) ? fontAttachment.url || fontAttachment.proxyUrl || undefined : rest.fontUrl?.trim() || undefined;
     return Formatter.Commands.MediaIVManipulationCaption.createMessage(context, {...rest, fontUrl});
   }
 }

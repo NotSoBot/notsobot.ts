@@ -9,5 +9,6 @@ export { default as GuildSettingsStore } from './guildsettings';
 export { default as PaginatorsStore } from './paginators';
 export { default as PremiumServersStore } from './premiumservers';
 export { default as PremiumUsersStore } from './premiumusers';
+export { default as SavedFontsStore } from './savedfonts';
 export { default as UserStore } from './users';
 export { default as UserSettingsStore } from './usersettings';

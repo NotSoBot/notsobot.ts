@@ -13,12 +13,13 @@ export const COMMAND_ID = 'settings.set.font';
 
 export interface CommandArgs {
   clear?: boolean,
-  font?: MediaMemeFonts | null,
+  // a bundled font or one of their saved fonts' names (the server's for `server set font`)
+  font?: MediaMemeFonts | string | null,
 }
 
-// a stored name, the api keeps them as `MediaMemeFonts` keys
+// a stored name, the api keeps them as `MediaMemeFonts` keys or a saved font's own name
 export function formatMediaFont(font: string): string {
-  return Markup.bold(MediaMemeFontsToText[font as MediaMemeFonts] || font);
+  return Markup.bold(MediaMemeFontsToText[font as MediaMemeFonts] || Markup.escape.all(font));
 }
 
 export async function createMessage(

@@ -26,6 +26,11 @@ export const Api = Object.freeze({
   FILE_VANITY:
     '/files/vanity/:vanity',
 
+  FONTS:
+    '/fonts',
+  FONT:
+    '/fonts/:fontName',
+
   FUN_ASCII_ART_FROM_IMAGE:
     '/fun/ascii/art/from-image',
   FUN_ASCII_ART_FROM_TEXT:
