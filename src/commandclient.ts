@@ -143,8 +143,8 @@ export class NotSoCommandClient extends CommandClient {
       if (match && !match.rule.allows) {
         // only rules with a message tell the user anything, see `onCommandCancel`
         contextMetadata.blockedMessage = match.rule.value.message;
-        // for the server's auto-warn on blocked commands
-        contextMetadata.blockedByRule = true;
+        // for the server's auto-warn on blocked commands, its reason says which rule
+        contextMetadata.blockedByRule = match.rule;
         return false;
       }
       return true;
@@ -430,7 +430,11 @@ export class NotSoCommandClient extends CommandClient {
       try {
         const settings = GuildSettingsStore.get(context.guildId!)!;
         const audit = await I18n.getGuildTranslator(context);
-        const reason = AutoWarn.createAutoWarnReason(audit, rule, {command: commandName});
+        const reason = AutoWarn.createAutoWarnReason(audit, rule, {
+          blockedBy: (context.metadata && context.metadata.blockedByRule) || null,
+          command: commandName,
+          guild: context.guild,
+        });
         const result = await AutoWarn.runAutoWarn(context, {member, messageId: context.messageId, reason, rule, settings});
         if (result) {
           notice = AutoWarn.formatAutoWarnNotice(audit, member, rule, result, reason);

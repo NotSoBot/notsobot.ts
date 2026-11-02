@@ -12,7 +12,7 @@ import {
 
 import type { Translator } from './i18n';
 import { prefixedCommand } from './parameters';
-import { getCommandIdFromInvoker } from './tools';
+import { formatUserTag, getCommandIdFromInvoker } from './tools';
 
 
 // what a rule covers, a command, a category or (both null) everything
@@ -229,16 +229,24 @@ export function guildRuleNeedsAdmin(coverage: GuildRuleCoverage, adminBypass?: b
 }
 
 
+// names instead of mentions and markdown, for text that isn't always shown as markdown (warning reasons, audit logs)
+export interface GuildRuleDescribeOptions {
+  // where the rule's channel/role/user names come from
+  guild?: Structures.Guild | null,
+  plain?: boolean,
+}
+
 export function describeGuildRuleCoverage(
   translate: Translator['translate'],
   coverage: GuildRuleCoverage,
+  options: GuildRuleDescribeOptions = {},
 ): string {
   if (coverage.command) {
-    return translate('rules.covers.command', {command: Markup.codestring(coverage.command)});
+    return translate('rules.covers.command', {command: (options.plain) ? coverage.command : Markup.codestring(coverage.command)});
   }
   if (coverage.category) {
     const name = CommandCategoryNames[coverage.category as CommandCategories] || coverage.category;
-    return translate('rules.covers.category', {category: `**${name}**`});
+    return translate('rules.covers.category', {category: (options.plain) ? name : `**${name}**`});
   }
   return translate('rules.covers.everything');
 }
@@ -247,7 +255,11 @@ export function describeGuildRuleCoverage(
 export function describeGuildRuleTarget(
   translate: Translator['translate'],
   rule: {targetId: string, targetType: GuildRuleTargetTypes},
+  options: GuildRuleDescribeOptions = {},
 ): string {
+  if (options.plain && rule.targetType !== GuildRuleTargetTypes.GUILD) {
+    return describeGuildRuleTargetName(rule, options.guild || null);
+  }
   switch (rule.targetType) {
     case GuildRuleTargetTypes.CHANNEL: return `<#${rule.targetId}>`;
     case GuildRuleTargetTypes.GUILD: return translate('rules.targets.server');
@@ -258,10 +270,40 @@ export function describeGuildRuleTarget(
 }
 
 
+// `#channel (id)`, `@role (id)` or `tag (id)` from the cache, the id alone when it's gone. The id stays since the
+// text is kept (a warning's reason) and names change
+function describeGuildRuleTargetName(
+  rule: {targetId: string, targetType: GuildRuleTargetTypes},
+  guild: Structures.Guild | null,
+): string {
+  let name: null | string = null;
+  switch (rule.targetType) {
+    case GuildRuleTargetTypes.CHANNEL: {
+      const channel = (guild) ? guild.client.channels.get(rule.targetId) : null;
+      name = (channel) ? `#${channel.name}` : null;
+    }; break;
+    case GuildRuleTargetTypes.ROLE: {
+      const role = (guild) ? guild.roles.get(rule.targetId) : null;
+      // the @everyone role's name already has the @
+      name = (role) ? ((role.name.startsWith('@')) ? role.name : `@${role.name}`) : null;
+    }; break;
+    case GuildRuleTargetTypes.USER: {
+      const user = (guild) ? guild.client.users.get(rule.targetId) : null;
+      name = (user) ? formatUserTag(user) : null;
+    }; break;
+  }
+  return (name) ? `${name} (${rule.targetId})` : rule.targetId;
+}
+
+
 // "Block **Fun** in #general", "Allow everything for @Mods"
-export function describeGuildRule(translate: Translator['translate'], rule: GuildSettingsRule): string {
-  const covers = describeGuildRuleCoverage(translate, rule);
-  const target = describeGuildRuleTarget(translate, rule);
+export function describeGuildRule(
+  translate: Translator['translate'],
+  rule: GuildSettingsRule,
+  options: GuildRuleDescribeOptions = {},
+): string {
+  const covers = describeGuildRuleCoverage(translate, rule, options);
+  const target = describeGuildRuleTarget(translate, rule, options);
   switch (rule.targetType) {
     case GuildRuleTargetTypes.CHANNEL: {
       return translate((rule.allows) ? 'rules.describe.allow_in' : 'rules.describe.block_in', {covers, target});

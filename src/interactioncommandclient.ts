@@ -179,8 +179,8 @@ export class NotSoInteractionClient extends InteractionCommandClient {
           return true;
         }
         contextMetadata.reason = match.rule.value.message || translate('rules.blocked', {rule: describeGuildRule(translate, match.rule)});
-        // for the server's auto-warn on blocked commands
-        contextMetadata.blockedByRule = true;
+        // for the server's auto-warn on blocked commands, its reason says which rule
+        contextMetadata.blockedByRule = match.rule;
         return false;
       }
 
@@ -230,12 +230,12 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     if (!rule) {
       return;
     }
-    const command = `/${context.invoker.fullName}`;
+    const details = {blockedBy: (context.metadata && context.metadata.blockedByRule) || null, command: `/${context.invoker.fullName}`, guild: context.guild};
     const audit = await I18n.getGuildTranslator(context);
-    const result = await AutoWarn.runAutoWarn(context, {member, reason: AutoWarn.createAutoWarnReason(audit, rule, {command}), rule, settings});
+    const result = await AutoWarn.runAutoWarn(context, {member, reason: AutoWarn.createAutoWarnReason(audit, rule, details), rule, settings});
     if (result) {
       const translator = await I18n.getTranslator(context);
-      const reason = AutoWarn.createAutoWarnReason(translator, rule, {command}, true);
+      const reason = AutoWarn.createAutoWarnReason(translator, rule, details, true);
       await context.createMessage({
         allowedMentions: {parse: []},
         content: AutoWarn.formatAutoWarnNotice(translator, member, rule, result, reason, true),

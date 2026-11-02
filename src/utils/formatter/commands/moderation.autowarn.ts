@@ -3,7 +3,7 @@ import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildTimedBans, editGuildSettings, putGuildTimedBans, putGuildWarnings } from '../../../api';
-import { GuildSettings } from '../../../api/structures/guildsettings';
+import { GuildSettings, GuildSettingsRule } from '../../../api/structures/guildsettings';
 import { RestResponsesRaw } from '../../../api/types';
 import GuildLoggingListener from '../../../listeners/guildlogging';
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -20,7 +20,7 @@ import {
   StatusEmojis,
 } from '../../../constants';
 import { LanguageContext, Translator, getCachedTranslator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { Parameters, createTimestampMomentFromGuild, displayDetailsLine, displayReply, formatUserTag } from '../../../utils';
+import { Parameters, createTimestampMomentFromGuild, describeGuildRule, displayDetailsLine, displayReply, formatUserTag } from '../../../utils';
 
 import { GuildLoggingCustomEvents } from '../loggers';
 
@@ -826,7 +826,14 @@ export function formatAutoWarnNotice(
 export function createAutoWarnReason(
   translator: Translator,
   rule: RestResponsesRaw.GuildWarningAuto,
-  details: {automodRule?: string, command?: string, mentions?: number},
+  details: {
+    automodRule?: string,
+    // the server's rule that blocked the command, and the server for its channel/role/user's name
+    blockedBy?: GuildSettingsRule | null,
+    command?: string,
+    guild?: Structures.Guild | null,
+    mentions?: number,
+  },
   toThem: boolean = false,
 ): string {
   const { language, translate } = translator;
@@ -836,7 +843,12 @@ export function createAutoWarnReason(
     };
     case GuildWarningAutoTriggers.BLOCKED_COMMAND: {
       const key = (toThem) ? 'moderation_autowarn.reason_blocked_command_you' : 'moderation_autowarn.reason_blocked_command';
-      return translate(key, {command: details.command || '?'});
+      // plain names, the reason also goes in their dm's codeblock and the audit log
+      const blocked = displayDetailsLine([
+        details.command || '?',
+        (details.blockedBy) && describeGuildRule(translate, details.blockedBy, {guild: details.guild, plain: true}),
+      ]);
+      return translate(key, {command: blocked});
     };
     case GuildWarningAutoTriggers.MENTIONS: {
       return translate('moderation_autowarn.reason_mentions', {
