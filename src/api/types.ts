@@ -481,8 +481,10 @@ export namespace RestOptions {
     maxDuration?: number,
     // no track queued twice at once
     noDuplicates?: boolean,
-    // with 24/7, pausing when everyone else leaves the channel (off by default)
+    // pausing when nobody else in the channel can hear it (on by default, only a premium server can turn it off)
     pauseAlone?: boolean,
+    // seconds paused before the bot leaves with the track held, without 24/7 (0 right away, up to 5 minutes)
+    pauseTimeout?: number,
     // 24/7, staying in voice (on by default, it only does anything with premium)
     stay?: boolean,
     // pausing someone else's track is a vote
@@ -2533,8 +2535,11 @@ export namespace RestResponsesRaw {
     // queue rules: the longest track that can be queued (seconds, null for no limit), no track queued twice at once
     max_duration: null | number,
     no_duplicates: boolean,
-    // with 24/7: paused while nobody else is in the channel, carrying on when someone comes back (off by default)
+    // paused while nobody else in the channel can hear it, carrying on when someone can again (on for everyone, only
+    // `premium` can turn it off)
     pause_alone: boolean,
+    // seconds paused before we leave with the track held (0 right away), without 24/7
+    pause_timeout: number,
     // music's premium perks (24/7, the bigger `queue_limit`): a premium server, or `MUSIC_ACCESS`
     premium: boolean,
     queue: Array<GuildMusicQueueItem>,

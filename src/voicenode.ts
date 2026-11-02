@@ -45,7 +45,7 @@ const PLAYER_UPDATE_INTERVAL = 5 * 1000;
 // soon after rejoining is the rejoin not working, after this many of those in a row it gives up and holds the track
 const REJOIN_RETRY_WINDOW = 2 * 60 * 1000;
 const REJOIN_MAX_TRIES = 3;
-// with 24/7's `pause_alone`, how long nobody else has to be in the channel before it pauses (a connection blipping)
+// with `pause_alone`, how long nobody else has to be listening before it pauses (a connection blipping)
 const ALONE_PAUSE_DELAY = 5 * 1000;
 // without 24/7, how long we stay in the channel after the queue runs out (a play in the meantime carries on) before leaving
 const IDLE_LEAVE_DELAY = 2 * 60 * 1000;
@@ -111,10 +111,10 @@ export enum VoiceNodeEvents {
 }
 
 interface GuildVoice {
-  // `pause_alone` paused it when everyone else left, someone coming back carries on (pausing or resuming by hand takes
-  // over from it)
+  // `pause_alone` paused it when nobody else was listening, someone listening again carries on (pausing or resuming by
+  // hand takes over from it)
   alonePaused?: boolean,
-  // nobody else is in the channel, it pauses when this runs out
+  // nobody else is listening, it pauses when this runs out
   aloneTimeout?: ReturnType<typeof setTimeout> | null,
   // the channel it's playing in (the last one while disconnected)
   channelId?: string,
@@ -1070,23 +1070,32 @@ export class VoiceNodeClient extends EventSpewer {
     return true;
   }
 
-  // someone other than a bot in `channelId`, a channel that isn't cached counts as listened to
-  private hasListeners(shard: ShardClient, channelId: string): boolean {
+  // someone other than a bot in `channelId`, a channel that isn't cached counts as listened to. `hearing` (`pause_alone`)
+  // also leaves out anyone deafened, by themselves or the server
+  private hasListeners(shard: ShardClient, channelId: string, hearing: boolean = false): boolean {
     const channel = shard.channels.get(channelId);
     if (!channel || !(channel.isGuildVoice || channel.isGuildStageVoice)) {
       return !channel;
     }
-    return channel.voiceStates.some((state) => state.userId !== shard.userId && !(state.member && state.member.bot));
+    return channel.voiceStates.some((state) => {
+      if (state.userId === shard.userId || (hearing && (state.deaf || state.selfDeaf))) {
+        return false;
+      }
+      // voice states from GUILD_CREATE come without their member, the caches tell if they're a bot
+      const member = state.member || shard.members.get(channel.guildId, state.userId);
+      const user = (member) ? member.user : shard.users.get(state.userId);
+      return !(user && user.bot);
+    });
   }
 
-  // someone joined or left a voice channel in a guild we're playing in (or we were moved): with 24/7's `pause_alone`
-  // the track pauses once nobody else is in our channel, and carries on when someone comes back to one it paused
+  // someone joined, left, deafened or undeafened in a guild we're playing in (or we were moved): with `pause_alone` the
+  // track pauses once nobody else in our channel can hear it, and carries on when someone can again
   handleListeners(guildId: string) {
     const guild = this.guilds.get(guildId);
     if (!guild || !guild.channelId || this.detached) {
       return;
     }
-    if (this.hasListeners(guild.shard, guild.channelId)) {
+    if (this.hasListeners(guild.shard, guild.channelId, true)) {
       if (guild.aloneTimeout) {
         clearTimeout(guild.aloneTimeout);
         guild.aloneTimeout = null;
@@ -1105,18 +1114,18 @@ export class VoiceNodeClient extends EventSpewer {
     }, ALONE_PAUSE_DELAY);
   }
 
-  // still nobody listening after `ALONE_PAUSE_DELAY`, it pauses if the server has `pause_alone` (and 24/7, otherwise
-  // the pause timeout would leave)
+  // still nobody listening after `ALONE_PAUSE_DELAY`, it pauses if the server has `pause_alone` (on for everyone, only
+  // premium servers can turn it off, the api says). Without 24/7 the node's pause timeout then leaves with it held
   private async pauseAlone(guildId: string, guild: GuildVoice) {
     const stillAlone = () => {
       return this.guilds.get(guildId) === guild && !guild.paused && this.isPlaying(guildId) && !!guild.channelId &&
-        !this.hasListeners(guild.shard, guild.channelId);
+        !this.hasListeners(guild.shard, guild.channelId, true);
     };
     if (!stillAlone()) {
       return;
     }
     const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
-    if (!music || !music.premium || !music.stay || !music.pause_alone || !stillAlone()) {
+    if (!music || !music.pause_alone || !stillAlone()) {
       return;
     }
     await this.setPaused(guildId, true, true);

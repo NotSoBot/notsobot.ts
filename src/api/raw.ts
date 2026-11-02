@@ -1398,6 +1398,7 @@ export async function editGuildMusic(
     max_duration: options.maxDuration,
     no_duplicates: options.noDuplicates,
     pause_alone: options.pauseAlone,
+    pause_timeout: options.pauseTimeout,
     stay: options.stay,
     vote_pause: options.votePause,
     vote_resume: options.voteResume,

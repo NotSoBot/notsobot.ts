@@ -2,6 +2,7 @@ import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-c
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MusicAutopauseCommand } from './autopause';
 import { MusicEffectGroupCommand } from './effect';
 import { MusicCrossfadeCommand } from './crossfade';
 import { MusicDjGroupCommand } from './dj';
@@ -43,6 +44,7 @@ export default class MusicCommand extends BaseSlashCommand {
     super({
       options: [
         new MusicStayCommand(),
+        new MusicAutopauseCommand(),
         new MusicEffectGroupCommand(),
         new MusicCrossfadeCommand(),
         new MusicDjGroupCommand(),

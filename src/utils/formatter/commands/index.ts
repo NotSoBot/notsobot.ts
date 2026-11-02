@@ -545,6 +545,7 @@ import * as ServerFontsRename from './server.fonts.rename';
 import * as ServerInvites from './server.invites';
 import * as ServerLoggersIgnore from './server.loggers.ignore';
 
+import * as MusicAutopause from './music.autopause';
 import * as MusicEffect from './music.effect';
 import * as MusicCrossfade from './music.crossfade';
 import * as MusicDj from './music.dj';
@@ -1275,6 +1276,7 @@ export {
   ServerInvites,
   ServerLoggersIgnore,
 
+  MusicAutopause,
   MusicEffect,
   MusicCrossfade,
   MusicDj,

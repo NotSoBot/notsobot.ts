@@ -51,7 +51,7 @@ class VoiceNodeListener extends Listener {
         if (voiceState.userId === shard.userId) {
           VoiceNode.handleVoiceState(voiceState.guildId, voiceState.channelId || null, voiceState.sessionId);
         }
-        // anyone joining or leaving (us being moved too), 24/7's `pause_alone` pauses with nobody left to hear it
+        // anyone joining, leaving or (un)deafening (us being moved too), `pause_alone` pauses with nobody left to hear it
         VoiceNode.handleListeners(voiceState.guildId);
       });
       subscriptions.push(subscription);
