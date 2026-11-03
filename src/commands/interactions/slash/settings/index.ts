@@ -5,6 +5,7 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { SettingsAIMemoryGroupCommand } from './ai-memory';
+import { SettingsCreditsGroupCommand } from './credits';
 import { SettingsPremiumServersGroupCommand } from './premium-servers';
 import { SettingsSetGroupCommand } from './set';
 
@@ -29,6 +30,7 @@ export default class SettingsGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new SettingsAIMemoryGroupCommand(),
+        new SettingsCreditsGroupCommand(),
         new SettingsPremiumServersGroupCommand(),
         new SettingsSetGroupCommand(),
       ],

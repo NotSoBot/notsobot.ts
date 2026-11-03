@@ -123,12 +123,30 @@ function translateApiError(
       return {specific: true, text};
     }
   }
+  // out of credits: a server's can only be given more, a user's come back weekly (with premium) or from the store
+  if (apiError.code === ApiErrorCodes.CREDITS_LIMIT && typeof(apiError.cost) === 'number') {
+    if (apiError.scope === 'server') {
+      return {specific: true, text: translator.translate(`${key}_server` as I18n.TranslationKey)};
+    }
+    const left = (Number(apiError.weekly_left) || 0) + (Number(apiError.refill_left) || 0);
+    const variables = {cost: apiError.cost.toLocaleString(translator.language), left: left.toLocaleString(translator.language)};
+    const resetsAt = (typeof(apiError.resets_at) === 'string') ? new Date(apiError.resets_at) : null;
+    if (apiError.weekly && resetsAt && !isNaN(resetsAt.getTime())) {
+      const text = translator.translate(key as I18n.TranslationKey, {
+        ...variables,
+        time: Markup.timestamp(resetsAt, MarkupTimestampStyles.RELATIVE),
+      });
+      return {specific: true, text};
+    }
+    return {specific: true, text: translator.translate(`${key}_refill` as I18n.TranslationKey, variables)};
+  }
   return {specific: false, text: translator.translateMaybe(key, apiError.message)};
 }
 
 
 // the api's message for these only rewords the translation ('An outputted media was blocked...'), it never adds anything
 const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
+  ApiErrorCodes.CREDITS_LIMIT,
   ApiErrorCodes.SERVER_AI_LIMIT,
   ...CONTENT_BLOCKED_API_ERRORS,
 ];

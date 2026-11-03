@@ -8,7 +8,7 @@ import {
   LocalesText as DiscordLocalesText,
   DiscordRegexNames,
 } from 'detritus-client/lib/constants';
-import { Markup, getFirstArgument, parseMentionsInText, regex as discordRegex } from 'detritus-client/lib/utils';
+import { ComponentContext, Markup, getFirstArgument, parseMentionsInText, regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -514,7 +514,8 @@ export async function pipingCommands(
 }
 
 
-export function seconds(value: number | string, allowFloats: boolean = false, context?: Command.Context | Interaction.InteractionContext): number {
+// a component context too, for the duration fields in the warning buttons' modals
+export function seconds(value: number | string, allowFloats: boolean = false, context?: ComponentContext | Command.Context | Interaction.InteractionContext): number {
   const valueString = String(value);
   try {
     let duration = durationToMilliseconds(valueString);
@@ -549,7 +550,7 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
   const allowFloats = (options.float || options.float === undefined);
   const allowNegatives = !!options.negatives;
 
-  return (value: number | string, context?: Command.Context | Interaction.InteractionContext): number => {
+  return (value: number | string, context?: ComponentContext | Command.Context | Interaction.InteractionContext): number => {
     const valueString = String(value).trim();
     const isNegative = (allowNegatives) ? valueString.startsWith('-') : false;
 

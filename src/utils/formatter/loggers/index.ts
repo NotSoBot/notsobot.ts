@@ -1,5 +1,5 @@
 import { ClientEvents } from 'detritus-client/lib/constants';
-import { ComponentContainer, Embed } from 'detritus-client/lib/utils';
+import { ComponentContainer, Components, Embed } from 'detritus-client/lib/utils';
 
 import { Languages, Translator, getTranslatorForLanguage } from '../../i18n';
 
@@ -32,6 +32,7 @@ export function createLogPayload(event: GuildLoggingEventItem, options: LogPaylo
 export function createLogPayloadEmbed(event: GuildLoggingEventItem, translator: Translator): LogPayload {
   const embed = new Embed();
   const files: LogPayloadFiles = [];
+  let components: Components | undefined;
   switch (event.name) {
     case ClientEvents.CHANNEL_CREATE: Channels.formatChannelCreate(event, embed, files, translator); break;
     case ClientEvents.CHANNEL_DELETE: Channels.formatChannelDelete(event, embed, files, translator); break;
@@ -49,11 +50,15 @@ export function createLogPayloadEmbed(event: GuildLoggingEventItem, translator: 
     case ClientEvents.MESSAGE_UPDATE: Messages.formatMessageUpdate(event, embed, files, translator); break;
     case ClientEvents.USERS_UPDATE: Users.formatUsersUpdate(event, embed, files, translator); break;
     case ClientEvents.VOICE_STATE_UPDATE: Voice.formatVoiceStateUpdate(event, embed, files, translator); break;
-    case GuildLoggingCustomEvents.GUILD_WARNING_ADD: Moderation.formatGuildWarningAdd(event, embed, files, translator); break;
+    case GuildLoggingCustomEvents.GUILD_WARNING_ADD: {
+      Moderation.formatGuildWarningAdd(event, embed, files, translator);
+      components = new Components();
+      Moderation.addGuildWarningAddButtons(event, components.createActionRow(), translator);
+    }; break;
     case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE: Moderation.formatGuildWarningRemove(event, embed, files, translator); break;
     case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: Moderation.formatGuildWarningsClear(event, embed, files, translator); break;
   }
-  return {embed: sanitizeEmbed(embed), files};
+  return {components, embed: sanitizeEmbed(embed), files};
 }
 
 

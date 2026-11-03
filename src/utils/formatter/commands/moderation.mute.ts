@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { DateMomentLogFormat, EmbedColors, GuildModerationDmFlags, StatusEmojis } from '../../../constants';
@@ -27,7 +27,7 @@ export type MemberCheckFailure = 'admin' | 'bot_role' | 'self' | 'your_role';
 
 // shared with `unmute`, why we can't change this member's timeout (or null if we can)
 export function checkMember(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   member: Structures.Member,
 ): MemberCheckFailure | null {
   if ((context.me && context.me.id === member.id) || context.userId === member.id) {
@@ -55,7 +55,7 @@ export function formatError(error: any): string {
 }
 
 export async function createMessage(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
   // like a modal from the buttons under a warning, to respond through instead of editing the command's reply
   options: DisplayReplyOptions = {},

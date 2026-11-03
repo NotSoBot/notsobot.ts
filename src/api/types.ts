@@ -31,6 +31,7 @@ import {
   TagDirectoryCategories,
   TagDirectoryVerificationStates,
   TagVariableStorageTypes,
+  TranscribeFileFormats,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
@@ -111,6 +112,8 @@ export namespace RestOptions {
   export interface CreateVoiceClone {
     file?: RequestFile,
     name?: string,
+    // the server it's used in gets the voice instead
+    server?: boolean,
     url?: string,
   }
 
@@ -630,6 +633,8 @@ export namespace RestOptions {
 
   
   export interface GenerateTag extends MediaBaseOptionsMultiple {
+    // the reply can show `credits_alert`, only NotSoAI's own replies (a tag's `{ai}` has nowhere to put it)
+    creditsAlert?: boolean,
     // an `{ai}` call inside of NotSoAI's own reply, it doesn't count toward a server's NotSoAI messages again
     fromAI?: boolean,
     // send the user's memories along, never for `{ai}` inside of a user's tag
@@ -913,10 +918,28 @@ export namespace RestOptions {
     split?: boolean,
   }
 
+  export interface MediaAVToolsAutoSubtitle extends MediaBaseOptions {
+    // a bundled font or a saved font's name (theirs, then the server's). unset: the user's Default Font setting, then
+    // the server's, then Arial (the api picks)
+    font?: MediaMemeFonts | string,
+    // a font file of their own instead, only read by a sandboxed ffmpeg in the api
+    fontUrl?: string,
+    // the cue's words with the one being said in the other color
+    highlight?: boolean,
+    yellow?: boolean,
+  }
+
   export interface MediaAVToolsExtractAudio extends MediaBaseOptions {
     allowedMimetypes?: Array<string>,
     mimetype?: string,
     waveform?: boolean,
+  }
+
+  export interface MediaAVToolsTranscribe extends MediaBaseOptions {
+    // also give the transcription as a subtitles (ass, srt) or lyrics (lrc) file (the api's `file`, `file` here is an upload)
+    fileFormat?: TranscribeFileFormats,
+    // the ass highlights the word being said, the lrc times each word
+    highlight?: boolean,
   }
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {
@@ -2221,6 +2244,8 @@ export namespace RestResponsesRaw {
 
   export interface FileResponse {
     arguments: null | Record<string, any>,
+    // text to speech with a cloned voice, see `GenerateTag`
+    credits_alert?: CreditsAlert,
     file: {
       filename: string,
       filename_base: string,
@@ -2375,6 +2400,8 @@ export namespace RestResponsesRaw {
     duration: number,
     languages: Array<string>,
     text: string,
+    // the transcription as the subtitles or lyrics file asked for (`file`), null when nothing was said
+    file?: null | string,
   }
 
   export type CreateGuildLogger = Array<GuildLogger>;
@@ -2947,6 +2974,29 @@ export namespace RestResponsesRaw {
   export type DeleteSavedFont = EditSavedFonts;
   export type EditSavedFont = EditSavedFonts;
 
+  // a pool of credits, `weekly` is 0 when it only has bought ones (refills)
+  export interface CreditBalance {
+    refill_left: number,
+    resets_at: string,
+    weekly: number,
+    weekly_left: number,
+  }
+
+  export interface FetchPremiumCredits {
+    // null in dms
+    server: CreditBalance | null,
+    // null for owners, they don't use any
+    user: CreditBalance | null,
+  }
+
+  export interface PostPremiumCreditsGive {
+    amount: number,
+    // the giver's bought credits left
+    refill_left: number,
+    // everything given to the server so far that's still left
+    server_refill: number,
+  }
+
   export interface FetchPremiumServers {
     items: Array<{server_id: string, user_id: string}>,
   }
@@ -3028,6 +3078,11 @@ export namespace RestResponsesRaw {
     voices: Array<Voice>,
   }
 
+  // the voices of the server it's used in, anyone there can use them
+  export interface FetchServerVoices extends FetchUserVoices {
+    limit: number,
+  }
+
   export type PutGuildRules = Array<GuildRule>;
   export type PutTag = Tag;
   export type PutTagsDirectoryTag = TagDirectory;
@@ -3050,9 +3105,20 @@ export namespace RestResponsesRaw {
     text: string,
   }
 
+  // a heads up once a credit pool's used most of its week (`weekly_used`) or started on bought credits (`weekly_out`)
+  export interface CreditsAlert {
+    kind: 'weekly_out' | 'weekly_used',
+    refill_left: null | number,
+    resets_at: string,
+    scope: 'server' | 'user',
+    weekly: number,
+    weekly_left: number,
+  }
+
   export interface GenerateTag {
     // problems the static check still found in `text` (after the repair attempt, if there was one)
     check_errors?: Array<string>,
+    credits_alert?: CreditsAlert,
     external_id: string,
     id?: string,
     model: string,
@@ -4467,6 +4533,8 @@ export namespace RestResponsesRaw {
     name: string,
     platform_id: string,
     platform_type: number,
-    user: User,
+    // set for a server's voice, those have no user
+    server_id: null | string,
+    user: null | User,
   }
 }

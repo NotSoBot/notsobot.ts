@@ -184,6 +184,8 @@ export const Api = Object.freeze({
   MEDIA_AV_MANIPULATION_WAVEFORM:
     '/media/av/manipulation/waveform',
 
+  MEDIA_AV_TOOLS_AUTO_SUBTITLE:
+    '/media/av/tools/autosubtitle',
   MEDIA_AV_TOOLS_EXTRACT_AUDIO:
     '/media/av/tools/extract/audio',
   MEDIA_AV_TOOLS_IDENTIFY:
@@ -1025,6 +1027,11 @@ export const Api = Object.freeze({
   ME:
     '/users/@me',
 
+  PREMIUM_CREDITS:
+    '/premium/credits',
+  PREMIUM_CREDITS_GIVE:
+    '/premium/credits/give',
+
   PREMIUM_SERVERS:
     '/premium/servers',
 
@@ -1276,6 +1283,8 @@ export const Api = Object.freeze({
     '/voices/:voiceId/add',
   VOICE_CLONE:
     '/voices/clone',
+  VOICES_SERVER:
+    '/voices/server',
 });
 
 

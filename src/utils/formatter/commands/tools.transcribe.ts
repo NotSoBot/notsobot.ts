@@ -10,6 +10,7 @@ import {
   EmbedBrands,
   EmbedColors,
   MOMENT_FORMAT,
+  TranscribeFileFormats,
 } from '../../../constants';
 import { DisplayPayload, displayReply, joinArrayWithNouns, toTitleCase } from '../../../utils';
 
@@ -17,6 +18,10 @@ import { DisplayPayload, displayReply, joinArrayWithNouns, toTitleCase } from '.
 export const COMMAND_ID = 'media.av.tools.transcribe';
 
 export interface CommandArgs {
+  // also attach the transcription as a subtitles or lyrics file (`transcription.lrc`), `highlight` for the word being
+  // said (ass) or each word's time (lrc)
+  file?: TranscribeFileFormats,
+  highlight?: boolean,
   isEphemeral?: boolean,
   url: string,
 }
@@ -27,7 +32,9 @@ export async function createMessage(
 ) {
   const { language, languageName, translate, translateMaybe } = await getTranslator(context);
 
-  const { duration, languages, text } = await mediaAVToolsTranscribe(context, {
+  const { duration, file: transcriptionFile, languages, text } = await mediaAVToolsTranscribe(context, {
+    fileFormat: args.file,
+    highlight: (args.file) ? args.highlight : undefined,
     url: args.url,
   });
 
@@ -48,10 +55,10 @@ export async function createMessage(
   const title = translate('tools_transcribe.transcription_from_audio', {durationText: durationText, languageTitle: languageTitle}).trim();
 
   let description: string = '';
-  let file: {filename: string, value: string} | undefined;
+  const files: Array<{filename: string, value: string}> = [];
   if (text) {
     if (2000 < text.length) {
-      file = {filename: 'transcription.txt', value: text};
+      files.push({filename: 'transcription.txt', value: text});
       description = translate('tools_transcribe.characters', {text_count: text.length.toLocaleString(language)});
     } else {
       description = Markup.codeblock(text);
@@ -71,6 +78,10 @@ export async function createMessage(
     payload.description = translate('tools_transcribe.no_speech_detected');
   }
 
-  return displayReply(context, {...payload, ephemeral: args.isEphemeral, files: (file) ? [file] : undefined});
+  if (text && args.file && transcriptionFile) {
+    files.push({filename: `transcription.${args.file}`, value: transcriptionFile});
+  }
+
+  return displayReply(context, {...payload, ephemeral: args.isEphemeral, files: (files.length) ? files : undefined});
 
 }

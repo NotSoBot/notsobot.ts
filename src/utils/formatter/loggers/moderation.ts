@@ -1,10 +1,11 @@
 import { Structures } from 'detritus-client';
-import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
+import { MessageComponentButtonStyles } from 'detritus-client/lib/constants';
+import { ComponentActionRow, ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
-import { EmbedColors } from '../../../constants';
+import { EmbedColors, MessageComponentCustomIds } from '../../../constants';
 import { createTimestampStringFromGuild, createUserEmbed, createUserString, displayDetailsLine, displayTimestamp } from '../../../utils';
 
-import type { Translator } from '../../i18n';
+import type { TranslationKey, Translator } from '../../i18n';
 import { addContainerFooter, addContainerHeader, createContainerTitle, createFooterTimestamp, createUserHeaderLines } from './tools';
 import {
   GuildLoggingEventGuildWarningAdd,
@@ -59,7 +60,15 @@ function formatContainer(
   container: ComponentContainer,
   userId: string,
   user: Structures.User | null,
-  options: {color: number, footer: string, happened: number, moderation: Array<string>, translator: Translator},
+  options: {
+    color: number,
+    footer: string,
+    happened: number,
+    moderation: Array<string>,
+    translator: Translator,
+    // a row of buttons above the footer
+    buttons?: (row: ComponentActionRow) => void,
+  },
 ): void {
   const { translate } = options.translator;
   container.setAccentColor(options.color);
@@ -69,7 +78,33 @@ function formatContainer(
     createContainerTitle(translate('logger.moderation_action')),
     ...options.moderation,
   ], (user) ? user.avatarUrlFormat(null, {size: 1024}) : null, false);
+  if (options.buttons) {
+    options.buttons(container.createActionRow());
+  }
   addContainerFooter(container, `${options.footer} • ${createFooterTimestamp(options.happened)}`);
+}
+
+
+// same labels and styles as the buttons under `warn`, the action (and the custom id format) is what
+// `onGuildWarningLogComponent` takes
+const WARNING_ADD_BUTTONS: Array<{action: string, labelKey: TranslationKey, style: MessageComponentButtonStyles}> = [
+  {action: 'undo', labelKey: 'moderation_warn.undo', style: MessageComponentButtonStyles.SECONDARY},
+  {action: 'mute', labelKey: 'moderation_warn.mute', style: MessageComponentButtonStyles.SECONDARY},
+  {action: 'kick', labelKey: 'moderation_warn.kick', style: MessageComponentButtonStyles.SECONDARY},
+  {action: 'ban', labelKey: 'moderation_warn.ban', style: MessageComponentButtonStyles.DANGER},
+];
+
+// static buttons, everything's in the custom id so they keep working after a restart. They're always shown, who can use
+// them is checked on press (anyone with the action's permission, not only whoever warned them)
+export function addGuildWarningAddButtons(event: GuildLoggingEventGuildWarningAdd, row: ComponentActionRow, translator: Translator): void {
+  const { user, warning } = event.payload;
+  for (let { action, labelKey, style } of WARNING_ADD_BUTTONS) {
+    row.createButton({
+      customId: `${MessageComponentCustomIds.GUILD_WARNING}.${action}.${user.id}.${warning.id}`,
+      label: translator.translate(labelKey),
+      style,
+    });
+  }
 }
 
 
@@ -140,6 +175,7 @@ export function formatGuildWarningAddComponents(
     happened,
     moderation: getWarningAddLines(event, translator),
     translator,
+    buttons: (row) => addGuildWarningAddButtons(event, row, translator),
   });
 }
 

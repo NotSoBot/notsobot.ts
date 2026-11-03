@@ -1,6 +1,6 @@
 import { GatewayClientEvents, Structures } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
-import { ComponentContainer, Embed } from 'detritus-client/lib/utils';
+import { ComponentContainer, Components, Embed } from 'detritus-client/lib/utils';
 
 import type { RestResponsesRaw } from '../../../api/types';
 import type { UserAvatarDecorationStored } from '../../../stores/useravatardecorations';
@@ -264,6 +264,8 @@ export type GuildLoggingEventModeration = GuildLoggingEventGuildWarningAdd | Gui
 export type LogPayloadFiles = Array<{filename: string, value: any}>;
 
 export type LogPayload = {
+  // buttons can't be put on one embed of many, so an embed with them gets its own message
+  components?: Components,
   embed: Embed,
   files: LogPayloadFiles,
 } | {

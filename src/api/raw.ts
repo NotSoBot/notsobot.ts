@@ -420,6 +420,7 @@ export async function createVoiceClone(
 ): Promise<RestResponsesRaw.CreateVoiceClone> {
   const body = {
     name: options.name,
+    server: options.server || undefined,
     url: options.url,
   };
   return request(context, {
@@ -428,6 +429,18 @@ export async function createVoiceClone(
     route: {
       method: HTTPMethods.POST,
       path: Api.VOICE_CLONE,
+    },
+  });
+}
+
+
+export async function fetchServerVoices(
+  context: RequestContext,
+): Promise<RestResponsesRaw.FetchServerVoices> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.VOICES_SERVER,
     },
   });
 }
@@ -2414,6 +2427,32 @@ export async function deleteUserPremiumServer(
 }
 
 
+export async function fetchPremiumCredits(
+  context: RequestContext,
+): Promise<RestResponsesRaw.FetchPremiumCredits> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.PREMIUM_CREDITS,
+    },
+  });
+}
+
+
+export async function postPremiumCreditsGive(
+  context: RequestContext,
+  amount: number,
+): Promise<RestResponsesRaw.PostPremiumCreditsGive> {
+  return request(context, {
+    body: {amount},
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.PREMIUM_CREDITS_GIVE,
+    },
+  });
+}
+
+
 export async function fetchPremiumServers(
   context: RequestContext,
 ): Promise<RestResponsesRaw.FetchPremiumServers> {
@@ -2577,6 +2616,7 @@ export async function generateTag(
 ): Promise<RestResponsesRaw.GenerateTag> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    credits_alert: options.creditsAlert || undefined,
     from_ai: options.fromAI,
     max_file_size: maxFileSize,
     memory: options.memory,
@@ -3976,6 +4016,31 @@ export async function mediaAVManipulationWaveform(
 }
 
 
+export async function mediaAVToolsAutoSubtitle(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsAutoSubtitle,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    font: options.font,
+    font_url: options.fontUrl,
+    highlight: options.highlight,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+    yellow: options.yellow,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_TOOLS_AUTO_SUBTITLE,
+    },
+  });
+}
+
+
 export async function mediaAVToolsExtractAudio(
   context: RequestContext,
   options: RestOptions.MediaAVToolsExtractAudio,
@@ -4021,9 +4086,11 @@ export async function mediaAVToolsIdentify(
 
 export async function mediaAVToolsTranscribe(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaAVToolsTranscribe,
 ): Promise<RestResponsesRaw.MediaAVToolsTranscribe> {
   const query = {
+    file: options.fileFormat,
+    highlight: options.highlight,
     url: options.url,
   };
   return request(context, {

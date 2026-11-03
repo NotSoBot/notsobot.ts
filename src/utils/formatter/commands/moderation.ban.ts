@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { deleteGuildTimedBans, putGuildTimedBans } from '../../../api';
@@ -39,7 +39,7 @@ export const BULK_BAN_MAX_USERS = 200;
 // instead of one each, then bans anyone it didn't one by one (already banned users come back as failed there while a
 // single ban still goes through, and this gets the actual error for the rest), returns the ones that couldn't be banned
 export async function banUsers(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   guildId: string,
   userIds: Array<string>,
   options: {deleteMessageSeconds: number, reason: string},
@@ -74,7 +74,7 @@ export async function banUsers(
 }
 
 export async function createMessage(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
   // like a modal from the buttons under a warning, to respond through instead of editing the command's reply
   options: DisplayReplyOptions = {},

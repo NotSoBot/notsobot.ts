@@ -89,6 +89,7 @@ import * as MediaAVManipulationSetBitRate from './media.av.manipulation.set.bitr
 import * as MediaAVManipulationStammer from './media.av.manipulation.stammer';
 import * as MediaAVManipulationWaveform from './media.av.manipulation.waveform';
 
+import * as MediaAVToolsAutoSubtitle from './media.av.tools.autosubtitle';
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
 
@@ -607,6 +608,8 @@ import * as PrefixesList from './prefixes.list';
 import * as PrefixesRemove from './prefixes.remove';
 import * as PrefixesReplace from './prefixes.replace';
 
+import * as Credits from './credits';
+import * as CreditsGive from './credits.give';
 import * as PremiumServers from './premium.servers';
 import * as PremiumServersAdd from './premium.servers.add';
 import * as PremiumServersRemove from './premium.servers.remove';
@@ -741,6 +744,7 @@ import * as VoiceCloneAdd from './voice.clone.add';
 import * as VoiceDelete from './voice.delete';
 import * as VoiceList from './voice.list';
 import * as VoiceRename from './voice.rename';
+import * as VoiceServer from './voice.server';
 
 
 export {
@@ -835,6 +839,7 @@ export {
   MediaAVManipulationStammer,
   MediaAVManipulationWaveform,
 
+  MediaAVToolsAutoSubtitle,
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,
 
@@ -1353,6 +1358,9 @@ export {
   PrefixesRemove,
   PrefixesReplace,
 
+  Credits,
+  CreditsGive,
+
   PremiumServers,
   PremiumServersAdd,
   PremiumServersRemove,
@@ -1486,4 +1494,5 @@ export {
   VoiceDelete,
   VoiceList,
   VoiceRename,
+  VoiceServer,
 };

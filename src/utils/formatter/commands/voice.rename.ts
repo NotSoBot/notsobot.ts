@@ -1,16 +1,18 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { fetchUserVoices, voiceCloneEdit } from '../../../api';
+import { voiceCloneEdit } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { displayReply } from '../../../utils';
 
-import { findVoice } from './voice.list';
+import { MAX_SERVER_VOICES, fetchVoices, findVoice, serverVoicesProblem } from './voice.list';
 
 
 export const COMMAND_ID = 'voice.rename';
 
 export interface CommandArgs {
+  // one of the server's voices instead of the user's (needs Manage Server)
+  server?: boolean,
   name: string,
   voice: string,
 }
@@ -20,8 +22,18 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const { count, voices } = await fetchUserVoices(context, context.userId);
+  if (args.server) {
+    const problem = serverVoicesProblem(context, true);
+    if (problem) {
+      return displayReply(context, {description: translate(problem)});
+    }
+  }
+
+  const voices = await fetchVoices(context, args.server);
   if (!voices.length) {
+    if (args.server) {
+      return displayReply(context, {description: translate('voice_server.no_voices', {max: MAX_SERVER_VOICES})});
+    }
     return displayReply(context, {description: translate('voice_rename.you_have_no_cloned_voices')});
   }
 

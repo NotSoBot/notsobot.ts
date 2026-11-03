@@ -21,6 +21,7 @@ import {
   onGuildReportRespondComponent,
   queueGuildReportUpdate,
 } from '../utils/formatter/commands/guild.report';
+import { onGuildWarningLogComponent } from '../utils/formatter/commands/moderation.warn';
 import { onMusicControl } from '../utils/formatter/commands/music.controls';
 import {
   MUSIC_QUEUE_CONTROL,
@@ -77,6 +78,15 @@ class ComponentsListener extends Listener {
                 return await onGuildReportComponent(context, action, reportId);
               } catch(error) {
                 console.warn(`guild report ${context.customId} ${context.guildId}`, error);
+              }
+            }
+            if (context.customId.startsWith(MessageComponentCustomIds.GUILD_WARNING + '.')) {
+              try {
+                // `guild-warning.{action}.{userId}.{warningId}`, on a moderation logger's warning
+                const [ , action, userId, warningId ] = context.customId.split('.');
+                return await onGuildWarningLogComponent(context, action, userId, warningId);
+              } catch(error) {
+                console.warn(`guild warning ${context.customId} ${context.guildId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.GUILD_REPORT_RESPOND + '.')) {

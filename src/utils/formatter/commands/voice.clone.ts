@@ -9,6 +9,8 @@ import { DiscordEmojis, StatusEmojis } from '../../../constants';
 
 import { displayReply } from '../../../utils';
 
+import { serverVoicesProblem } from './voice.list';
+
 
 export const MAX_TIME_TO_RESPOND = 2 * 60 * 1000;
 
@@ -17,6 +19,8 @@ export const COMMAND_ID = 'voice.clone';
 
 export interface CommandArgs {
   name?: string,
+  // the server it's used in gets the voice instead (needs Manage Server and a member's premium plus on the server)
+  server?: boolean,
   url: string,
 }
 
@@ -25,6 +29,13 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+
+  if (args.server) {
+    const problem = serverVoicesProblem(context, true);
+    if (problem) {
+      return displayReply(context, {description: translate(problem)});
+    }
+  }
 
   // the user has to confirm they own the voice (or have its owner's permission) before the audio goes to elevenlabs
   const components = new Components({

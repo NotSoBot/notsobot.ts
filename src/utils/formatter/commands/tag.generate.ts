@@ -29,6 +29,7 @@ import {
 
 import { Translator, getTranslator, randomAIThinkingText } from '../../i18n';
 
+import { formatCreditsAlert } from './credits';
 import { THINKING_REPLY_AFTER, ThinkingReply, createTagMessage, tagTimeLimitText } from './tag.show';
 
 
@@ -271,6 +272,7 @@ async function generateAndRunTag(
 
   const now = Date.now();
   const response = await generateTag(context, {
+    creditsAlert: true,
     memory: true,
     model: args.model,
     parentId: parentId || undefined,
@@ -351,6 +353,11 @@ async function generateAndRunTag(
     if (parsedTag.variables[TagFormatter.PrivateVariables.AI_WRITES_DECLINED]) {
       const { translate } = await getTranslator(context);
       parsedTag.text = [parsedTag.text.trimEnd(), `-# ${translate('tag_generate.confirm_declined')}`].join('\n');
+    }
+    // they used up most of the week's credits, said once a week
+    if (response.credits_alert) {
+      const { language, translate } = await getTranslator(context);
+      parsedTag.text = [parsedTag.text.trimEnd(), formatCreditsAlert(response.credits_alert, language, translate)].join('\n');
     }
     await thinking.stop();
     return await createTagMessage(context, parsedTag);

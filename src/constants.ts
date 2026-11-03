@@ -110,6 +110,7 @@ export enum ApiErrorCodes {
   MAX_GUILD_WARNINGS = 30029,
   MAX_GUILD_REPORTS = 30030,
   MAX_GUILD_REPORT_MESSAGES = 30031,
+  CREDITS_LIMIT = 30033,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -1143,6 +1144,8 @@ export enum GuildFeatures {
   FREE_CUSTOM_COMMANDS = 'FREE_CUSTOM_COMMANDS',
   // music's premium perks (24/7, the bigger queue), like a premium server
   MUSIC_ACCESS = 'MUSIC_ACCESS',
+  // its own cloned voices without a member's premium plus slot, and their tts spends no credits
+  VOICE_CLONE_ACCESS = 'VOICE_CLONE_ACCESS',
 }
 
 
@@ -1859,6 +1862,8 @@ export enum MessageComponentCustomIds {
   GUILD_REPORT_RESPOND = 'guild-report-respond',
   // `guild-report-mute.{guildId}.{reportId}`, the Stop DMs button on those DMs
   GUILD_REPORT_MUTE = 'guild-report-mute',
+  // `guild-warning.{action}.{userId}.{warningId}`, the undo/mute/kick/ban buttons on a moderation logger's warning
+  GUILD_WARNING = 'guild-warning',
   // `report-respond.{reportId}`, the Respond button on the DMs about a report to the developers
   REPORT_RESPOND = 'report-respond',
 }
@@ -2280,6 +2285,19 @@ export enum TagVariableStorageTypes {
   GLOBAL = 3,
 }
 
+
+// the files `transcribe` can also give the transcription as
+export enum TranscribeFileFormats {
+  ASS = 'ass',
+  LRC = 'lrc',
+  SRT = 'srt',
+}
+
+export const TranscribeFileFormatsToText: Record<TranscribeFileFormats, string> = Object.freeze({
+  [TranscribeFileFormats.ASS]: 'ASS Subtitles (.ass)',
+  [TranscribeFileFormats.LRC]: 'LRC Lyrics (.lrc)',
+  [TranscribeFileFormats.SRT]: 'SRT Subtitles (.srt)',
+});
 
 export enum Timezones {
   // Pacific (far west)

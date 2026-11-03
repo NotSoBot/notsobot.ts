@@ -913,7 +913,7 @@ export function createWebhookPayloads(logPayloads: Array<LogPayload>): Array<Req
 }
 
 
-// an embed with files gets its own request and all embeds in a request share the 6000 character limit
+// an embed with files or buttons gets its own request and all embeds in a request share the 6000 character limit
 export function createWebhookPayloadEmbeds(logPayloads: Array<LogPayload>): RequestTypes.ExecuteWebhook {
   const embeds: Array<Embed> = [];
   const payload: RequestTypes.ExecuteWebhook = {embeds};
@@ -923,12 +923,15 @@ export function createWebhookPayloadEmbeds(logPayloads: Array<LogPayload>): Requ
     if (!('embed' in logPayload)) {
       break;
     }
-    const { embed, files } = logPayload;
-    if (files.length) {
+    const { components, embed, files } = logPayload;
+    if (files.length || components) {
       // if we have any other embeds in the payload, then put this in the next payload
       if (!embeds.length) {
         embeds.push(embed);
-        payload.files = files;
+        if (files.length) {
+          payload.files = files;
+        }
+        payload.components = components;
       }
       break;
     }

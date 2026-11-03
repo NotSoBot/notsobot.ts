@@ -371,6 +371,23 @@ export async function deleteUserPremiumServer(
 }
 
 
+// the caller's credits and the server's they're in, the server's is null in dms
+export async function fetchPremiumCredits(
+  context: RequestContext,
+) {
+  return raw.fetchPremiumCredits(context);
+}
+
+
+// gives the server the command was used in some of the caller's bought credits
+export async function postPremiumCreditsGive(
+  context: RequestContext,
+  amount: number,
+) {
+  return raw.postPremiumCreditsGive(context, amount);
+}
+
+
 export async function fetchPremiumServers(
   context: RequestContext,
 ) {
@@ -1160,6 +1177,14 @@ export async function fetchUserTagsCommands(
 }
 
 
+// the voices of the server it's used in (guild or group dm)
+export async function fetchServerVoices(
+  context: RequestContext,
+) {
+  return raw.fetchServerVoices(context);
+}
+
+
 export async function fetchUserVoices(
   context: RequestContext,
   userId: string,
@@ -1664,6 +1689,14 @@ export async function mediaAVManipulationWaveform(
 }
 
 
+export async function mediaAVToolsAutoSubtitle(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsAutoSubtitle,
+) {
+  return raw.mediaAVToolsAutoSubtitle(context, options);
+}
+
+
 export async function mediaAVToolsExtractAudio(
   context: RequestContext,
   options: RestOptions.MediaAVToolsExtractAudio,
@@ -1682,7 +1715,7 @@ export async function mediaAVToolsIdentify(
 
 export async function mediaAVToolsTranscribe(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaAVToolsTranscribe,
 ) {
   return raw.mediaAVToolsTranscribe(context, options);
 }

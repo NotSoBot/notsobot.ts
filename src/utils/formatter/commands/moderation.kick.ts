@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { DateMomentLogFormat, EmbedColors, GuildModerationDmFlags, PermissionsText, StatusEmojis } from '../../../constants';
@@ -23,7 +23,7 @@ export interface CommandArgs {
 export const COMMAND_ID = 'moderation.kick';
 
 export async function createMessage(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
   // like a modal from the buttons under a warning, to respond through instead of editing the command's reply
   options: DisplayReplyOptions = {},

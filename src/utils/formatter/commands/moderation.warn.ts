@@ -17,11 +17,12 @@ import {
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { deleteGuildTimedBans, deleteGuildWarning, fetchGuildWarnings, putGuildWarnings } from '../../../api';
-import { getApiError } from '../../../api/errors';
+import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import GuildLoggingListener from '../../../listeners/guildlogging';
 import {
   ApiErrorCodes,
+  BAN_CLEAN_DEFAULT,
   DateMomentLogFormat,
   EmbedColors,
   GuildModerationDmFlags,
@@ -31,7 +32,7 @@ import {
   PermissionsText,
   StatusEmojis,
 } from '../../../constants';
-import { TranslationKey, Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
+import { TranslationKey, Translator, getCachedTranslator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
 import {
   DisplayBlock,
   DisplayPayload,
@@ -492,6 +493,108 @@ function createPastWarningsBlock(
 }
 
 
+function refuse(modalContext: ComponentContext | InteractionModalContext, text: string) {
+  return modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+    allowedMentions: {parse: []},
+    content: `${StatusEmojis.WARNING} ${text}`,
+    flags: MessageFlags.EPHEMERAL,
+  });
+}
+
+
+// kicking with deleted messages bans then unbans them, so both of us need ban members too (a ban already does)
+function hasActionClean(action: WarnAction, member: Structures.Member | null | undefined, me: Structures.Member | null): boolean {
+  return action === 'ban' || (action === 'kick' && [member, me].every((x) => !!x && x.can(Permissions.BAN_MEMBERS)));
+}
+
+
+// a mute/kick/ban modal's delete messages and duration fields, or why they can't be used
+function parseActionArgs(
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+  translator: Translator,
+  action: WarnAction,
+  args: InteractionModalArgs,
+  hasClean: boolean,
+): {clean: number, duration?: number} | string {
+  const { translate } = translator;
+  let clean = 0;
+  const cleanText = String(args.clean || '').trim();
+  if (hasClean && cleanText) {
+    try {
+      clean = Math.min(Parameters.secondsWithOptions({float: false})(cleanText, context), MAX_CLEAN);
+    } catch(error: any) {
+      return String((error && error.message) || error);
+    }
+  }
+
+  let duration: number | undefined;
+  const durationText = String(args.duration || '').trim();
+  if (ACTIONS[action].durationKey && durationText) {
+    try {
+      duration = Parameters.secondsWithOptions({float: false})(durationText, context);
+    } catch(error: any) {
+      return String((error && error.message) || error);
+    }
+    if (action === 'mute' && (duration < 1 || ModerationMute.MAX_DURATION < duration)) {
+      return translate('moderation_mute.invalid_duration');
+    }
+    if (action === 'ban' && (duration < ModerationBan.TIMED_BAN_MIN_DURATION || ModerationBan.TIMED_BAN_MAX_DURATION < duration)) {
+      return translate('moderation_ban.timed_invalid_duration');
+    }
+  }
+  return {clean, duration};
+}
+
+
+// how long (mute/ban), how far back to delete their messages (ban, and kick when both of us can ban) and why, the reason
+// starts as the warning's
+function createActionModal(
+  translator: Translator,
+  action: WarnAction,
+  options: {
+    banClean: number,
+    hasClean: boolean,
+    reason: null | string,
+    username: null | string,
+    run: (modalContext: InteractionModalContext, args: InteractionModalArgs) => Promise<unknown>,
+    onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => Promise<unknown>,
+  },
+): InteractionModal {
+  const { translate } = translator;
+  const { durationKey, labelKey, reasonKey } = ACTIONS[action];
+  // discord caps modal titles at 45
+  const title = (options.username) ? `${translate(labelKey)}: ${options.username}` : translate(labelKey);
+  const modal = new InteractionModal({title: title.slice(0, 45), run: options.run, onError: options.onError});
+  if (durationKey) {
+    modal.createLabel({description: translate(durationKey), label: translate('moderation_warn.duration')}).createInputText({
+      customId: 'duration',
+      maxLength: 50,
+      required: false,
+      style: MessageComponentInputTextStyles.SHORT,
+      value: ACTION_DEFAULT_DURATIONS[action],
+    });
+  }
+  // optional, empty deletes none
+  if (options.hasClean) {
+    modal.createLabel({description: translate('moderation_warn.clean_description'), label: translate('moderation_warn.clean')}).createInputText({
+      customId: 'clean',
+      maxLength: 50,
+      required: false,
+      style: MessageComponentInputTextStyles.SHORT,
+      value: (action === 'ban') ? formatCleanInput(options.banClean) : undefined,
+    });
+  }
+  modal.createLabel({description: translate(reasonKey), label: translate('moderation_warn.reason')}).createInputText({
+    customId: 'reason',
+    maxLength: MAX_GUILD_WARNING_REASON_LENGTH,
+    required: false,
+    style: MessageComponentInputTextStyles.PARAGRAPH,
+    value: options.reason || undefined,
+  });
+  return modal;
+}
+
+
 // buttons for whoever warned them: undo takes the warning back (and its dm), prune opens a modal with how many of their
 // messages to delete here, mute/kick/ban each open a modal with the
 // warning's reason filled in (and how long), their result is its own message and the warning only loses its buttons.
@@ -532,44 +635,14 @@ function createActionComponents(
   let done = false;
   const components = new Components();
 
-  const refuse = (modalContext: ComponentContext | InteractionModalContext, text: string) => {
-    return modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      allowedMentions: {parse: []},
-      content: `${StatusEmojis.WARNING} ${text}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
-  };
-
-  // kicking with deleted messages bans then unbans them, so both of us need ban members too (a ban already does)
-  const canKickClean = [context.member, context.me].every((member) => !!member && member.can(Permissions.BAN_MEMBERS));
-  const hasClean = (action: WarnAction): boolean => action === 'ban' || (action === 'kick' && canKickClean);
+  const hasClean = (action: WarnAction): boolean => hasActionClean(action, context.member, context.me);
 
   const run = async (modalContext: InteractionModalContext, action: WarnAction, args: InteractionModalArgs) => {
-    let clean = 0;
-    const cleanText = String(args.clean || '').trim();
-    if (hasClean(action) && cleanText) {
-      try {
-        clean = Math.min(Parameters.secondsWithOptions({float: false})(cleanText, context), MAX_CLEAN);
-      } catch(error: any) {
-        return refuse(modalContext, String((error && error.message) || error));
-      }
+    const parsed = parseActionArgs(context, translator, action, args, hasClean(action));
+    if (typeof(parsed) === 'string') {
+      return refuse(modalContext, parsed);
     }
-
-    let duration: number | undefined;
-    const durationText = String(args.duration || '').trim();
-    if (ACTIONS[action].durationKey && durationText) {
-      try {
-        duration = Parameters.secondsWithOptions({float: false})(durationText, context);
-      } catch(error: any) {
-        return refuse(modalContext, String((error && error.message) || error));
-      }
-      if (action === 'mute' && (duration < 1 || ModerationMute.MAX_DURATION < duration)) {
-        return refuse(modalContext, translate('moderation_mute.invalid_duration'));
-      }
-      if (action === 'ban' && (duration < ModerationBan.TIMED_BAN_MIN_DURATION || ModerationBan.TIMED_BAN_MAX_DURATION < duration)) {
-        return refuse(modalContext, translate('moderation_ban.timed_invalid_duration'));
-      }
-    }
+    const { clean, duration } = parsed;
     // another modal from the same warning went through first
     if (done) {
       return modalContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -593,43 +666,16 @@ function createActionComponents(
   };
 
   const createModal = (action: WarnAction): InteractionModal => {
-    const { durationKey, labelKey, reasonKey } = ACTIONS[action];
-    // discord caps modal titles at 45
-    const title = (members.length === 1) ? `${translate(labelKey)}: ${members[0].username}` : translate(labelKey);
-    const modal = new InteractionModal({
-      title: title.slice(0, 45),
+    return createActionModal(translator, action, {
+      banClean,
+      hasClean: hasClean(action),
+      reason,
+      username: (members.length === 1) ? members[0].username : null,
       run: (modalContext: InteractionModalContext, args: InteractionModalArgs) => run(modalContext, action, args),
       onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
         return displayReply(context, {description: `${StatusEmojis.WARNING} ${ModerationMute.formatError(error)}`}, {replyTo: modalContext});
       },
     });
-    if (durationKey) {
-      modal.createLabel({description: translate(durationKey), label: translate('moderation_warn.duration')}).createInputText({
-        customId: 'duration',
-        maxLength: 50,
-        required: false,
-        style: MessageComponentInputTextStyles.SHORT,
-        value: ACTION_DEFAULT_DURATIONS[action],
-      });
-    }
-    // optional, empty deletes none
-    if (hasClean(action)) {
-      modal.createLabel({description: translate('moderation_warn.clean_description'), label: translate('moderation_warn.clean')}).createInputText({
-        customId: 'clean',
-        maxLength: 50,
-        required: false,
-        style: MessageComponentInputTextStyles.SHORT,
-        value: (action === 'ban') ? formatCleanInput(banClean) : undefined,
-      });
-    }
-    modal.createLabel({description: translate(reasonKey), label: translate('moderation_warn.reason')}).createInputText({
-      customId: 'reason',
-      maxLength: MAX_GUILD_WARNING_REASON_LENGTH,
-      required: false,
-      style: MessageComponentInputTextStyles.PARAGRAPH,
-      value: reason || undefined,
-    });
-    return modal;
   };
 
   components.createButton({
@@ -809,4 +855,145 @@ function createActionComponents(
     });
   }
   return components;
+}
+
+
+// the undo button on a moderation logger's warning, the same permission as `warn`
+const WARNING_LOG_UNDO = 'undo';
+const WARNING_LOG_UNDO_PERMISSION = Permissions.MODERATE_MEMBERS;
+
+// the same text as a command's missing permissions, with the button's label as the command. Undo is only our api, so it
+// doesn't need anything from me
+function getLogActionRefusal(
+  translator: Translator,
+  label: string,
+  permission: bigint,
+  member: Structures.Member | null | undefined,
+  me: Structures.Member | null,
+  needsMe: boolean,
+): null | string {
+  const { translate } = translator;
+  const command = Markup.codestring(label);
+  const permissions = Markup.codestring(translator.label('permissions', (PermissionsText as any)[String(permission)]));
+  if (!member || !member.can(permission)) {
+    return translate('errors.prefix_user_missing_permissions', {command, permissions});
+  }
+  if (needsMe && (!me || !me.can(permission))) {
+    return translate('errors.prefix_bot_missing_permissions', {command, permissions});
+  }
+  return null;
+}
+
+
+// `guild-warning.{action}.{userId}.{warningId}`, the buttons on a moderation logger's warning (`addGuildWarningAddButtons`).
+// Unlike the ones under `warn` anyone with the action's permission can use them (checked on press and again on submit),
+// and they stay, so the results are only shown to whoever pressed them. Undo only takes the warning back, the dm and any
+// automatic mute or ban it caused aren't known here
+export async function onGuildWarningLogComponent(context: ComponentContext, action: string, userId: string, warningId: string) {
+  // cached only, the click has to be answered quickly
+  const translator = getCachedTranslator(context);
+  const { translate, translateMaybe } = translator;
+  const guildId = context.guildId;
+  const isUndo = action === WARNING_LOG_UNDO;
+  if (!guildId || !userId || !warningId || (!isUndo && !(action in ACTIONS))) {
+    return context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+  }
+
+  if (isUndo) {
+    const refusal = getLogActionRefusal(translator, translate('moderation_warn.undo'), WARNING_LOG_UNDO_PERMISSION, context.member, context.me, false);
+    if (refusal) {
+      return refuse(context, refusal);
+    }
+    await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+    let warning: RestResponsesRaw.DeleteGuildWarning;
+    try {
+      warning = await deleteGuildWarning(context, guildId, warningId);
+    } catch(error) {
+      // already removed (with this button, `warnings remove` or the dashboard)
+      const apiError = await getApiError(error);
+      if (!apiError) {
+        throw error;
+      }
+      const key = getApiErrorTranslationKey(apiError.code);
+      const text = (key) ? translateMaybe(key, apiError.message) : apiError.message;
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${text}`}, {replyTo: context});
+    }
+    const user = context.users.get(warning.user_id) || null;
+    GuildLoggingListener.logModeration(context.client, {
+      guildId,
+      happened: Date.now(),
+      name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,
+      payload: {moderator: context.user, user, warning},
+    });
+    return displayReply(context, {
+      color: EmbedColors.DEFAULT,
+      description: [
+        translate('moderation_warn.undone'),
+        `-> ${(user) ? formatMember(user) : `<@${warning.user_id}>`}`,
+      ].join('\n'),
+    }, {replyTo: context});
+  }
+
+  const warnAction = action as WarnAction;
+  const { labelKey, permission } = ACTIONS[warnAction];
+  const label = translate(labelKey);
+  {
+    const refusal = getLogActionRefusal(translator, label, permission, context.member, context.me, true);
+    if (refusal) {
+      return refuse(context, refusal);
+    }
+  }
+
+  const settings = GuildSettingsStore.get(guildId);
+  const cached = (context.guild && context.guild.members.get(userId)) || context.users.get(userId) || null;
+  return context.respond(createActionModal(translator, warnAction, {
+    banClean: (settings) ? settings.settings.banClean : BAN_CLEAN_DEFAULT,
+    hasClean: hasActionClean(warnAction, context.member, context.me),
+    // only the warning's id is on the button, fetching its reason could take longer than discord waits for the modal
+    reason: null,
+    username: (cached) ? cached.username : null,
+    run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+      // either of us could have lost it since the press
+      const refusal = getLogActionRefusal(translator, label, permission, modalContext.member, modalContext.me, true);
+      if (refusal) {
+        return refuse(modalContext, refusal);
+      }
+      const parsed = parseActionArgs(context, translator, warnAction, args, hasActionClean(warnAction, modalContext.member, modalContext.me));
+      if (typeof(parsed) === 'string') {
+        return refuse(modalContext, parsed);
+      }
+      const { clean, duration } = parsed;
+
+      // kicks and bans dm them first, longer than discord waits for a response
+      await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+      // they could have left (only a ban still works then) or not be cached anymore since the warning
+      let member: Structures.Member | null = (context.guild && context.guild.members.get(userId)) || null;
+      if (!member) {
+        member = await context.rest.fetchGuildMember(guildId, userId).catch(() => null);
+      }
+      let user: Structures.Member | Structures.User | null = member;
+      if (!user && warnAction === 'ban') {
+        user = context.users.get(userId) || await context.rest.fetchUser(userId).catch(() => null);
+      }
+      const text = String(args.reason || '').trim();
+      const options = {replyTo: modalContext};
+      switch (warnAction) {
+        case 'ban': {
+          const payload = {membersOrUsers: (user) ? [user] : [], notFound: (user) ? [] : [userId], text};
+          return ModerationBan.createMessage(context, {clean, duration, payload}, options);
+        };
+        case 'kick': {
+          const payload = {membersOrUsers: (member) ? [member] : [], notFound: (member) ? [] : [userId], text};
+          return ModerationKick.createMessage(context, {clean, payload}, options);
+        };
+        case 'mute': {
+          const payload = {membersOrUsers: (member) ? [member] : [], notFound: (member) ? [] : [userId], text};
+          return ModerationMute.createMessage(context, {duration, payload}, options);
+        };
+      }
+    },
+    onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${ModerationMute.formatError(error)}`}, {replyTo: modalContext});
+    },
+  }));
 }
