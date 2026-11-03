@@ -77,8 +77,14 @@ class VoiceNodeListener extends Listener {
         switch (payload.action) {
           case 'leave': promise = Promise.resolve(VoiceNode.leave(payload.guild_id, true)); break;
           case 'pause': promise = VoiceNode.setPaused(payload.guild_id, true); break;
-          // disconnected, it needs someone's channel to carry on in (`music resume` in discord)
-          case 'resume': promise = VoiceNode.setPaused(payload.guild_id, false); break;
+          // disconnected, it needs someone's channel to carry on in (`music resume` in discord). Paused alone, it
+          // carries on once someone can hear it (the api refuses it too, this is for one sent just before)
+          case 'resume': {
+            if (VoiceNode.isPausedAlone(payload.guild_id)) {
+              return;
+            }
+            promise = VoiceNode.setPaused(payload.guild_id, false);
+          }; break;
           case 'skip': promise = VoiceNode.skip(payload.guild_id); break;
           case 'effect_add':
           case 'effect_clear':

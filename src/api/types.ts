@@ -443,6 +443,8 @@ export namespace RestOptions {
     effects?: Array<string>,
     nodeId?: null | string,
     paused?: boolean,
+    // with `paused`, `pause_alone` paused it (the dashboard can't resume it then). Left out is anyone else's pause
+    pausedAlone?: boolean,
     // milliseconds, where the track is right now
     position?: number,
     // the node's `speed` (the effects' and the tempo's together), the api's position estimate goes on at it
@@ -2553,6 +2555,8 @@ export namespace RestResponsesRaw {
     held: boolean,
     node_id: null | string,
     paused: boolean,
+    // `pause_alone` paused it, nobody else in the channel could hear it
+    paused_alone: boolean,
     // milliseconds, where the track is about now
     position: number,
     // how fast it plays with the effects and the tempo, 1 for neither

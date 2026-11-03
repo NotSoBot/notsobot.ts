@@ -736,6 +736,8 @@ export class VoiceNodeClient extends EventSpewer {
     // a track that would have ended by now isn't carried on, the queue starts with the next one
     if (!session.finished) {
       guild.resumeAt = {paused: session.paused, position: session.position};
+      // still paused alone, someone listening once we're in carries on
+      guild.alonePaused = session.paused && !!session.paused_alone;
     }
     console.log(`voice node rejoined ${guildId} on ${node.info.name} at ${(session.finished) ? 'the next track' : `${session.position}ms`}`);
   }
@@ -768,7 +770,7 @@ export class VoiceNodeClient extends EventSpewer {
         // `queueEnded` left it. Without it we'd think it's playing and the queued track would never start
         if (idle) {
           guild.idle = true;
-          guild.paused = false;
+          guild.paused = guild.alonePaused = false;
           guild.position = {at: Date.now(), value: 0};
           this.idleUnlessStaying(guildId, guild).catch((error) => console.warn(`voice node idle ${guildId}`, error));
         }
@@ -946,7 +948,7 @@ export class VoiceNodeClient extends EventSpewer {
   private async startIdle(guildId: string, guild: GuildVoice) {
     this.clearIdleTimeout(guild);
     guild.idle = false;
-    guild.paused = false;
+    guild.paused = guild.alonePaused = false;
     guild.position = {at: Date.now(), value: 0};
     await guild.node.updatePlayer(guildId, {paused: false, queue: true});
   }
@@ -962,7 +964,7 @@ export class VoiceNodeClient extends EventSpewer {
       return this.leave(guildId);
     }
     guild.idle = true;
-    guild.paused = false;
+    guild.paused = guild.alonePaused = false;
     guild.position = {at: Date.now(), value: 0};
     // nothing comes next (a skip of the last track waits for this)
     this.resolveNextTrack(guildId, 'left');
@@ -1027,7 +1029,7 @@ export class VoiceNodeClient extends EventSpewer {
     if (!guild || !this.isStarting(guildId)) {
       return null;
     }
-    guild.paused = false;
+    guild.paused = guild.alonePaused = false;
     if (guild.resumeAt) {
       guild.resumeAt.paused = false;
       return guild.resumeAt.position;
@@ -1145,8 +1147,14 @@ export class VoiceNodeClient extends EventSpewer {
     if (player) {
       guild.position = {at: Date.now(), value: player.position || 0};
     }
-    this.editSession(guildId, guild, {paused, position: (guild.position) ? guild.position.value : undefined});
+    this.editSession(guildId, guild, {paused, pausedAlone: guild.alonePaused, position: (guild.position) ? guild.position.value : undefined});
     return (player && player.track) ? player : null;
+  }
+
+  // `pause_alone` paused it, nobody else in the channel can hear it (the dashboard can't resume it)
+  isPausedAlone(guildId: string): boolean {
+    const guild = this.guilds.get(guildId);
+    return !!guild && !!guild.paused && !!guild.alonePaused;
   }
 
   // `position` in milliseconds, past the end ends the track (and the queue goes on), null when nothing's playing
@@ -1255,15 +1263,16 @@ export class VoiceNodeClient extends EventSpewer {
   }
 
   // ends the track, the node goes on with the next queued item (or the queue ends and we leave). The node keeps
-  // `paused` across tracks, so it's unpaused too
+  // `paused` across tracks, so it's unpaused too, unless `pause_alone` paused it (nobody's there to hear the next one)
   async skip(guildId: string): Promise<boolean> {
     const guild = this.guilds.get(guildId);
     if (!guild || !this.isPlaying(guildId)) {
       return false;
     }
-    await guild.node.updatePlayer(guildId, {paused: false, skip: true});
-    guild.paused = false;
-    this.editSession(guildId, guild, {paused: false});
+    const paused = this.isPausedAlone(guildId);
+    await guild.node.updatePlayer(guildId, {paused, skip: true});
+    guild.paused = paused;
+    this.editSession(guildId, guild, {paused, pausedAlone: paused});
     return true;
   }
 
@@ -1349,7 +1358,9 @@ export class VoiceNodeClient extends EventSpewer {
         deleteGuildMusicSession({client: shard}, guildId).catch((error) => console.warn('voice node session', error));
         return;
       }
-      editGuildMusicSession({client: shard}, guildId, {nodeId: null, paused, position})
+      // still paused alone, someone listening once we're back carries on
+      const pausedAlone = paused && !!guild.alonePaused;
+      editGuildMusicSession({client: shard}, guildId, {nodeId: null, paused, pausedAlone, position})
         .catch((error) => console.warn(`voice node session ${guildId}`, error));
       const effects = guild.effects || [];
       const tempo = guild.tempo ?? 100;
@@ -1357,7 +1368,7 @@ export class VoiceNodeClient extends EventSpewer {
       this.recoveredSessions.set(guildId, {
         loadedAt: Date.now(),
         // 24/7 with nothing playing has no track to carry on, the queue starts again
-        session: {channel_id: channelId, effects, finished: !!guild.idle, guild_id: guildId, held: false, node_id: null, paused, position, speed: guild.speed || 1, stay: true, tempo, volume},
+        session: {channel_id: channelId, effects, finished: !!guild.idle, guild_id: guildId, held: false, node_id: null, paused, paused_alone: pausedAlone, position, speed: guild.speed || 1, stay: true, tempo, volume},
       });
       console.log(`voice node ${guild.node.info.name} lost ${guildId} (24/7), rejoining at ${position}ms once a node can be reached`);
       this.watchRecovered();
@@ -1520,14 +1531,14 @@ export class VoiceNodeClient extends EventSpewer {
         guild.movedAt = Date.now();
         guild.resumeAt = undefined;
         // a held one was left paused in the session
-        this.editSession(guildId, guild, {paused: guild.paused, position: guild.position.value});
+        this.editSession(guildId, guild, {paused: guild.paused, pausedAlone: guild.alonePaused, position: guild.position.value});
       }
     }
     if (guild.disconnected) {
       // joined again after being disconnected, the held track carries on
       body.paused = false;
       guild.disconnected = false;
-      guild.paused = false;
+      guild.paused = guild.alonePaused = false;
       this.editSession(guildId, guild, {paused: false, position: (guild.position) ? guild.position.value : undefined});
     }
     if (guild.joinTimeout) {

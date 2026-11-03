@@ -1539,6 +1539,7 @@ export async function editGuildMusicSession(
     effects: options.effects,
     node_id: options.nodeId,
     paused: options.paused,
+    paused_alone: options.pausedAlone,
     position: (options.position === undefined) ? undefined : Math.max(0, Math.round(options.position)),
     speed: options.speed,
     tempo: options.tempo,
