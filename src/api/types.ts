@@ -2248,6 +2248,9 @@ export namespace RestResponsesRaw {
     arguments: null | Record<string, any>,
     // text to speech with a cloned voice, see `GenerateTag`
     credits_alert?: CreditsAlert,
+    // a fetch (`.download`) without (enough) premium whose video had a better quality than their cap, `tier` is the
+    // lowest one that downloads `best`
+    download_quality?: {best: string, capped: string, tier: 'premium' | 'premium_plus'},
     file: {
       filename: string,
       filename_base: string,

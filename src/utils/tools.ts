@@ -1925,7 +1925,10 @@ export function replyThinking(
 // giving up on a job, with where it still was in its queue when it never started (a backed up queue, not a slow job)
 function jobTimedOutText(translate: Translator['translate'], job: RestResponsesRaw.JobResponse): string {
   if (job.status === 'queued' && job.queue && job.position !== undefined) {
-    return translate(`media.job_timed_out_queued.${job.queue}`, {position: (job.position + 1).toLocaleString()});
+    return translate(`media.job_timed_out_queued.${job.queue}`, {
+      minutes: Math.round(MAX_JOB_WAIT_TIME / (60 * 1000)).toLocaleString(),
+      position: (job.position + 1).toLocaleString(),
+    });
   }
   return translate('media.job_failed', {error: JOB_TIMED_OUT_MESSAGE});
 }

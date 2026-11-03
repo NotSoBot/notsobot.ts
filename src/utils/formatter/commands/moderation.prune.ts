@@ -37,6 +37,7 @@ export interface CommandArgsBefore {
   in?: Structures.Channel,
   until?: string,
   with?: string,
+  yes?: boolean,
 }
 
 export interface CommandArgs {
@@ -71,6 +72,8 @@ export interface PruneOptions {
   // delete without the continue/cancel confirmation when finding this many or fewer (and the whole range was walked),
   // `prune` leaves it unset so it always asks
   skipConfirmationUpTo?: number,
+  // delete whatever was found without the confirmation, even a partial search, `prune -yes`
+  skipConfirmation?: boolean,
 }
 
 
@@ -329,12 +332,19 @@ export async function createMessage(
   const isComplete = counter.isFull || reachedUntil || reachedEnd;
   const timeout = new Timers.Timeout();
   if (total) {
-    if (options.skipConfirmationUpTo !== undefined && total <= options.skipConfirmationUpTo && isComplete) {
+    const skipConfirmation = options.skipConfirmation || (
+      options.skipConfirmationUpTo !== undefined && total <= options.skipConfirmationUpTo && isComplete
+    );
+    if (skipConfirmation) {
       try {
         const message = await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})}, {replyTo: options.replyTo});
         const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
         // edits the starting response
-        await displayReply(context, {description: translate('prune.deleted', {count: deletedTotal.toLocaleString(language)})}, {replyTo: options.replyTo});
+        if (deletedTotal === total) {
+          await displayReply(context, {description: translate('prune.deleted', {count: deletedTotal.toLocaleString(language)})}, {replyTo: options.replyTo});
+        } else {
+          await displayReply(context, {description: translate('prune.deleted_partial', {count: deletedTotal.toLocaleString(language), total: total.toLocaleString(language)})}, {replyTo: options.replyTo});
+        }
         await clearMessages(timeout, toClear(message));
       } catch(error) {
         await displayReply(context, {description: translate('prune.errored', {error: String(error)})}, {replyTo: options.replyTo});

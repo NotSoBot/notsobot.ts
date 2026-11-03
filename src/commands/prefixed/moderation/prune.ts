@@ -30,6 +30,7 @@ export default class PruneCommand extends BaseCommand {
         })},
         {name: 'until', type: Parameters.snowflake},
         {name: 'with', type: Parameters.string({minLength: 1})},
+        {name: 'yes', aliases: ['y'], type: Boolean},
       ],
       default: null,
       label: 'amount',
@@ -40,10 +41,11 @@ export default class PruneCommand extends BaseCommand {
           `${COMMAND_NAME} 500 -with discord.gg -in general`,
           `${COMMAND_NAME} 100 -bots`,
           `${COMMAND_NAME} 100 -images -from cake`,
+          `${COMMAND_NAME} 50 -yes`,
         ],
         category: CommandCategories.MODERATION,
         id: Formatter.Commands.ModerationPrune.COMMAND_ID,
-        usage: '<max_messages> (-after <message_id>) (-attachments) (-before <message_id>) (-bots) (-embeds) (-from ...<user:id|mention|name>) (-images) (-in <channel:id|mention|name>) (-until <message_id>) (-with <text>)',
+        usage: '<max_messages> (-after <message_id>) (-attachments) (-before <message_id>) (-bots) (-embeds) (-from ...<user:id|mention|name>) (-images) (-in <channel:id|mention|name>) (-until <message_id>) (-with <text>) (-yes)',
       },
       permissionsClient: [Permissions.MANAGE_MESSAGES],
       permissions: [Permissions.MANAGE_MESSAGES],
@@ -102,7 +104,8 @@ export default class PruneCommand extends BaseCommand {
     return super.onCancelRun(context, args);
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ModerationPrune.CommandArgs) {
-    return Formatter.Commands.ModerationPrune.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.ModerationPrune.CommandArgsBefore) {
+    const { yes, ...pruneArgs } = args;
+    return Formatter.Commands.ModerationPrune.createMessage(context, pruneArgs, {skipConfirmation: yes});
   }
 }

@@ -169,7 +169,8 @@ const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
 
 
 // the errors a higher tier lifts, only for users without it. job timeouts and the queue come from
-// `enqueue_job` (premium gets the high queue and more time), weekly credits only come with plus (more with plus ai)
+// `enqueue_job` (premium gets the high queue and more time), weekly credits only come with plus (more with plus ai). a
+// file too large only gets `premium_max_size` when premium would've taken it (`.download`'s fetch job)
 async function getApiErrorUpsell(
   context: ErrorContext,
   apiError: ApiErrorBody,
@@ -180,6 +181,13 @@ async function getApiErrorUpsell(
   switch (apiError.code) {
     case ApiErrorCodes.PREMIUM_REQUIRED: {
       wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
+    }; break;
+    case ApiErrorCodes.FILE_TOO_LARGE: {
+      if (typeof(apiError.premium_max_size) !== 'number' || apiError.premium_max_size <= 0) {
+        return null;
+      }
+      wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
+      text = translator.translate('errors.upsell.file_size', {max_size: formatBytes(apiError.premium_max_size)});
     }; break;
     case ApiErrorCodes.JOB_TIMEOUT: {
       wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
