@@ -3,11 +3,9 @@ import {
   ApplicationCommandTypes,
   ApplicationCommandOptionTypes,
   InteractionCallbackTypes,
-  MessageComponentButtonStyles,
   MessageFlags,
 } from 'detritus-client/lib/constants';
-import { Components, Markup } from 'detritus-client/lib/utils';
-import { Endpoints } from 'detritus-client-rest';
+import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../stores/guildsettings';
 import CommandResponsesStore from '../../stores/commandresponses';
@@ -218,7 +216,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
             } else {
               context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(context.name)}));
             }
-            context.metadata.reasonIsPremiumRequired = true;
+            // a premium server gate passes with the user's own premium too, so that's the one to link
+            context.metadata.reasonPremiumSku = (metadata.premiumPlus) ? DiscordSkuIds.USER_NOTSOPREMIUM_PLUS : DiscordSkuIds.USER_NOTSOPREMIUM;
             return hasPremium;
           }
         }
@@ -230,26 +229,9 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   onCancel(context: Interaction.InteractionContext) {
     const contextMetadata = context.metadata = context.metadata || {};
     if (contextMetadata.reason) {
-      if (contextMetadata.reasonIsPremiumRequired) {
-        const storePageUrl = (
-          Endpoints.Routes.URL +
-          Endpoints.Routes.APPLICATION_DIRECTORY_STORE(context.applicationId, DiscordSkuIds.USER_NOTSOPREMIUM)
-        );
-
-        contextMetadata.reason = [
-          contextMetadata.reason,
-          //`Buy it here: ${storePageUrl}`,
-        ].join('\n').trim();
-
-        /*
-        components = new Components();
-        components.createButton({
-          skuId: DiscordSkuIds.USER_NOTSOPREMIUM,
-          style: MessageComponentButtonStyles.PREMIUM,
-        });
-        */
-      }
-      return replyError(context, {description: contextMetadata.reason}, {ephemeral: true});
+      // a link to the tier's store page, the gate already knows they don't have it
+      const upsell = (contextMetadata.reasonPremiumSku) ? {skuId: contextMetadata.reasonPremiumSku} : null;
+      return replyError(context, {description: contextMetadata.reason, upsell}, {ephemeral: true});
     }
   }
 

@@ -22,6 +22,9 @@ const CLOCK_LEEWAY = 30 * 1000;
 class CommandResponsesStore extends Store<string, string> {
   // response message id -> command id
   responses = new Collections.BaseCollection<string, string>({expire: TRACK_DURATION});
+  // response message ids that got deleted, so deleting their trigger later doesn't try deleting them again (detritus
+  // drops deleted messages from its cache, so `shard.messages` can't tell us)
+  deletedResponses = new Collections.BaseCollection<string, true>({expire: TRACK_DURATION});
   // response message id -> the NotSoAI response it holds and who asked, prefixed and slash commands both
   llmResponses = new Collections.BaseCollection<string, {id: string, userId: string}>({expire: TRACK_DURATION});
   // shard id -> when we started seeing its messages
@@ -63,6 +66,11 @@ class CommandResponsesStore extends Store<string, string> {
     return (this.isTracked(shard, messageId)) ? null : undefined;
   }
 
+  // only responses sent while we were tracking, older ones (a previous process) can't be known
+  wasResponseDeleted(messageId: string): boolean {
+    return this.deletedResponses.has(messageId);
+  }
+
   startTracking(shard: ShardClient): void {
     if (!this.trackingSince.has(shard.shardId)) {
       this.trackingSince.set(shard.shardId, Date.now());
@@ -81,6 +89,24 @@ class CommandResponsesStore extends Store<string, string> {
       // fires once READY is processed, any message after it goes through us
       const subscription = cluster.subscribe(ClientEvents.GATEWAY_READY, ({shard}) => {
         this.startTracking(shard);
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE, ({messageId}) => {
+        if (this.responses.has(messageId)) {
+          this.deletedResponses.set(messageId, true);
+        }
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE_BULK, ({messages}) => {
+        for (let messageId of messages.keys()) {
+          if (this.responses.has(messageId)) {
+            this.deletedResponses.set(messageId, true);
+          }
+        }
       });
       subscriptions.push(subscription);
     }

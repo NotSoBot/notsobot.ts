@@ -2978,10 +2978,14 @@ export namespace RestResponsesRaw {
   export type DeleteSavedFont = EditSavedFonts;
   export type EditSavedFont = EditSavedFonts;
 
-  // a pool of credits, `weekly` is 0 when it only has bought ones (refills)
+  // a pool of credits, `weekly` is 0 when it only has bought ones (refills). `rollover_left` is a plus ai user's banked
+  // leftover weeks (spent after the week's, before bought ones), up to `rollover_max`, 0 for everyone else. Both missing
+  // from an api before rollover
   export interface CreditBalance {
     refill_left: number,
     resets_at: string,
+    rollover_left?: number,
+    rollover_max?: number,
     weekly: number,
     weekly_left: number,
   }
@@ -3118,6 +3122,9 @@ export namespace RestResponsesRaw {
     refill_left: null | number,
     resets_at: string,
     scope: 'server' | 'user',
+    // a Plus AI user's bank (`CreditBalance`), missing from an api before rollover
+    rollover_left?: number,
+    rollover_max?: number,
     // a server's cloned voices' week rather than its NotSoAI one
     voices?: boolean,
     weekly: number,

@@ -6,7 +6,7 @@ import { StatusEmojis } from '../../../constants';
 import { displayDetails, displayReply } from '../../../utils';
 import { Translator, getTranslator } from '../../i18n';
 
-import { canManageMusic } from './music.shared';
+import { canManageMusic, musicPremiumUpsell } from './music.shared';
 
 
 export const COMMAND_ID = 'music.crossfade';
@@ -39,7 +39,9 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     const seconds = Math.min(Math.max(Math.round(args.seconds), 0), MAX_MUSIC_CROSSFADE);
     music = await editGuildMusic(context, guildId, {crossfade: seconds});
   }
-  return displayReply(context, {description: crossfadeText(translate, language, music)});
+  // with who can make it a premium server when it's on without one
+  const upsell = (music.crossfade && !music.premium) ? await musicPremiumUpsell(context, translate) : null;
+  return displayReply(context, {description: [crossfadeText(translate, language, music), upsell].filter(Boolean).join('\n')});
 }
 
 

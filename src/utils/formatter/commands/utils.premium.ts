@@ -6,6 +6,8 @@ import { Domains } from '../../../api/endpoints';
 import { displayReply } from '../../../utils';
 import { getTranslator, Languages } from '../../i18n';
 
+import { CREDITS_ROLLOVER_PREMIUM_PLUS_AI } from './credits';
+
 
 export const COMMAND_ID = 'bot.premium';
 
@@ -20,6 +22,10 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
 ) {
   const { language, translate } = await getTranslator(context);
+  const description = [
+    translate('utils_premium.description'),
+    translate('utils_premium.rollover', {credits: CREDITS_ROLLOVER_PREMIUM_PLUS_AI.toLocaleString(language)}),
+  ];
   // the store tab lists every tier and the credit packs
   const storeUrl = Endpoints.Routes.URL + Endpoints.Routes.APPLICATION_DIRECTORY_STORE(context.applicationId);
   const websiteUrl = `${Domains.STABLE}${WEBSITE_PREFIXES[language] || ''}/premium`;
@@ -31,7 +37,7 @@ export async function createMessage(
   return displayReply(context, {
     components,
     componentsInside: true,
-    description: translate('utils_premium.description'),
+    description: description.join('\n\n'),
     // a nod to NotSoSuper, the bot's original creator. english in every language, the pun is on the name
     note: 'Isn’t this a NotSoSuper deal?',
     title: 'NotSoPremium',

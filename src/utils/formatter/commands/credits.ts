@@ -15,12 +15,14 @@ export const COMMAND_ID = 'credits';
 // the api's `CREDITS_AI_MESSAGE` and `CREDITS_PER_TTS_BYTE`, what one NotSoAI message and a letter of cloned speech cost
 export const CREDITS_AI_MESSAGE = 75;
 export const CREDITS_PER_TTS_BYTE = 4;
+// the most Plus AI's unused weeks bank (the api's `CREDITS_ROLLOVER_WEEKS_PREMIUM_PLUS_AI` of its weekly 60,000)
+export const CREDITS_ROLLOVER_PREMIUM_PLUS_AI = 120_000;
 
 export interface CommandArgs {
 
 }
 
-// a pool's weekly credits (when it gets any), its bought ones and when the weekly ones come back
+// a pool's weekly credits (when it gets any), its banked leftover weeks, its bought ones and when the weekly ones come back
 function balanceDetails(
   balance: RestResponsesRaw.CreditBalance,
   boughtKey: 'credits.bought' | 'credits.given_by_members',
@@ -34,6 +36,11 @@ function balanceDetails(
     (balance.weekly) ? translate('credits.weekly', {
       left: balance.weekly_left.toLocaleString(language),
       weekly: balance.weekly.toLocaleString(language),
+    }) : null,
+    // always shown for Plus AI, even empty, so they know what they don't use carries over
+    (balance.rollover_max) ? translate('credits.rollover', {
+      left: (balance.rollover_left || 0).toLocaleString(language),
+      max: balance.rollover_max.toLocaleString(language),
     }) : null,
     (balance.refill_left) ? translate(boughtKey, {count: balance.refill_left.toLocaleString(language)}) : null,
     (balance.weekly) ? translate('credits.resets', {time: displayTimestamp(balance.resets_at)}) : null,
@@ -86,11 +93,16 @@ export function formatCreditsAlert(
   const variables = {
     left: alert.weekly_left.toLocaleString(language),
     refill: (alert.refill_left || 0).toLocaleString(language),
+    rollover: (alert.rollover_left || 0).toLocaleString(language),
     time: displayTimestamp(alert.resets_at),
     weekly: alert.weekly.toLocaleString(language),
   };
   if (server && alert.voices) {
     return `-# ${translate((alert.kind === 'weekly_out') ? 'credits.alert.weekly_out_server_voices' : 'credits.alert.weekly_used_server_voices', variables)}`;
+  }
+  // Plus AI: the bank comes after the week, and what's left at the reset goes into it
+  if (!server && alert.rollover_max) {
+    return `-# ${translate((alert.kind === 'weekly_out') ? 'credits.alert.weekly_out_rollover' : 'credits.alert.weekly_used_rollover', variables)}`;
   }
   if (alert.kind === 'weekly_out') {
     return `-# ${translate((server) ? 'credits.alert.weekly_out_server' : 'credits.alert.weekly_out', variables)}`;

@@ -7,7 +7,7 @@ import { displayDetails, displayReply, formatDuration } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Translator, getTranslator } from '../../i18n';
 
-import { canManageMusic } from './music.shared';
+import { canManageMusic, replyMusicNeedsPremium } from './music.shared';
 
 
 export const COMMAND_ID = 'music.autopause';
@@ -41,7 +41,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_fair.no_permission')}`});
   }
   if (args.enabled === false && !music.premium) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_autopause.needs_premium')}`});
+    return replyMusicNeedsPremium(context, translate, translate('music_autopause.needs_premium'));
   }
   const pauseTimeout = (args.leaveAfter === null) ? undefined : Math.min(Math.max(Math.round(args.leaveAfter), 0), MAX_MUSIC_PAUSE_TIMEOUT);
   music = await editGuildMusic(context, guildId, {

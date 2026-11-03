@@ -22,6 +22,7 @@ import {
   Parameters,
   TagFormatter,
   checkNSFW,
+  displayReply,
   editOrReply,
   findMediaUrlInMessage,
   timeLimitParts,
@@ -453,8 +454,9 @@ function createAIConfirmAction(
           `-# ${translate((reason === TagFormatter.AIConfirmReasons.UNTRUSTED) ? 'tag_generate.confirm_untrusted' : 'tag_generate.confirm_destructive')}`,
           `-# ${translate('tag_generate.confirm_footer', {time: `<t:${endsAt}:R>`, user: `<@${context.userId}>`})}`,
         ].join('\n');
-        // nothing to press if the reply can't be edited, the run goes on as if they cancelled
-        editOrReply(context, {components, content}).catch((error) => {
+        // nothing to press if the reply can't be edited, the run goes on as if they cancelled. in the display setting like
+        // the thinking reply it's on, so it stays an edit
+        displayReply(context, {components, description: content}).catch((error) => {
           if (!answered) {
             answered = true;
             components.clear();

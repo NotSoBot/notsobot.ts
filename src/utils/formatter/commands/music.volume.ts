@@ -2,12 +2,12 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchGuildMusic } from '../../../api';
-import { DEFAULT_MUSIC_VOLUME, MAX_MUSIC_VOLUME, StatusEmojis } from '../../../constants';
+import { DEFAULT_MUSIC_VOLUME, MAX_MUSIC_VOLUME } from '../../../constants';
 import { displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getCachedTranslator, getTranslator } from '../../i18n';
 
-import { musicSoundSettingRefusal, resetSavedMusicSound } from './music.shared';
+import { musicSoundSettingRefusal, replyMusicNeedsPremium, resetSavedMusicSound } from './music.shared';
 
 
 export const COMMAND_ID = 'music.volume';
@@ -68,7 +68,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: refusal});
   }
   if (volume !== DEFAULT_MUSIC_VOLUME && !(await fetchGuildMusic(context, guildId)).premium) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_volume.needs_premium')}`});
+    return replyMusicNeedsPremium(context, translate, translate('music_volume.needs_premium'));
   }
   const player = await VoiceNode.setVolume(guildId, volume);
   if (!player) {

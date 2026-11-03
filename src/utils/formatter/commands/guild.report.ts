@@ -59,6 +59,7 @@ import {
   displayReply,
   displayTimestamp,
   fetchMemberOrUserById,
+  renderEphemeralDisplay,
 } from '../../../utils';
 
 import { createQuoteMemberOptions, createQuoteOptions } from './fun.quote';
@@ -645,10 +646,10 @@ export async function onGuildReportComponent(context: ComponentContext, action: 
     return context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
   }
   if (!context.member || !context.member.can(Permissions.MODERATE_MEMBERS)) {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      content: `${StatusEmojis.WARNING} ${translate('guild_report_log.no_permission')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+      color: EmbedColors.ERROR,
+      description: `${StatusEmojis.WARNING} ${translate('guild_report_log.no_permission')}`,
+    }));
   }
 
   if (action === REPORT_ACTION_RESPOND) {
@@ -675,10 +676,10 @@ export async function onGuildReportComponent(context: ComponentContext, action: 
       throw error;
     }
     const key = getApiErrorTranslationKey(apiError.code);
-    return context.createMessage({
-      content: `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return context.createMessage(renderEphemeralDisplay(context, translator, {
+      color: EmbedColors.ERROR,
+      description: `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`,
+    }));
   }
 
   dropQueuedGuildReportUpdate(context.guildId, report.id);
@@ -707,7 +708,7 @@ export function createRespondModal(
     title: options.title,
     run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
       const content = await options.onSubmit((args.content || '').trim());
-      return modalContext.editOrRespond({content: `${StatusEmojis.YES} ${content}`, flags: MessageFlags.EPHEMERAL});
+      return modalContext.editOrRespond(renderEphemeralDisplay(modalContext, translator, {description: `${StatusEmojis.YES} ${content}`}));
     },
     onError: async (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
       const apiError = await getApiError(error);
@@ -719,7 +720,10 @@ export function createRespondModal(
         console.error(`Failed to send a report response from ${modalContext.userId}`, error);
         content = String((error && error.message) || error);
       }
-      return modalContext.editOrRespond({content: `${StatusEmojis.WARNING} ${content}`, flags: MessageFlags.EPHEMERAL});
+      return modalContext.editOrRespond(renderEphemeralDisplay(modalContext, translator, {
+        color: EmbedColors.ERROR,
+        description: `${StatusEmojis.WARNING} ${content}`,
+      }));
     },
   });
   modal.createLabel({
@@ -768,7 +772,8 @@ export function onGuildReportRespondComponent(context: ComponentContext, guildId
 // the Stop DMs button on the reporter's DMs, the api only takes it on their own report. Their reports on the dashboard is
 // where they turn it back on
 export async function onGuildReportMuteComponent(context: ComponentContext, guildId: string, reportId: string) {
-  const { translate, translateMaybe } = getCachedTranslator(context);
+  const translator = getCachedTranslator(context);
+  const { translate, translateMaybe } = translator;
   await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
   try {
     await putGuildReportReporterMuted(context, guildId, reportId, {muted: true, userId: context.userId});
@@ -778,11 +783,17 @@ export async function onGuildReportMuteComponent(context: ComponentContext, guil
       throw error;
     }
     const key = getApiErrorTranslationKey(apiError.code);
-    return context.editOrRespond({content: `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`});
+    return context.editOrRespond(renderEphemeralDisplay(context, translator, {
+      color: EmbedColors.ERROR,
+      description: `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`,
+    }));
   }
   const components = new Components();
   components.createActionRow().createButton({label: translate('report_message_dm.view_report'), url: `${Domains.STABLE}/dashboard/reports?tab=servers`});
-  return context.editOrRespond({components, content: `${StatusEmojis.YES} ${translate('guild_report_dm.muted')}`});
+  return context.editOrRespond(renderEphemeralDisplay(context, translator, {
+    components,
+    description: `${StatusEmojis.YES} ${translate('guild_report_dm.muted')}`,
+  }));
 }
 
 

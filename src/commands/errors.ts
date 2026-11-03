@@ -6,8 +6,8 @@ import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, isConnectionDropError, readErrorBody } from '../api/errors';
-import { ApiErrorCodes, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
-import { I18n, displayReply, formatMemory } from '../utils';
+import { ApiErrorCodes, DiscordSkuIds, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
+import { I18n, displayReply, formatMemory, getPremiumSkuName, getPremiumUpsellSku, linkPremiumSkuName } from '../utils';
 
 
 // shared error formatting for prefixed and interaction commands, so both show the same messages
@@ -25,10 +25,18 @@ export interface ErrorField {
   value: string,
 }
 
+// the tier that lifts what the error hit, with a line on what it gets them. its name becomes a link to its store page,
+// in that line or in the error itself when there isn't one
+export interface ErrorUpsell {
+  skuId: DiscordSkuIds,
+  text?: string,
+}
+
 export interface ErrorPayload {
   description: string,
   fields?: Array<ErrorField>,
   title?: string,
+  upsell?: ErrorUpsell | null,
 }
 
 export interface ErrorReplyOptions {
@@ -66,10 +74,18 @@ export async function replyError(
   options: ErrorReplyOptions = {},
 ): Promise<any> {
   const { translate } = await I18n.getTranslator(context);
+  let description = payload.description;
+  const { upsell } = payload;
+  if (upsell) {
+    // the line goes in the description, not the note: embeds show the note in their footer, where links don't work
+    description = (upsell.text) ?
+      `${description}\n-# ${linkPremiumSkuName(context, upsell.text, upsell.skuId)}` :
+      linkPremiumSkuName(context, description, upsell.skuId);
+  }
   return displayReply(context, {
     allowedMentions: options.allowedMentions,
     color: EmbedColors.ERROR,
-    description: payload.description,
+    description,
     ephemeral: options.ephemeral,
     fields: payload.fields,
     title: payload.title,
@@ -128,7 +144,7 @@ function translateApiError(
     if (apiError.scope === 'server') {
       return {specific: true, text: translator.translate(`${key}_server` as I18n.TranslationKey)};
     }
-    const left = (Number(apiError.weekly_left) || 0) + (Number(apiError.refill_left) || 0);
+    const left = (Number(apiError.weekly_left) || 0) + (Number(apiError.rollover_left) || 0) + (Number(apiError.refill_left) || 0);
     const variables = {cost: apiError.cost.toLocaleString(translator.language), left: left.toLocaleString(translator.language)};
     const resetsAt = (typeof(apiError.resets_at) === 'string') ? new Date(apiError.resets_at) : null;
     if (apiError.weekly && resetsAt && !isNaN(resetsAt.getTime())) {
@@ -150,6 +166,47 @@ const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
   ApiErrorCodes.SERVER_AI_LIMIT,
   ...CONTENT_BLOCKED_API_ERRORS,
 ];
+
+
+// the errors a higher tier lifts, only for users without it. job timeouts and the queue come from
+// `enqueue_job` (premium gets the high queue and more time), weekly credits only come with plus (more with plus ai)
+async function getApiErrorUpsell(
+  context: ErrorContext,
+  apiError: ApiErrorBody,
+  translator: I18n.Translator,
+): Promise<ErrorUpsell | null> {
+  let wanted: DiscordSkuIds;
+  let text: string | undefined;
+  switch (apiError.code) {
+    case ApiErrorCodes.PREMIUM_REQUIRED: {
+      wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
+    }; break;
+    case ApiErrorCodes.JOB_TIMEOUT: {
+      wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
+      text = translator.translate('errors.upsell.job_time');
+    }; break;
+    case ApiErrorCodes.CREDITS_LIMIT: {
+      if (apiError.scope === 'server') {
+        return null;
+      }
+      wanted = (apiError.weekly) ? DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI : DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
+      text = translator.translate('errors.upsell.credits', {tier: getPremiumSkuName(wanted)});
+    }; break;
+    case ApiErrorCodes.SERVER_AI_LIMIT: {
+      wanted = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI;
+      text = translator.translate('errors.upsell.server_ai');
+    }; break;
+    case ApiErrorCodes.MUSIC_PREMIUM_REQUIRED: {
+      wanted = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
+      text = translator.translate('errors.upsell.premium_server');
+    }; break;
+    default: {
+      return null;
+    };
+  }
+  const skuId = await getPremiumUpsellSku(context, wanted);
+  return (skuId) ? {skuId, text} : null;
+}
 
 
 // our translations drift from the api's wording a little ('The media...' vs 'This media...'), don't show both when they say the same thing
@@ -215,7 +272,7 @@ async function describeResponseError(
   context: ErrorContext,
   error: any,
   translator: I18n.Translator,
-): Promise<{description: Array<string>, fields: Array<ErrorField>}> {
+): Promise<{apiError?: ApiErrorBody | null, description: Array<string>, fields: Array<ErrorField>}> {
   const { translate } = translator;
   const response: Response = error.response;
   const description: Array<string> = [];
@@ -259,7 +316,7 @@ async function describeResponseError(
     }
     fields.push({name: translate('errors.field.ratelimit_info'), value: jsonField({body: information, headers})});
   }
-  return {description, fields};
+  return {apiError, description, fields};
 }
 
 
@@ -271,11 +328,13 @@ export async function createRunErrorPayload(
 ): Promise<ErrorPayload> {
   const { translate } = translator;
 
+  let apiError: ApiErrorBody | null | undefined;
   let description: Array<string>;
   let fields: Array<ErrorField> = [];
   if (error.response) {
-    ({ description, fields } = await describeResponseError(context, error, translator));
+    ({ apiError, description, fields } = await describeResponseError(context, error, translator));
   } else if (error instanceof JobError && error.apiError) {
+    apiError = error.apiError;
     description = [];
     if (!describeApiError(error.apiError, translator, description, fields)) {
       description.push(error.message);
@@ -294,7 +353,8 @@ export async function createRunErrorPayload(
   if (error.metadata) {
     fields.push({name: translate('errors.field.metadata'), value: jsonField(error.metadata)});
   }
-  return {description: description.join('\n'), fields, title};
+  const upsell = (apiError) ? await getApiErrorUpsell(context, apiError, translator) : null;
+  return {description: description.join('\n'), fields, title, upsell};
 }
 
 

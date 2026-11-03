@@ -41,9 +41,10 @@ class MessageDeleteListener extends Listener {
           }
 
           for (let result of results) {
-            const message = shard.messages.get(result.message_response_id);
-            if (!message || !message.deleted) {
-              bulkToDelete.push(result.message_response_id);
+            // purged along with its trigger, or deleted before it
+            const responseId = result.message_response_id;
+            if (!messages.has(responseId) && !CommandResponsesStore.wasResponseDeleted(responseId)) {
+              bulkToDelete.push(responseId);
             }
           }
 
@@ -126,8 +127,7 @@ class MessageDeleteListener extends Listener {
         }
 
         for (let result of results) {
-          const response = shard.messages.get(result.message_response_id);
-          if (response && response.deleted) {
+          if (CommandResponsesStore.wasResponseDeleted(result.message_response_id)) {
             continue;
           }
           try {

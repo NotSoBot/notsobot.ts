@@ -6,6 +6,7 @@ import UserStore from '../../../stores/users';
 
 import {
   CommandCategories,
+  DiscordSkuIds,
   GuildFeatures,
   TagGenerationPersonalityPreferences,
   TagGenerationPersonalityPreferencesToText,
@@ -87,7 +88,7 @@ export default class AiCommand extends BaseCommand {
       const { translate } = await I18n.getTranslator(context);
       context.metadata = context.metadata || {};
       context.metadata.reason = warning(translate('errors.premium_ai_required'));
-      context.metadata.reasonIsPremiumRequired = true;
+      context.metadata.reasonPremiumSku = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI;
     }
 
     return hasPremium;

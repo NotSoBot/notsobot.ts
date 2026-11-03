@@ -210,7 +210,7 @@ async function refreshCommands(
       }
       errors.push(`interaction commands: ${message}`);
 
-      dump = {clusterId: cluster.clusterId, error: message, badStrings: [], oversized: [], results: []};
+      dump = {clusterId: cluster.clusterId, error: message, badStrings: [], oversized: []};
       dump.oversized = interactionCommandClient.getOversizedCommands();
 
       // lone surrogates/control characters make discord reject the whole body with a bare 400 (code 0)
@@ -233,8 +233,8 @@ async function refreshCommands(
         walk(raw, raw.name);
       }
 
-      // retry the changes one at a time so the bad command gets named along with discord's response
-      // deletes are only listed, the next successful refresh removes them
+      // only lists what differs from discord, every cluster runs this so sending the changes from here would be one
+      // request per command per cluster
       try {
         const remote = await interactionCommandClient.fetchApplicationCommands();
         interactionCommandClient.fillCommandIds(remote);
@@ -244,25 +244,6 @@ async function refreshCommands(
           delete: plan.delete.map((command) => command.name),
           edit: plan.edit.map((x) => ({name: x.local.name, differences: x.differences})),
         };
-
-        const shard = cluster.shards.first()!;
-        const applicationId = cluster.applicationId;
-        for (let command of plan.create) {
-          try {
-            await shard.rest.createApplicationCommand(applicationId, interactionCommandClient.createApplicationCommandPayload(command) as any);
-            dump.results.push(`create /${command.name}: ok`);
-          } catch(e) {
-            dump.results.push(`create /${command.name}: ${await describe(e)}`);
-          }
-        }
-        for (let { local, remote: remoteCommand } of plan.edit) {
-          try {
-            await shard.rest.editApplicationCommand(applicationId, remoteCommand.id, interactionCommandClient.createApplicationCommandPayload(local) as any);
-            dump.results.push(`edit /${local.name}: ok`);
-          } catch(e) {
-            dump.results.push(`edit /${local.name}: ${await describe(e)}`);
-          }
-        }
       } catch(e) {
         dump.planError = await describe(e);
       }
@@ -315,12 +296,14 @@ export async function createMessage(
 
   const failures = shardIds.filter((x: any) => x && !Array.isArray(x) && !(x instanceof Error) && x.dump) as Array<RefreshFailure>;
   if (failures.length) {
-    const results = failures.flatMap((x) => (x.dump.results || []).filter((r: string) => !r.endsWith(': ok')));
     const badStrings = failures.flatMap((x) => x.dump.badStrings || []);
+    // every cluster compares against the same remote commands, one plan is enough
+    const plan = failures.find((x) => x.dump.plan)?.dump.plan;
+    const changed: Array<string> = (plan) ? [...plan.create, ...plan.edit.map((x: {name: string}) => x.name)] : [];
     const description = [
       ...failures.map((x) => `Error: ${x.error}`),
       ...badStrings.slice(0, 5).map((x: string) => `bad text: \`${x.slice(0, 200)}\``),
-      ...results.slice(0, 5).map((x: string) => `\`${x.slice(0, 300)}\``),
+      ...((changed.length) ? [`changed: ${changed.slice(0, 20).map((name) => `/${name}`).join(', ')}`] : []),
     ].join('\n');
     return displayReply(context, {
       description: description.slice(0, 4000),

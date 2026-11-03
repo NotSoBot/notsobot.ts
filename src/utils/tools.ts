@@ -58,6 +58,7 @@ import {
   CodeLanguages,
   CodeLanguagesToName,
   DateMomentLogFormat,
+  DiscordSkuIds,
   EmbedColors,
   GoogleLocalesText,
   LanguageCodesText,
@@ -86,6 +87,7 @@ import {
 } from '../constants';
 
 import * as Formatter from './formatter';
+import { getPremiumUpsellSku } from './premium';
 
 
 
@@ -318,6 +320,20 @@ export async function editOrReply(
       allowedMentions: {parse: [], ...options.allowedMentions},
     });
     return;
+  }
+
+  // discord can't edit a components v2 message back into plain content, so detritus would delete the reply and send a
+  // new one (an edit re-running the command over a finished media result, then replying with its thinking text). plain
+  // text as a top-level text display looks the same and keeps it to an edit
+  const response = context.response;
+  if (
+    response && response.hasFlagComponentsV2 && !response.deleted &&
+    options.content && !options.components && !options.embed && !(options.embeds && options.embeds.length) &&
+    !(options.files && options.files.length)
+  ) {
+    const components = new Components();
+    components.addTextDisplay({content: options.content});
+    options = {...options, components, content: ''};
   }
 
   return context.editOrReply({
@@ -1858,6 +1874,8 @@ export const MAX_JOB_WAIT_TIME = 4 * 60 * 1000;
 const JOB_TIMED_OUT_MESSAGE = 'Timed out waiting for the job to finish';
 // the least time between edits showing a job's status, so a moving queue doesn't hit discord's ratelimits
 const JOB_STATUS_EDIT_INTERVAL = 3000;
+// how far back in the free queue a job has to be before its status says premium has its own line
+const JOB_QUEUE_UPSELL_POSITION = 10;
 
 // a job that failed while it was being polled, shown like one that failed right away (`JobError` through the command's
 // error handler): translated from its code, with sizes and the like filled in. it used to be the api's message as is,
@@ -1871,6 +1889,36 @@ async function replyJobError(
   const translator = await getTranslator(context);
   const title = warning(translator.translate('errors.prefix_run_title'));
   return replyError(context, await createRunErrorPayload(context, title, new JobError(job), translator));
+}
+
+// a job that ended without a result or an error of its own (unknown status, timed out, polling failed)
+function replyJobWarning(context: Command.Context | Interaction.InteractionContext, text: string) {
+  const { replyWarning }: typeof import('../commands/errors') = require('../commands/errors');
+  return replyWarning(context, text);
+}
+
+// a free queue job we gave up on, premium would've had the high queue and more time
+async function replyJobTimedOut(
+  context: Command.Context | Interaction.InteractionContext,
+  translate: Translator['translate'],
+  job: RestResponsesRaw.JobResponse,
+) {
+  const { replyError, warning }: typeof import('../commands/errors') = require('../commands/errors');
+  const skuId = (job.queue === 'free') ? await getPremiumUpsellSku(context, DiscordSkuIds.USER_NOTSOPREMIUM) : null;
+  return replyError(context, {
+    description: warning(jobTimedOutText(translate, job)),
+    upsell: (skuId) ? {skuId, text: translate('errors.upsell.job_time')} : null,
+  });
+}
+
+// the reply while a job (or a slow tag) runs: its thinking text, with its status under it, in the response display
+// setting like the result that replaces it
+export function replyThinking(
+  context: Command.Context | Interaction.InteractionContext,
+  thinkingText: string,
+  statusText: null | string,
+) {
+  return displayReply(context, {description: (statusText) ? `${thinkingText}\n${statusText}` : thinkingText});
 }
 
 
@@ -1894,7 +1942,11 @@ function jobStatusText(
     if (!job.queue || job.position === undefined) {
       return null;
     }
-    return translate(`media.job_queued.${job.queue}`, {position: (job.position + 1).toLocaleString()});
+    const position = (job.position + 1).toLocaleString();
+    if (job.queue === 'free' && JOB_QUEUE_UPSELL_POSITION <= job.position + 1) {
+      return translate('media.job_queued.free_upsell', {position});
+    }
+    return translate(`media.job_queued.${job.queue}`, {position});
   }
   if (job.status === 'started') {
     const deadline = (job.time_limit && startedAt !== null) ? startedAt + job.time_limit * 1000 : null;
@@ -2032,7 +2084,7 @@ export async function jobReply(
   let statusTextShownAt = (statusText) ? Date.now() : 0;
   let message: Structures.Message | void;
   try {
-    message = await editOrReply(context, (statusText) ? `${thinkingText}\n${statusText}` : thinkingText);
+    message = await replyThinking(context, thinkingText, statusText);
   } catch(error) {
     untrackJob(context, job.id);
     cancelJob(context, job.id);
@@ -2066,12 +2118,12 @@ export async function jobReply(
         return await mediaReply(context, refreshedJob.result.response, replyOptions(refreshedJob.result.response));
       }
       if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
-        return await editOrReply(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
+        return await replyJobWarning(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
       }
       // interactions have no message to check, so this is the only thing that stops a stuck job from polling forever
       if (deadline <= Date.now()) {
         cancelJob(context, job.id);
-        return await editOrReply(context, jobTimedOutText(translate, refreshedJob));
+        return await replyJobTimedOut(context, translate, refreshedJob);
       }
       if (refreshedJob.status === 'started' && startedAt === null) {
         startedAt = Date.now();
@@ -2080,7 +2132,7 @@ export async function jobReply(
       if (nextStatusText !== statusText && JOB_STATUS_EDIT_INTERVAL <= Date.now() - statusTextShownAt) {
         statusText = nextStatusText;
         statusTextShownAt = Date.now();
-        const edited = await editOrReply(context, (statusText) ? `${thinkingText}\n${statusText}` : thinkingText);
+        const edited = await replyThinking(context, thinkingText, statusText);
         if (edited) {
           ownEditedAtUnix.add(edited.editedAtUnix);
         }
@@ -2089,7 +2141,7 @@ export async function jobReply(
     } catch(error) {
       cancelJob(context, job.id);
       try {
-        await editOrReply(context, translate('media.job_failed', {error: String(error.message || error)}));
+        await replyJobWarning(context, translate('media.job_failed', {error: String(error.message || error)}));
       } catch(replyError) {
         
       }
@@ -2251,6 +2303,21 @@ export async function getResponseDisplay(
     } catch(error) {
       // the bot might not be in this server (user installed commands)
     }
+  }
+  return UserSettingsResponseDisplayTypes.DEFAULT;
+}
+
+// the same order from only what's cached, for a button press or modal that has to be answered right away
+export function getCachedResponseDisplay(
+  context: ComponentContext | InteractionModalContext,
+): UserSettingsResponseDisplayTypes {
+  const userSettings = UserSettingsStore.get(context.userId);
+  if (userSettings && typeof(userSettings.response_display) === 'number') {
+    return userSettings.response_display as UserSettingsResponseDisplayTypes;
+  }
+  const guildSettings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : undefined;
+  if (guildSettings && guildSettings.settings && typeof(guildSettings.settings.responseDisplay) === 'number') {
+    return guildSettings.settings.responseDisplay as number as UserSettingsResponseDisplayTypes;
   }
   return UserSettingsResponseDisplayTypes.DEFAULT;
 }
@@ -2658,7 +2725,7 @@ export function displayPayloadFromEmbed(embed: Embed): DisplayPayload {
 }
 
 function renderDisplayEmbed(
-  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | InteractionModalContext | Command.Context | Interaction.InteractionContext,
   payload: DisplayPayload,
   invokedBy: string,
 ): DisplayRendered {
@@ -2782,6 +2849,28 @@ export async function renderDisplay(
     getResponseDisplayForReply(context),
     getTranslator(context),
   ]);
+  return renderDisplayAs(context, payload, options, display, translate);
+}
+
+// a button press's or modal's own message that only whoever used it sees, rendered from only what's cached since it has
+// to be answered right away (`respond`, or a follow-up after deferring). `translator` is the cached one they already use
+export function renderEphemeralDisplay(
+  context: ComponentContext | InteractionModalContext,
+  translator: Pick<Translator, 'translate'>,
+  payload: DisplayPayload,
+): Record<string, any> {
+  const message = renderDisplayAs(context, payload, {}, getCachedResponseDisplay(context), translator.translate);
+  message.flags = (message.flags || 0) | MessageFlags.EPHEMERAL;
+  return message;
+}
+
+function renderDisplayAs(
+  context: ComponentContext | InteractionModalContext | Command.Context | Interaction.InteractionContext,
+  payload: DisplayPayload,
+  options: DisplayReplyOptions,
+  display: UserSettingsResponseDisplayTypes,
+  translate: Translator['translate'],
+): Record<string, any> {
   // interactions already show who used them above the response, so only a custom invoker line shows there
   const invokedBy = (!(context instanceof Command.Context) && !payload.invokerKey && !options.invokerId) ?
     '' :

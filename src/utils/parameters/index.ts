@@ -1754,7 +1754,15 @@ export function mediaUrl(
       return 'https://notsobot.com';
     }
 
+    // `^` is the last media, `^2` the one before it, with the message's attachments and the reply counted as the newest
+    const position = (value) ? DefaultParameters.lastMediaPosition(value) : null;
+
     try {
+      // so `^2` can't stop at the attachment/reply checks below, `^` still goes through them like before
+      if (position && 1 < position) {
+        return await customLastMediaUrl(context, position) || undefined;
+      }
+
       if (!onlyContent) {
         if (context instanceof Command.Context) {
           // check the message's attachments/stickers first, ignoring embed
@@ -1780,8 +1788,8 @@ export function mediaUrl(
 
       if (value) {
         // get last image then
-        if (value === '^') {
-          return await customLastMediaUrl(context) || undefined;
+        if (position) {
+          return await customLastMediaUrl(context, position) || undefined;
         }
 
         // if it's a url
@@ -2006,8 +2014,8 @@ export function mediaUrls(
     }
 
     let foundFromText: boolean = false;
-    let lastUrl: string | null | undefined;
-    let lastUrlParsed = false;
+    // by `^N` position, so `^ ^` only searches once
+    const lastUrls = new Map<number, string | null | undefined>();
     if (urls.length < maxAmount && value) {
       // split the string then parse the parts
       for (let part of stringArguments(value)) {
@@ -2016,12 +2024,13 @@ export function mediaUrls(
         }
 
         try {
-          // get last image then
-          if (part === '^') {
-            if (!lastUrlParsed) {
-              lastUrl = await customLastMediaUrl(context);
-              lastUrlParsed = true;
+          // get last image then (`^2` for the one before it)
+          const position = DefaultParameters.lastMediaPosition(part);
+          if (position) {
+            if (!lastUrls.has(position)) {
+              lastUrls.set(position, await customLastMediaUrl(context, position));
             }
+            const lastUrl = lastUrls.get(position);
             if (lastUrl) {
               foundFromText = true;
               urls.push(String(lastUrl));
@@ -2305,7 +2314,7 @@ async function isMediaArgument(
     return false;
   }
   for (let part of parts) {
-    if (part === '^') {
+    if (DefaultParameters.lastMediaPosition(part)) {
       continue;
     }
     if ((part.includes('#') && !part.startsWith('#')) || part.startsWith('@')) {
@@ -2416,7 +2425,15 @@ export function mediaUrlPositional(
       return [true, 'https://notsobot.com'];
     }
 
+    // `^` is the last media, `^2` the one before it, with the message's attachments and the reply counted as the newest
+    const position = (value) ? DefaultParameters.lastMediaPosition(value) : null;
+
     try {
+      // so `^2` can't stop at the attachment/reply checks below, `^` still goes through them like before
+      if (position && 1 < position) {
+        return await customLastMediaUrl(context, position) || undefined;
+      }
+
       if (context instanceof Command.Context) {
         // check the message's attachments/stickers first
         {
@@ -2453,8 +2470,8 @@ export function mediaUrlPositional(
 
       if (value) {
         // get last image then
-        if (value === '^') {
-          return await customLastMediaUrl(context) || undefined;
+        if (position) {
+          return await customLastMediaUrl(context, position) || undefined;
         }
 
         // if it's a url
@@ -2580,7 +2597,9 @@ export function lastMediaUrl(
   const customLastMediaUrl = DefaultParameters.lastMediaUrl(mediaSearchOptions);
 
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
-    if (context instanceof Interaction.InteractionContext) {
+    // `^2` counts the slash attachments itself
+    const position = (value) ? DefaultParameters.lastMediaPosition(value) : null;
+    if (context instanceof Interaction.InteractionContext && !(position && 1 < position)) {
       if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
         const attachment = context.data.resolved.attachments.find((x) => !isFileAttachment(x, mediaSearchOptions.skipFiles));
         if (attachment) {

@@ -25,6 +25,7 @@ import {
   checkNSFW,
   editOrReply,
   mediaReplyFromOptions,
+  replyThinking,
   timeLimitParts,
 } from '../../../utils';
 
@@ -142,7 +143,7 @@ export class ThinkingReply {
       if (this.stopped) {
         return;
       }
-      await editOrReply(this.context, (statusText) ? `${this.thinkingText}\n${statusText}` : this.thinkingText);
+      await replyThinking(this.context, this.thinkingText, statusText);
     }).catch(() => {
       // the trigger was edited/deleted or the channel can't be replied in, the command's own reply will deal with it
     });

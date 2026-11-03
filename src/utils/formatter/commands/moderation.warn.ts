@@ -44,6 +44,7 @@ import {
   displayReply,
   formatDuration,
   formatUserTag,
+  renderEphemeralDisplay,
 } from '../../../utils';
 
 import { GuildLoggingCustomEvents } from '../loggers';
@@ -493,12 +494,11 @@ function createPastWarningsBlock(
 }
 
 
-function refuse(modalContext: ComponentContext | InteractionModalContext, text: string) {
-  return modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-    allowedMentions: {parse: []},
-    content: `${StatusEmojis.WARNING} ${text}`,
-    flags: MessageFlags.EPHEMERAL,
-  });
+function refuse(modalContext: ComponentContext | InteractionModalContext, translator: Pick<Translator, 'translate'>, text: string) {
+  return modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(modalContext, translator, {
+    color: EmbedColors.ERROR,
+    description: `${StatusEmojis.WARNING} ${text}`,
+  }));
 }
 
 
@@ -640,7 +640,7 @@ function createActionComponents(
   const run = async (modalContext: InteractionModalContext, action: WarnAction, args: InteractionModalArgs) => {
     const parsed = parseActionArgs(context, translator, action, args, hasClean(action));
     if (typeof(parsed) === 'string') {
-      return refuse(modalContext, parsed);
+      return refuse(modalContext, translator, parsed);
     }
     const { clean, duration } = parsed;
     // another modal from the same warning went through first
@@ -777,7 +777,7 @@ function createActionComponents(
         run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
           const amount = Number(String(args.amount || '').trim());
           if (!Number.isInteger(amount) || amount < 1 || PRUNE_MAX_AMOUNT < amount) {
-            return refuse(modalContext, translate('moderation_warn.prune_invalid_amount', {max: PRUNE_MAX_AMOUNT.toLocaleString(translator.language)}));
+            return refuse(modalContext, translator, translate('moderation_warn.prune_invalid_amount', {max: PRUNE_MAX_AMOUNT.toLocaleString(translator.language)}));
           }
           // never further back than two weeks, empty (or 0) goes all the way to it
           let seconds = PRUNE_MAX_SINCE;
@@ -786,13 +786,13 @@ function createActionComponents(
             try {
               seconds = Math.min(Parameters.secondsWithOptions({float: false})(sinceText, context), PRUNE_MAX_SINCE) || PRUNE_MAX_SINCE;
             } catch(error: any) {
-              return refuse(modalContext, String((error && error.message) || error));
+              return refuse(modalContext, translator, String((error && error.message) || error));
             }
           }
           const since = Date.now() - seconds * 1000;
           const refusal = getPruneRefusal(modalContext.member);
           if (refusal) {
-            return refuse(modalContext, refusal);
+            return refuse(modalContext, translator, refusal);
           }
           // a mute/kick/ban from the same warning went through first
           if (done) {
@@ -834,7 +834,7 @@ function createActionComponents(
         }
         const refusal = getPruneRefusal(ctx.member);
         if (refusal) {
-          return refuse(ctx, refusal);
+          return refuse(ctx, translator, refusal);
         }
         return ctx.respond(pruneModal());
       },
@@ -902,7 +902,7 @@ export async function onGuildWarningLogComponent(context: ComponentContext, acti
   if (isUndo) {
     const refusal = getLogActionRefusal(translator, translate('moderation_warn.undo'), WARNING_LOG_UNDO_PERMISSION, context.member, context.me, false);
     if (refusal) {
-      return refuse(context, refusal);
+      return refuse(context, translator, refusal);
     }
     await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
     let warning: RestResponsesRaw.DeleteGuildWarning;
@@ -940,7 +940,7 @@ export async function onGuildWarningLogComponent(context: ComponentContext, acti
   {
     const refusal = getLogActionRefusal(translator, label, permission, context.member, context.me, true);
     if (refusal) {
-      return refuse(context, refusal);
+      return refuse(context, translator, refusal);
     }
   }
 
@@ -956,11 +956,11 @@ export async function onGuildWarningLogComponent(context: ComponentContext, acti
       // either of us could have lost it since the press
       const refusal = getLogActionRefusal(translator, label, permission, modalContext.member, modalContext.me, true);
       if (refusal) {
-        return refuse(modalContext, refusal);
+        return refuse(modalContext, translator, refusal);
       }
       const parsed = parseActionArgs(context, translator, warnAction, args, hasActionClean(warnAction, modalContext.member, modalContext.me));
       if (typeof(parsed) === 'string') {
-        return refuse(modalContext, parsed);
+        return refuse(modalContext, translator, parsed);
       }
       const { clean, duration } = parsed;
 

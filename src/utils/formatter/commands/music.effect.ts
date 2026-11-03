@@ -8,13 +8,20 @@ import {
   MUSIC_EFFECTS_SLOWER,
   MusicEffects,
   MusicEffectsToText,
-  StatusEmojis,
 } from '../../../constants';
 import { displayDetails, displayDetailsLine, displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Languages, Translator, getTranslator, getTranslatorForLanguage, languageFromLocale } from '../../i18n';
 
-import { MusicEffect, musicEffectName, musicEffectNames, musicKnownEffects, musicSoundSettingRefusal, resetSavedMusicSound } from './music.shared';
+import {
+  MusicEffect,
+  musicEffectName,
+  musicEffectNames,
+  musicKnownEffects,
+  musicSoundSettingRefusal,
+  replyMusicNeedsPremium,
+  resetSavedMusicSound,
+} from './music.shared';
 
 
 export const COMMAND_ID = 'music.effect';
@@ -160,7 +167,7 @@ async function applyEffects(
   }
   const { conflicting, extra, kept } = stackMusicEffects(picked);
   if (kept.length && !removing && !(await fetchGuildMusic(context, guildId)).premium) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_effect.needs_premium')}`});
+    return replyMusicNeedsPremium(context, translate, translate('music_effect.needs_premium'));
   }
   const player = await VoiceNode.setEffects(guildId, kept);
   if (!player) {

@@ -1,9 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
+import { replyWarning } from '../../errors';
 import { BaseCommand } from '../basecommand';
 
 
@@ -46,7 +47,7 @@ export default class TagCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag === false) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+      return replyWarning(context, translate('tag.unknown'));
     }
     return super.onCancelRun(context, args);
   }

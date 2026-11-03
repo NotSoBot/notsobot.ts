@@ -17,6 +17,7 @@ import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
 
 import {
+  EmbedColors,
   GuildFeatures,
   GuildRuleActions,
   GuildWarningAutoTriggers,
@@ -26,6 +27,7 @@ import {
   Formatter,
   I18n,
   cancelCommandRun,
+  displayReply,
   getCommandCategory,
   getCommandIdFromInvoker,
   isGuildRulesCommandId,
@@ -234,7 +236,7 @@ export class NotSoCommandClient extends CommandClient {
         if (!hasPremium && context.metadata) {
           // it goes to the regular commands instead, the premium reason would be replied by any of them that cancels
           delete context.metadata.reason;
-          delete context.metadata.reasonIsPremiumRequired;
+          delete context.metadata.reasonPremiumSku;
         }
         return hasPremium;
       })();
@@ -307,7 +309,7 @@ export class NotSoCommandClient extends CommandClient {
       try {
         const { translate } = await I18n.getTranslator(context);
         const notice = Formatter.Commands.OwnerWarn.createUserWarningsNotice(translate, context.metadata.userWarnings);
-        await context.editOrReply({allowedMentions: {parse: []}, content: notice.content});
+        await displayReply(context, {color: EmbedColors.ERROR, description: notice.content});
         // only once it was shown, a failed reply leaves them pending for the next command
         await acknowledgeUserWarnings(context, context.userId, {warningIds: notice.warningIds});
       } catch(error) {

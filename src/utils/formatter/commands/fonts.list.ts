@@ -6,8 +6,15 @@ import { Translator, getTranslator } from '../../i18n';
 
 import { fetchSavedFonts } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { EmbedColors } from '../../../constants';
-import { displayDetailsLine, displayReply, displayTimestamp, formatMemory } from '../../../utils';
+import { DiscordSkuIds, EmbedColors } from '../../../constants';
+import {
+  displayDetailsLine,
+  displayReply,
+  displayTimestamp,
+  formatMemory,
+  getPremiumUpsellSku,
+  linkPremiumSkuName,
+} from '../../../utils';
 import { normalizeSavedFontName } from '../../parameters/fonts';
 
 
@@ -86,8 +93,19 @@ export async function createMessage(
   } else {
     lines.push(translate('fonts.list_empty'));
   }
+  // a user's own fonts need premium, a server's need someone's premium server slot (plus), with the tier linked to its
+  // store page for anyone without it
   if (fonts && !fonts.premium) {
-    lines.push(`-# ${translate((args.server) ? 'fonts.list_server_needs_premium' : 'fonts.list_needs_premium')}`);
+    if (args.server) {
+      lines.push(`-# ${translate('fonts.list_server_needs_premium')}`);
+      const text = translate('errors.upsell.premium_server');
+      const skuId = await getPremiumUpsellSku(context, DiscordSkuIds.USER_NOTSOPREMIUM_PLUS);
+      lines.push(`-# ${(skuId) ? linkPremiumSkuName(context, text, skuId) : text}`);
+    } else {
+      const text = translate('fonts.list_needs_premium');
+      const skuId = await getPremiumUpsellSku(context, DiscordSkuIds.USER_NOTSOPREMIUM);
+      lines.push(`-# ${(skuId) ? linkPremiumSkuName(context, text, skuId) : text}`);
+    }
   }
 
   const count = (fonts) ? ` (${fonts.items.length.toLocaleString(language)}/${fonts.limit.toLocaleString(language)})` : '';

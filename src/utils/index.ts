@@ -9,4 +9,5 @@ export { Formatter, DefaultParameters, EmojiKitchen, I18n, Parameters, TagFormat
 export * from './guildrules';
 export * from './math';
 export * from './paginator';
+export * from './premium';
 export * from './tools';

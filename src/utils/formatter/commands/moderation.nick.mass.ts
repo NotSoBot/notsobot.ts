@@ -1,10 +1,10 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags } from 'detritus-client/lib/constants';
+import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
 import { ComponentContext, Components } from 'detritus-client/lib/utils';
 
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { DisplayPayload, I18n, displayReply, formatUserForAuditLog, renderDisplay } from '../../../utils';
+import { DisplayPayload, I18n, displayReply, formatUserForAuditLog, renderDisplay, renderEphemeralDisplay } from '../../../utils';
 
 import * as ModerationNick from './moderation.nick';
 
@@ -100,10 +100,9 @@ export async function createMessage(
 
         // checked again here, two prompts could both be continued and rename everyone twice at the same time
         if (isExecuting.nick) {
-          return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-            content: translate('nickmass.in_progress'),
-            flags: MessageFlags.EPHEMERAL,
-          });
+          return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(ctx, {translate}, {
+            description: translate('nickmass.in_progress'),
+          }));
         }
         isExecuting.nick = true;
 

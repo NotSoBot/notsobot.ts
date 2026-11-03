@@ -3,7 +3,6 @@ import {
   ClientEvents,
   InteractionCallbackTypes,
   InteractionTypes,
-  MessageFlags,
 } from 'detritus-client/lib/constants';
 import { ComponentContext } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
@@ -13,7 +12,7 @@ import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import { RedisPayloads } from '../types';
-import { I18n, mediaReplyFromOptions } from '../utils';
+import { I18n, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
 import {
   onGuildReportComponent,
   onGuildReportMessageCreate,
@@ -147,13 +146,12 @@ class ComponentsListener extends Listener {
 
   async makePermanentUsingNitro(context: ComponentContext, fileId: string) {
     // cached only, the interaction has to be responded to quickly
-    const { translate } = I18n.getCachedTranslator(context);
+    const translator = I18n.getCachedTranslator(context);
     if (this.componentsProcessing.has(context.customId)) {
       // show an error saying that the file is already being re-uploaded
-      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-        content: translate('media.reupload_in_progress'),
-        flags: MessageFlags.EPHEMERAL,
-      });
+      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+        description: translator.translate('media.reupload_in_progress'),
+      }));
     }
 
     // take the lock right away (a second click during the fetch below used to get through), and only the click that
@@ -167,25 +165,24 @@ class ComponentsListener extends Listener {
   }
 
   async makePermanentUsingNitroLocked(context: ComponentContext, fileId: string) {
-    const { translate } = I18n.getCachedTranslator(context);
+    const translator = I18n.getCachedTranslator(context);
+    const { translate } = translator;
     let storage: RestResponsesRaw.FileResponseStorage;
 
     try {
       storage = await fetchFile(context, fileId);
     } catch(error) {
       // if 404, replace entire message maybe?
-      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-        content: translate('media.reupload_missing'),
-        flags: MessageFlags.EPHEMERAL,
-      });
+      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+        description: translate('media.reupload_missing'),
+      }));
     }
 
     if (context.maxAttachmentSize < storage.metadata.size) {
       // only allow it if the person who clicked it has enough attachment size to upload it (e.g. nitro)
-      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-        content: translate('media.reupload_too_big'),
-        flags: MessageFlags.EPHEMERAL,
-      });
+      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+        description: translate('media.reupload_too_big'),
+      }));
     }
 
     if (context.metadata) {
@@ -202,10 +199,7 @@ class ComponentsListener extends Listener {
     // grab took from message object?
 
     await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-    await context.createMessage({
-      content: translate('media.reupload_started'),
-      flags: MessageFlags.EPHEMERAL,
-    });
+    await context.createMessage(renderEphemeralDisplay(context, translator, {description: translate('media.reupload_started')}));
     // send a message saying reuploading
 
     const buffer = await context.rest.get(storage.urls.cdn);

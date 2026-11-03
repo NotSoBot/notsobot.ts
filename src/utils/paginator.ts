@@ -671,10 +671,11 @@ export class Paginator {
             this.custom.isActive = true;
             await this.updateButtons(context);
             const { translate } = await getTranslator(context);
-            this.custom.message = await context.createMessage({
-              content: translate('paginator.which_page'),
-              flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
-            });
+            const message = await renderDisplay(context, {description: translate('paginator.which_page')});
+            if (this.isEphemeral) {
+              message.flags = (message.flags || 0) | MessageFlags.EPHEMERAL;
+            }
+            this.custom.message = await context.createMessage(message);
             this.custom.timeout.start(this.custom.expire, async () => {
               await this.clearCustomMessage();
             });

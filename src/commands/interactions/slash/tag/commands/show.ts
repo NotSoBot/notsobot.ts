@@ -2,9 +2,9 @@ import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { RestResponsesRaw } from '../../../../../api/types';
-import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
+import { replyWarning } from '../../../../errors';
 import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../../basecommand';
 
 
@@ -57,7 +57,7 @@ export class TagCommandsShowCommand extends BaseInteractionCommandOption {
   ) {
     const { translate } = await I18n.getTranslator(context);
     if (!args.tag) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+      return replyWarning(context, translate('tag.unknown'));
     }
     return super.onCancelRun(context, args);
   }

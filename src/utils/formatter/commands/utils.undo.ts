@@ -3,6 +3,7 @@ import { Snowflake } from 'detritus-utils';
 
 import { deleteCommandsResponses, fetchCommandsResponses } from '../../../api';
 import { CommandTypes, StatusEmojis } from '../../../constants';
+import CommandResponsesStore from '../../../stores/commandresponses';
 import { getTranslator } from '../../i18n';
 import { displayReply } from '../../../utils';
 
@@ -61,8 +62,7 @@ export async function createMessage(
     }
     triggerIds.push(result.message_trigger_id);
 
-    const response = context.messages.get(result.message_response_id);
-    if (!response || !response.deleted) {
+    if (!CommandResponsesStore.wasResponseDeleted(result.message_response_id)) {
       messageIds.push(result.message_response_id);
     }
     if (result.message_trigger_type === CommandTypes.PREFIXED) {

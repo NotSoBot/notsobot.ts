@@ -13,7 +13,7 @@ export const COMMAND_DURATION_BUCKETS = [0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60];
 // discord gives an interaction 3 seconds to get a response
 export const INTERACTION_RESPONSE_BUCKETS = [0.25, 0.5, 1, 1.5, 2, 2.5, 3, 5, 10];
 export const API_REQUEST_DURATION_BUCKETS = [0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60];
-export const REST_REQUEST_DURATION_BUCKETS = [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
+export const REST_REQUEST_DURATION_BUCKETS = [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 20, 30];
 export const REST_WAIT_BUCKETS = [0.01, 0.05, 0.1, 0.5, 1, 2.5, 5, 10, 30, 60];
 
 export interface MetricsCounter {
@@ -109,7 +109,7 @@ export function recordRestRequest(method: string, route: string, status: string,
   if (took !== undefined) {
     const seconds = took / 1000;
     incrementCounter('notsobot_rest_request_seconds_total', {method, route}, seconds);
-    observeHistogram('notsobot_rest_request_duration_seconds', {}, REST_REQUEST_DURATION_BUCKETS, seconds);
+    observeHistogram('notsobot_rest_request_duration_seconds', {method, route}, REST_REQUEST_DURATION_BUCKETS, seconds);
   }
 }
 

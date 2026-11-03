@@ -2,12 +2,12 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchGuildMusic } from '../../../api';
-import { DEFAULT_MUSIC_SPEED, MAX_MUSIC_SPEED, MIN_MUSIC_SPEED, StatusEmojis } from '../../../constants';
+import { DEFAULT_MUSIC_SPEED, MAX_MUSIC_SPEED, MIN_MUSIC_SPEED } from '../../../constants';
 import { displayDetails, displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
-import { musicPlayerSpeed, musicSoundSettingRefusal, musicSpeedText, resetSavedMusicSound } from './music.shared';
+import { musicPlayerSpeed, musicSoundSettingRefusal, musicSpeedText, replyMusicNeedsPremium, resetSavedMusicSound } from './music.shared';
 
 
 export const COMMAND_ID = 'music.speed';
@@ -88,7 +88,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: refusal});
   }
   if (speed !== DEFAULT_MUSIC_SPEED && !(await fetchGuildMusic(context, guildId)).premium) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_speed.needs_premium')}`});
+    return replyMusicNeedsPremium(context, translate, translate('music_speed.needs_premium'));
   }
   const player = await VoiceNode.setTempo(guildId, speed);
   if (!player) {

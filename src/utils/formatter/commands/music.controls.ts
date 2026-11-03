@@ -11,7 +11,7 @@ import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
 import { DEFAULT_MUSIC_SPEED, DiscordEmojis, MessageComponentCustomIds } from '../../../constants';
 import PaginatorsStore from '../../../stores/paginators';
-import { DisplayPayload, Paginator, displayDetails, displayDetailsLine, displayReply, formatTime } from '../../../utils';
+import { DisplayPayload, Paginator, displayDetails, displayDetailsLine, displayReply, formatTime, renderEphemeralDisplay } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Translator, getCachedTranslator } from '../../i18n';
 
@@ -296,10 +296,10 @@ export async function onMusicControl(
   const translator = getCachedTranslator(context);
   const { translate } = translator;
   const reply = (content: string) => {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {content, flags: MessageFlags.EPHEMERAL});
+    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {description: content}));
   };
   const followUp = (content: string) => {
-    return context.createMessage({content, flags: MessageFlags.EPHEMERAL});
+    return context.createMessage(renderEphemeralDisplay(context, translator, {description: content}));
   };
 
   const guildId = context.guildId;
@@ -480,7 +480,7 @@ async function playMusicNow(
 ) {
   const { translate } = translator;
   const reply = (content: string) => {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {content, flags: MessageFlags.EPHEMERAL});
+    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {description: content}));
   };
   const guild = VoiceNode.guilds.get(guildId);
   const member = context.member;

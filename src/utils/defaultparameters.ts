@@ -8,7 +8,8 @@ import { GoogleLocales, GoogleLocaleFromDiscord, MEDIA_HISTORY_LIMIT, MLDiffusio
 import {
   fetchMemberOrUserById,
   findCachedTagDirectoryIds,
-  findMediaUrlInMessages,
+  findMediaUrlInMessage,
+  findMediaUrlsInMessage,
   findUrlInMessages,
   getCachedChannelMessages,
   getOrFetchRealUrl,
@@ -76,80 +77,117 @@ export function guild(context: Command.Context | Interaction.InteractionContext)
 }
 
 
+// `^` is the last media, `^2` the one before it, up to `^99` (still only looking through `MEDIA_HISTORY_LIMIT` messages)
+export function lastMediaPosition(value: string): number | null {
+  const match = /^\^([1-9][0-9]?)?$/.exec(value);
+  if (match) {
+    return (match[1]) ? parseInt(match[1]) : 1;
+  }
+  return null;
+}
+
+
+// the media urls `lastMediaUrl` picks from, newest first and deduped, stops once `amount` are found
+// a message only counts if the single url search finds something in it, so the first url is always the old `^` one
+async function findLastMediaUrls(
+  context: Command.Context | Interaction.InteractionContext,
+  mediaSearchOptions: FindMediaUrlOptions,
+  amount: number,
+): Promise<Array<string>> {
+  const urls = new Set<string>();
+  const checkedMessageIds = new Set<string>();
+  const addMessage = (message: Structures.Message, ignoreContent?: boolean): boolean => {
+    checkedMessageIds.add(message.id);
+    const url = findMediaUrlInMessage(message, null, mediaSearchOptions, undefined, ignoreContent);
+    if (url) {
+      urls.add(url);
+      for (let otherUrl of findMediaUrlsInMessage(message, mediaSearchOptions)) {
+        urls.add(otherUrl);
+      }
+    }
+    return amount <= urls.size;
+  };
+
+  if (context instanceof Command.Context) {
+    if (addMessage(context.message)) {
+      return Array.from(urls);
+    }
+
+    {
+      // check reply
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        let message = messageReference.message;
+
+        const shouldFetchMessage = !message && (
+          (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
+        );
+        if (shouldFetchMessage) {
+          try {
+            message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          } catch(error) {
+            // /shrug
+          }
+        }
+        if (message && addMessage(message, false)) {
+          return Array.from(urls);
+        }
+      }
+    }
+  }
+
+  const before = (context instanceof Command.Context) ? context.messageId : undefined;
+  {
+    const beforeId = (before) ? BigInt(before) : null;
+    const messages = getCachedChannelMessages(context).filter((message) => {
+      if (message.interaction && message.hasFlagEphemeral) {
+        return message.interaction.user.id === context.userId;
+      }
+      if (beforeId) {
+        return BigInt(message.id) <= beforeId;
+      }
+      return true;
+    }).reverse().slice(0, MEDIA_HISTORY_LIMIT);
+    for (let message of messages) {
+      if (!checkedMessageIds.has(message.id) && addMessage(message)) {
+        return Array.from(urls);
+      }
+    }
+  }
+
+  const shouldFetchMessages = (
+    (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
+  );
+  if (shouldFetchMessages) {
+    // overlaps with the cached messages, those are skipped by id
+    const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: MEDIA_HISTORY_LIMIT});
+    for (let message of messages.values()) {
+      if (!checkedMessageIds.has(message.id) && addMessage(message)) {
+        break;
+      }
+    }
+  }
+  return Array.from(urls);
+}
+
+
 export function lastMediaUrl(
   mediaSearchOptions: FindMediaUrlOptions = {},
-): (context: Command.Context | Interaction.InteractionContext) => Promise<string | null | undefined> {
-  return async (context: Command.Context | Interaction.InteractionContext) => {
+): (context: Command.Context | Interaction.InteractionContext, position?: number) => Promise<string | null | undefined> {
+  return async (context: Command.Context | Interaction.InteractionContext, position: number = 1) => {
     if (context instanceof Interaction.InteractionContext) {
       if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-        const attachment = context.data.resolved.attachments.find((x) => !isFileAttachment(x, mediaSearchOptions.skipFiles));
-        if (attachment) {
-          return attachment.url!;
+        const attachments = context.data.resolved.attachments.filter((x) => !isFileAttachment(x, mediaSearchOptions.skipFiles));
+        if (position <= attachments.length) {
+          return attachments[position - 1].url!;
         }
-      }
-    }
-  
-    if (context instanceof Command.Context) {
-      {
-        const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
-        if (url) {
-          return getOrFetchRealUrl(context, url);
-        }
-      }
-
-      {
-        // check reply
-        const { messageReference } = context.message;
-        if (messageReference && messageReference.messageId) {
-          let message = messageReference.message;
-
-          const shouldFetchMessage = !message && (
-            (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
-          );
-          if (shouldFetchMessage) {
-            try {
-              message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-            } catch(error) {
-              // /shrug
-            }
-          }
-          if (message) {
-            const url = findMediaUrlInMessages([message], mediaSearchOptions, undefined, false);
-            if (url) {
-              return getOrFetchRealUrl(context, url);
-            }
-          }
-        }
+        position -= attachments.length;
       }
     }
 
-    const before = (context instanceof Command.Context) ? context.messageId : undefined;
-    {
-      const beforeId = (before) ? BigInt(before) : null;
-      const messages = getCachedChannelMessages(context).filter((message) => {
-        if (message.interaction && message.hasFlagEphemeral) {
-          return message.interaction.user.id === context.userId;
-        }
-        if (beforeId) {
-          return BigInt(message.id) <= beforeId;
-        }
-        return true;
-      }).reverse().slice(0, MEDIA_HISTORY_LIMIT);
-      const url = findMediaUrlInMessages(messages, mediaSearchOptions);
-      if (url) {
-        return getOrFetchRealUrl(context, url);
-      }
-    }
-
-    const shouldFetchMessages = (
-      (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
-    );
-    if (shouldFetchMessages) {
-      const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: MEDIA_HISTORY_LIMIT});
-      const url = findMediaUrlInMessages(messages, mediaSearchOptions);
-      if (url) {
-        return getOrFetchRealUrl(context, url);
-      }
+    const urls = await findLastMediaUrls(context, mediaSearchOptions, position);
+    if (position <= urls.length) {
+      return getOrFetchRealUrl(context, urls[position - 1]);
     }
   };
 }

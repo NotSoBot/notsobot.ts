@@ -1,12 +1,21 @@
-import { Structures } from 'detritus-client';
+import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { editGuildMusicSound, fetchGuildMusic } from '../../../api';
 import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
-import { DEFAULT_MUSIC_SPEED, DEFAULT_MUSIC_VOLUME, MusicEffects, MusicEffectsToText, MusicLoopModes, StatusEmojis } from '../../../constants';
-import { DisplayPayload, displayDetails, displayDetailsLine, displayLinks, formatTime } from '../../../utils';
+import { DEFAULT_MUSIC_SPEED, DEFAULT_MUSIC_VOLUME, DiscordSkuIds, MusicEffects, MusicEffectsToText, MusicLoopModes, StatusEmojis } from '../../../constants';
+import {
+  DisplayPayload,
+  displayDetails,
+  displayDetailsLine,
+  displayLinks,
+  displayReply,
+  formatTime,
+  getPremiumUpsellSku,
+  linkPremiumSkuName,
+} from '../../../utils';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import VoiceNode from '../../../voicenode';
 import { Translator } from '../../i18n';
@@ -201,6 +210,27 @@ export async function fetchMusicDjRefusal(
   }
   return musicDjRefusal(translate, member, await fetchGuildMusic(context, guildId).catch(() => null));
 }
+
+// a premium server perk on a server without it: a subtext line on who can make it one, with plus linked to its store
+// page for anyone without it (users with plus already only need the premium servers add command)
+export async function musicPremiumUpsell(
+  context: Command.Context | Interaction.InteractionContext,
+  translate: Translator['translate'],
+): Promise<string> {
+  const text = translate('errors.upsell.premium_server');
+  const skuId = await getPremiumUpsellSku(context, DiscordSkuIds.USER_NOTSOPREMIUM_PLUS);
+  return `-# ${(skuId) ? linkPremiumSkuName(context, text, skuId) : text}`;
+}
+
+// a premium server perk refused, with `musicPremiumUpsell` under it
+export async function replyMusicNeedsPremium(
+  context: Command.Context | Interaction.InteractionContext,
+  translate: Translator['translate'],
+  text: string,
+) {
+  return displayReply(context, {description: `${StatusEmojis.WARNING} ${text}\n${await musicPremiumUpsell(context, translate)}`});
+}
+
 
 // 24/7 keeping us in voice: on (it is by default) on a premium server, like the api's `music_stays`
 export function musicStays(music: null | Pick<RestResponsesRaw.FetchGuildMusic, 'premium' | 'stay'>): boolean {

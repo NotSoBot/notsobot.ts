@@ -12,6 +12,7 @@ import { Translator, getTranslator } from '../../i18n';
 
 import { createMusicPaginator } from './music.info';
 import {
+  MUSIC_QUEUE_PREMIUM_LIMIT,
   musicItemDisplayTitle,
   musicItemTitle,
   musicListeningTime,
@@ -20,6 +21,7 @@ import {
   musicPlayerSpeed,
   musicStayNote,
   musicStays,
+  replyMusicNeedsPremium,
 } from './music.shared';
 
 
@@ -115,6 +117,11 @@ async function musicPickLanding(
     limit: music.queue_limit.toLocaleString(language),
   });
   if (music.queue_limit <= music.queue.length) {
+    if (!music.premium) {
+      // premium servers fit 10 times as many
+      const upgrade = translate('music_rules.queue_limit_upgrade', {count: music.queue_limit.toLocaleString(language), premium: MUSIC_QUEUE_PREMIUM_LIMIT.toLocaleString(language)});
+      return `${StatusEmojis.WARNING} ${upgrade}`;
+    }
     return displayDetailsLine([`${StatusEmojis.WARNING} ${translate('music_play.limit_server')}`, count]);
   }
 
@@ -233,7 +240,7 @@ export async function createMessage(
     // a premium server perk, said before we join for it (the api checks too)
     const music = await fetchGuildMusic(context, guildId);
     if (!music.premium) {
-      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_play.collection_premium')}`});
+      return replyMusicNeedsPremium(context, translate, translate('music_play.collection_premium'));
     }
     const name = (search.collection) ? search.collection.name : null;
     const { batch, joined, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, search.results, context.userId, name);

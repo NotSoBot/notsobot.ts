@@ -7,7 +7,7 @@ import { displayDetails, displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Translator, getTranslator } from '../../i18n';
 
-import { canManageMusic } from './music.shared';
+import { canManageMusic, musicPremiumUpsell } from './music.shared';
 
 
 export const COMMAND_ID = 'music.stay';
@@ -28,7 +28,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
   if (args.enabled === null) {
-    return displayReply(context, {description: stayText(translate, await fetchGuildMusic(context, guildId))});
+    return replyStay(context, translate, await fetchGuildMusic(context, guildId));
   }
   if (!canManageMusic(context.member)) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_fair.no_permission')}`});
@@ -37,7 +37,18 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   if (!args.enabled) {
     VoiceNode.unstay(guildId);
   }
-  return displayReply(context, {description: stayText(translate, music)});
+  return replyStay(context, translate, music);
+}
+
+
+// with who can make it a premium server when it's on without one
+async function replyStay(
+  context: Command.Context | Interaction.InteractionContext,
+  translate: Translator['translate'],
+  music: RestResponsesRaw.FetchGuildMusic,
+) {
+  const upsell = (music.stay && !music.premium) ? await musicPremiumUpsell(context, translate) : null;
+  return displayReply(context, {description: [stayText(translate, music), upsell].filter(Boolean).join('\n')});
 }
 
 
