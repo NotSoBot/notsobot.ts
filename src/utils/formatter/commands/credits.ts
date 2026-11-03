@@ -57,6 +57,14 @@ export async function createPayload(
       Markup.bold(translate('credits.this_server')),
       balanceDetails(response.server, 'credits.given_by_members', language, translate),
     );
+    // its own week, only when a slot gives it one. what members gave is listed above, the voices spend it after
+    if (response.server_voices?.weekly) {
+      description.push(
+        '',
+        Markup.bold(translate('credits.this_server_voices')),
+        balanceDetails({...response.server_voices, refill_left: 0}, 'credits.given_by_members', language, translate),
+      );
+    }
   }
 
   return {
@@ -81,6 +89,9 @@ export function formatCreditsAlert(
     time: displayTimestamp(alert.resets_at),
     weekly: alert.weekly.toLocaleString(language),
   };
+  if (server && alert.voices) {
+    return `-# ${translate((alert.kind === 'weekly_out') ? 'credits.alert.weekly_out_server_voices' : 'credits.alert.weekly_used_server_voices', variables)}`;
+  }
   if (alert.kind === 'weekly_out') {
     return `-# ${translate((server) ? 'credits.alert.weekly_out_server' : 'credits.alert.weekly_out', variables)}`;
   }

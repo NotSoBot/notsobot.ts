@@ -2987,8 +2987,11 @@ export namespace RestResponsesRaw {
   }
 
   export interface FetchPremiumCredits {
-    // null in dms
+    // null in dms. the server's NotSoAI week and the credits members gave it
     server: CreditBalance | null,
+    // the server's own cloned voices' week (they spend it before what members gave), null in dms. missing from an api
+    // before voices got their own week
+    server_voices?: CreditBalance | null,
     // null for owners, they don't use any
     user: CreditBalance | null,
   }
@@ -3115,6 +3118,8 @@ export namespace RestResponsesRaw {
     refill_left: null | number,
     resets_at: string,
     scope: 'server' | 'user',
+    // a server's cloned voices' week rather than its NotSoAI one
+    voices?: boolean,
     weekly: number,
     weekly_left: number,
   }

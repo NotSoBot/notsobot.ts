@@ -733,6 +733,7 @@ import * as ToolsWeather from './tools.weather';
 import * as UtilsInvite from './utils.invite';
 import * as UtilsMemoryUsage from './utils.memory.usage';
 import * as UtilsPing from './utils.ping';
+import * as UtilsPremium from './utils.premium';
 import * as UtilsPrivacy from './utils.privacy';
 import * as UtilsShards from './utils.shards';
 import * as UtilsTerms from './utils.terms';
@@ -1483,6 +1484,7 @@ export {
   UtilsInvite,
   UtilsMemoryUsage,
   UtilsPing,
+  UtilsPremium,
   UtilsPrivacy,
   UtilsShards,
   UtilsTerms,
