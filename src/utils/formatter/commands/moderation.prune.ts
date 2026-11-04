@@ -9,6 +9,7 @@ import { ComponentContext, Components, InteractionModalContext, Markup, Snowflak
 import { Timers } from 'detritus-utils';
 
 import { formatPermissions, replyWarning } from '../../../commands/errors';
+import GuildSettingsStore from '../../../stores/guildsettings';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { I18n, displayDetail, displayDetailsLine, displayReply, formatUserForAuditLog } from '../../../utils';
 
@@ -177,8 +178,26 @@ export async function createMessage(
   // bulk deleting needs Manage Messages even for our own messages, `clean` can run without it
   const cachedChannel = context.channels.get(channelId);
   const canBulkDelete = !context.inDm && (!cachedChannel || cachedChannel.can(Permissions.MANAGE_MESSAGES));
-  const isMatch = (message: Structures.Message) => shouldDelete(message, args) && (!options.filter || options.filter(message));
-  const counter = new PruneCounter(args.amount, options.group);
+  // `from` also takes our responses to their commands, the id of the command use each one was taken for
+  const commandIds = new Map<string, string>();
+  const prefixes = (args.from && args.from.length) ? await getCommandPrefixes(context) : null;
+  const isMatch = (message: Structures.Message) => {
+    if (options.filter && !options.filter(message)) {
+      return false;
+    }
+    if (shouldDelete(message, args)) {
+      return true;
+    }
+    const commandId = (prefixes) ? getMatchedCommandId(context, prefixes, message, args) : null;
+    if (commandId) {
+      commandIds.set(message.id, commandId);
+      return true;
+    }
+    return false;
+  };
+  // `amount` still counts their messages, with a command's responses going along with it
+  const group = options.group || ((prefixes) ? (message: Structures.Message) => commandIds.get(message.id) || message.id : undefined);
+  const counter = new PruneCounter(args.amount, group);
   // answering through `replyTo` leaves the command's message alone, but our response there (the confirmation, edited
   // into the result) still clears like the command's
   const toClear = (...messages: Array<Structures.Message | null | void>): Array<ClearableResponse> => {
@@ -526,6 +545,85 @@ export function formatPruneFilters(
     (args.embeds) && translate('commands.moderation.prune.embeds.name'),
     (args.images) && translate('commands.moderation.prune.images.name'),
   ], true);
+}
+
+// mention prefixes plus the server's custom prefixes (or the defaults)
+export async function getCommandPrefixes(
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<Array<string>> {
+  const { commandClient } = context;
+  if (!commandClient) {
+    return [];
+  }
+  const prefixes: Array<string> = Array.from(commandClient.prefixes.mention);
+  const settings = (context.guildId) ? await GuildSettingsStore.getOrFetch(context, context.guildId) : null;
+  if (settings && settings.prefixes.length) {
+    prefixes.push(...settings.prefixes.map(({prefix}) => prefix));
+  } else {
+    prefixes.push(...commandClient.prefixes.custom);
+  }
+  return prefixes.map((prefix) => prefix.toLowerCase()).filter((prefix) => !!prefix);
+}
+
+// whether this text starts with one of our prefixes followed by an actual command name (so `...lol` isn't one with a `.` prefix)
+export function isCommandContent(
+  context: Command.Context | Interaction.InteractionContext,
+  prefixes: Array<string>,
+  content: string,
+): boolean {
+  const { commandClient } = context;
+  if (!commandClient) {
+    return false;
+  }
+  const insensitive = content.trim().toLowerCase();
+  for (let prefix of prefixes) {
+    if (insensitive.startsWith(prefix)) {
+      const rest = insensitive.slice(prefix.length).trim();
+      if (rest && commandClient.commands.some((command) => !!command.getName(rest))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
+// the id of the command use this message of ours responds to, when that command matches `args` like a message would (a
+// slash command being a message from its user without any content). The response itself only has to be in the range
+export function getMatchedCommandId(
+  context: Command.Context | Interaction.InteractionContext,
+  prefixes: Array<string>,
+  message: Structures.Message,
+  args: CommandArgs,
+): string | null {
+  if (!args.from) {
+    return null;
+  }
+  const isOurs = message.author.id === context.client.userId || (!!message.webhookId && message.webhookId === context.applicationId);
+  if (!isOurs || !shouldDelete(message, {after: args.after, amount: args.amount, before: args.before, until: args.until})) {
+    return null;
+  }
+
+  // slash command/context menu/component responses and their followups, a modal's belongs to who opened it
+  const metadata = message.interactionMetadata;
+  const interaction = (metadata) ? (metadata.triggeringInteractionMetadata || metadata) : message.interaction;
+  if (interaction) {
+    if (args.with || args.bots || args.attachments || args.embeds || args.images) {
+      return null;
+    }
+    return (args.from.some((user) => user.id === interaction.user.id)) ? interaction.id : null;
+  }
+
+  // prefixed command responses reply to the command message
+  const { messageReference } = message;
+  if (!messageReference || !messageReference.messageId || messageReference.channelId !== message.channelId) {
+    return null;
+  }
+  const command = message.referencedMessage || context.messages.get(messageReference.messageId);
+  if (!command || command.author.bot || !isCommandContent(context, prefixes, command.content)) {
+    return null;
+  }
+  return (shouldDelete(command, args)) ? command.id : null;
 }
 
 export function shouldBulkDelete(timestamp: number): boolean {

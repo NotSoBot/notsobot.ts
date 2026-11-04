@@ -6,8 +6,7 @@ import moment from 'moment';
 import { formatPermissions, replyWarning } from '../../../commands/errors';
 import { I18n, displayReply, formatUserForAuditLog, getTimezoneFromContext } from '../../../utils';
 
-import { getCommandPrefixes, isCommandContent } from './moderation.clean';
-import { snowflakeFromTimestamp } from './moderation.prune';
+import { getCommandPrefixes, isCommandContent, snowflakeFromTimestamp } from './moderation.prune';
 
 
 export const COMMAND_ID = 'moderation.pin';

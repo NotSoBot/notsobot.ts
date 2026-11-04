@@ -1,8 +1,11 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 
-import GuildSettingsStore from '../../../stores/guildsettings';
-
-import { MAX_MESSAGES_BEFORE_CONFIRMATION, createMessage as createPruneMessage } from './moderation.prune';
+import {
+  MAX_MESSAGES_BEFORE_CONFIRMATION,
+  createMessage as createPruneMessage,
+  getCommandPrefixes,
+  isCommandContent,
+} from './moderation.prune';
 
 
 export const COMMAND_ID = 'moderation.clean';
@@ -13,46 +16,6 @@ export interface CommandArgs {
   amount: number,
 }
 
-
-// mention prefixes plus the server's custom prefixes (or the defaults)
-export async function getCommandPrefixes(
-  context: Command.Context | Interaction.InteractionContext,
-): Promise<Array<string>> {
-  const { commandClient } = context;
-  if (!commandClient) {
-    return [];
-  }
-  const prefixes: Array<string> = Array.from(commandClient.prefixes.mention);
-  const settings = (context.guildId) ? await GuildSettingsStore.getOrFetch(context, context.guildId) : null;
-  if (settings && settings.prefixes.length) {
-    prefixes.push(...settings.prefixes.map(({prefix}) => prefix));
-  } else {
-    prefixes.push(...commandClient.prefixes.custom);
-  }
-  return prefixes.map((prefix) => prefix.toLowerCase()).filter((prefix) => !!prefix);
-}
-
-// whether this text starts with one of our prefixes followed by an actual command name (so `...lol` isn't one with a `.` prefix)
-export function isCommandContent(
-  context: Command.Context | Interaction.InteractionContext,
-  prefixes: Array<string>,
-  content: string,
-): boolean {
-  const { commandClient } = context;
-  if (!commandClient) {
-    return false;
-  }
-  const insensitive = content.trim().toLowerCase();
-  for (let prefix of prefixes) {
-    if (insensitive.startsWith(prefix)) {
-      const rest = insensitive.slice(prefix.length).trim();
-      if (rest && commandClient.commands.some((command) => !!command.getName(rest))) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

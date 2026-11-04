@@ -800,8 +800,9 @@ function createActionComponents(
           }
           // walking back through the channel can take longer than discord waits for a response
           await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
-          // the modal was the confirmation, it only asks again when the search stopped before finding them all
-          return ModerationPrune.createMessage(context, {amount, from: members, since}, {replyTo: modalContext, skipConfirmationUpTo: amount});
+          // the modal was the confirmation, it only asks again when the search stopped before finding them all. Our responses
+          // to their commands go along with their messages, so there can be more than `amount`
+          return ModerationPrune.createMessage(context, {amount, from: members, since}, {replyTo: modalContext, skipConfirmationUpTo: Infinity});
         },
         onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
           return displayReply(context, {description: `${StatusEmojis.WARNING} ${ModerationMute.formatError(error)}`}, {replyTo: modalContext});
