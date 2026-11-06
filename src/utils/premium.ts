@@ -20,6 +20,17 @@ export function getPremiumSkuName(skuId: DiscordSkuIds): string {
   return PREMIUM_SKU_NAMES[skuId];
 }
 
+// the api names tiers like this in error metadata (`premium_tier`, a PREMIUM_REQUIRED's `tier`)
+const PREMIUM_TIER_SKUS: Record<string, DiscordSkuIds> = Object.freeze({
+  premium: DiscordSkuIds.USER_NOTSOPREMIUM,
+  premium_plus: DiscordSkuIds.USER_NOTSOPREMIUM_PLUS,
+  premium_plus_ai: DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI,
+});
+
+export function getPremiumSkuFromTier(tier: unknown): DiscordSkuIds | null {
+  return (typeof(tier) === 'string' && Object.prototype.hasOwnProperty.call(PREMIUM_TIER_SKUS, tier)) ? PREMIUM_TIER_SKUS[tier] : null;
+}
+
 // the tier's name on its own, not the start of a longer one ('NotSoPremium' in 'NotSoPremium Plus'). every language keeps
 // the names in english, so this finds them in any translation
 const PREMIUM_SKU_NAME_REGEXES: Record<DiscordSkuIds, RegExp> = Object.freeze({

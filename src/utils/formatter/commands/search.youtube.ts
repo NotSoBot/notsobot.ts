@@ -77,6 +77,8 @@ export async function createMessage(
 
         payload.title = result.title;
         payload.url = result.url;
+        // as text, youtube's own preview (the player) shows instead of the thumbnail
+        payload.urlPreview = true;
         if (result.thumbnail) {
           payload.image = result.thumbnail.url;
         }

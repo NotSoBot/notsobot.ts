@@ -2429,6 +2429,9 @@ export interface DisplayPayload {
   timestamp?: Date | number | string,
   title?: null | string,
   url?: null | string,
+  // text: the title's link previews (like a youtube video's player) instead of being wrapped in <>, the image link is
+  // left out since the preview shows it
+  urlPreview?: boolean,
 }
 
 // prefixed embeds need the embed links permission, components v2 and interactions don't
@@ -2804,8 +2807,13 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabe
     lines.push(`### ${payload.header}`);
   }
   if (payload.title) {
-    lines.push((payload.url) ? `**${Markup.url(payload.title, `<${payload.url}>`)}**` : `**${payload.title}**`);
+    if (payload.url) {
+      lines.push(`**${Markup.url(payload.title, (payload.urlPreview) ? payload.url : `<${payload.url}>`)}**`);
+    } else {
+      lines.push(`**${payload.title}**`);
+    }
   }
+  const urlPreview = !!(payload.urlPreview && payload.title && payload.url);
   if (payload.description) {
     lines.push(payload.description);
   }
@@ -2815,7 +2823,7 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabe
     }
   }
   // attachments show on their own, links need to be posted (a short masked link still previews, without the long url)
-  if (payload.image && !payload.image.startsWith('attachment://')) {
+  if (payload.image && !payload.image.startsWith('attachment://') && !urlPreview) {
     lines.push(`-# ${Markup.url(imageLabel, payload.image)}`);
   }
   if (payload.note) {

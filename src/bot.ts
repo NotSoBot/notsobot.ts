@@ -275,6 +275,9 @@ const cluster = new ClusterClient('', {
       for (let x of notSoInteractionBot.getOversizedCommands()) {
         console.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
       }
+      for (let x of notSoInteractionBot.getDuplicateOptionNames()) {
+        console.error(`${shardsText} - /${x.path} (#${x.index}) options ${x.names.join(', ')} are all named "${x.value}" in ${x.locale}`);
+      }
       await notSoInteractionBot.run();
       console.log(`${shardsText} - Interaction Command Client Loaded`);
     }

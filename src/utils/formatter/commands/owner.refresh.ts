@@ -208,9 +208,14 @@ async function refreshCommands(
         const text = oversized.map((x) => `/${x.name} (#${x.index}, ${x.size.toLocaleString()} characters)`).join(', ');
         message += ` [too big: ${text}]`;
       }
+      const duplicateNames = interactionCommandClient.getDuplicateOptionNames();
+      if (duplicateNames.length) {
+        const text = duplicateNames.map((x) => `/${x.path} (#${x.index}) ${x.names.join('/')} = "${x.value}" in ${x.locale}`).join(', ');
+        message += ` [same option names: ${text}]`;
+      }
       errors.push(`interaction commands: ${message}`);
 
-      dump = {clusterId: cluster.clusterId, error: message, badStrings: [], oversized: []};
+      dump = {clusterId: cluster.clusterId, error: message, badStrings: [], duplicateNames, oversized: []};
       dump.oversized = interactionCommandClient.getOversizedCommands();
 
       // lone surrogates/control characters make discord reject the whole body with a bare 400 (code 0)

@@ -7,7 +7,7 @@ import { Response } from 'detritus-rest';
 
 import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, isConnectionDropError, readErrorBody } from '../api/errors';
 import { ApiErrorCodes, DiscordSkuIds, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
-import { I18n, displayReply, formatMemory, getPremiumSkuName, getPremiumUpsellSku, linkPremiumSkuName } from '../utils';
+import { I18n, displayReply, formatMemory, getPremiumSkuFromTier, getPremiumSkuName, getPremiumUpsellSku, linkPremiumSkuName } from '../utils';
 
 
 // shared error formatting for prefixed and interaction commands, so both show the same messages
@@ -128,6 +128,30 @@ function translateApiError(
     const text = translator.translate(`${key}_max_size` as I18n.TranslationKey, {max_size: maxSize});
     return {specific: true, text};
   }
+  // the tier it needs when that's above premium itself, or a premium server (a member with plus gives it). the api's
+  // message stays as details, it says what needed it
+  if (apiError.code === ApiErrorCodes.PREMIUM_REQUIRED) {
+    if (apiError.tier === 'premium_server') {
+      return {specific: false, text: translator.translate(`${key}_server` as I18n.TranslationKey)};
+    }
+    const skuId = getPremiumSkuFromTier(apiError.tier);
+    if (skuId && skuId !== DiscordSkuIds.USER_NOTSOPREMIUM) {
+      const text = translator.translate(`${key}_tier` as I18n.TranslationKey, {tier: getPremiumSkuName(skuId)});
+      return {specific: false, text};
+    }
+  }
+  // the time limit it went over, for the caller's tier (what a higher one gives is in the upsell). a job timeout keeps
+  // the api's message as details, it says how long the job really ran and waited
+  const hasMaxSeconds = (
+    apiError.code === ApiErrorCodes.CODE_EXECUTION_TIMEOUT ||
+    apiError.code === ApiErrorCodes.JOB_TIMEOUT
+  );
+  if (hasMaxSeconds && typeof(apiError.max_seconds) === 'number' && 0 < apiError.max_seconds) {
+    const text = translator.translate(`${key}_max_seconds` as I18n.TranslationKey, {
+      seconds: apiError.max_seconds.toLocaleString(translator.language),
+    });
+    return {specific: apiError.code !== ApiErrorCodes.JOB_TIMEOUT, text};
+  }
   // how many messages a server gets from its premium, and when they come back
   if (apiError.code === ApiErrorCodes.SERVER_AI_LIMIT && typeof(apiError.resets_at) === 'string') {
     const resetsAt = new Date(apiError.resets_at);
@@ -170,7 +194,8 @@ const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
 
 // the errors a higher tier lifts, only for users without it. job timeouts and the queue come from
 // `enqueue_job` (premium gets the high queue and more time), weekly credits only come with plus (more with plus ai). a
-// file too large only gets `premium_max_size` when premium would've taken it (`.download`'s fetch job)
+// file too large only gets `premium_max_size` when premium would've taken it (`.download`'s fetch job), time limits
+// get `premium_tier`/`premium_seconds` for the cheapest tier above the user's own that gives more, none when nothing does
 async function getApiErrorUpsell(
   context: ErrorContext,
   apiError: ApiErrorBody,
@@ -180,7 +205,13 @@ async function getApiErrorUpsell(
   let text: string | undefined;
   switch (apiError.code) {
     case ApiErrorCodes.PREMIUM_REQUIRED: {
-      wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
+      // the api's `tier`, older errors without one meant premium
+      if (apiError.tier === 'premium_server') {
+        wanted = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
+        text = translator.translate('errors.upsell.premium_server');
+      } else {
+        wanted = getPremiumSkuFromTier(apiError.tier) || DiscordSkuIds.USER_NOTSOPREMIUM;
+      }
     }; break;
     case ApiErrorCodes.FILE_TOO_LARGE: {
       if (typeof(apiError.premium_max_size) !== 'number' || apiError.premium_max_size <= 0) {
@@ -189,9 +220,34 @@ async function getApiErrorUpsell(
       wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
       text = translator.translate('errors.upsell.file_size', {max_size: formatBytes(apiError.premium_max_size)});
     }; break;
+    case ApiErrorCodes.CODE_EXECUTION_TIMEOUT: {
+      const skuId = getPremiumSkuFromTier(apiError.premium_tier);
+      if (!skuId || typeof(apiError.premium_seconds) !== 'number') {
+        return null;
+      }
+      wanted = skuId;
+      text = translator.translate('errors.upsell.code_time', {
+        seconds: apiError.premium_seconds.toLocaleString(translator.language),
+        tier: getPremiumSkuName(skuId),
+      });
+    }; break;
     case ApiErrorCodes.JOB_TIMEOUT: {
-      wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
-      text = translator.translate('errors.upsell.job_time');
+      const skuId = getPremiumSkuFromTier(apiError.premium_tier);
+      if (skuId && typeof(apiError.premium_seconds) === 'number') {
+        wanted = skuId;
+        const seconds = apiError.premium_seconds.toLocaleString(translator.language);
+        // only premium itself moves them to a faster queue, every tier above it shares the high one
+        text = (skuId === DiscordSkuIds.USER_NOTSOPREMIUM) ?
+          translator.translate('errors.upsell.job_time_seconds', {seconds}) :
+          translator.translate('errors.upsell.job_time_seconds_tier', {seconds, tier: getPremiumSkuName(skuId)});
+      } else if (typeof(apiError.max_seconds) === 'number') {
+        // the api said what they got and no tier gives more
+        return null;
+      } else {
+        // jobs queued without it (not through `enqueue_job`)
+        wanted = DiscordSkuIds.USER_NOTSOPREMIUM;
+        text = translator.translate('errors.upsell.job_time');
+      }
     }; break;
     case ApiErrorCodes.CREDITS_LIMIT: {
       if (apiError.scope === 'server') {

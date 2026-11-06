@@ -61,8 +61,61 @@ export function getApplicationCommandSize(raw: Record<string, any>): number {
   return size;
 }
 
+export interface ApplicationCommandDuplicateName {
+  index: number,
+  locale: string,
+  names: Array<string>,
+  path: string,
+  value: string,
+}
+
+// options of one command or subcommand have to have different names in every language, a translation that matches a
+// sibling's (like `file` and `attachment` both being `datei`) makes discord refuse the whole upload
+function findDuplicateOptionNames(
+  raw: Record<string, any>,
+  index: number,
+  path: string,
+  found: Array<ApplicationCommandDuplicateName>,
+): void {
+  const options: Array<Record<string, any>> = raw.options || [];
+  const locales = new Set<string>(['default']);
+  for (let option of options) {
+    for (let locale in (option.name_localizations || {})) {
+      locales.add(locale);
+    }
+  }
+  for (let locale of locales) {
+    const byValue: Record<string, Array<string>> = {};
+    for (let option of options) {
+      const localized = (locale !== 'default' && option.name_localizations) ? option.name_localizations[locale] : null;
+      const value = localized || option.name;
+      (byValue[value] = byValue[value] || []).push(option.name);
+    }
+    for (let value in byValue) {
+      if (1 < byValue[value].length) {
+        found.push({index, locale, names: byValue[value], path, value});
+      }
+    }
+  }
+  for (let option of options) {
+    findDuplicateOptionNames(option, index, `${path} ${option.name}`, found);
+  }
+}
+
 
 export class NotSoInteractionClient extends InteractionCommandClient {
+  // the option names discord will refuse for matching a sibling option's name in some language
+  getDuplicateOptionNames(): Array<ApplicationCommandDuplicateName> {
+    const found: Array<ApplicationCommandDuplicateName> = [];
+    let index = 0;
+    for (let command of this.commands) {
+      const raw = JSON.parse(JSON.stringify(command));
+      findDuplicateOptionNames(raw, index, raw.name, found);
+      index++;
+    }
+    return found;
+  }
+
   // the commands discord will refuse to upload for being too big, in the order they're uploaded
   getOversizedCommands(limit: number = MAX_APPLICATION_COMMAND_SIZE): Array<ApplicationCommandSize> {
     const oversized: Array<ApplicationCommandSize> = [];
