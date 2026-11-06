@@ -231,6 +231,11 @@ export async function createTagMessage(
   }
 
   let content = parsedTag.text.trim().slice(0, 4000).trim();
+  // text that's only zero width spaces/blank characters would reply with what looks like an empty message, so the tag
+  // gets "returned no content" instead
+  if (isInvisibleText(content)) {
+    content = '';
+  }
   if (title) {
     content = [title + '\n', content].join('\n').slice(0, 4000).trim();
   }
@@ -909,6 +914,15 @@ export async function maybeCheckNSFW(
 export function isOnlyUrls(text: string): boolean {
   const parts = text.split(/\s+/).filter(Boolean);
   return !!parts.length && parts.every((part) => /^<?https?:\/\/[^\s<>]+>?$/i.test(part));
+}
+
+
+// characters discord renders as nothing (or a blank gap) that `trim()` leaves alone: zero width spaces/joiners,
+// direction marks, variation selectors, the braille blank and the hangul fillers
+const REGEX_INVISIBLE_TEXT = /^[\s­͏ᅟᅠ឴឵᠋-᠏​-‏‪-‮⁠-⁯⠀ㅤ︀-️﻿ﾠ]*$/;
+
+export function isInvisibleText(text: string): boolean {
+  return REGEX_INVISIBLE_TEXT.test(text);
 }
 
 
