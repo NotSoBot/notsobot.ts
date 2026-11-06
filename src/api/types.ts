@@ -27,6 +27,7 @@ import {
   RedditTimeTypes,
   ReportStatuses,
   ReportTypes,
+  ScreenshotBrowsers,
   TagBlobStorageTypes,
   TagDirectoryCategories,
   TagDirectoryVerificationStates,
@@ -1752,6 +1753,11 @@ export namespace RestOptions {
     expand?: boolean,
   }
 
+  export interface MediaIVToolsOCRTranslate extends MediaBaseOptions {
+    from?: GoogleLocales,
+    to?: GoogleLocales,
+  }
+
 
   export interface ModerationSafetyScan extends MediaBaseOptionsMultiple {
     context?: ModerationTextContext,
@@ -2167,6 +2173,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesScreenshot extends MediaUploadBaseOptions {
+    browser?: ScreenshotBrowsers,
     darkmode?: boolean,
     height?: number,
     timeout?: number,

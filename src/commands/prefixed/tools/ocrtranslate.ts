@@ -7,11 +7,13 @@ import { BaseImageCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
+  replace: boolean,
   to: null | GoogleLocales,
   url?: null | string,
 }
 
 export interface CommandArgs {
+  replace: boolean,
   to: null | GoogleLocales,
   url: string,
 }
@@ -25,6 +27,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
 
       aliases: ['ocrtr', 'trocr', 'translateocr'],
       args: [
+        {name: 'replace', type: Boolean, metadata: {description: 'Replace the text in the image with its translation'}},
         {name: 'to', default: DefaultParameters.locale, type: Parameters.locale},
       ],
       metadata: {
@@ -34,9 +37,10 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
           COMMAND_NAME,
           `${COMMAND_NAME} cake`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/captioned.png -to russian`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/captioned.png -to spanish -replace`,
         ],
         id: Formatter.Commands.ToolsOCRTranslate.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-to <language>)',
+        usage: '?<emoji,user:id|mention|name,url> (-replace) (-to <language>)',
       },
       ratelimits: CommandRatelimits.ML,
     });
@@ -44,6 +48,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
 
   async run(context: Command.Context, args: CommandArgs) {
     return Formatter.Commands.ToolsOCRTranslate.createMessage(context, {
+      replace: args.replace,
       to: args.to,
       url: args.url,
     });

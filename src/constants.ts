@@ -146,6 +146,7 @@ export enum ApiErrorCodes {
   MEDIA_CORRUPTED = 40031,
   MEDIA_PROCESSING_FAILED = 40032,
   PROJECT_TOO_COMPLEX = 40033,
+  NO_TEXT_DETECTED = 40034,
 
   INVALID_FORM_BODY = 50001,
   INVALID_HEADER = 50002,
@@ -1229,6 +1230,12 @@ export enum MusicLoopModes {
   TRACK = 'track',
   // a track that ends (or is skipped) goes back to the end of the queue
   QUEUE = 'queue',
+}
+
+// which browser `screenshot` uses, the api's `browser`. firefox is camoufox, it only screenshots at 1920x1080
+export enum ScreenshotBrowsers {
+  CHROME = 'chrome',
+  FIREFOX = 'firefox',
 }
 
 // how far back `music stats` counts, the api's `period`

@@ -1010,6 +1010,9 @@ export const Api = Object.freeze({
   MEDIA_IV_MANIPULATION_ZOOM_BLUR:
     '/media/iv/manipulation/zoom/blur',
 
+  MEDIA_IV_TOOLS_OCR_TRANSLATE:
+    '/media/iv/tools/ocr-translate',
+
   MODERATION_SAFETY_SCAN:
     '/moderation/safety-scan',
   MODERATION_TEXT_SCAN:

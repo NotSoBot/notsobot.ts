@@ -2,14 +2,22 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 
-import { googleContentVisionOCR, googleTranslate } from '../../../api';
+import { googleContentVisionOCR, googleTranslate, mediaIVToolsOCRTranslate } from '../../../api';
+import { RestResponsesRaw } from '../../../api/types';
 import {
   EmbedBrands,
   EmbedColors,
   GoogleLocales,
 } from '../../../constants';
-import { DisplayPayload, displayReply, languageCodeToText, splitTextByAmount } from '../../../utils';
-import { getTranslator } from '../../i18n';
+import {
+  DefaultParameters,
+  DisplayPayload,
+  displayReply,
+  jobReply,
+  languageCodeToText,
+  splitTextByAmount,
+} from '../../../utils';
+import { Translator, getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'tools.ocr.translate';
@@ -17,6 +25,8 @@ export const COMMAND_ID = 'tools.ocr.translate';
 export interface CommandArgs {
   file?: RequestFile,
   isEphemeral?: boolean,
+  // the image back with its text replaced by the translation, instead of the text
+  replace?: boolean,
   to?: GoogleLocales | null,
   url?: string,
 }
@@ -28,6 +38,16 @@ export async function createMessage(
   const { language, languageName, translate } = await getTranslator(context);
   if (!args.file && !args.url) {
     return displayReply(context, {description: translate('tools.translate.missing_input')});
+  }
+
+  if (args.replace) {
+    const job = await mediaIVToolsOCRTranslate(context, {
+      file: args.file,
+      safe: DefaultParameters.safe(context),
+      to: args.to || undefined,
+      url: args.url,
+    });
+    return jobReply(context, job, {describe: (response) => describeReplaced(response, languageName, translate)});
   }
 
 
@@ -112,4 +132,22 @@ export async function createMessage(
   }
 
   return displayReply(context, {...payload, ephemeral: args.isEphemeral, files});
+}
+
+
+// which languages it went between, from the job's `arguments` (google not changing any of it says so instead)
+export function describeReplaced(
+  response: RestResponsesRaw.FileResponse,
+  languageName: Translator['languageName'],
+  translate: Translator['translate'],
+): string | undefined {
+  const details = response.arguments;
+  if (!details || !details.to_language) {
+    return undefined;
+  }
+  const fromLanguage = details.from_language || details.to_language;
+  const from = languageName(fromLanguage, languageCodeToText(fromLanguage));
+  const to = languageName(details.to_language, languageCodeToText(details.to_language));
+  const changed = Array.isArray(details.paragraphs) && details.paragraphs.length;
+  return translate((changed) ? 'tools.translate.title' : 'tools.translate.title_untranslated', {from, to});
 }

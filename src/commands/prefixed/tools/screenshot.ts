@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, CommandRatelimits } from '../../../constants';
+import { CommandCategories, CommandRatelimits, ScreenshotBrowsers } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -15,6 +15,7 @@ export default class ScreenshotCommand extends BaseCommand {
 
       aliases: ['ss'],
       args: [
+        {name: 'browser', aliases: ['b'], type: Parameters.oneOf({choices: ScreenshotBrowsers}), metadata: {description: 'chrome or firefox, firefox is always 1920x1080'}},
         {name: 'height', aliases: ['h'], type: Number, metadata: {description: '1 to 4096'}},
         {name: 'lightmode', aliases: ['light'], type: Boolean},
         {name: 'timeout', aliases: ['t'], type: 'float', metadata: {description: '1 to 15'}},
@@ -28,9 +29,10 @@ export default class ScreenshotCommand extends BaseCommand {
         description: 'Take a screenshot of a website',
         examples: [
           `${COMMAND_NAME} https://discord.com`,
+          `${COMMAND_NAME} https://discord.com -browser firefox`,
         ],
         id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
-        usage: '<url> (-height <number>) (-lightmode) (-timeout <seconds>) (-wait <float>) (-width <number>)',
+        usage: '<url> (-browser <chrome|firefox>) (-height <number>) (-lightmode) (-timeout <seconds>) (-wait <float>) (-width <number>)',
       },
       ratelimits: CommandRatelimits.BROWSER,
       type: Parameters.url,

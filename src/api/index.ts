@@ -4969,6 +4969,14 @@ export async function mediaIVManipulationZoomBlur(
 }
 
 
+export async function mediaIVToolsOCRTranslate(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsOCRTranslate,
+) {
+  return raw.mediaIVToolsOCRTranslate(context, options);
+}
+
+
 export async function moderationSafetyScan(
   context: RequestContext,
   options: RestOptions.ModerationSafetyScan,

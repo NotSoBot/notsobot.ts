@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandRatelimits } from '../../../../constants';
+import { CommandRatelimits, ScreenshotBrowsers } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -27,6 +27,12 @@ export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
           ...I18n.optionLocalizations('commands.tools.screenshot.url'),
           required: true,
           value: Parameters.url,
+        },
+        {
+          name: 'browser',
+          description: 'Browser to use, Firefox is always 1920x1080 (Default: Chrome)',
+          ...I18n.optionLocalizations('commands.tools.screenshot.browser'),
+          choices: Parameters.Slash.oneOf({choices: ScreenshotBrowsers, doNotSort: true}),
         },
         {
           name: 'width',

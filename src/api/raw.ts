@@ -13026,6 +13026,29 @@ export async function mediaIVManipulationZoomBlur(
 }
 
 
+export async function mediaIVToolsOCRTranslate(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsOCRTranslate,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    from_language: options.from,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    to_language: options.to,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_OCR_TRANSLATE,
+    },
+  });
+}
+
+
 export async function moderationSafetyScan(
   context: RequestContext,
   options: RestOptions.ModerationSafetyScan,
@@ -14235,6 +14258,7 @@ export async function utilitiesScreenshot(
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    browser: options.browser,
     // the api defaults to dark mode, so `-lightmode` did nothing without this
     darkmode: options.darkmode,
     height: options.height,

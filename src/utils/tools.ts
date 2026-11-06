@@ -37,6 +37,7 @@ import {
   regex as discordRegex,
 } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints, RequestTypes } from 'detritus-client-rest';
+import { DiscordHTTPError } from 'detritus-client-rest/lib/errors';
 import { replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
 
@@ -256,6 +257,66 @@ export async function editOrReply(
     options = {content: options};
   }
 
+  await prepareFiles(context, options);
+
+  if (context instanceof ComponentContext || context instanceof InteractionModalContext) {
+    await context.editOrRespond({
+      ...options,
+      allowedMentions: {parse: [], ...options.allowedMentions},
+    });
+    return;
+  } else if (context instanceof Interaction.InteractionContext) {
+    await context.editOrRespond({
+      ...options,
+      allowedMentions: {parse: [], ...options.allowedMentions},
+    });
+    return;
+  }
+
+  // discord can't edit a components v2 message back into plain content, so detritus would delete the reply and send a
+  // new one (an edit re-running the command over a finished media result, then replying with its thinking text). plain
+  // text as a top-level text display looks the same and keeps it to an edit
+  const response = context.response;
+  if (
+    response && response.hasFlagComponentsV2 && !response.deleted &&
+    options.content && !options.components && !options.embed && !(options.embeds && options.embeds.length) &&
+    !(options.files && options.files.length)
+  ) {
+    const components = new Components();
+    components.addTextDisplay({content: options.content});
+    options = {...options, components, content: ''};
+  }
+
+  return context.editOrReply({
+    reference: true,
+    ...options,
+    allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
+  });
+}
+
+// discord can't edit a components v2 response back into plain content with an attachment (the flag can't be removed),
+// so send it as a follow-up and delete the response instead, like detritus does for prefix replies
+export async function replaceInteractionResponse(
+  context: Interaction.InteractionContext,
+  options: Structures.InteractionEditOrRespond,
+): Promise<void> {
+  if (isCommandRunCancelled(context)) {
+    throw new CommandRunCancelledError();
+  }
+  await prepareFiles(context, options);
+  await context.createMessage({
+    ...options,
+    allowedMentions: {parse: [], ...options.allowedMentions},
+  });
+  // the result is already out, a response we couldn't delete shouldn't turn into a failure
+  await context.deleteResponse().catch(() => {});
+}
+
+// moves `file` into `files`, and uploads them separately when they're 50mb or more together
+async function prepareFiles(
+  context: Command.Context | Interaction.InteractionContext | ComponentContext | InteractionModalContext,
+  options: Command.EditOrReply | Structures.InteractionEditOrRespond,
+): Promise<void> {
   if (options.file) {
     if (options.files) {
       options.files.push(options.file);
@@ -307,40 +368,6 @@ export async function editOrReply(
     }
     options.files = [];
   }
-
-  if (context instanceof ComponentContext || context instanceof InteractionModalContext) {
-    await context.editOrRespond({
-      ...options,
-      allowedMentions: {parse: [], ...options.allowedMentions},
-    });
-    return;
-  } else if (context instanceof Interaction.InteractionContext) {
-    await context.editOrRespond({
-      ...options,
-      allowedMentions: {parse: [], ...options.allowedMentions},
-    });
-    return;
-  }
-
-  // discord can't edit a components v2 message back into plain content, so detritus would delete the reply and send a
-  // new one (an edit re-running the command over a finished media result, then replying with its thinking text). plain
-  // text as a top-level text display looks the same and keeps it to an edit
-  const response = context.response;
-  if (
-    response && response.hasFlagComponentsV2 && !response.deleted &&
-    options.content && !options.components && !options.embed && !(options.embeds && options.embeds.length) &&
-    !(options.files && options.files.length)
-  ) {
-    const components = new Components();
-    components.addTextDisplay({content: options.content});
-    options = {...options, components, content: ''};
-  }
-
-  return context.editOrReply({
-    reference: true,
-    ...options,
-    allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
-  });
 }
 
 
@@ -2144,7 +2171,13 @@ export async function jobReply(
     } catch(error) {
       cancelJob(context, job.id);
       try {
-        await replyJobWarning(context, translate('media.job_failed', {error: String(error.message || error)}));
+        const lines = [translate('media.job_failed', {error: String(error.message || error)})];
+        // discord rejecting the result's reply (400 Invalid Form Body) says which field it didn't like
+        if (error instanceof DiscordHTTPError && error.errors) {
+          const { formatFormErrors }: typeof import('../commands/errors') = require('../commands/errors');
+          lines.push(...formatFormErrors(error.errors));
+        }
+        await replyJobWarning(context, lines.join('\n'));
       } catch(replyError) {
         
       }
@@ -3317,15 +3350,25 @@ export async function mediaReplyFromOptions(
     });
   }
 
-  return editOrReply(options.context || context, {
+  // the default display's audio (attached for discord's player) can't be an edit of a response that's already
+  // components v2 (the thinking text), it replaces it instead and loses the "used /command" header with it
+  const replacesResponse = (
+    !options.context && context instanceof Interaction.InteractionContext && context.responded &&
+    displaySettings === UserSettingsResponseDisplayTypes.DEFAULT
+  );
+  const message = {
     content: [
       options.content || '',
       options.description || '',
-      (isFromInteraction) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
+      (isFromInteraction && !replacesResponse) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
       `-# ${footer}`,
     ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, value},
-  });
+  };
+  if (replacesResponse) {
+    return replaceInteractionResponse(context as Interaction.InteractionContext, message);
+  }
+  return editOrReply(options.context || context, message);
 }
 
 

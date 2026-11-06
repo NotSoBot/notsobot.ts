@@ -22,11 +22,12 @@ export class ToolsOCRTranslateCommand extends BaseInteractionImageCommandOption 
       ratelimits: CommandRatelimits.ML,
       options: [
         {name: 'to', description: 'Language to translate to', ...I18n.optionLocalizations('commands.tools.ocr_translate.to'), default: DefaultParameters.locale, value: Parameters.locale},
+        {name: 'replace', description: 'Replace the text in the image with its translation (Default: False)', ...I18n.optionLocalizations('commands.tools.ocr_translate.replace'), type: Boolean},
       ],
     });
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ToolsOCRTranslate.CommandArgs) {
-    return Formatter.Commands.ToolsOCRTranslate.createMessage(context, {to: args.to, url: args.url});
+    return Formatter.Commands.ToolsOCRTranslate.createMessage(context, {replace: args.replace, to: args.to, url: args.url});
   }
 }

@@ -264,6 +264,7 @@ const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
   ApiErrorCodes.NO_CLONED_VOICES,
   ApiErrorCodes.NO_LABELS_DETECTED,
   ApiErrorCodes.NO_TAGS_FOUND,
+  ApiErrorCodes.NO_TEXT_DETECTED,
   // what can't be used is what they just picked ('This board is NSFW...')
   ApiErrorCodes.NSFW_CHANNEL_REQUIRED,
   ApiErrorCodes.OAUTH_CODE_MISSING,
@@ -413,7 +414,7 @@ function describeApiError(
 
 // the api and discord both nest form errors by field, like `{width: {_errors: [{code, message}]}}` or `{files: {0: {_errors: [...]}}}`
 // show one line per field with just the messages instead of the raw json
-function formatFormErrors(errors: unknown, path: Array<string> = [], lines: Array<string> = []): Array<string> {
+export function formatFormErrors(errors: unknown, path: Array<string> = [], lines: Array<string> = []): Array<string> {
   const label = (path.length) ? `**${path.join('.')}**: ` : '';
   if (!errors || typeof(errors) !== 'object') {
     lines.push(label + String(errors));

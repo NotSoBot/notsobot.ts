@@ -104,6 +104,7 @@ import {
   MLDiffusionModelsToText,
   ProxyRequestMethods,
   ReportTypes,
+  ScreenshotBrowsers,
   SearchProvidersText,
   TagBlobStorageTypes,
   TagGenerationModels,
@@ -5173,16 +5174,29 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.API_UTILITIES_SCREENSHOT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {api.utilities.screenshot:url}
+    // {api.utilities.screenshot:url|browser?}
 
     arg = arg.trim();
     if (!arg) {
       return true;
     }
 
+    // only a last part that's a browser counts, a `|` in the url stays part of it
+    let browser: ScreenshotBrowsers | undefined;
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const parts = split(arg);
+      const insensitive = parts[parts.length - 1].trim().toLowerCase();
+      if ((Object.values(ScreenshotBrowsers) as Array<string>).includes(insensitive)) {
+        browser = insensitive as ScreenshotBrowsers;
+        parts.pop();
+        arg = parts.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+      }
+    }
+
     increaseNetworkRequests(tag);
 
     const response = await withDeadline(context, tag, () => utilitiesScreenshot(context, {
+      browser,
       safe: DefaultParameters.safe(context),
       url: arg,
     }));
