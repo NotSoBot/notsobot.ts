@@ -3487,7 +3487,10 @@ const ScriptTags = Object.freeze({
 
     let storage: TagStorage = {channel: {}, global: {}, server: {}, user: {}};
 
-    const tagId = getStorageTagId(context);
+    // storage only reaches the code through stdin (`discord.storage`/`discord.blobs` or the raw json) and only gets
+    // saved from `__internals__.json`, both need the word. code that never names it skips the 2 storage requests and
+    // runs like an unsaved tag, saves included (blobs are put as a full set, a write without the fetch would wipe them)
+    const tagId = (/storage|blob/i.test(arg)) ? getStorageTagId(context) : null;
 
     if (tagId) {
       {
