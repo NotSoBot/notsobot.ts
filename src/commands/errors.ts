@@ -108,6 +108,50 @@ function formatBytes(bytes: number): string {
 }
 
 
+// a job timeout whose job got less than the command's limit (`seconds` is what rq gave it), or stopped well before it.
+// only rq's own timeouts say how long it ran, a render stopping itself (mediascript's ffmpeg) explains why in its message
+function isEarlyJobTimeout(apiError: ApiErrorBody): boolean {
+  const { max_seconds: maxSeconds, ran_seconds: ranSeconds, seconds } = apiError;
+  if (typeof(maxSeconds) !== 'number' || typeof(ranSeconds) !== 'number') {
+    return true;
+  }
+  if (typeof(seconds) === 'number' && seconds < maxSeconds) {
+    return true;
+  }
+  return ranSeconds < maxSeconds - 2;
+}
+
+
+// limits that say how many with `limit`, and which one was hit with `scope` ('' for codes with only one, voice clones
+// only say whether they're a server's). a scope not in here keeps the plain translation with the api's message as details
+const LIMIT_API_ERROR_SCOPES: Partial<Record<ApiErrorCodes, ReadonlyArray<string>>> = {
+  [ApiErrorCodes.MAX_APPLICATIONS]: [''],
+  [ApiErrorCodes.MAX_CUSTOM_COMMANDS]: [''],
+  [ApiErrorCodes.MAX_GUILD_LOGGERS]: [''],
+  [ApiErrorCodes.MAX_GUILD_PREFIXES]: [''],
+  [ApiErrorCodes.MAX_GUILD_REPORTS]: [''],
+  [ApiErrorCodes.MAX_GUILD_REPORT_MESSAGES]: ['hour'],
+  [ApiErrorCodes.MAX_GUILD_RULES]: [''],
+  [ApiErrorCodes.MAX_REMINDERS]: ['global', 'server', 'timeframe', 'timeframe_server'],
+  [ApiErrorCodes.MAX_REPORTS]: ['hour', 'day'],
+  [ApiErrorCodes.MAX_REPORT_MESSAGES]: ['hour'],
+  [ApiErrorCodes.MAX_TAGS]: ['user', 'user_server', 'server'],
+  // their `type` (the tag storage it's for) isn't used, every type has the same limit
+  [ApiErrorCodes.MAX_TAG_BLOBS]: [''],
+  [ApiErrorCodes.MAX_TAG_DIRECTORY]: [''],
+  [ApiErrorCodes.MAX_TAG_VARIABLES]: [''],
+  [ApiErrorCodes.MAX_TIMED_BANS]: ['server', 'timeframe_server'],
+  [ApiErrorCodes.MAX_VOICE_CLONES]: ['', 'server'],
+};
+
+function getLimitScope(apiError: ApiErrorBody): string {
+  if (apiError.code === ApiErrorCodes.MAX_VOICE_CLONES) {
+    return (apiError.server === true) ? 'server' : '';
+  }
+  return (typeof(apiError.scope) === 'string') ? apiError.scope : '';
+}
+
+
 // some codes come with metadata for a more specific message, which already says everything the api's message does
 function translateApiError(
   apiError: ApiErrorBody,
@@ -141,16 +185,40 @@ function translateApiError(
     }
   }
   // the time limit it went over, for the caller's tier (what a higher one gives is in the upsell). a job timeout keeps
-  // the api's message as details, it says how long the job really ran and waited
+  // the api's message as details only when it timed out early (downloads used some of the limit, or it ran well short
+  // of it), otherwise it just repeats the limit, so only the time it waited in the queue gets its own line
   const hasMaxSeconds = (
     apiError.code === ApiErrorCodes.CODE_EXECUTION_TIMEOUT ||
     apiError.code === ApiErrorCodes.JOB_TIMEOUT
   );
   if (hasMaxSeconds && typeof(apiError.max_seconds) === 'number' && 0 < apiError.max_seconds) {
-    const text = translator.translate(`${key}_max_seconds` as I18n.TranslationKey, {
+    let text = translator.translate(`${key}_max_seconds` as I18n.TranslationKey, {
       seconds: apiError.max_seconds.toLocaleString(translator.language),
     });
-    return {specific: apiError.code !== ApiErrorCodes.JOB_TIMEOUT, text};
+    if (apiError.code !== ApiErrorCodes.JOB_TIMEOUT) {
+      return {specific: true, text};
+    }
+    if (isEarlyJobTimeout(apiError)) {
+      return {specific: false, text};
+    }
+    const queuedSeconds = (typeof(apiError.queued_seconds) === 'number') ? Math.round(apiError.queued_seconds) : 0;
+    if (0 < queuedSeconds) {
+      text += '\n' + translator.translate(`${key}_queued` as I18n.TranslationKey, {
+        seconds: queuedSeconds.toLocaleString(translator.language),
+      });
+    }
+    return {specific: true, text};
+  }
+  // the limit it hit, the api's message only says it again in english
+  const limitScopes = LIMIT_API_ERROR_SCOPES[apiError.code];
+  if (limitScopes && typeof(apiError.limit) === 'number') {
+    const scope = getLimitScope(apiError);
+    if (limitScopes.includes(scope)) {
+      const text = translator.translate(((scope) ? `${key}_limit_${scope}` : `${key}_limit`) as I18n.TranslationKey, {
+        limit: apiError.limit.toLocaleString(translator.language),
+      });
+      return {specific: true, text};
+    }
   }
   // how many messages a server gets from its premium, and when they come back
   if (apiError.code === ApiErrorCodes.SERVER_AI_LIMIT && typeof(apiError.resets_at) === 'string') {
@@ -184,10 +252,40 @@ function translateApiError(
 }
 
 
-// the api's message for these only rewords the translation ('An outputted media was blocked...'), it never adds anything
+// the api's message for these only rewords the translation ('An outputted media was blocked...', 'Unknown Location'),
+// it never adds anything
 const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
   ApiErrorCodes.CREDITS_LIMIT,
+  ApiErrorCodes.DISCORD_FETCH_FAILED,
+  ApiErrorCodes.DISCORD_INFO_UNAVAILABLE,
+  ApiErrorCodes.DISCORD_RATELIMITED,
+  ApiErrorCodes.GUILD_LOGGER_TYPE_CONFLICT,
+  ApiErrorCodes.GUILD_REPORTS_DISABLED,
+  ApiErrorCodes.NO_CLONED_VOICES,
+  ApiErrorCodes.NO_LABELS_DETECTED,
+  ApiErrorCodes.NO_TAGS_FOUND,
+  // what can't be used is what they just picked ('This board is NSFW...')
+  ApiErrorCodes.NSFW_CHANNEL_REQUIRED,
+  ApiErrorCodes.OAUTH_CODE_MISSING,
+  ApiErrorCodes.REMINDER_TIMESTAMP_IN_PAST,
   ApiErrorCodes.SERVER_AI_LIMIT,
+  ApiErrorCodes.TAG_DIRECTORY_ALREADY_PENDING,
+  ApiErrorCodes.TAG_DIRECTORY_ALREADY_UNVERIFIED,
+  ApiErrorCodes.TAG_DIRECTORY_ALREADY_VERIFIED,
+  ApiErrorCodes.TAG_DIRECTORY_CANNOT_UNVERIFY_VERIFIED,
+  ApiErrorCodes.TAG_DIRECTORY_VERIFICATION_REQUIRES_CATEGORY,
+  ApiErrorCodes.TAG_DIRECTORY_VERIFICATION_REQUIRES_DESCRIPTION,
+  ApiErrorCodes.TAG_LOCKED,
+  ApiErrorCodes.TAG_REFERENCE_UNKNOWN,
+  ApiErrorCodes.TAG_STORAGE_ID_MISMATCH,
+  ApiErrorCodes.TIMED_BAN_TIMESTAMP_IN_PAST,
+  ApiErrorCodes.TTS_LANGUAGE_NOT_SUPPORTED,
+  ApiErrorCodes.UNKNOWN_GUILD_REPORT,
+  ApiErrorCodes.UNKNOWN_GUILD_RULE,
+  ApiErrorCodes.UNKNOWN_LOCATION,
+  ApiErrorCodes.UNKNOWN_TTS_VOICE,
+  ApiErrorCodes.UNKNOWN_VOICE,
+  ApiErrorCodes.VANITY_GENERATION_FAILED,
   ...CONTENT_BLOCKED_API_ERRORS,
 ];
 
@@ -273,17 +371,15 @@ async function getApiErrorUpsell(
 }
 
 
-// our translations drift from the api's wording a little ('The media...' vs 'This media...'), don't show both when they say the same thing
-function normalizeErrorMessage(message: string): string {
-  return message
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim()
-    .replace(/^(the|this|that) /, '');
+// our translations drift from the api's wording a little ('No faces detected' vs 'No faces were detected.'), the api's
+// message says nothing more when every word of it is in the english translation. always english, the api's is english
+function getErrorMessageWords(message: string): Array<string> {
+  return message.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 }
 
-function isSameErrorMessage(a: string, b: string): boolean {
-  return normalizeErrorMessage(a) === normalizeErrorMessage(b);
+function isSameErrorMessage(message: string, english: string): boolean {
+  const words = new Set(getErrorMessageWords(english));
+  return getErrorMessageWords(message).every((word) => words.has(word));
 }
 
 
@@ -302,7 +398,13 @@ function describeApiError(
   const { specific, text } = translateApiError(apiError, apiErrorKey, translator);
   description.push(text);
   const showDetails = !specific && !API_ERRORS_WITHOUT_DETAILS.includes(apiError.code);
-  if (showDetails && apiError.message && !isSameErrorMessage(apiError.message, text)) {
+  if (showDetails && apiError.message) {
+    const english = (translator.language === I18n.Languages.ENGLISH) ?
+      text :
+      translateApiError(apiError, apiErrorKey, I18n.getTranslatorForLanguage(I18n.Languages.ENGLISH)).text;
+    if (isSameErrorMessage(apiError.message, english)) {
+      return true;
+    }
     fields.push({name: translator.translate('errors.field.details'), value: apiError.message});
   }
   return true;
