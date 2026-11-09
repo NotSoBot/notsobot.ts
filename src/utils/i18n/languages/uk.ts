@@ -14,6 +14,7 @@ export const Ukrainian: Translations = Object.freeze({
   'common.no': 'Ні',
   'common.none': 'Немає',
   'common.owner': 'Власник',
+  'common.moderator': 'Модератор',
   'common.page_of': '({page} з {total})',
   'common.position': 'Позиція',
   'common.type': 'Тип',

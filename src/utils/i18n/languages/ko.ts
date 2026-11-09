@@ -14,6 +14,7 @@ export const Korean: Translations = Object.freeze({
   'common.no': '아니요',
   'common.none': '없음',
   'common.owner': '소유자',
+  'common.moderator': '관리자',
   'common.page_of': '({page}/{total})',
   'common.position': '위치',
   'common.type': '유형',

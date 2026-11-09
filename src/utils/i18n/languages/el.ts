@@ -14,6 +14,7 @@ export const Greek: Translations = Object.freeze({
   'common.no': 'Όχι',
   'common.none': 'Κανένα',
   'common.owner': 'Ιδιοκτήτης',
+  'common.moderator': 'Συντονιστής',
   'common.page_of': '({page} από {total})',
   'common.position': 'Θέση',
   'common.type': 'Τύπος',

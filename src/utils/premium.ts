@@ -3,7 +3,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 import { UserFull } from '../api/structures/user';
 import UserStore from '../stores/users';
-import { DiscordSkuIds } from '../constants';
+import { DiscordSkuIds, UserPremiumTypes } from '../constants';
 
 
 // upsells for when a free (or lower tier) user hits something premium raises: the tier's name in the text becomes a link
@@ -29,6 +29,18 @@ const PREMIUM_TIER_SKUS: Record<string, DiscordSkuIds> = Object.freeze({
 
 export function getPremiumSkuFromTier(tier: unknown): DiscordSkuIds | null {
   return (typeof(tier) === 'string' && Object.prototype.hasOwnProperty.call(PREMIUM_TIER_SKUS, tier)) ? PREMIUM_TIER_SKUS[tier] : null;
+}
+
+// the tier a user's premium type is sold as, null without any. PREMIUM_FREE is given by hand and has every perk, so it's
+// the top one
+export function getPremiumSkuFromType(premiumType: UserPremiumTypes): DiscordSkuIds | null {
+  switch (premiumType) {
+    case UserPremiumTypes.PREMIUM: return DiscordSkuIds.USER_NOTSOPREMIUM;
+    case UserPremiumTypes.PREMIUM_PLUS: return DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
+    case UserPremiumTypes.PREMIUM_FREE:
+    case UserPremiumTypes.PREMIUM_PLUS_AI: return DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI;
+  }
+  return null;
 }
 
 // the tier's name on its own, not the start of a longer one ('NotSoPremium' in 'NotSoPremium Plus'). every language keeps

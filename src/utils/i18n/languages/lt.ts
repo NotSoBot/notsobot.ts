@@ -14,6 +14,7 @@ export const Lithuanian: Translations = Object.freeze({
   'common.no': 'Ne',
   'common.none': 'Nėra',
   'common.owner': 'Savininkas',
+  'common.moderator': 'Moderatorius',
   'common.page_of': '({page} iš {total})',
   'common.position': 'Pozicija',
   'common.type': 'Tipas',

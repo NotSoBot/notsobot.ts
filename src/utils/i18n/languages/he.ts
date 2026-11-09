@@ -14,6 +14,7 @@ export const Hebrew: Translations = Object.freeze({
   'common.no': 'לא',
   'common.none': 'אין',
   'common.owner': 'בעלים',
+  'common.moderator': 'מנחה',
   'common.page_of': '({page} מתוך {total})',
   'common.position': 'מיקום',
   'common.type': 'סוג',

@@ -14,6 +14,7 @@ export const Indonesian: Translations = Object.freeze({
   'common.no': 'Tidak',
   'common.none': 'Tidak ada',
   'common.owner': 'Pemilik',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} dari {total})',
   'common.position': 'Posisi',
   'common.type': 'Tipe',

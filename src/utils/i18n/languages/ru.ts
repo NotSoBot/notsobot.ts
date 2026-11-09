@@ -14,6 +14,7 @@ export const Russian: Translations = Object.freeze({
   'common.no': 'Нет',
   'common.none': 'Нет',
   'common.owner': 'Владелец',
+  'common.moderator': 'Модератор',
   'common.page_of': '({page} из {total})',
   'common.position': 'Позиция',
   'common.type': 'Тип',

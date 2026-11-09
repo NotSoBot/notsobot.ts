@@ -14,6 +14,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'common.no': '否',
   'common.none': '無',
   'common.owner': '擁有者',
+  'common.moderator': '管理員',
   'common.page_of': '（第 {page} 頁，共 {total} 頁）',
   'common.position': '位置',
   'common.type': '類型',

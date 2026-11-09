@@ -14,6 +14,7 @@ export const Romanian: Translations = Object.freeze({
   'common.no': 'Nu',
   'common.none': 'Niciunul',
   'common.owner': 'Proprietar',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} din {total})',
   'common.position': 'Poziție',
   'common.type': 'Tip',

@@ -14,6 +14,7 @@ export const Bulgarian: Translations = Object.freeze({
   'common.no': 'Не',
   'common.none': 'Няма',
   'common.owner': 'Собственик',
+  'common.moderator': 'Модератор',
   'common.page_of': '({page} от {total})',
   'common.position': 'Позиция',
   'common.type': 'Тип',

@@ -14,6 +14,7 @@ export const Dutch: Translations = Object.freeze({
   'common.no': 'Nee',
   'common.none': 'Geen',
   'common.owner': 'Eigenaar',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} van {total})',
   'common.position': 'Positie',
   'common.type': 'Type',

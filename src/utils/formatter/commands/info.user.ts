@@ -4,8 +4,10 @@ import { Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
 import UserAvatarDecorations, { UserAvatarDecorationStored } from '../../../stores/useravatardecorations';
+import UserStore from '../../../stores/users';
 
-import { utilitiesFetchMedia } from '../../../api';
+import { fetchUser, utilitiesFetchMedia } from '../../../api';
+import { UserFull } from '../../../api/structures/user';
 import { PresenceStatusColors } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
@@ -21,6 +23,7 @@ import {
 import {
   createActivityLines,
   createMemberLines,
+  createNotSoBotLine,
   createPresenceLine,
   createUserJoinedLine,
   createUserMentionLine,
@@ -68,6 +71,16 @@ export async function createMessage(
         args.user.avatarDecorationData.skuId,
         args.user.avatarDecorationData.asset,
       );
+    }
+  }
+
+  // what NotSoBot has on them, only read (looking someone up shouldn't make them a NotSoBot user). Unknown to us is a 404
+  let notsoUser: UserFull | null = UserStore.get(user.id) || null;
+  if (!notsoUser && !user.bot) {
+    try {
+      notsoUser = await fetchUser(context, user.id);
+    } catch(error) {
+
     }
   }
 
@@ -119,6 +132,9 @@ export async function createMessage(
       lines.push(createUserJoinedLine(translator, user, (isMember) ? member : null));
       if (isMember) {
         lines.push(...createMemberLines(context, translator, member));
+      }
+      if (notsoUser) {
+        lines.push(createNotSoBotLine(context, translator, notsoUser));
       }
 
       lines.push(createPresenceLine(translator, presence || null));

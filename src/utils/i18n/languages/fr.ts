@@ -14,6 +14,7 @@ export const French: Translations = Object.freeze({
   'common.no': 'Non',
   'common.none': 'Aucun',
   'common.owner': 'Propriétaire',
+  'common.moderator': 'Modérateur',
   'common.page_of': '({page} sur {total})',
   'common.position': 'Position',
   'common.type': 'Type',

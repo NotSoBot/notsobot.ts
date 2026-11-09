@@ -14,6 +14,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'common.no': '否',
   'common.none': '无',
   'common.owner': '所有者',
+  'common.moderator': '管理员',
   'common.page_of': '（第 {page} 页，共 {total} 页）',
   'common.position': '位置',
   'common.type': '类型',

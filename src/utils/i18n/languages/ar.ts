@@ -14,6 +14,7 @@ export const Arabic: Translations = Object.freeze({
   'common.no': 'لا',
   'common.none': 'لا شيء',
   'common.owner': 'المالك',
+  'common.moderator': 'مشرف',
   'common.page_of': '({page} من {total})',
   'common.position': 'الموضع',
   'common.type': 'النوع',

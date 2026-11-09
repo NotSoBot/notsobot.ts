@@ -14,6 +14,7 @@ export const Croatian: Translations = Object.freeze({
   'common.no': 'Ne',
   'common.none': 'Ništa',
   'common.owner': 'Vlasnik',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} od {total})',
   'common.position': 'Pozicija',
   'common.type': 'Vrsta',

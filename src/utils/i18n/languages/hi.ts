@@ -14,6 +14,7 @@ export const Hindi: Translations = Object.freeze({
   'common.no': 'नहीं',
   'common.none': 'कोई नहीं',
   'common.owner': 'मालिक',
+  'common.moderator': 'मॉडरेटर',
   'common.page_of': '({page} / {total})',
   'common.position': 'पोज़िशन',
   'common.type': 'प्रकार',

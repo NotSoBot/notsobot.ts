@@ -14,6 +14,7 @@ export const Czech: Translations = Object.freeze({
   'common.no': 'Ne',
   'common.none': 'Žádné',
   'common.owner': 'Vlastník',
+  'common.moderator': 'Moderátor',
   'common.page_of': '({page} z {total})',
   'common.position': 'Pozice',
   'common.type': 'Typ',

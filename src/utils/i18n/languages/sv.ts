@@ -14,6 +14,7 @@ export const Swedish: Translations = Object.freeze({
   'common.no': 'Nej',
   'common.none': 'Ingen',
   'common.owner': 'Ägare',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} av {total})',
   'common.position': 'Position',
   'common.type': 'Typ',

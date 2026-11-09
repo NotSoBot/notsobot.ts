@@ -14,6 +14,7 @@ export const Japanese: Translations = Object.freeze({
   'common.no': 'いいえ',
   'common.none': 'なし',
   'common.owner': 'オーナー',
+  'common.moderator': 'モデレーター',
   'common.page_of': '({page}/{total})',
   'common.position': '位置',
   'common.type': 'タイプ',

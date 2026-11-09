@@ -14,6 +14,7 @@ export const Hungarian: Translations = Object.freeze({
   'common.no': 'Nem',
   'common.none': 'Nincs',
   'common.owner': 'Tulajdonos',
+  'common.moderator': 'Moderátor',
   'common.page_of': '({page}/{total})',
   'common.position': 'Pozíció',
   'common.type': 'Típus',

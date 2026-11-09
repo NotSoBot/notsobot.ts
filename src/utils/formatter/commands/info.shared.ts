@@ -1,13 +1,17 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { DiscordEmojis, PRESENCE_CLIENT_STATUS_KEYS } from '../../../constants';
+import { UserFull } from '../../../api/structures/user';
+import { DiscordEmojis, PRESENCE_CLIENT_STATUS_KEYS, UserFlags } from '../../../constants';
 import { Translator } from '../../i18n';
 import {
   displayDetail,
   displayDetailsLine,
   displayTimestamp,
   getMemberJoinPosition,
+  getPremiumSkuFromType,
+  getPremiumSkuName,
+  getPremiumStoreUrl,
   toTitleCase,
 } from '../../../utils';
 
@@ -29,6 +33,23 @@ export function createUserMentionLine(user: Structures.User): string {
     parts.push(DiscordEmojis.DISCORD_TAG_BOT);
   }
   return parts.join(' ');
+}
+
+// what they are on NotSoBot: their premium tier (a link to its store page) and whether they're staff. Empty when
+// they're neither, most people
+export function createNotSoBotLine(
+  context: {applicationId: string},
+  translator: Translator,
+  user: UserFull,
+): string {
+  const { translate } = translator;
+  const skuId = getPremiumSkuFromType(user.premiumType);
+  const details = displayDetailsLine([
+    (skuId) && Markup.url(getPremiumSkuName(skuId), `<${getPremiumStoreUrl(context, skuId)}>`),
+    (user.hasOwner()) && translate('common.owner'),
+    (user.hasFlag(UserFlags.MODERATOR)) && translate('common.moderator'),
+  ]);
+  return (details) ? displayDetail('NotSoBot', details) : '';
 }
 
 // when they made their account and joined the server, with their join position

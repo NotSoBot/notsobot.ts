@@ -14,6 +14,7 @@ export const Finnish: Translations = Object.freeze({
   'common.no': 'Ei',
   'common.none': 'Ei mitään',
   'common.owner': 'Omistaja',
+  'common.moderator': 'Valvoja',
   'common.page_of': '({page}/{total})',
   'common.position': 'Sijainti',
   'common.type': 'Tyyppi',

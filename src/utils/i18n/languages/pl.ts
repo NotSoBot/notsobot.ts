@@ -14,6 +14,7 @@ export const Polish: Translations = Object.freeze({
   'common.no': 'Nie',
   'common.none': 'Brak',
   'common.owner': 'Właściciel',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} z {total})',
   'common.position': 'Pozycja',
   'common.type': 'Typ',

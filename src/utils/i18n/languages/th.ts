@@ -14,6 +14,7 @@ export const Thai: Translations = Object.freeze({
   'common.no': 'ไม่',
   'common.none': 'ไม่มี',
   'common.owner': 'เจ้าของ',
+  'common.moderator': 'ผู้ดูแล',
   'common.page_of': '({page} จาก {total})',
   'common.position': 'ตำแหน่ง',
   'common.type': 'ประเภท',

@@ -12,6 +12,7 @@ export const English = Object.freeze({
   'common.no': 'No',
   'common.none': 'None',
   'common.owner': 'Owner',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} of {total})',
   'common.position': 'Position',
   'common.type': 'Type',

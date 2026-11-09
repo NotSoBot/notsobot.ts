@@ -14,6 +14,7 @@ export const Vietnamese: Translations = Object.freeze({
   'common.no': 'Không',
   'common.none': 'Không có',
   'common.owner': 'Chủ sở hữu',
+  'common.moderator': 'Điều hành viên',
   'common.page_of': '({page} trên {total})',
   'common.position': 'Vị trí',
   'common.type': 'Loại',

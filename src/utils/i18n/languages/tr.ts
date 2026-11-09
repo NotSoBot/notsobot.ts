@@ -14,6 +14,7 @@ export const Turkish: Translations = Object.freeze({
   'common.no': 'Hayır',
   'common.none': 'Yok',
   'common.owner': 'Sahip',
+  'common.moderator': 'Moderatör',
   'common.page_of': '({page} / {total})',
   'common.position': 'Konum',
   'common.type': 'Tür',

@@ -14,6 +14,7 @@ export const Norwegian: Translations = Object.freeze({
   'common.no': 'Nei',
   'common.none': 'Ingen',
   'common.owner': 'Eier',
+  'common.moderator': 'Moderator',
   'common.page_of': '({page} av {total})',
   'common.position': 'Posisjon',
   'common.type': 'Type',
