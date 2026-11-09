@@ -1,0 +1,54 @@
+# the bot (the cluster manager and every shard), it waits for the api to answer before it starts them (src/run.ts).
+# Settings come from .env (see .env.example)
+#
+# `bot-build` compiles the source into the `lib` volume and `bot` runs from it. `bot`'s image only has the dependencies,
+# so a source change never recreates its container:
+#   docker compose build && docker compose up -d    compiles (a type error stops here), then updates the volume's files
+#   `.refresh` on discord                           loads them in place, the shards stay connected
+#   docker compose kill -s SIGUSR2 bot              or respawns the clusters one at a time (what refresh skips: bot.ts,
+#                                                   apievents.ts)
+# Only package-lock.json, the Dockerfile, .env or this file changing recreates `bot` on `up -d` (every shard reconnects).
+# src/run.ts is the manager itself, it needs `docker compose restart bot`
+services:
+  bot-build:
+    build:
+      context: .
+      target: build
+    image: notsobot-ts-build
+    restart: "no"
+    volumes:
+      - lib:/lib-volume
+
+  bot:
+    build:
+      context: .
+      target: bot
+    image: notsobot-ts
+    # reaps the cluster processes and passes signals on to the manager
+    init: true
+    network_mode: host
+    restart: always
+    # every cluster writes here and docker keeps it all without a limit, this keeps the last 500mb
+    logging:
+      driver: json-file
+      options:
+        max-size: 100m
+        max-file: "5"
+    depends_on:
+      bot-build:
+        condition: service_completed_successfully
+    environment:
+      NOTSOBOT_API_TOKEN: ${NOTSOBOT_API_TOKEN}
+      NOTSOBOT_CLUSTER_MEMORY: ${NOTSOBOT_CLUSTER_MEMORY:-}
+      NOTSOBOT_DISCORD_TOKEN: ${NOTSOBOT_DISCORD_TOKEN}
+      NOTSOBOT_GATEWAY_URL: ${NOTSOBOT_GATEWAY_URL:-}
+      NOTSOBOT_LOG_LEVEL: ${NOTSOBOT_LOG_LEVEL:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+    volumes:
+      - lib:/notsobot.ts/lib:ro
+
+
+volumes:
+  lib:

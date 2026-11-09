@@ -21,7 +21,7 @@ export default class MuteCommand extends BaseCommand {
           aliases: ['duration', 'time', 't'],
           // the formatter reads `args.duration`, without this it ended up in `args.for` and every mute was the default hour
           label: 'duration',
-          default: Formatter.Commands.ModerationMute.DEFAULT_DURATION,
+          // no default so one in the reason can be used, the formatter falls back to the default hour
           type: Parameters.secondsWithOptions({float: false}),
         },
       ],
@@ -35,13 +35,15 @@ export default class MuteCommand extends BaseCommand {
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} <@300505364032389122> spamming -for 10 minutes`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> -for 2d`,
+          `${COMMAND_NAME} <@300505364032389122> 10m spamming`,
+          `${COMMAND_NAME} <@300505364032389122> for 2 hours cause spamming`,
         ],
         id: Formatter.Commands.ModerationMute.COMMAND_ID,
-        usage: '...?<user:id|mention> <reason:string> (-for <duration>)',
+        usage: '...?<user:id|mention> (<duration>) <reason:string> (-for <duration>)',
       },
       permissionsClient: [Permissions.MODERATE_MEMBERS],
       permissions: [Permissions.MODERATE_MEMBERS],
-      type: Parameters.banPayload({membersOnly: true}),
+      type: Parameters.banPayload({membersOnly: true, parseDuration: true}),
     });
   }
 
@@ -58,6 +60,10 @@ export default class MuteCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationMute.CommandArgs) {
+    // `-for` wins over one in the reason (`.mute @user 10m spamming`)
+    if (args.duration === undefined || args.duration === null) {
+      args.duration = args.payload.duration;
+    }
     return Formatter.Commands.ModerationMute.createMessage(context, args);
   }
 }

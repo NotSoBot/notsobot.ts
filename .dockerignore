@@ -1,0 +1,6 @@
+node_modules
+lib
+config.json
+.env
+.git
+.DS_Store

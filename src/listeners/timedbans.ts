@@ -9,6 +9,7 @@ import { deleteGuildTimedBan, deleteGuildTimedBans, fetchTimedBans } from '../ap
 import { RestResponsesRaw } from '../api/types';
 import { DateMomentLogFormat, RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
+import { log } from '../log';
 import { createTimestampMomentFromGuild, formatDuration, formatUserTag } from '../utils';
 import { Translator, getTranslatorForGuildId } from '../utils/i18n';
 
@@ -134,7 +135,7 @@ class TimedBanScheduler extends Listener {
         try {
           await this.executeUnban(shard, timedBan);
         } catch(error) {
-          console.error(`Failed to lift timed ban ${timedBan.id}`, error);
+          log.error(`Failed to lift timed ban ${timedBan.id}`, error);
         }
         this.queued.delete(timedBan.id);
         if (queue.items.length) {
@@ -235,7 +236,7 @@ class TimedBanScheduler extends Listener {
       // a 404 means it's already gone, otherwise the next catch up finds it overdue again, and the unban comes back as
       // UNKNOWN_BAN which deletes it then
       if (!(error.response && error.response.statusCode === 404)) {
-        console.error(`Failed to delete timed ban ${timedBan.id}`, error);
+        log.error(`Failed to delete timed ban ${timedBan.id}`, error);
       }
     }
   }
@@ -338,15 +339,15 @@ class TimedBanScheduler extends Listener {
     }));
     subscriptions.push(apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
       // missed deletes would leave stale timers around, start over from the api (fetching before dropping anything)
-      this.resync(cluster).catch((error) => console.error('Failed to resync timed bans', error));
+      this.resync(cluster).catch((error) => log.error('Failed to resync timed bans', error));
     }));
 
-    this.catchUp(cluster).catch((error) => console.error('Failed to scan for timed bans on startup', error));
+    this.catchUp(cluster).catch((error) => log.error('Failed to scan for timed bans on startup', error));
     this.interval.start(this.intervalTime, () => {
-      this.scanForTimedBans(cluster).catch((error) => console.error('Failed to scan for timed bans', error));
+      this.scanForTimedBans(cluster).catch((error) => log.error('Failed to scan for timed bans', error));
     });
     this.catchUpInterval.start(this.catchUpIntervalTime, () => {
-      this.catchUp(cluster).catch((error) => console.error('Failed to catch up on timed bans', error));
+      this.catchUp(cluster).catch((error) => log.error('Failed to catch up on timed bans', error));
     });
 
     return subscriptions;

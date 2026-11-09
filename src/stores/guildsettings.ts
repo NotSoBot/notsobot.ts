@@ -8,6 +8,7 @@ import { RequestContext, fetchGuildSettings, putGuildSettings, sweepGuild } from
 import { GuildSettings } from '../api/structures/guildsettings';
 import { BAN_CLEAN_DEFAULT, GuildModerationDmFlags, GuildRuleTargetTypes, RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
+import { log } from '../log';
 import { RedisPayloads } from '../types';
 
 
@@ -118,7 +119,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
           resolve(settings);
           // in the background, the command doesn't wait on it
           this.prune(context, settings).catch((error) => {
-            console.error(`Pruning settings failed for ${guildId}`, error);
+            log.error(`Pruning settings failed for ${guildId}`, error);
           });
         } catch(error) {
           resolve(onFailed());

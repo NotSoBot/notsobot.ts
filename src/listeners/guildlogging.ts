@@ -21,6 +21,7 @@ import {
   RedisChannels,
 } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
+import { log } from '../log';
 import GuildSettingsStore from '../stores/guildsettings';
 import UserAvatarDecorationStore, { UserAvatarDecorationStored } from '../stores/useravatardecorations';
 import { RedisPayloads } from '../types';
@@ -197,7 +198,7 @@ class GuildLoggingListener extends Listener {
           const results = await Promise.allSettled(promises);
           for (let result of results) {
             if (result.status === 'rejected') {
-              console.error(`Guild Logging webhook failed for ${guildId}`, result.reason);
+              log.error(`Guild Logging webhook failed for ${guildId}`, result.reason);
             }
           }
 
@@ -212,10 +213,10 @@ class GuildLoggingListener extends Listener {
           for (let [loggerType, queue] of queues) {
             amount += queue.length;
           }
-          console.error(`Guild Logging dropped ${amount} logs for ${guildId}, couldn't fetch the guild's settings`);
+          log.error(`Guild Logging dropped ${amount} logs for ${guildId}, couldn't fetch the guild's settings`);
         }
       } catch(error) {
-        console.error(`Guild Logging failed for ${guildId}`, error);
+        log.error(`Guild Logging failed for ${guildId}`, error);
       }
       this.storage.delete(guildId);
     });
@@ -410,7 +411,7 @@ class GuildLoggingListener extends Listener {
   // the bot's own logs from its commands (warnings), a logging problem shouldn't fail the command so nothing waits on it
   logModeration(shard: ShardClient, event: GuildLoggingEventModeration): void {
     this.tryAdd(shard, event).catch((error) => {
-      console.error(`Guild Logging failed for ${event.guildId}`, error);
+      log.error(`Guild Logging failed for ${event.guildId}`, error);
     });
   }
 
@@ -456,7 +457,7 @@ class GuildLoggingListener extends Listener {
       try {
         user = await this.fetchUser(shard, userId);
       } catch(error) {
-        console.error(`Guild Logging failed to fetch ${userId} for ${payload.guild_id}`, error);
+        log.error(`Guild Logging failed to fetch ${userId} for ${payload.guild_id}`, error);
         continue;
       }
       this.logModeration(shard, {
@@ -876,7 +877,7 @@ class GuildLoggingListener extends Listener {
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_WARNING_DELETE, (payload: RedisPayloads.GuildWarningDelete) => {
         this.logDashboardWarningDelete(cluster, payload).catch((error) => {
-          console.error(`Guild Logging failed for ${payload.warning.guild_id}`, error);
+          log.error(`Guild Logging failed for ${payload.warning.guild_id}`, error);
         });
       });
       subscriptions.push(subscription);
@@ -885,7 +886,7 @@ class GuildLoggingListener extends Listener {
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_WARNING_DELETE_BULK, (payload: RedisPayloads.GuildWarningDeleteBulk) => {
         this.logDashboardWarningDeleteBulk(cluster, payload).catch((error) => {
-          console.error(`Guild Logging failed for ${payload.guild_id}`, error);
+          log.error(`Guild Logging failed for ${payload.guild_id}`, error);
         });
       });
       subscriptions.push(subscription);

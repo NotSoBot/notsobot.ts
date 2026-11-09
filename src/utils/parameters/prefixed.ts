@@ -4,6 +4,7 @@ import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
 import MiniSearch from 'minisearch';
 
+import { log } from '../../log';
 import GuildChannelsStore, { GuildChannelsStored } from '../../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../../stores/guildmetadata';
 import {
@@ -24,9 +25,13 @@ export interface BanPayloadOptions {
   // stops looking users up past this many and sets `overLimit`, for the command to refuse
   limit?: number,
   membersOnly?: boolean,
+  // takes a duration off the start or end of the text (`2h spamming`, `for 2 hours cause spamming`, `spamming for 2 days`)
+  parseDuration?: boolean,
 }
 
 export interface BanPayload {
+  // seconds, from the text with `parseDuration`
+  duration?: number,
   membersOrUsers: Array<Structures.Member | Structures.User>,
   notFound: Array<string>,
   overLimit?: boolean,
@@ -34,11 +39,55 @@ export interface BanPayload {
 }
 
 export interface BanPayloadMembersOnly {
+  duration?: number,
   membersOrUsers: Array<Structures.Member>,
   notFound: Array<string>,
   overLimit?: boolean,
   text: string,
 }
+
+const DURATION_UNITS: Array<[RegExp, number]> = [
+  [/^(s|secs?|seconds?)$/, 1],
+  [/^(m|mins?|minutes?)$/, 60],
+  [/^(h|hrs?|hours?)$/, 60 * 60],
+  [/^(d|days?)$/, 24 * 60 * 60],
+  [/^(w|wks?|weeks?)$/, 7 * 24 * 60 * 60],
+  [/^(mo|mos|months?)$/, 30 * 24 * 60 * 60],
+  [/^(y|yrs?|years?)$/, 365 * 24 * 60 * 60],
+];
+const DURATION_UNIT = 's|secs?|seconds?|m|mins?|minutes?|h|hrs?|hours?|d|days?|w|wks?|weeks?|mo|mos|months?|y|yrs?|years?';
+// `2h`, `2 hours`, `an hour`, `1d12h`, `1 day, 2 hours and 5 minutes`, a unit is always needed so `.ban @user 2 accounts` stays a reason
+const DURATION_PART = `(?:\\d+(?:\\.\\d+)?\\s*|(?:an?|one)\\s+)(?:${DURATION_UNIT})(?![a-z])`;
+const DURATION = `${DURATION_PART}(?:(?:\\s*,\\s*|\\s+and\\s+|\\s*)${DURATION_PART})*`;
+const DURATION_LEADING = new RegExp(`^(?:for\\s+)?(${DURATION})(?:\\s+(?:(?:cause|because|bc|cuz|for|reason)\\b:?|[-:])|\\s*$|\\s+)`, 'i');
+const DURATION_TRAILING = new RegExp(`(?:^|\\s+)for\\s+(${DURATION})$`, 'i');
+const DURATION_PARTS = new RegExp(`(?:(\\d+(?:\\.\\d+)?)\\s*|(?:an?|one)\\s+)(${DURATION_UNIT})(?![a-z])`, 'gi');
+
+function durationTextToSeconds(text: string): number {
+  let seconds = 0;
+  for (const [, amount, unit] of text.matchAll(DURATION_PARTS)) {
+    const multiplier = DURATION_UNITS.find(([regex]) => regex.test(unit.toLowerCase()))![1];
+    // `an hour`/`one hour` has no number
+    seconds += ((amount) ? parseFloat(amount) : 1) * multiplier;
+  }
+  return Math.floor(seconds);
+}
+
+// like reminders, but only at the start or end so a reason that mentions a time (`spammed yesterday at 4pm`) stays whole
+export function parseDurationFromText(text: string): {duration?: number, text: string} {
+  text = text.trim();
+  for (const regex of [DURATION_LEADING, DURATION_TRAILING]) {
+    const match = text.match(regex);
+    if (match) {
+      const duration = durationTextToSeconds(match[1]);
+      if (duration) {
+        return {duration, text: (text.slice(0, match.index!) + text.slice(match.index! + match[0].length)).trim()};
+      }
+    }
+  }
+  return {text};
+}
+
 
 // for a command's `default`, an empty command skips the parser, so return a string (gets parsed) on a reply to check it
 export function banPayloadDefault(context: Command.Context): string | null {
@@ -121,11 +170,17 @@ export function banPayload(
       }
     }
 
+    let duration: number | undefined;
+    if (options.parseDuration && value) {
+      ({ duration, text: value } = parseDurationFromText(value));
+    }
+
     let membersOrUsersArray = membersOrUsers.toArray();
     if (!options.allowBots && options.allowBots !== undefined) {
       membersOrUsersArray = membersOrUsersArray.filter((memberOrUser) => !memberOrUser.bot);
     }
     return {
+      duration,
       membersOrUsers: membersOrUsersArray,
       notFound,
       overLimit,
@@ -345,7 +400,7 @@ export async function guildMetadata(
       }
     }
   } catch(error) {
-    console.error(error);
+    log.error(error);
     payload.guild = null;
   }
   return payload;

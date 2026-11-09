@@ -6,6 +6,7 @@ import { moderationSafetyScan, search4Chan, search4ChanRandom } from '../../../a
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
+import { log } from '../../../log';
 import { DefaultParameters, DisplayPayload, Paginator, displayLinks, displayReply, shuffleArray } from '../../../utils';
 
 
@@ -117,7 +118,7 @@ export async function createMessage(
               blockedCached[page] = !!((response.media && response.media.unsafe) || (response.text && response.text.unsafe));
             } catch(error) {
               // fail closed, hide the thread if the safety scan fails
-              console.error('Failed to scan 4chan thread', error);
+              log.error('Failed to scan 4chan thread', error);
               blockedCached[page] = true;
             }
           } else {

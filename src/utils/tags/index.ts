@@ -12,6 +12,7 @@ import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
 
+import { log } from '../../log';
 import GuildSettingsStore from '../../stores/guildsettings';
 import { getServerPremiumUsers } from '../../stores/premiumservers';
 import UserStore from '../../stores/users';
@@ -2633,7 +2634,7 @@ async function attachFileFromUrl(
     tag.files.push(file);
     return file;
   } catch(error) {
-    console.log(error);
+    log.debug(error);
     throw error;
   }
 }
@@ -5443,7 +5444,7 @@ const ScriptTags = Object.freeze({
 
       tag.files.push({buffer: data, filename: `${filename}.${extension}`, spoiler: false, url: ''});
     } catch(error) {
-      console.log(error);
+      log.debug(error);
       throw error;
     }
 
@@ -5498,7 +5499,7 @@ const ScriptTags = Object.freeze({
         url,
       });
     } catch(error) {
-      console.log(error);
+      log.debug(error);
       throw error;
     }
 
@@ -7923,7 +7924,7 @@ const ScriptTags = Object.freeze({
       });
 
     } catch(error) {
-      console.log(error);
+      log.debug(error);
       throw error;
     }
 
@@ -9693,7 +9694,7 @@ const ScriptTags = Object.freeze({
       appendTagText(context, tag, text);
 
     } catch(error) {
-      console.log(error);
+      log.debug(error);
       throw error;
     }
 
@@ -9717,7 +9718,7 @@ const ScriptTags = Object.freeze({
       const text = await response.text();
       appendTagText(context, tag, text);
     } catch(error) {
-      console.log(error);
+      log.debug(error);
       throw error;
     }
 

@@ -2,6 +2,7 @@ import { EventSpewer, Timers } from 'detritus-utils';
 import WebSocket from 'ws';
 
 import { NotSoHeaders, RedisChannels } from './constants';
+import { log } from './log';
 import { captureError } from './sentry';
 import { RedisPayloads } from './types';
 
@@ -173,7 +174,7 @@ export class ApiEventsSpewer extends EventSpewer {
       this.flushPendingResponses();
       this.sessionTimeout.start(SESSION_TIMEOUT, () => {
         if (socket === this.socket) {
-          console.warn(`Api events connection wasn't ready after ${SESSION_TIMEOUT}ms, reconnecting`);
+          log.warn(`Api events connection wasn't ready after ${SESSION_TIMEOUT}ms, reconnecting`);
           // emits close, which reconnects
           socket.terminate();
         }
@@ -239,7 +240,7 @@ export class ApiEventsSpewer extends EventSpewer {
         return;
       }
       if (!this.heartbeatAcked) {
-        console.warn('Api events connection never acked our last heartbeat, reconnecting');
+        log.warn('Api events connection never acked our last heartbeat, reconnecting');
         // emits close, which reconnects
         socket.terminate();
         return;
@@ -322,7 +323,7 @@ export class ApiEventsSpewer extends EventSpewer {
     }
 
     const wait = this.scheduleReconnect(delay);
-    console.warn(`Api events connection closed (${code}${(reason) ? `, ${reason}` : ''}), reconnecting in ${wait}ms`);
+    log.warn(`Api events connection closed (${code}${(reason) ? `, ${reason}` : ''}), reconnecting in ${wait}ms`);
   }
 
   // returns how long it'll actually wait, with the jitter
@@ -427,7 +428,7 @@ export class ApiEventsSpewer extends EventSpewer {
   }
 
   emitResync(): void {
-    console.warn('Api events were missed, resyncing caches');
+    log.warn('Api events were missed, resyncing caches');
     try {
       this.emit(ApiEventsSpewerEvents.RESYNC);
     } catch(error) {
@@ -436,7 +437,7 @@ export class ApiEventsSpewer extends EventSpewer {
   }
 
   reportError(error: any): void {
-    console.error('Api events connection error', error);
+    log.error('Api events connection error', error);
     const now = Date.now();
     if (SENTRY_REPORT_INTERVAL <= now - this.lastReportedAt) {
       this.lastReportedAt = now;

@@ -19,6 +19,7 @@ import { connectCommandResults } from './commandresults';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
 import { connectAllListeners } from './listeners';
+import { log } from './log';
 import { incrementCounter } from './metrics';
 import {
   SentryCommandContext,
@@ -43,7 +44,7 @@ initSentry('cluster');
 
 // without a handler node kills the whole cluster (and its 8 shards) on any stray rejection, so log + report and keep going
 process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled Rejection', reason);
+  log.error('Unhandled Rejection', reason);
   incrementCounter('notsobot_unhandled_rejections_total', {});
   captureUnhandledError(reason, 'onunhandledrejection');
 });
@@ -52,7 +53,7 @@ process.on('unhandledRejection', (reason) => {
 // cluster manager respawns the process
 let isExitingFromException = false;
 process.on('uncaughtException', async (error) => {
-  console.error('Uncaught Exception', error);
+  log.error('Uncaught Exception', error);
   if (isExitingFromException) {
     return;
   }
@@ -122,14 +123,14 @@ const cluster = new ClusterClient('', {
     if (route) {
       const url = redactUrlTokens(response.request.url.href);
       if (response.ok) {
-        console.log(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.method}-${url} (${route.path})`);
+        log.debug(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.method}-${url} (${route.path})`);
       } else {
         const message = `Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.method}-${url} (${route.path})`;
-        console.log(message);
+        log.warn(message);
         let body: string = '';
         try {
           body = await response.text();
-          console.log(body);
+          log.warn(body);
         } catch(error) {
 
         }
@@ -151,10 +152,10 @@ const cluster = new ClusterClient('', {
 
   cluster.on(ClientEvents.SHARD, ({shard}) => {
     const shardId = shard.shardId;
-    console.log(`Loading up ${shardId}...`);
+    log.debug(`Loading up ${shardId}...`);
     shard.gateway.on('state', ({state}) => {
       const message = `Shard #${shardId} - ${state}`;
-      console.log(message);
+      log.info(message);
       // breadcrumbs instead of events, they show up on whatever error happens next
       Sentry.addBreadcrumb({
         category: 'gateway',
@@ -166,7 +167,7 @@ const cluster = new ClusterClient('', {
     });
     shard.gateway.on('close', ({code, reason}) => {
       const message = `Shard #${shardId} closed - ${code}, ${reason}`;
-      console.log(message);
+      log.info(message);
       Sentry.addBreadcrumb({category: 'gateway', data: {code, reason, shard_id: shardId}, level: 'warning', message});
       if (FATAL_GATEWAY_CLOSE_CODES.includes(code)) {
         captureError(new Error(`Gateway closed with ${code}, ${reason}`), {
@@ -211,9 +212,9 @@ const cluster = new ClusterClient('', {
     connectAllStores(cluster);
     ApiEventsClient.start({shardCount: cluster.shardCount, shardEnd: cluster.shardEnd, shardStart: cluster.shardStart});
 
-    console.log('cluster ran', cluster.ran);
+    log.debug('cluster ran', cluster.ran);
     const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
-    console.log(`${shardsText} - Loaded`);
+    log.info(`${shardsText} - Loaded`);
 
     // one ratelimiter for both clients, so the shared keys in `CommandRatelimits` cover `.command` and `/command` together
     const ratelimiter = new CommandRatelimiter();
@@ -264,7 +265,7 @@ const cluster = new ClusterClient('', {
 
       await notSoCommandBot.addMultipleIn('./commands/prefixed');
       await notSoCommandBot.run();
-      console.log(`${shardsText} - Command Client Loaded`);
+      log.info(`${shardsText} - Command Client Loaded`);
     }
 
     {
@@ -273,17 +274,17 @@ const cluster = new ClusterClient('', {
       connectCommandErrorReporting(notSoInteractionBot);
       await notSoInteractionBot.addMultipleIn('./commands/interactions');
       for (let x of notSoInteractionBot.getOversizedCommands()) {
-        console.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
+        log.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
       }
       for (let x of notSoInteractionBot.getDuplicateOptionNames()) {
-        console.error(`${shardsText} - /${x.path} (#${x.index}) options ${x.names.join(', ')} are all named "${x.value}" in ${x.locale}`);
+        log.error(`${shardsText} - /${x.path} (#${x.index}) options ${x.names.join(', ')} are all named "${x.value}" in ${x.locale}`);
       }
       await notSoInteractionBot.run();
-      console.log(`${shardsText} - Interaction Command Client Loaded`);
+      log.info(`${shardsText} - Interaction Command Client Loaded`);
     }
   } catch(error) {
-    console.log(error);
-    console.log(error.errors);
+    log.error(error);
+    log.error(error.errors);
     captureError(error, {tags: {source: 'cluster.startup'}});
   }
 })();

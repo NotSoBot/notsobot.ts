@@ -41,6 +41,7 @@ import { DiscordHTTPError } from 'detritus-client-rest/lib/errors';
 import { replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
 
+import { log } from '../log';
 import ChannelMembersStore, { ChannelMembersStored } from '../stores/channelmembers';
 import GuildMembersStore, { GuildMembersStored } from '../stores/guildmembers';
 import GuildSettingsStore from '../stores/guildsettings';
@@ -149,7 +150,7 @@ export async function checkNSFW(
     return [response.unsafe, response];
   } catch(error) {
     // fail closed, block the text if the safety service is down
-    console.error('Failed to scan text for moderation', error);
+    log.error('Failed to scan text for moderation', error);
     return [true, null];
   }
 }

@@ -32,13 +32,15 @@ export default class BanCommand extends BaseCommand {
           `${COMMAND_NAME} 300505364032389122 -clean 1 day`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
           `${COMMAND_NAME} <@300505364032389122> spamming -for 7 days`,
+          `${COMMAND_NAME} <@300505364032389122> 2h spamming`,
+          `${COMMAND_NAME} <@300505364032389122> for 2 hours cause spamming`,
         ],
         id: Formatter.Commands.ModerationBan.COMMAND_ID,
-        usage: '...?<user:id|mention> <reason:string> (-clean <days>) (-for <duration>)',
+        usage: '...?<user:id|mention> (<duration>) <reason:string> (-clean <days>) (-for <duration>)',
       },
       permissionsClient: [Permissions.BAN_MEMBERS],
       permissions: [Permissions.BAN_MEMBERS],
-      type: Parameters.banPayload({limit: Formatter.Commands.ModerationBan.MAX_USERS}),
+      type: Parameters.banPayload({limit: Formatter.Commands.ModerationBan.MAX_USERS, parseDuration: true}),
     });
   }
 
@@ -56,6 +58,10 @@ export default class BanCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationBan.CommandArgs) {
+    // `-for` wins over one in the reason (`.ban @user 2h spamming`)
+    if (args.duration === undefined || args.duration === null) {
+      args.duration = args.payload.duration;
+    }
     return Formatter.Commands.ModerationBan.createMessage(context, args);
   }
 }

@@ -13,9 +13,9 @@ export interface CommandArgs {
   use?: string,
 }
 
-export const COMMAND_NAME = 'speak';
+export const COMMAND_NAME = 'generate';
 
-export class TTSSpeakCommand extends BaseInteractionCommandOption {
+export class TTSGenerateCommand extends BaseInteractionCommandOption {
   description = 'Generate Text to Speech';
   descriptionLocalizations = I18n.localizations('commands.fun.tts.description');
   metadata = {

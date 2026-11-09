@@ -13,6 +13,7 @@ import {
   MAX_TIME_MATH,
   SESSION_IDLE_TIME,
 } from './worker';
+import { log } from '../../log';
 
 export { ERROR_TIMEOUT_MESSAGE as MATH_ERROR_TIMEOUT_MESSAGE };
 
@@ -123,7 +124,7 @@ class MathPoolWorker {
     });
     // `error` is followed by `exit`, the crash is handled once there
     worker.on('error', (error: Error) => {
-      console.error('Math Worker error:', error);
+      log.error('Math Worker error:', error);
     });
     worker.on('exit', (code: number) => {
       clearTimeout(startTimeout);

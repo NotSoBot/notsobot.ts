@@ -35,6 +35,7 @@ import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import { GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import { RestResponsesRaw } from '../../../api/types';
 import GuildLoggingListener from '../../../listeners/guildlogging';
+import { log } from '../../../log';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserSettingsStore from '../../../stores/usersettings';
 import {
@@ -232,7 +233,7 @@ export async function createReport(
   // nickname), the user when they aren't in it. a message report's quote already shows its author
   const member = (message) ? null : (args.user || target);
   saveReportImages(context, report, member, message).catch((error) => {
-    console.error(`Guild Report ${report.id} failed to save its images for ${report.guild_id}`, error);
+    log.error(`Guild Report ${report.id} failed to save its images for ${report.guild_id}`, error);
   });
 
   return {payload: {description: `${StatusEmojis.YES} ${translate('guild_report.sent')}`, ephemeral: true}, report};
@@ -296,7 +297,7 @@ async function attachReportQuote(
       });
     } catch(error) {
       if (error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE && error.code !== DiscordAbortCodes.UNKNOWN_WEBHOOK) {
-        console.error(`Guild Report ${report.id} failed to add its quote to ${logMessage.message_id} for ${report.guild_id}`, error);
+        log.error(`Guild Report ${report.id} failed to add its quote to ${logMessage.message_id} for ${report.guild_id}`, error);
       }
     }
   }
@@ -326,7 +327,7 @@ async function getReportQuoteRedraw(
     try {
       cache.buffer = await fetchGuildReportQuote({client: shard}, report.guild_id, report.id);
     } catch(error) {
-      console.error(`Guild Report ${report.id} failed to fetch its quote for ${report.guild_id}`, error);
+      log.error(`Guild Report ${report.id} failed to fetch its quote for ${report.guild_id}`, error);
       cache.buffer = null;
     }
   }
@@ -375,7 +376,7 @@ export async function postReportLog(
   const messages: Array<RestResponsesRaw.GuildReportLogMessage> = [];
   results.forEach((result, i) => {
     if (result.status === 'rejected') {
-      console.error(`Guild Report ${report.id} failed to log for ${report.guild_id}`, result.reason);
+      log.error(`Guild Report ${report.id} failed to log for ${report.guild_id}`, result.reason);
     } else if (result.value instanceof Structures.Message) {
       messages.push({channel_id: result.value.channelId, message_id: result.value.id, webhook_id: loggers[i].webhookId!});
     }
@@ -384,7 +385,7 @@ export async function postReportLog(
     try {
       await editGuildReportLogMessages({client: shard}, report.guild_id, report.id, {messages});
     } catch(error) {
-      console.error(`Guild Report ${report.id} failed to save its log messages for ${report.guild_id}`, error);
+      log.error(`Guild Report ${report.id} failed to save its log messages for ${report.guild_id}`, error);
     }
   }
 }
@@ -445,7 +446,7 @@ async function runGuildReportUpdates(cluster: ClusterClient, guildId: string): P
         try {
           await updateReportLogMessages(cluster, payload);
         } catch(error) {
-          console.error(`Guild Report ${reportId} failed to update for ${guildId}`, error);
+          log.error(`Guild Report ${reportId} failed to update for ${guildId}`, error);
         }
       }
     }
@@ -487,7 +488,7 @@ async function updateReportLogMessages(cluster: ClusterClient, payload: RedisPay
       });
     } catch(error) {
       if (error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE && error.code !== DiscordAbortCodes.UNKNOWN_WEBHOOK) {
-        console.error(`Guild Report ${report.id} failed to update its log message ${logMessage.message_id} for ${report.guild_id}`, error);
+        log.error(`Guild Report ${report.id} failed to update its log message ${logMessage.message_id} for ${report.guild_id}`, error);
       }
     }
   }
@@ -717,7 +718,7 @@ export function createRespondModal(
         const key = getApiErrorTranslationKey(apiError.code);
         content = (key) ? translateMaybe(key, apiError.message) : apiError.message;
       } else {
-        console.error(`Failed to send a report response from ${modalContext.userId}`, error);
+        log.error(`Failed to send a report response from ${modalContext.userId}`, error);
         content = String((error && error.message) || error);
       }
       return modalContext.editOrRespond(renderEphemeralDisplay(modalContext, translator, {
@@ -815,7 +816,7 @@ function queueReporterNotice(shard: ShardClient, report: RestResponsesRaw.GuildR
     sendReporterDm(shard, report, null).catch((error) => {
       // closed dms (or a deleted account) are expected
       if (error.code !== DiscordAbortCodes.INVALID_MESSAGE_SEND_USER) {
-        console.error(`Failed to DM guild report ${report.id}'s status to ${report.user_id}`, error);
+        log.error(`Failed to DM guild report ${report.id}'s status to ${report.user_id}`, error);
       }
     });
   }, REPORTER_NOTICE_DELAY);
@@ -829,7 +830,7 @@ export async function onGuildReportMessageCreate(cluster: ClusterClient, payload
   const { message, report } = payload;
   const shard = shardForGuild(cluster, report.guild_id);
   // TODO: remove once replies are reaching Discord, a trace of each step (`[guild report reply]` to grep for)
-  const trace = (step: string) => console.log(`[guild report reply] ${report.id}/${message.id} cluster ${cluster.clusterId}: ${step}`);
+  const trace = (step: string) => log.info(`[guild report reply] ${report.id}/${message.id} cluster ${cluster.clusterId}: ${step}`);
   trace(`received (author ${message.author}, shard ${(shard) ? shard.shardId : 'not on this cluster'}, ${payload.log_messages.length} log messages, content ${(message.content) ? 'yes' : 'no'})`);
   if (!shard || !message.content) {
     return;
@@ -847,7 +848,7 @@ export async function onGuildReportMessageCreate(cluster: ClusterClient, payload
       dmNote = 'failed';
       trace(`dm failed (${error.code ?? error.message})`);
       if (error.code !== DiscordAbortCodes.INVALID_MESSAGE_SEND_USER) {
-        console.error(`Failed to DM guild report ${report.id}'s reply ${message.id} to ${report.user_id}`, error);
+        log.error(`Failed to DM guild report ${report.id}'s reply ${message.id} to ${report.user_id}`, error);
       }
     }
   }
@@ -982,7 +983,7 @@ async function postReportThreadMessages(
 ): Promise<void> {
   const { report } = payload;
   // TODO: remove with the trace in `onGuildReportMessageCreate`
-  const trace = (step: string) => console.log(`[guild report reply] ${report.id}/${payload.message.id}: ${step}`);
+  const trace = (step: string) => log.info(`[guild report reply] ${report.id}/${payload.message.id}: ${step}`);
   if (!payload.log_messages.length) {
     trace('no log messages saved on the report, no thread');
     return;
@@ -1016,7 +1017,7 @@ async function postReportThreadMessages(
     } catch(error) {
       trace(`posting for ${logMessage.message_id} failed (${error.code ?? error.message})`);
       if (error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE && error.code !== DiscordAbortCodes.UNKNOWN_WEBHOOK) {
-        console.error(`Guild Report ${report.id} failed to post its reply ${payload.message.id} for ${report.guild_id}`, error);
+        log.error(`Guild Report ${report.id} failed to post its reply ${payload.message.id} for ${report.guild_id}`, error);
       }
     }
   }

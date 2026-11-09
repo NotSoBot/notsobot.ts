@@ -5,12 +5,13 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { TTSSpeakCommand } from './speak';
+import { TTSGenerateCommand } from './generate';
+import { TTSPlayCommand } from './play';
 import { TTSVoiceGroupCommand } from './voice';
 import { TTSVoiceServerGroupCommand } from './voice-server';
 
 
-// a slash command with subcommands can't be used by itself, so text to speech is `/tts speak`
+// a slash command with subcommands can't be used by itself, so text to speech is `/tts generate` (`/tts play` says it in your voice channel)
 export default class TTSCommand extends BaseSlashCommand {
   description = 'Text-to-Speech, your cloned voices and the server\'s';
   name = 'tts';
@@ -28,7 +29,8 @@ export default class TTSCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
-        new TTSSpeakCommand(),
+        new TTSGenerateCommand(),
+        new TTSPlayCommand(),
         new TTSVoiceGroupCommand(),
         new TTSVoiceServerGroupCommand(),
       ],

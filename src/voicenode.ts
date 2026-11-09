@@ -19,6 +19,7 @@ import {
 } from './api';
 import { RestResponsesRaw } from './api/types';
 import { RequestContext } from './api/raw';
+import { log } from './log';
 
 
 // how long a node gets to answer the websocket, and discord to send our voice state/server after we join
@@ -320,7 +321,7 @@ export class NodeConnection {
         if (this.ws === ws && code === NODE_CLOSE_REPLACED) {
           // a newer process of this cluster resumed our session (we were stuck), its players are its now. reconnecting
           // would take them back and the two of us would keep taking turns
-          console.warn(`voice node ${this.info.name} session was taken over by a newer process, not reconnecting`);
+          log.warn(`voice node ${this.info.name} session was taken over by a newer process, not reconnecting`);
           this.ws = null;
           this.sessionId = null;
           if (this.watchdog) {
@@ -360,12 +361,12 @@ export class NodeConnection {
             }
             this.reconnectTimeout = setTimeout(() => {
               this.reconnectTimeout = null;
-              this.connect(userId).catch((error) => console.warn(`voice node ${this.info.name} reconnect`, error));
+              this.connect(userId).catch((error) => log.warn(`voice node ${this.info.name} reconnect`, error));
             }, RECONNECT_DELAY);
           }
         }
       });
-      ws.on('error', (error) => console.warn(`voice node ${this.info.name}`, error));
+      ws.on('error', (error) => log.warn(`voice node ${this.info.name}`, error));
     });
     promise.then(() => this.connecting = null, () => this.connecting = null);
     return promise;
@@ -389,7 +390,7 @@ export class NodeConnection {
     }
     this.watchdog = setInterval(() => {
       if (this.ws === ws && NODE_SILENT_TIMEOUT < Date.now() - this.lastSeenAt) {
-        console.warn(`voice node ${this.info.name} stopped answering`);
+        log.warn(`voice node ${this.info.name} stopped answering`);
         ws.terminate();
       }
     }, 10 * 1000);
@@ -397,22 +398,22 @@ export class NodeConnection {
       try {
         fs.writeFileSync(this.sessionFile, sessionId);
       } catch(error) {
-        console.warn('voice node session file', error);
+        log.warn('voice node session file', error);
       }
     }
     this.request('PATCH', `/sessions/${sessionId}`, {resuming: true, timeout: RESUME_TIMEOUT})
       .then(() => this.resuming = this.sessionId === sessionId)
-      .catch((error) => console.warn(`voice node ${this.info.name} resuming`, error));
+      .catch((error) => log.warn(`voice node ${this.info.name} resuming`, error));
 
     if (resumed) {
       // after a restart we don't know what's playing, the node does
       if (!previousId) {
         this.restoring = this.restorePlayers()
-          .catch((error) => console.warn(`voice node ${this.info.name} restore`, error))
+          .catch((error) => log.warn(`voice node ${this.info.name} restore`, error))
           .finally(() => this.restoring = null);
       } else {
         // back after a failover moved some of its guilds, their old players here go
-        this.dropMovedPlayers().catch((error) => console.warn(`voice node ${this.info.name} cleanup`, error));
+        this.dropMovedPlayers().catch((error) => log.warn(`voice node ${this.info.name} cleanup`, error));
       }
     } else {
       // a new session, the node lost the players we had on it (it restarted, or we were gone too long), they start
@@ -485,7 +486,7 @@ export class NodeConnection {
     // closing before the node agreed to keep our players would end them
     if (this.sessionId && !this.resuming && ws.readyState === WebSocket.OPEN) {
       await this.request('PATCH', `/sessions/${this.sessionId}`, {resuming: true, timeout: RESUME_TIMEOUT})
-        .catch((error) => console.warn(`voice node ${this.info.name} resuming`, error));
+        .catch((error) => log.warn(`voice node ${this.info.name} resuming`, error));
     }
     if (ws.readyState === WebSocket.CLOSED) {
       return;
@@ -637,11 +638,11 @@ export class VoiceNodeClient extends EventSpewer {
       await Promise.all(Array.from(this.nodes.values()).filter((node) => node.readSavedSessionId()).map((node) => {
         return node.connect(shard.userId)
           .then(() => node.restoring)
-          .catch((error) => console.warn(`voice node ${node.info.name} resume`, error));
+          .catch((error) => log.warn(`voice node ${node.info.name} resume`, error));
       }));
       // then the api, for servers that were playing on a node that restarted too
       await this.loadSessions(shard);
-    }).catch((error) => console.warn('voice nodes', error)).finally(() => this.resumeDone = true);
+    }).catch((error) => log.warn('voice nodes', error)).finally(() => this.resumeDone = true);
   }
 
   // the api's music sessions on our shards, every start (usually none): the ones the nodes didn't keep are rejoined
@@ -661,7 +662,7 @@ export class VoiceNodeClient extends EventSpewer {
     if (!this.recoveredSessions.size) {
       return;
     }
-    console.log(`voice nodes: rejoining ${this.recoveredSessions.size} servers that were playing music before restarting`);
+    log.info(`voice nodes: rejoining ${this.recoveredSessions.size} servers that were playing music before restarting`);
     this.rejoinRecovered();
     this.watchRecovered();
   }
@@ -706,7 +707,7 @@ export class VoiceNodeClient extends EventSpewer {
         continue;
       }
       this.recoverGuild(shard, guildId, channel.id, session)
-        .catch((error) => console.warn(`voice node recover ${guildId}`, error));
+        .catch((error) => log.warn(`voice node recover ${guildId}`, error));
     }
   }
 
@@ -739,7 +740,7 @@ export class VoiceNodeClient extends EventSpewer {
       // still paused alone, someone listening once we're in carries on
       guild.alonePaused = session.paused && !!session.paused_alone;
     }
-    console.log(`voice node rejoined ${guildId} on ${node.info.name} at ${(session.finished) ? 'the next track' : `${session.position}ms`}`);
+    log.info(`voice node rejoined ${guildId} on ${node.info.name} at ${(session.finished) ? 'the next track' : `${session.position}ms`}`);
   }
 
   // the restarted shard identified as a new session, so discord dropped us from voice: join again for the nodes'
@@ -772,7 +773,7 @@ export class VoiceNodeClient extends EventSpewer {
           guild.idle = true;
           guild.paused = guild.alonePaused = false;
           guild.position = {at: Date.now(), value: 0};
-          this.idleUnlessStaying(guildId, guild).catch((error) => console.warn(`voice node idle ${guildId}`, error));
+          this.idleUnlessStaying(guildId, guild).catch((error) => log.warn(`voice node idle ${guildId}`, error));
         }
       }
     }
@@ -812,7 +813,7 @@ export class VoiceNodeClient extends EventSpewer {
     const joined = this.guilds.get(guildId)!;
     putGuildMusicSession({client: shard}, guildId, {channelId, effects, nodeId: node.id, speed, tempo, volume})
       .then((session) => this.applySavedSound(guildId, joined, session))
-      .catch((error) => console.warn(`voice node session ${guildId}`, error));
+      .catch((error) => log.warn(`voice node session ${guildId}`, error));
   }
 
   // the server's saved effects, volume and tempo (the api keeps what was last set until someone changes it, `music
@@ -840,7 +841,7 @@ export class VoiceNodeClient extends EventSpewer {
       if (player && this.guilds.get(guildId) === guild) {
         this.applyNodeSpeed(guildId, guild, player.speed || 1);
       }
-    }, (error) => console.warn(`voice node ${guild.node.info.name} saved sound ${guildId}`, error));
+    }, (error) => log.warn(`voice node ${guild.node.info.name} saved sound ${guildId}`, error));
   }
 
   // the node's speed with the effects and the tempo it was given, the api's position goes on at it
@@ -855,7 +856,7 @@ export class VoiceNodeClient extends EventSpewer {
   // keeps the api's music session up to date (only for a restart to carry on from, so nothing waits on it)
   private editSession(guildId: string, guild: GuildVoice, options: Parameters<typeof editGuildMusicSession>[2]) {
     editGuildMusicSession({client: guild.shard}, guildId, options)
-      .catch((error) => console.warn(`voice node session ${guildId}`, error));
+      .catch((error) => log.warn(`voice node session ${guildId}`, error));
   }
 
   // queues a search result in the api, and joins the channel to play the queue if we're not playing in the guild
@@ -987,7 +988,7 @@ export class VoiceNodeClient extends EventSpewer {
     guild.idleTimeout = setTimeout(() => {
       guild.idleTimeout = null;
       this.idleTimedOut(guildId, guild).catch((error) => {
-        console.warn(`voice node idle leave ${guildId}`, error);
+        log.warn(`voice node idle leave ${guildId}`, error);
         this.leave(guildId);
       });
     }, IDLE_LEAVE_DELAY);
@@ -1103,7 +1104,7 @@ export class VoiceNodeClient extends EventSpewer {
         guild.aloneTimeout = null;
       }
       if (guild.alonePaused) {
-        this.setPaused(guildId, false).catch((error) => console.warn(`voice node resuming ${guildId} for a listener`, error));
+        this.setPaused(guildId, false).catch((error) => log.warn(`voice node resuming ${guildId} for a listener`, error));
       }
       return;
     }
@@ -1112,7 +1113,7 @@ export class VoiceNodeClient extends EventSpewer {
     }
     guild.aloneTimeout = setTimeout(() => {
       guild.aloneTimeout = null;
-      this.pauseAlone(guildId, guild).catch((error) => console.warn(`voice node pausing ${guildId} alone`, error));
+      this.pauseAlone(guildId, guild).catch((error) => log.warn(`voice node pausing ${guildId} alone`, error));
     }, ALONE_PAUSE_DELAY);
   }
 
@@ -1243,7 +1244,7 @@ export class VoiceNodeClient extends EventSpewer {
       if (player && this.guilds.get(guildId) === guild) {
         this.applyNodeSpeed(guildId, guild, player.speed || 1);
       }
-    }, (error) => console.warn(`voice node ${guild.node.info.name} sound ${guildId}`, error));
+    }, (error) => log.warn(`voice node ${guild.node.info.name} sound ${guildId}`, error));
   }
 
   // what's playing back to the start, playing or paused as it was. Disconnected, it stays held paused at the start for
@@ -1321,9 +1322,9 @@ export class VoiceNodeClient extends EventSpewer {
     }
     if (clearQueue) {
       // the session goes with it
-      deleteGuildMusic({client: guild.shard}, guildId).catch((error) => console.warn('voice node clear queue', error));
+      deleteGuildMusic({client: guild.shard}, guildId).catch((error) => log.warn('voice node clear queue', error));
     } else {
-      deleteGuildMusicSession({client: guild.shard}, guildId).catch((error) => console.warn('voice node session', error));
+      deleteGuildMusicSession({client: guild.shard}, guildId).catch((error) => log.warn('voice node session', error));
     }
     this.emit(VoiceNodeEvents.LEFT, {guildId});
   }
@@ -1346,7 +1347,7 @@ export class VoiceNodeClient extends EventSpewer {
     }
     const shard = guild.shard;
     if (!channelId) {
-      deleteGuildMusicSession({client: shard}, guildId).catch((error) => console.warn('voice node session', error));
+      deleteGuildMusicSession({client: shard}, guildId).catch((error) => log.warn('voice node session', error));
       return;
     }
     fetchGuildMusic({client: shard}, guildId).catch(() => null).then((music) => {
@@ -1355,13 +1356,13 @@ export class VoiceNodeClient extends EventSpewer {
         return;
       }
       if (!music || !music.premium || !music.stay) {
-        deleteGuildMusicSession({client: shard}, guildId).catch((error) => console.warn('voice node session', error));
+        deleteGuildMusicSession({client: shard}, guildId).catch((error) => log.warn('voice node session', error));
         return;
       }
       // still paused alone, someone listening once we're back carries on
       const pausedAlone = paused && !!guild.alonePaused;
       editGuildMusicSession({client: shard}, guildId, {nodeId: null, paused, pausedAlone, position})
-        .catch((error) => console.warn(`voice node session ${guildId}`, error));
+        .catch((error) => log.warn(`voice node session ${guildId}`, error));
       const effects = guild.effects || [];
       const tempo = guild.tempo ?? 100;
       const volume = guild.volume ?? 100;
@@ -1370,7 +1371,7 @@ export class VoiceNodeClient extends EventSpewer {
         // 24/7 with nothing playing has no track to carry on, the queue starts again
         session: {channel_id: channelId, effects, finished: !!guild.idle, guild_id: guildId, held: false, node_id: null, paused, paused_alone: pausedAlone, position, speed: guild.speed || 1, stay: true, tempo, volume},
       });
-      console.log(`voice node ${guild.node.info.name} lost ${guildId} (24/7), rejoining at ${position}ms once a node can be reached`);
+      log.info(`voice node ${guild.node.info.name} lost ${guildId} (24/7), rejoining at ${position}ms once a node can be reached`);
       this.watchRecovered();
     });
   }
@@ -1393,8 +1394,8 @@ export class VoiceNodeClient extends EventSpewer {
     this.drop(guildId);
     // the effects, the volume and the tempo stay the server's saved ones (the api's), the next join puts them back on
     putGuildMusicSession({client: guild.shard}, guildId, {channelId, held: true, nodeId: null, paused: true, position, speed: 1})
-      .catch((error) => console.warn(`voice node hold ${guildId}`, error));
-    console.log(`voice node held ${guildId} at ${position}ms`);
+      .catch((error) => log.warn(`voice node hold ${guildId}`, error));
+    log.info(`voice node held ${guildId} at ${position}ms`);
     this.emit(VoiceNodeEvents.LEFT, {guildId});
   }
 
@@ -1477,7 +1478,7 @@ export class VoiceNodeClient extends EventSpewer {
     const held = (channelId) ?
       putGuildMusicSession({client: guild.shard}, guildId, {channelId, held: true, nodeId: null, paused: true, position, speed: 1}) :
       deleteGuildMusicSession({client: guild.shard}, guildId);
-    held.catch((error) => console.warn(`voice node hold ${guildId}`, error));
+    held.catch((error) => log.warn(`voice node hold ${guildId}`, error));
     guild.node.updatePlayer(guildId, {paused: true, voice: null}).then(async (player) => {
       if (player) {
         guild.position = {at: Date.now(), value: player.position || 0};
@@ -1487,7 +1488,7 @@ export class VoiceNodeClient extends EventSpewer {
           this.editSession(guildId, guild, {position: guild.position.value});
         }
       }
-    }).catch((error) => console.warn(`voice node ${guild.node.info.name} pausing ${guildId}`, error));
+    }).catch((error) => log.warn(`voice node ${guild.node.info.name} pausing ${guildId}`, error));
   }
 
   // from VOICE_SERVER_UPDATE, a null endpoint means discord is moving us to another voice server (another update follows)
@@ -1551,7 +1552,7 @@ export class VoiceNodeClient extends EventSpewer {
         this.applyNodeSpeed(guildId, guild, player.speed || 1);
       }
     }, (error) => {
-      console.warn(`voice node ${guild.node.info.name}`, error);
+      log.warn(`voice node ${guild.node.info.name}`, error);
       this.leave(guildId);
     });
   }
@@ -1570,7 +1571,7 @@ export class VoiceNodeClient extends EventSpewer {
           this.leave(guildId);
         } else {
           this.queueEnded(guildId, guild).catch((error) => {
-            console.warn(`voice node queue end ${guildId}`, error);
+            log.warn(`voice node queue end ${guildId}`, error);
             this.leave(guildId);
           });
         }
@@ -1608,7 +1609,7 @@ export class VoiceNodeClient extends EventSpewer {
           if (!node.info.enabled) {
             return this.moveGuild(guildId, 'drain');
           }
-        }).catch((error) => console.warn(`voice node move ${guildId}`, error));
+        }).catch((error) => log.warn(`voice node move ${guildId}`, error));
       }; break;
       // the node's voice connection is gone for good while we're still in the channel (a dropped session like after a
       // failover, failed reconnects, a close discord sent no new voice server after), new credentials only come from
@@ -1638,13 +1639,13 @@ export class VoiceNodeClient extends EventSpewer {
     const retry = !!guild.rejoinedAt && now - guild.rejoinedAt < REJOIN_RETRY_WINDOW;
     guild.rejoinTries = (retry) ? (guild.rejoinTries || 0) + 1 : 1;
     if (REJOIN_MAX_TRIES < guild.rejoinTries) {
-      console.warn(`voice connection for ${guildId} keeps getting lost (${error || 'no error'}), leaving`);
+      log.warn(`voice connection for ${guildId} keeps getting lost (${error || 'no error'}), leaving`);
       return (guild.idle) ? this.leave(guildId) : this.hold(guildId);
     }
     const channelId = guild.channelId;
     guild.rejoinedAt = now;
     guild.rejoining = true;
-    console.warn(`voice connection for ${guildId} was lost (${error || 'no error'}), rejoining`);
+    log.warn(`voice connection for ${guildId} was lost (${error || 'no error'}), rejoining`);
     guild.shard.gateway.voiceStateUpdate(guildId, null);
     this.rejoinLater(guildId, guild, channelId);
   }
@@ -1681,10 +1682,10 @@ export class VoiceNodeClient extends EventSpewer {
     if (!guildIds.length) {
       return;
     }
-    console.warn(`voice node ${node.info.name} ${(reason === 'down') ? 'is down' : 'restarted'}, moving ${guildIds.length} servers`);
+    log.warn(`voice node ${node.info.name} ${(reason === 'down') ? 'is down' : 'restarted'}, moving ${guildIds.length} servers`);
     for (let i = 0; i < guildIds.length; i += FAILOVER_BATCH) {
       await Promise.all(guildIds.slice(i, i + FAILOVER_BATCH).map((guildId) => {
-        return this.moveGuild(guildId, reason, downAt).catch((error) => console.warn(`voice node failover ${guildId}`, error));
+        return this.moveGuild(guildId, reason, downAt).catch((error) => log.warn(`voice node failover ${guildId}`, error));
       }));
     }
   }
@@ -1742,13 +1743,13 @@ export class VoiceNodeClient extends EventSpewer {
       // events from here on are the old player ending, ignored
       guild.node = to;
       if (reason === 'drain') {
-        await from.destroyPlayer(guildId).catch((error) => console.warn(`voice node ${from.info.name} destroy`, error));
+        await from.destroyPlayer(guildId).catch((error) => log.warn(`voice node ${from.info.name} destroy`, error));
       }
       try {
         await to.updatePlayer(guildId, {...(voice) ? {voice} : {}, effects: guild.effects || [], paused, position, queue: true, queueCurrent: true, tempo: guild.tempo ?? 100, volume: guild.volume ?? 100});
       } catch(error) {
         // nothing's playing it anymore, leave like a node that fails on join (the queue stays)
-        console.warn(`voice node ${to.info.name} taking over ${guildId}`, error);
+        log.warn(`voice node ${to.info.name} taking over ${guildId}`, error);
         if (this.guilds.get(guildId) === guild) {
           this.leave(guildId);
         }
@@ -1760,7 +1761,7 @@ export class VoiceNodeClient extends EventSpewer {
       if (voice) {
         this.editSession(guildId, guild, {nodeId: to.id, paused, position});
       }
-      console.log(`voice node moved ${guildId} from ${from.info.name} to ${to.info.name} at ${position}ms (${reason})`);
+      log.info(`voice node moved ${guildId} from ${from.info.name} to ${to.info.name} at ${position}ms (${reason})`);
     } finally {
       guild.moving = false;
     }
@@ -1891,7 +1892,7 @@ export class VoiceNodeClient extends EventSpewer {
       for (const old of handover.nodes) {
         const node = this.nodes.get(old.info.id);
         if (node && old.reconnect) {
-          node.connect(shard.userId).catch((error) => console.warn(`voice node ${node.info.name} resume`, error));
+          node.connect(shard.userId).catch((error) => log.warn(`voice node ${node.info.name} resume`, error));
         }
       }
       // reloaded while starting up, what's left of it

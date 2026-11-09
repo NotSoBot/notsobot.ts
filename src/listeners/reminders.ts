@@ -9,6 +9,7 @@ import { deleteReminder, fetchReminders } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
+import { log } from '../log';
 
 
 export interface ReminderItem {
@@ -164,7 +165,7 @@ class ReminderInterval extends Listener {
       if (!(error.response && error.response.statusCode === 404)) {
         // keep it in `handled` so we don't send it again, and retry the delete with backoff
         const delay = Math.min(this.deleteRetryMin * Math.pow(2, attempt), this.deleteRetryMax);
-        console.error(`Failed to delete reminder ${reminderId}, retrying in ${delay}ms`, error);
+        log.error(`Failed to delete reminder ${reminderId}, retrying in ${delay}ms`, error);
         const timeout = new Timers.Timeout();
         timeout.start(delay, () => this.deleteHandledReminder(shard, reminderId, attempt + 1));
         this.deleteRetries.set(reminderId, timeout);
@@ -296,18 +297,18 @@ class ReminderInterval extends Listener {
       // missed deletes/updates would leave stale timers around, reschedule everything from the api
       const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
         this.resync(cluster).catch((error) => {
-          console.error('Failed to resync reminders', error);
+          log.error('Failed to resync reminders', error);
         });
       });
       subscriptions.push(subscription);
     }
 
     this.startup(cluster).catch((error) => {
-      console.error('Failed to scan for reminders on startup', error);
+      log.error('Failed to scan for reminders on startup', error);
     });
     this.interval.start(this.intervalTime, () => {
       this.scanForReminders(cluster).catch((error) => {
-        console.error('Failed to scan for reminders', error);
+        log.error('Failed to scan for reminders', error);
       });
     });
     // send overdue ones that nothing scheduled, then schedule the ones due before the next catch up
@@ -318,7 +319,7 @@ class ReminderInterval extends Listener {
         await this.scanForRemindersExpired(cluster, now - 2000);
         await this.scanForReminders(cluster, now - 2000, now + this.catchUpIntervalTime + this.scanMargin);
       } catch(error) {
-        console.error('Failed to catch up on reminders', error);
+        log.error('Failed to catch up on reminders', error);
       }
     });
 

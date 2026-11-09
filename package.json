@@ -32,7 +32,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "launch": "node ./lib/run",
+    "launch": "node --env-file-if-exists=.env ./lib/run",
     "prepare": "npm run build"
   },
   "repository": {

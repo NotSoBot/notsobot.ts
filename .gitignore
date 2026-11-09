@@ -1,4 +1,5 @@
 node_modules
 /lib
 config.json
+.env
 .DS_Store

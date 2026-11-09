@@ -4,6 +4,7 @@ import { EventSubscription } from 'detritus-utils';
 
 import { ApiEventsSpewer } from '../apievents';
 import { RedisChannels } from '../constants';
+import { log } from '../log';
 import { controlDashboardEffects } from '../utils/formatter/commands/music.effect';
 import VoiceNode from '../voicenode';
 
@@ -93,7 +94,7 @@ class VoiceNodeListener extends Listener {
           case 'volume': promise = controlDashboardSound(payload.guild_id, payload.action, payload.value); break;
           default: return;
         }
-        promise.catch((error) => console.warn(`voice node dashboard ${payload.action} ${payload.guild_id}`, error));
+        promise.catch((error) => log.warn(`voice node dashboard ${payload.action} ${payload.guild_id}`, error));
       });
       subscriptions.push(subscription);
     }

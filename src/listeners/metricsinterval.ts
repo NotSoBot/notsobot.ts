@@ -8,6 +8,7 @@ import { Listener } from './listener';
 
 import { putInfoMetrics } from '../api';
 import { getApiError } from '../api/errors';
+import { log } from '../log';
 import {
   INTERACTION_RESPONSE_BUCKETS,
   MetricsCounter,
@@ -120,7 +121,7 @@ class MetricsInterval extends Listener {
       if (error && error.response && error.response.statusCode < 500) {
         // the api rejected the report itself (a metric it doesn't know, wrong labels), sending it again won't help
         const body = await getApiError(error);
-        console.error('Metrics report rejected', (body) ? body.message : error);
+        log.error('Metrics report rejected', (body) ? body.message : error);
       } else {
         // the api is unreachable or erroring, keep the changes for the next report
         restoreMetricsChanges(changes);

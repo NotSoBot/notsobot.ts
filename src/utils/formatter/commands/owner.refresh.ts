@@ -1,10 +1,15 @@
-import { ClusterClient, Command, Interaction, ShardClient } from 'detritus-client';
+import * as path from 'path';
 
-import { DIRECTORY } from '../../../../config.json';
+import { ClusterClient, Command, Interaction, ShardClient } from 'detritus-client';
 
 import { NotSoCommandClient } from '../../../commandclient';
 import { NotSoInteractionClient } from '../../../interactioncommandclient';
+import { log } from '../../../log';
 import { displayReply } from '../../../utils';
+
+
+// the compiled source's folder (this file is in its utils/formatter/commands), what every cluster loaded its files from
+const LIB_DIRECTORY = path.resolve(__dirname, '..', '..', '..');
 
 
 async function refreshCommands(
@@ -292,7 +297,7 @@ export async function createMessage(
     return displayReply(context, {description: 'no cluster manager found'});
   }
   await displayReply(context, {description: 'ok, refreshing...'});
-  const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, !!args.voice, DIRECTORY);
+  const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, !!args.voice, LIB_DIRECTORY);
     /*
   {
     redisChannels: Object.values(RedisChannels),
@@ -321,7 +326,7 @@ export async function createMessage(
     if (error.errors) {
       return displayReply(context, {description: `${error.message} (${JSON.stringify(error.errors)})`});
     }
-    console.log(error);
+    log.error(error);
     return displayReply(context, {description: `Error: ${error.message}`});
   }
   return displayReply(context, {description: `ok, refreshed commands on ${shardIds.flat().length} shards.`});

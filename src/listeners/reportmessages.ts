@@ -18,6 +18,7 @@ import {
   ReportTypes,
   UserSettingsResponseDisplayTypes,
 } from '../constants';
+import { log } from '../log';
 import { RedisPayloads } from '../types';
 import { createRespondModal, fetchDmSettings } from '../utils/formatter/commands/guild.report';
 import { Translator, getCachedTranslator } from '../utils/i18n';
@@ -237,7 +238,7 @@ class ReportMessagesListener extends Listener {
       const subscription = apiEvents.subscribe(RedisChannels.REPORT_MESSAGE_CREATE, (payload: RedisPayloads.ReportMessageCreate) => {
         // closed dms (or a deleted account) are expected, the reply is still on their dashboard
         this.sendMessage(cluster, payload).catch((error) => {
-          console.error(`Failed to DM report message ${payload.message.id} to ${payload.user_id}`, error);
+          log.error(`Failed to DM report message ${payload.message.id} to ${payload.user_id}`, error);
         });
       });
       subscriptions.push(subscription);

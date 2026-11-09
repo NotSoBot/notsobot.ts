@@ -4,6 +4,7 @@ import { EventSubscription } from 'detritus-utils';
 
 import { ApiEventsSpewer } from '../apievents';
 import { GuildWarningAutoTriggers } from '../constants';
+import { log } from '../log';
 import GuildSettingsStore from '../stores/guildsettings';
 import { Formatter, I18n } from '../utils';
 
@@ -69,7 +70,7 @@ class AutomodListener extends Listener {
             });
           }
         } catch(error) {
-          console.error(`AutoMod auto-warn failed for ${guildId}`, error);
+          log.error(`AutoMod auto-warn failed for ${guildId}`, error);
         }
       });
       subscriptions.push(subscription);

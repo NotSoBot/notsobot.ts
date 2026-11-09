@@ -728,6 +728,7 @@ import * as ToolsTranscribe from './tools.transcribe';
 import * as ToolsTranscribeTranslate from './tools.transcribe.translate';
 import * as ToolsTranslate from './tools.translate';
 import * as ToolsUnicode from './tools.unicode';
+import * as ToolsUrl from './tools.url';
 import * as ToolsWeather from './tools.weather';
 
 import * as UtilsInvite from './utils.invite';
@@ -1479,6 +1480,7 @@ export {
   ToolsTranscribeTranslate,
   ToolsTranslate,
   ToolsUnicode,
+  ToolsUrl,
   ToolsWeather,
 
   UtilsInvite,

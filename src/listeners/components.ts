@@ -11,6 +11,7 @@ import { deleteFile, fetchFile } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
+import { log } from '../log';
 import { RedisPayloads } from '../types';
 import { I18n, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
 import {
@@ -67,7 +68,7 @@ class ComponentsListener extends Listener {
                 const rerender = (queue) ? (ctx: ComponentContext) => rerenderMusicQueue(ctx, queue.page, queue.fromId) : undefined;
                 return await onMusicControl(context, control, rest[0], rerender);
               } catch(error) {
-                console.warn(`music control ${context.customId} ${context.guildId}`, error);
+                log.warn(`music control ${context.customId} ${context.guildId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.GUILD_REPORT + '.')) {
@@ -76,7 +77,7 @@ class ComponentsListener extends Listener {
                 const [ , action, reportId ] = context.customId.split('.');
                 return await onGuildReportComponent(context, action, reportId);
               } catch(error) {
-                console.warn(`guild report ${context.customId} ${context.guildId}`, error);
+                log.warn(`guild report ${context.customId} ${context.guildId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.GUILD_WARNING + '.')) {
@@ -85,7 +86,7 @@ class ComponentsListener extends Listener {
                 const [ , action, userId, warningId ] = context.customId.split('.');
                 return await onGuildWarningLogComponent(context, action, userId, warningId);
               } catch(error) {
-                console.warn(`guild warning ${context.customId} ${context.guildId}`, error);
+                log.warn(`guild warning ${context.customId} ${context.guildId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.GUILD_REPORT_RESPOND + '.')) {
@@ -94,7 +95,7 @@ class ComponentsListener extends Listener {
                 const [ , guildId, reportId ] = context.customId.split('.');
                 return await onGuildReportRespondComponent(context, guildId, reportId);
               } catch(error) {
-                console.warn(`guild report respond ${context.customId} ${context.userId}`, error);
+                log.warn(`guild report respond ${context.customId} ${context.userId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.GUILD_REPORT_MUTE + '.')) {
@@ -103,7 +104,7 @@ class ComponentsListener extends Listener {
                 const [ , guildId, reportId ] = context.customId.split('.');
                 return await onGuildReportMuteComponent(context, guildId, reportId);
               } catch(error) {
-                console.warn(`guild report mute ${context.customId} ${context.userId}`, error);
+                log.warn(`guild report mute ${context.customId} ${context.userId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.REPORT_RESPOND + '.')) {
@@ -112,7 +113,7 @@ class ComponentsListener extends Listener {
                 const [ , reportId ] = context.customId.split('.');
                 return await onReportRespondComponent(context, reportId);
               } catch(error) {
-                console.warn(`report respond ${context.customId} ${context.userId}`, error);
+                log.warn(`report respond ${context.customId} ${context.userId}`, error);
               }
             }
           }; break;
@@ -133,9 +134,9 @@ class ComponentsListener extends Listener {
       // a reply on a member's report, from either side's Respond button or the dashboard
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_REPORT_MESSAGE_CREATE, (payload: RedisPayloads.GuildReportMessageCreate) => {
         // TODO: remove with the trace in `onGuildReportMessageCreate`
-        console.log(`[guild report reply] event ${payload && payload.report && payload.report.id} arrived on cluster ${cluster.clusterId}`);
+        log.info(`[guild report reply] event ${payload && payload.report && payload.report.id} arrived on cluster ${cluster.clusterId}`);
         onGuildReportMessageCreate(cluster, payload).catch((error) => {
-          console.error(`Failed to deliver guild report ${payload.report.id}'s reply ${payload.message.id}`, error);
+          log.error(`Failed to deliver guild report ${payload.report.id}'s reply ${payload.message.id}`, error);
         });
       });
       subscriptions.push(subscription);
