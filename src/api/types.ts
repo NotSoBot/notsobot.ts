@@ -759,6 +759,8 @@ export namespace RestOptions {
 
   export interface MediaAIVManipulationVeg extends MediaBaseOptions {
     cutoff?: boolean,
+    // more medias for the project's other sources (at most 3), in the order the sources first play
+    extraUrls?: Array<string>,
     // the .veg as an upload or a url, one of them is needed
     vegFile?: RequestFile,
     vegUrl?: string,
@@ -1739,8 +1741,9 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationXyt extends MediaBaseOptions {
-    // the .xyt as an upload or a url, one of them is needed
+    // the .xyt as an upload, a url, or a built-in template's id/name (the api's library), one of them is needed
     xytFile?: RequestFile,
+    xytId?: string,
     xytUrl?: string,
   }
 

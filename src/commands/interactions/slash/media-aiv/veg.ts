@@ -10,6 +10,7 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'veg';
 
 export interface CommandArgsBefore {
+  also?: Array<string>,
   cutoff?: boolean,
   url?: null | string,
   veg?: Structures.Attachment | string,
@@ -30,6 +31,12 @@ export class MediaAIVVegCommand extends BaseInteractionMediaCommandOption {
       options: [
         {name: 'veg', description: 'Vegas project file (.veg, .vf)', ...I18n.optionLocalizations('commands.media_aiv.veg.veg'), type: ApplicationCommandOptionTypes.ATTACHMENT},
         {name: 'veg-url', description: 'Vegas project URL, instead of the file', ...I18n.optionLocalizations('commands.media_aiv.veg.veg_url'), label: 'vegUrl'},
+        {
+          name: 'also',
+          description: 'More Emojis/Media URLs/Users for the project\'s other sources (up to 3)',
+          ...I18n.optionLocalizations('commands.media_aiv.veg.also'),
+          value: Parameters.mediaUrlsFromContent(Formatter.Commands.MediaAIVManipulationVeg.MAX_EXTRA_MEDIAS),
+        },
         {name: 'cutoff', description: 'A clip that starts on a track cuts off the one before it (Default: True)', ...I18n.optionLocalizations('commands.media_aiv.veg.cutoff'), type: Boolean},
       ],
     }, {skipFiles: Parameters.VEG_FILE_EXTENSIONS});
@@ -49,6 +56,7 @@ export class MediaAIVVegCommand extends BaseInteractionMediaCommandOption {
 
   async run(context: Interaction.InteractionContext, args: CommandArgsBefore) {
     return Formatter.Commands.MediaAIVManipulationVeg.createMessage(context, {
+      also: args.also,
       cutoff: args.cutoff,
       url: args.url!,
       veg: getVegUrl(args)!,

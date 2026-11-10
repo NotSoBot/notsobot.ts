@@ -21,10 +21,16 @@ export const PREVIEW: RestOptions.CommandPreview = {
   ].join('\n'),
 };
 
+// the medias after the first that can share the project's sources (the api's `MAX_MEDIASCRIPT_VEG_MEDIAS` - 1)
+export const MAX_EXTRA_MEDIAS = 3;
+
 export interface CommandArgs {
+  // more medias for the project's other sources: its first source (as they first play) becomes `url`, the second
+  // `also[0]` and so on, round again when there are more sources than medias
+  also?: Array<string>,
   cutoff?: boolean,
   url: string,
-  // the .veg project's url, every one of its sources becomes `url`
+  // the .veg project's url, every one of its sources becomes `url` (or one of `also`)
   veg: string,
 }
 
@@ -34,6 +40,7 @@ export function createJob(
 ) {
   return mediaAIVManipulationVeg(context, {
     cutoff: args.cutoff,
+    extraUrls: (args.also || []).slice(0, MAX_EXTRA_MEDIAS),
     safe: DefaultParameters.safe(context),
     url: args.url,
     vegUrl: args.veg,

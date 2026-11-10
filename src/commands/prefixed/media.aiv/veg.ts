@@ -11,6 +11,7 @@ export const COMMAND_NAME = 'veg';
 
 // the label is `payload` instead of the media command's `url`, both are here so the hooks below can override its own
 export interface CommandArgsBefore {
+  also?: Array<string>,
   nocutoff?: boolean,
   payload?: Parameters.FilePayload,
   url?: null | string,
@@ -23,6 +24,7 @@ export default class VegCommand extends BaseMediaCommand {
 
       aliases: ['vegas', 'vegrender', 'veg render'],
       args: [
+        {name: 'also', aliases: ['with'], type: Parameters.mediaUrlsFromContent(Formatter.Commands.MediaAIVManipulationVeg.MAX_EXTRA_MEDIAS), metadata: {description: 'More media for the project\'s other sources (up to 3), in the order the sources first play'}},
         {name: 'nocutoff', aliases: ['nc'], type: Boolean, metadata: {description: 'Let clips on the same track overlap instead of cutting each other off'}},
       ],
       label: 'payload',
@@ -32,9 +34,10 @@ export default class VegCommand extends BaseMediaCommand {
         examples: [
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/preview1280.veg https://cdn.nsb.gg/assets/samples/video.mp4`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/preview1280.veg @cakedan -nocutoff`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/preview1280.veg https://cdn.nsb.gg/assets/samples/video.mp4 -also https://cdn.nsb.gg/assets/samples/music.mp3`,
         ],
         id: Formatter.Commands.MediaAIVManipulationVeg.COMMAND_ID,
-        usage: '<.veg/.vf url or attachment> ?<emoji,user:id|mention|name,url> (-nocutoff)',
+        usage: '<.veg/.vf url or attachment> ?<emoji,user:id|mention|name,url> (-also <...emoji,user:id|mention|name,url>) (-nocutoff)',
       },
       type: Parameters.filePayload(Parameters.VEG_FILE_EXTENSIONS),
     });
@@ -60,6 +63,7 @@ export default class VegCommand extends BaseMediaCommand {
   async run(context: Command.Context, args: CommandArgsBefore) {
     const { file: veg, url } = args.payload!;
     return Formatter.Commands.MediaAIVManipulationVeg.createMessage(context, {
+      also: args.also,
       cutoff: !args.nocutoff,
       url: url!,
       veg: veg!,

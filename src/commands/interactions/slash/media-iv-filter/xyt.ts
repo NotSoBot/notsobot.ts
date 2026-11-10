@@ -12,6 +12,7 @@ export const COMMAND_NAME = 'xyt';
 export interface CommandArgsBefore {
   url?: null | string,
   xyt?: Structures.Attachment | string,
+  xytId?: string,
   xytUrl?: string,
 }
 
@@ -29,12 +30,13 @@ export class MediaIVXytCommand extends BaseInteractionImageOrVideoCommandOption 
       options: [
         {name: 'xyt', description: 'VivaVideo template file (.xyt)', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt'), type: ApplicationCommandOptionTypes.ATTACHMENT},
         {name: 'xyt-url', description: 'VivaVideo template URL, instead of the file', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt_url'), label: 'xytUrl'},
+        {name: 'xyt-id', description: 'VivaVideo template id or name', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt_id'), label: 'xytId'},
       ],
     }, {skipFiles: ['.xyt']});
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
-    if (!getXytUrl(args)) {
+    if (!getXytSource(args)) {
       const { translate } = await I18n.getTranslator(context);
       return replyWarning(context, translate('errors.no_xyt_found'), {ephemeral: true});
     }
@@ -42,22 +44,30 @@ export class MediaIVXytCommand extends BaseInteractionImageOrVideoCommandOption 
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
-    return super.onBeforeRun(context, args) && !!getXytUrl(args);
+    return super.onBeforeRun(context, args) && !!getXytSource(args);
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgsBefore) {
     return Formatter.Commands.MediaIVManipulationXyt.createMessage(context, {
       url: args.url!,
-      xyt: getXytUrl(args)!,
+      ...getXytSource(args)!,
     });
   }
 }
 
 
-function getXytUrl(args: CommandArgsBefore): null | string {
+// the attachment, then the url, then a built-in template's id/name
+function getXytSource(args: CommandArgsBefore): null | {xyt?: string, xytId?: string} {
   // the option comes back as the resolved attachment
   if (args.xyt instanceof Structures.Attachment) {
-    return args.xyt.url || args.xyt.proxyUrl || null;
+    const xyt = args.xyt.url || args.xyt.proxyUrl;
+    if (xyt) {
+      return {xyt};
+    }
   }
-  return args.xytUrl || null;
+  if (args.xytUrl) {
+    return {xyt: args.xytUrl};
+  }
+  const xytId = (args.xytId || '').trim();
+  return (xytId) ? {xytId} : null;
 }

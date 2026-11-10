@@ -27,25 +27,28 @@ export default class XytCommand extends BaseImageOrVideoCommand {
         description: 'Apply a VivaVideo filter or fx template (.xyt) to an Image or Video',
         examples: [
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/funface.xyt notsobot`,
+          `${COMMAND_NAME} 0x060000000000000A notsobot`,
+          `${COMMAND_NAME} rose notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationXyt.COMMAND_ID,
-        usage: '<.xyt url or attachment> ?<emoji,user:id|mention|name,url>',
+        usage: '<.xyt url or attachment,template id or name> ?<emoji,user:id|mention|name,url>',
       },
-      type: Parameters.filePayload('.xyt', {audio: false}),
+      // a leading word that isn't a url or media is a built-in template's id or name
+      type: Parameters.filePayload('.xyt', {audio: false}, {names: true}),
     });
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    const { file: xyt, url } = args.payload || {};
+    const { file: xyt, name: xytId, url } = args.payload || {};
     if (url) {
       context.metadata = Object.assign({}, context.metadata, {contentUrl: url});
     }
-    return !!url && !!xyt;
+    return !!url && !!(xyt || xytId);
   }
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    const { file: xyt, url } = args.payload || {};
-    if (!xyt) {
+    const { file: xyt, name: xytId, url } = args.payload || {};
+    if (!xyt && !xytId) {
       const { translate } = await I18n.getTranslator(context);
       return replyWarning(context, translate('errors.no_xyt_found'));
     }
@@ -53,10 +56,10 @@ export default class XytCommand extends BaseImageOrVideoCommand {
   }
 
   async run(context: Command.Context, args: CommandArgsBefore) {
-    const { file: xyt, url } = args.payload!;
+    const { file: xyt, name: xytId, url } = args.payload!;
     return Formatter.Commands.MediaIVManipulationXyt.createMessage(context, {
       url: url!,
-      xyt: xyt!,
+      ...((xyt) ? {xyt} : {xytId: xytId!}),
     });
   }
 }

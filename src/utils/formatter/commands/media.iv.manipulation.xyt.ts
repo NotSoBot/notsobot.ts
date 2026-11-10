@@ -21,8 +21,9 @@ export const PREVIEW: RestOptions.CommandPreview = {
 
 export interface CommandArgs {
   url: string,
-  // the VivaVideo template's url
-  xyt: string,
+  // the VivaVideo template's url, or `xytId` for one of the api's built-in templates (id or name)
+  xyt?: string,
+  xytId?: string,
 }
 
 export function createJob(
@@ -32,6 +33,7 @@ export function createJob(
   return mediaIVManipulationXyt(context, {
     safe: DefaultParameters.safe(context),
     url: args.url,
+    xytId: args.xytId,
     xytUrl: args.xyt,
   });
 }

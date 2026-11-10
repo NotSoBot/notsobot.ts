@@ -1966,6 +1966,30 @@ export function mediaUrl(
 }
 
 
+// `-also <url> <@user> <emoji>`: each word is its own media, found from the text alone (`mediaUrl`'s `onlyContent`,
+// the message's attachments are the command's main media). Ones that aren't found are left out
+export function mediaUrlsFromContent(
+  maxAmount: number,
+  mediaSearchOptions: FindMediaUrlOptions = {},
+): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<Array<string>> {
+  const customMediaUrl = mediaUrl({...mediaSearchOptions, onlyContent: true});
+
+  return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    const urls: Array<string> = [];
+    for (let part of stringArguments(value || '')) {
+      if (maxAmount <= urls.length) {
+        break;
+      }
+      const url = await customMediaUrl(part, context);
+      if (url) {
+        urls.push(url);
+      }
+    }
+    return urls;
+  };
+}
+
+
 export interface FindMediaUrlsOptions extends FindMediaUrlOptions {
   maxAmount?: number,
   minAmount?: number,
@@ -2619,7 +2643,16 @@ export function lastMediaUrl(
 export interface FilePayload {
   // the non media file's url (the `.veg`, `.cube`)
   file?: null | string,
+  // with `names`, a leading argument that isn't a url or media, naming a built-in file instead (`xyt rose <media>`)
+  name?: null | string,
   url?: null | string,
+}
+
+// a VivaVideo template id (`0x060000000000000A`), checked before `isMediaArgument` since all digit ones look like snowflakes
+const FILE_PAYLOAD_ID_REGEX = /^(0x)?[0-9a-f]{16}$/i;
+
+export interface FilePayloadOptions {
+  names?: boolean,
 }
 
 // `veg <veg url> <media>`, an attachment with one of `extensions` (on the message or the one it replies to) takes the
@@ -2627,6 +2660,7 @@ export interface FilePayload {
 export function filePayload(
   extensions: string | Array<string>,
   mediaSearchOptions: FindMediaUrlOptions = {},
+  payloadOptions: FilePayloadOptions = {},
 ): (x: string, context: Command.Context) => Promise<FilePayload> {
   if (!Array.isArray(extensions)) {
     extensions = [extensions];
@@ -2652,8 +2686,18 @@ export function filePayload(
       }
     }
 
+    // `xyt 0x060000000000000A <media>`, `xyt "pink rose" <media>`: quoted for names with spaces
+    let name: null | string = null;
+    if (!file && value && payloadOptions.names) {
+      const [ first, rest ] = getFirstArgument(value.trim());
+      if (first && (FILE_PAYLOAD_ID_REGEX.test(first) || !(await isMediaArgument(first, context)))) {
+        name = first;
+        value = rest;
+      }
+    }
+
     const url = await customLastMediaUrl(value, context);
-    return {file, url};
+    return {file, name, url};
   };
 }
 

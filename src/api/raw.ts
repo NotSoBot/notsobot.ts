@@ -3230,6 +3230,7 @@ export async function mediaAIVManipulationVeg(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     cutoff: options.cutoff,
+    extra_urls: (options.extraUrls && options.extraUrls.length) ? options.extraUrls : undefined,
     max_file_size: maxFileSize,
     safe: options.safe,
     upload: options.upload,
@@ -12966,6 +12967,7 @@ export async function mediaIVManipulationXyt(
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
+    xyt_id: options.xytId,
     xyt_url: options.xytUrl,
   };
   return request(context, {
