@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -28,8 +28,6 @@ export default class TTSPlayCommand extends BaseCommand {
           `${COMMAND_NAME} give me a table -use klattsch`,
         ],
         category: CommandCategories.MUSIC,
-        // like `music play`: premium users, premium servers and servers given the feature (`owner guild features add`)
-        premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicTTS.COMMAND_ID,
         usage: '<text> (-use <language/type>)',
       },

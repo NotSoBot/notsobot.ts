@@ -2513,6 +2513,9 @@ export namespace RestResponsesRaw {
     batch_name: null | string,
     // when it was queued (unix milliseconds)
     created: number,
+    // an nsb.gg link's real file name (its url only has its vanity), null for any other link and for tracks. Older api
+    // versions leave it out
+    filename?: null | string,
     guild_id: string,
     id: string,
     // 1 is next, the playing item is 0
@@ -2651,6 +2654,7 @@ export namespace RestResponsesRaw {
 
   // a track the server's music played, a copy of its queue item's (`track.url` is always null, it expired)
   export interface GuildMusicHistoryItem {
+    filename?: null | string,
     guild_id: string,
     id: string,
     // when the last of its `plays` started (unix milliseconds), the same as `played` for one play

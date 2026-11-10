@@ -276,11 +276,15 @@ export function musicQueuePositions(value: string): Array<number> {
   return Array.from(positions);
 }
 
-// a link's file name, from its path (the converted file is always `music.weba`), its host when the path has none
+// a link's file name: an nsb.gg file's real one (the api's `filename`), otherwise from its path (the converted file is
+// always `music.weba`), its host when the path has none
 // queue items and history entries
-type MusicItemLike = Pick<RestResponsesRaw.GuildMusicQueueItem, 'source' | 'track' | 'url'>;
+type MusicItemLike = Pick<RestResponsesRaw.GuildMusicQueueItem, 'filename' | 'source' | 'track' | 'url'>;
 
 export function musicItemFileName(item: MusicItemLike): string {
+  if (item.filename) {
+    return item.filename.slice(0, 100);
+  }
   try {
     const url = new URL(item.url);
     const segment = url.pathname.split('/').filter(Boolean).pop();

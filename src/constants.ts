@@ -3088,6 +3088,11 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_DIRECTORY]: 'Guild Directory',
   [ChannelTypes.GUILD_FORUM]: 'Guild Forum',
   [ChannelTypes.GUILD_MEDIA]: 'Guild Media',
+  [ChannelTypes.LOBBY]: 'Lobby',
+  [ChannelTypes.DM_SDK]: 'Direct Message SDK',
+  [ChannelTypes.GUILD_MEDIA_THREAD]: 'Guild Media Thread',
+  [ChannelTypes.GUILD_SPACE]: 'Guild Space',
+  [ChannelTypes.GUILD_APP]: 'Guild App',
 });
 
 
@@ -3111,7 +3116,13 @@ export const DiscordUserFlagsText: Record<DiscordUserFlags, string> = Object.fre
   [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
   [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: 'Discord Certified Moderator',
   [DiscordUserFlags.BOT_HTTP_INTERACTIONS]: 'Bot HTTP Interactions',
+  [DiscordUserFlags.SPAMMER]: 'Spammer',
+  [DiscordUserFlags.DISABLE_PREMIUM]: 'Nitro Disabled',
   [DiscordUserFlags.ACTIVE_DEVELOPER]: 'Active Developer',
+  [DiscordUserFlags.PROVISIONAL_ACCOUNT]: 'Provisional Account',
+  [DiscordUserFlags.QUARANTINED]: 'Quarantined',
+  [DiscordUserFlags.COLLABORATOR]: 'Collaborator',
+  [DiscordUserFlags.RESTRICTED_COLLABORATOR]: 'Restricted Collaborator',
 });
 
 
