@@ -16,6 +16,7 @@ import {
   fetchUserReminders,
   fetchServerVoices,
   fetchUserVoices,
+  mediaIVManipulationXytTemplates,
   utilitiesLocations,
 } from '../../api';
 import { RestResponsesRaw } from '../../api/types';
@@ -1065,5 +1066,107 @@ export async function serverVoices(context: Interaction.InteractionAutoCompleteC
     voices = search.search(context.value) as any;
   }
   const choices = voices.slice(0, 25).map((voice) => ({name: voice.name.slice(0, 100), value: voice.id}));
+  return context.respond({choices});
+}
+
+
+// the api's template library only changes when it's deployed, so its names are kept for a bit
+const XYT_TEMPLATES_EXPIRE = 10 * 60 * 1000;
+// when the api couldn't be asked, before it's asked again
+const XYT_TEMPLATES_RETRY = 60 * 1000;
+const XYT_TEMPLATE_KINDS: Record<string, string> = {effect: 'Effect', filter: 'Filter', overlay: 'Overlay'};
+
+interface XytTemplateChoices {
+  // every template by title, the ones VivaVideo never named (their id is their title) last
+  choices: Array<{name: string, value: string}>,
+  expires: number,
+  search: MiniSearch,
+}
+
+let xytTemplateChoices: null | XytTemplateChoices = null;
+let xytTemplateChoicesPromise: null | Promise<null | XytTemplateChoices> = null;
+
+async function fetchXytTemplateChoices(context: Interaction.InteractionAutoCompleteContext): Promise<null | XytTemplateChoices> {
+  if (xytTemplateChoices && Date.now() < xytTemplateChoices.expires) {
+    return xytTemplateChoices;
+  }
+  if (!xytTemplateChoicesPromise) {
+    xytTemplateChoicesPromise = (async () => {
+      try {
+        const { templates } = await mediaIVManipulationXytTemplates(context);
+
+        const titleCounts = new Map<string, number>();
+        for (let template of templates) {
+          const key = template.title.toLowerCase();
+          titleCounts.set(key, (titleCounts.get(key) || 0) + 1);
+        }
+
+        const documents = templates.map((template) => {
+          const details = [template.title, XYT_TEMPLATE_KINDS[template.kind] || toTitleCase(template.kind)];
+          if (template.music) {
+            details.push('Music');
+          }
+          // a name only finds the first of the templates sharing it, the id tells them apart
+          if (1 < (titleCounts.get(template.title.toLowerCase()) || 0)) {
+            details.push(template.id);
+          }
+          return {
+            id: template.id,
+            name: details.filter(Boolean).join(' • ').slice(0, 100),
+            named: template.title.toLowerCase() !== template.id.toLowerCase(),
+            title: template.title,
+            titles: template.titles.join(' '),
+          };
+        });
+
+        const search = new MiniSearch({
+          fields: ['id', 'title', 'titles'],
+          storeFields: ['id', 'name'],
+          searchOptions: {
+            boost: {title: 2},
+            fuzzy: true,
+            prefix: true,
+          },
+        });
+        search.addAll(documents);
+
+        const choices = documents.sort((x, y) => {
+          if (x.named !== y.named) {
+            return (x.named) ? -1 : 1;
+          }
+          return x.title.localeCompare(y.title) || x.id.localeCompare(y.id);
+        }).map((document) => ({name: document.name, value: document.id}));
+
+        xytTemplateChoices = {choices, expires: Date.now() + XYT_TEMPLATES_EXPIRE, search};
+      } catch(error) {
+        // the names it had are still real templates, and without any an id or a name can still be typed
+        if (xytTemplateChoices) {
+          xytTemplateChoices.expires = Date.now() + XYT_TEMPLATES_RETRY;
+        }
+      } finally {
+        xytTemplateChoicesPromise = null;
+      }
+      return xytTemplateChoices;
+    })();
+  }
+  return xytTemplateChoicesPromise;
+}
+
+
+// `xyt`'s built-in templates (the api's VivaVideo template library), the value is the template's id since some share
+// a name. What's typed is still sent as it is when nothing is picked (the api takes ids and names)
+export async function xytTemplates(context: Interaction.InteractionAutoCompleteContext) {
+  const templates = await fetchXytTemplateChoices(context);
+
+  let choices: Array<{name: string, value: string}> = [];
+  if (templates) {
+    if (context.value) {
+      choices = templates.search.search(context.value).slice(0, 25).map((result) => {
+        return {name: result.name, value: result.id};
+      });
+    } else {
+      choices = templates.choices.slice(0, 25);
+    }
+  }
   return context.respond({choices});
 }

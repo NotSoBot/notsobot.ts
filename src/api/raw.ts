@@ -12984,6 +12984,18 @@ export async function mediaIVManipulationXyt(
 }
 
 
+export async function mediaIVManipulationXytTemplates(
+  context: RequestContext,
+): Promise<RestResponsesRaw.MediaIVManipulationXytTemplates> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MEDIA_IV_MANIPULATION_XYT_TEMPLATES,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationZoom(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationZoom,

@@ -4953,6 +4953,11 @@ export async function mediaIVManipulationXyt(
 }
 
 
+export async function mediaIVManipulationXytTemplates(context: RequestContext) {
+  return raw.mediaIVManipulationXytTemplates(context);
+}
+
+
 export async function mediaIVManipulationZoom(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationZoom,

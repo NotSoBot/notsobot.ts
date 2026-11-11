@@ -1005,6 +1005,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/wobble',
   MEDIA_IV_MANIPULATION_XYT:
     '/media/iv/manipulation/xyt',
+  MEDIA_IV_MANIPULATION_XYT_TEMPLATES:
+    '/media/iv/manipulation/xyt/templates',
   MEDIA_IV_MANIPULATION_ZOOM:
     '/media/iv/manipulation/zoom',
   MEDIA_IV_MANIPULATION_ZOOM_BLUR:

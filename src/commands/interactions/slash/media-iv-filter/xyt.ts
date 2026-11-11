@@ -1,7 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { Formatter, I18n } from '../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { replyWarning } from '../../../errors';
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
@@ -30,7 +30,7 @@ export class MediaIVXytCommand extends BaseInteractionImageOrVideoCommandOption 
       options: [
         {name: 'xyt', description: 'VivaVideo template file (.xyt)', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt'), type: ApplicationCommandOptionTypes.ATTACHMENT},
         {name: 'xyt-url', description: 'VivaVideo template URL, instead of the file', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt_url'), label: 'xytUrl'},
-        {name: 'xyt-id', description: 'VivaVideo template id or name', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt_id'), label: 'xytId'},
+        {name: 'xyt-id', description: 'VivaVideo template id or name', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt_id'), label: 'xytId', onAutoComplete: Parameters.AutoComplete.xytTemplates},
       ],
     }, {skipFiles: ['.xyt']});
   }

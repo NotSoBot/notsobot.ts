@@ -3391,6 +3391,22 @@ export namespace RestResponsesRaw {
     _raw?: any,
   }
 
+  // the api's VivaVideo template library, what `xyt`'s template id/name can be
+  export interface MediaIVManipulationXytTemplate {
+    // `0x060000000000000A`
+    id: string,
+    kind: string,
+    music: boolean,
+    title: string,
+    // its names in other languages
+    titles: Array<string>,
+  }
+
+  export interface MediaIVManipulationXytTemplates {
+    count: number,
+    templates: Array<MediaIVManipulationXytTemplate>,
+  }
+
 
   export interface ModerationSafetyScanResult {
     identification: {
