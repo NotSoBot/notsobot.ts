@@ -3839,6 +3839,7 @@ export async function mediaAVManipulationAudioSentenceMix(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    bpm: options.bpm,
     gap: options.gap,
     max_file_size: maxFileSize,
     safe: options.safe,

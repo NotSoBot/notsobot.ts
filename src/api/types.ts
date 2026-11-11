@@ -869,6 +869,7 @@ export namespace RestOptions {
   }
 
   export interface MediaAVManipulationAudioSentenceMix extends MediaBaseOptions {
+    bpm?: number,
     gap?: number,
     sentence: string,
     skipMissing?: boolean,

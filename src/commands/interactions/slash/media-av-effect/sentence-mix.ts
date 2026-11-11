@@ -19,8 +19,9 @@ export class MediaAVAudioSentenceMixCommand extends BaseInteractionAudioOrVideoC
   constructor() {
     super({
       options: [
-        {name: 'sentence', description: 'What to make it say, from the words said in it', ...I18n.optionLocalizations('commands.media_av.audio.sentence_mix.sentence'), required: true},
+        {name: 'sentence', description: 'What to make it say. word^3 pitches it 3 semitones up, word*2 makes it twice as long, _ rests', ...I18n.optionLocalizations('commands.media_av.audio.sentence_mix.sentence'), required: true},
         {name: 'skip-missing', description: 'Leave out words that aren\'t said instead of failing (Default: False)', ...I18n.optionLocalizations('commands.media_av.audio.sentence_mix.skip_missing'), label: 'skipmissing', type: Boolean},
+        {name: 'bpm', description: 'Fit every word to a beat at this tempo, 30 to 600 (word*2 is then 2 beats)', ...I18n.optionLocalizations('commands.media_av.audio.sentence_mix.bpm'), type: Number},
         {name: 'gap', description: 'Silence between the words in milliseconds, 0 to 1000 (Default: 0)', ...I18n.optionLocalizations('commands.media_av.audio.sentence_mix.gap'), type: Number},
       ],
     });

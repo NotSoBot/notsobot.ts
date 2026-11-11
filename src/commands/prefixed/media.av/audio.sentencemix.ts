@@ -10,6 +10,7 @@ import { BaseMediaCommand } from '../basecommand';
 export const COMMAND_NAME = 'sentencemix';
 
 export interface CommandArgsBefore {
+  bpm?: number,
   gap?: number,
   sentence?: string,
   skipmissing?: boolean,
@@ -25,6 +26,7 @@ export default class AudioSentenceMixCommand extends BaseMediaCommand {
       args: [
         {name: 'skipmissing', aliases: ['s'], type: Boolean, metadata: {description: 'leave out words that aren\'t said instead of failing'}},
         {name: 'gap', aliases: ['g'], type: Number, metadata: {description: '0 to 1000 (ms)'}},
+        {name: 'bpm', aliases: ['b'], type: Number, metadata: {description: 'fit every word to a beat, 30 to 600'}},
       ],
       metadata: {
         category: CommandCategories.AUDIO,
@@ -32,9 +34,11 @@ export default class AudioSentenceMixCommand extends BaseMediaCommand {
         examples: [
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 try this on your bad voice`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 i can do that -gap 100 -skipmissing`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 try this /d-ow-n-ah-t/`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 try^2 this^4 on^5 your^7*2 _ voice -bpm 120`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioSentenceMix.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> <sentence> (-skipmissing) (-gap <number>)',
+        usage: '?<emoji,user:id|mention|name,url> <sentence> (-skipmissing) (-gap <number>) (-bpm <number>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: true, image: false, video: true})},
@@ -49,6 +53,7 @@ export default class AudioSentenceMixCommand extends BaseMediaCommand {
       return replyWarning(context, translate('errors.no_sentence_found'));
     }
     return Formatter.Commands.MediaAVManipulationAudioSentenceMix.createMessage(context, {
+      bpm: args.bpm,
       gap: args.gap,
       sentence: args.sentence,
       skipmissing: args.skipmissing,

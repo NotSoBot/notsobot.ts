@@ -19,6 +19,8 @@ export const PREVIEW: RestOptions.CommandPreview = {
 };
 
 export interface CommandArgs {
+  // every word fit to a beat at this tempo
+  bpm?: number,
   // milliseconds of silence between the pieces
   gap?: number,
   sentence: string,
@@ -31,6 +33,7 @@ export function createJob(
   args: CommandArgs,
 ) {
   return mediaAVManipulationAudioSentenceMix(context, {
+    bpm: args.bpm,
     gap: args.gap,
     safe: DefaultParameters.safe(context),
     sentence: args.sentence,
