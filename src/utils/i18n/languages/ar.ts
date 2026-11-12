@@ -315,6 +315,10 @@ export const Arabic: Translations = Object.freeze({
   'logger.member.timeout_changed': 'تغيّر العزل المؤقت من {old} إلى {new}',
   'logger.member.timeout_cleared': 'أُلغي العزل المؤقت',
   'logger.member.unboosted': 'أوقف التعزيز',
+  'logger.member.unusual_dm_activity': 'نشاط رسائل خاصة غير معتاد',
+  'logger.member.unusual_dm_activity_change': 'تغيير نشاط الرسائل الخاصة غير المعتاد',
+  'logger.member.unusual_dm_activity_cleared': 'لم يعد مُعلَّمًا بنشاط رسائل خاصة غير معتاد',
+  'logger.member.unusual_dm_activity_until': 'مُعلَّم بنشاط رسائل خاصة غير معتاد حتى {until}',
 
   'logger.message.amount': 'العدد',
   'logger.message.attachments': 'المرفقات',

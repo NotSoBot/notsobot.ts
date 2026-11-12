@@ -315,6 +315,10 @@ export const Ukrainian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Тайм-аут змінено з {old} на {new}',
   'logger.member.timeout_cleared': 'Тайм-аут знято',
   'logger.member.unboosted': 'Прибрав(-ла) буст',
+  'logger.member.unusual_dm_activity': 'Незвичайна активність в ОП',
+  'logger.member.unusual_dm_activity_change': 'Зміна незвичайної активності в ОП',
+  'logger.member.unusual_dm_activity_cleared': 'Більше не позначений за незвичайну активність в ОП',
+  'logger.member.unusual_dm_activity_until': 'Позначений за незвичайну активність в ОП до {until}',
 
   'logger.message.amount': 'Кількість',
   'logger.message.attachments': 'Вкладення',

@@ -315,6 +315,10 @@ export const Norwegian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Tidsavbrudd endret fra {old} til {new}',
   'logger.member.timeout_cleared': 'Tidsavbrudd fjernet',
   'logger.member.unboosted': 'Sluttet å booste',
+  'logger.member.unusual_dm_activity': 'Uvanlig DM-aktivitet',
+  'logger.member.unusual_dm_activity_change': 'Endring i uvanlig DM-aktivitet',
+  'logger.member.unusual_dm_activity_cleared': 'Ikke lenger markert for uvanlig DM-aktivitet',
+  'logger.member.unusual_dm_activity_until': 'Markert for uvanlig DM-aktivitet til {until}',
 
   'logger.message.amount': 'Antall',
   'logger.message.attachments': 'Vedlegg',

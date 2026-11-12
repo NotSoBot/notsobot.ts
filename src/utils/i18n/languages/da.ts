@@ -315,6 +315,10 @@ export const Danish: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Timeout ændret fra {old} til {new}',
   'logger.member.timeout_cleared': 'Timeout fjernet',
   'logger.member.unboosted': 'Stoppede med at booste',
+  'logger.member.unusual_dm_activity': 'Usædvanlig DM-aktivitet',
+  'logger.member.unusual_dm_activity_change': 'Ændring i usædvanlig DM-aktivitet',
+  'logger.member.unusual_dm_activity_cleared': 'Ikke længere markeret for usædvanlig DM-aktivitet',
+  'logger.member.unusual_dm_activity_until': 'Markeret for usædvanlig DM-aktivitet indtil {until}',
 
   'logger.message.amount': 'Antal',
   'logger.message.attachments': 'Vedhæftede filer',

@@ -315,6 +315,10 @@ export const French: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Exclusion temporaire changée de {old} à {new}',
   'logger.member.timeout_cleared': 'Exclusion temporaire levée',
   'logger.member.unboosted': 'A retiré son boost',
+  'logger.member.unusual_dm_activity': 'Activité MP inhabituelle',
+  'logger.member.unusual_dm_activity_change': 'Changement d\'activité MP inhabituelle',
+  'logger.member.unusual_dm_activity_cleared': 'N\'est plus signalé pour activité MP inhabituelle',
+  'logger.member.unusual_dm_activity_until': 'Signalé pour activité MP inhabituelle jusqu\'à {until}',
 
   'logger.message.amount': 'Nombre',
   'logger.message.attachments': 'Pièces jointes',

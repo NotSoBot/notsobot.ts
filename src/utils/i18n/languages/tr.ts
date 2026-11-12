@@ -315,6 +315,10 @@ export const Turkish: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Zaman aşımı {old} -> {new} olarak değiştirildi',
   'logger.member.timeout_cleared': 'Zaman Aşımı Kaldırıldı',
   'logger.member.unboosted': 'Takviyeyi Bıraktı',
+  'logger.member.unusual_dm_activity': 'Olağandışı DM Etkinliği',
+  'logger.member.unusual_dm_activity_change': 'Olağandışı DM Etkinliği Değişikliği',
+  'logger.member.unusual_dm_activity_cleared': 'Artık olağandışı DM etkinliği için işaretli değil',
+  'logger.member.unusual_dm_activity_until': '{until} tarihine kadar olağandışı DM etkinliği için işaretli',
 
   'logger.message.amount': 'Miktar',
   'logger.message.attachments': 'Ekler',

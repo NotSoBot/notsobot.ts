@@ -315,6 +315,10 @@ export const Hungarian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Időkorlát módosítva: {old} → {new}',
   'logger.member.timeout_cleared': 'Időkorlát feloldva',
   'logger.member.unboosted': 'Gyorsítás megszüntetve',
+  'logger.member.unusual_dm_activity': 'Szokatlan DM-aktivitás',
+  'logger.member.unusual_dm_activity_change': 'Szokatlan DM-aktivitás változása',
+  'logger.member.unusual_dm_activity_cleared': 'Már nincs megjelölve szokatlan DM-aktivitás miatt',
+  'logger.member.unusual_dm_activity_until': 'Szokatlan DM-aktivitás miatt megjelölve eddig: {until}',
 
   'logger.message.amount': 'Mennyiség',
   'logger.message.attachments': 'Mellékletek',

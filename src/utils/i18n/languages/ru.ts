@@ -315,6 +315,10 @@ export const Russian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Тайм-аут изменён с {old} на {new}',
   'logger.member.timeout_cleared': 'Тайм-аут снят',
   'logger.member.unboosted': 'Убрал(а) буст',
+  'logger.member.unusual_dm_activity': 'Необычная активность в ЛС',
+  'logger.member.unusual_dm_activity_change': 'Изменение необычной активности в ЛС',
+  'logger.member.unusual_dm_activity_cleared': 'Больше не отмечен за необычную активность в ЛС',
+  'logger.member.unusual_dm_activity_until': 'Отмечен за необычную активность в ЛС до {until}',
 
   'logger.message.amount': 'Количество',
   'logger.message.attachments': 'Вложения',

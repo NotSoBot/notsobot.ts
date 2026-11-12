@@ -315,6 +315,10 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Castigo alterado de {old} para {new}',
   'logger.member.timeout_cleared': 'Castigo removido',
   'logger.member.unboosted': 'Deixou de impulsionar',
+  'logger.member.unusual_dm_activity': 'Atividade invulgar de MP',
+  'logger.member.unusual_dm_activity_change': 'Alteração de atividade invulgar de MP',
+  'logger.member.unusual_dm_activity_cleared': 'Já não está sinalizado por atividade invulgar de MP',
+  'logger.member.unusual_dm_activity_until': 'Sinalizado por atividade invulgar de MP até {until}',
 
   'logger.message.amount': 'Quantidade',
   'logger.message.attachments': 'Anexos',

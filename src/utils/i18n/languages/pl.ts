@@ -315,6 +315,10 @@ export const Polish: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Wyciszenie zmienione z {old} na {new}',
   'logger.member.timeout_cleared': 'Wyciszenie zdjęte',
   'logger.member.unboosted': 'Usunął/usunęła boosta',
+  'logger.member.unusual_dm_activity': 'Nietypowa aktywność w DM',
+  'logger.member.unusual_dm_activity_change': 'Zmiana nietypowej aktywności w DM',
+  'logger.member.unusual_dm_activity_cleared': 'Nie jest już oznaczony za nietypową aktywność w DM',
+  'logger.member.unusual_dm_activity_until': 'Oznaczony za nietypową aktywność w DM do {until}',
 
   'logger.message.amount': 'Ilość',
   'logger.message.attachments': 'Załączniki',

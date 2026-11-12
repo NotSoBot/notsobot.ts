@@ -315,6 +315,10 @@ export const Romanian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Timeout schimbat din {old} în {new}',
   'logger.member.timeout_cleared': 'Timeout eliminat',
   'logger.member.unboosted': 'A retras boost-ul',
+  'logger.member.unusual_dm_activity': 'Activitate DM neobișnuită',
+  'logger.member.unusual_dm_activity_change': 'Schimbare a activității DM neobișnuite',
+  'logger.member.unusual_dm_activity_cleared': 'Nu mai este marcat pentru activitate DM neobișnuită',
+  'logger.member.unusual_dm_activity_until': 'Marcat pentru activitate DM neobișnuită până la {until}',
 
   'logger.message.amount': 'Cantitate',
   'logger.message.attachments': 'Atașamente',

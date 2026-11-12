@@ -315,6 +315,10 @@ export const Japanese: Translations = Object.freeze({
   'logger.member.timeout_changed': 'タイムアウトが{old}から{new}に変更されました',
   'logger.member.timeout_cleared': 'タイムアウト解除',
   'logger.member.unboosted': 'ブースト解除',
+  'logger.member.unusual_dm_activity': '異常なDMアクティビティ',
+  'logger.member.unusual_dm_activity_change': '異常なDMアクティビティの変更',
+  'logger.member.unusual_dm_activity_cleared': '異常なDMアクティビティのフラグが解除されました',
+  'logger.member.unusual_dm_activity_until': '{until}まで異常なDMアクティビティとしてフラグ付け',
 
   'logger.message.amount': '件数',
   'logger.message.attachments': '添付ファイル',

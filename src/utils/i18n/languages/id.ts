@@ -315,6 +315,10 @@ export const Indonesian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Timeout diubah dari {old} menjadi {new}',
   'logger.member.timeout_cleared': 'Timeout Dihapus',
   'logger.member.unboosted': 'Berhenti Boost',
+  'logger.member.unusual_dm_activity': 'Aktivitas DM Tidak Biasa',
+  'logger.member.unusual_dm_activity_change': 'Perubahan Aktivitas DM Tidak Biasa',
+  'logger.member.unusual_dm_activity_cleared': 'Tidak lagi ditandai karena aktivitas DM tidak biasa',
+  'logger.member.unusual_dm_activity_until': 'Ditandai karena aktivitas DM tidak biasa hingga {until}',
 
   'logger.message.amount': 'Jumlah',
   'logger.message.attachments': 'Lampiran',

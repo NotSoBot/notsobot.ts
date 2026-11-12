@@ -315,6 +315,10 @@ export const Czech: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Časový limit změněn z {old} na {new}',
   'logger.member.timeout_cleared': 'Časový limit zrušen',
   'logger.member.unboosted': 'Zrušil(a) boost',
+  'logger.member.unusual_dm_activity': 'Neobvyklá aktivita v DM',
+  'logger.member.unusual_dm_activity_change': 'Změna neobvyklé aktivity v DM',
+  'logger.member.unusual_dm_activity_cleared': 'Již není označen za neobvyklou aktivitu v DM',
+  'logger.member.unusual_dm_activity_until': 'Označen za neobvyklou aktivitu v DM do {until}',
 
   'logger.message.amount': 'Počet',
   'logger.message.attachments': 'Přílohy',

@@ -315,6 +315,10 @@ export const Lithuanian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Laikinas nutildymas pakeistas iš {old} į {new}',
   'logger.member.timeout_cleared': 'Laikinas nutildymas panaikintas',
   'logger.member.unboosted': 'Nustojo stiprinti',
+  'logger.member.unusual_dm_activity': 'Neįprasta AŽ veikla',
+  'logger.member.unusual_dm_activity_change': 'Neįprastos AŽ veiklos pakeitimas',
+  'logger.member.unusual_dm_activity_cleared': 'Nebepažymėtas dėl neįprastos AŽ veiklos',
+  'logger.member.unusual_dm_activity_until': 'Pažymėtas dėl neįprastos AŽ veiklos iki {until}',
 
   'logger.message.amount': 'Kiekis',
   'logger.message.attachments': 'Priedai',

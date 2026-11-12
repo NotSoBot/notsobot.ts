@@ -315,6 +315,10 @@ export const Finnish: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Jäähy muutettu: {old} -> {new}',
   'logger.member.timeout_cleared': 'Jäähy poistettu',
   'logger.member.unboosted': 'Lopetti boostauksen',
+  'logger.member.unusual_dm_activity': 'Epätavallinen yksityisviestitoiminta',
+  'logger.member.unusual_dm_activity_change': 'Epätavallisen yksityisviestitoiminnan muutos',
+  'logger.member.unusual_dm_activity_cleared': 'Ei enää merkitty epätavallisesta yksityisviestitoiminnasta',
+  'logger.member.unusual_dm_activity_until': 'Merkitty epätavallisesta yksityisviestitoiminnasta {until} asti',
 
   'logger.message.amount': 'Määrä',
   'logger.message.attachments': 'Liitteet',

@@ -315,6 +315,10 @@ export const ChineseSimplified: Translations = Object.freeze({
   'logger.member.timeout_changed': '禁言从 {old} 改为 {new}',
   'logger.member.timeout_cleared': '禁言已解除',
   'logger.member.unboosted': '取消助力',
+  'logger.member.unusual_dm_activity': '异常私信活动',
+  'logger.member.unusual_dm_activity_change': '异常私信活动变更',
+  'logger.member.unusual_dm_activity_cleared': '不再被标记为异常私信活动',
+  'logger.member.unusual_dm_activity_until': '被标记为异常私信活动，直到 {until}',
 
   'logger.message.amount': '数量',
   'logger.message.attachments': '附件',

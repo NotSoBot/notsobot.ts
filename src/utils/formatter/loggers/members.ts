@@ -64,6 +64,10 @@ export function getGuildMemberAddSections(event: GuildLoggingEventGuildMemberAdd
   if (memberCount) {
     information.push(`**${translate('info.guild.members')}**: ${(memberCount - 1).toLocaleString(language)} -> ${memberCount.toLocaleString(language)}`);
   }
+  // joined while discord has them flagged for spam dming
+  if (member.hasUnusualDmActivity) {
+    information.push(`**${translate('logger.member.unusual_dm_activity')}**: ${createTimeoutUntilString(member.unusualDmActivityUntilUnix)}`);
+  }
 
   const joined: Array<JoinedTimestamp> = [
     {title: translate('user.joined_discord'), unix: member.createdAtUnix},
@@ -478,6 +482,16 @@ export function getGuildMemberUpdateChanges(event: GuildLoggingEventGuildMemberU
       description.push(`-> ${translate('logger.member.is_pending')}`);
     } else {
       description.push(`-> ${translate('logger.member.no_longer_pending')}`);
+    }
+  }
+
+  // discord's own flag for a member dming a lot of people they don't know (a spam signal), never in the audit logs
+  if (member.unusualDmActivityUntilUnix !== old.unusualDmActivityUntilUnix) {
+    description.push(`- ${translate('logger.member.unusual_dm_activity_change')}`);
+    if (member.unusualDmActivityUntilUnix) {
+      description.push(`-> ${translate('logger.member.unusual_dm_activity_until', {until: createTimeoutUntilString(member.unusualDmActivityUntilUnix)})}`);
+    } else {
+      description.push(`-> ${translate('logger.member.unusual_dm_activity_cleared')}`);
     }
   }
 

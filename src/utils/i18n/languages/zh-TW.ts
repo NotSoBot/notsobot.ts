@@ -315,6 +315,10 @@ export const ChineseTraditional: Translations = Object.freeze({
   'logger.member.timeout_changed': '禁言從 {old} 改為 {new}',
   'logger.member.timeout_cleared': '禁言已解除',
   'logger.member.unboosted': '已取消加成',
+  'logger.member.unusual_dm_activity': '異常私訊活動',
+  'logger.member.unusual_dm_activity_change': '異常私訊活動變更',
+  'logger.member.unusual_dm_activity_cleared': '不再被標記為異常私訊活動',
+  'logger.member.unusual_dm_activity_until': '被標記為異常私訊活動，直到 {until}',
 
   'logger.message.amount': '數量',
   'logger.message.attachments': '附件',

@@ -315,6 +315,10 @@ export const Hebrew: Translations = Object.freeze({
   'logger.member.timeout_changed': 'ההשעיה שונתה מ-{old} ל-{new}',
   'logger.member.timeout_cleared': 'ההשעיה בוטלה',
   'logger.member.unboosted': 'הסיר בוסט',
+  'logger.member.unusual_dm_activity': 'פעילות הודעות פרטיות חריגה',
+  'logger.member.unusual_dm_activity_change': 'שינוי בפעילות הודעות פרטיות חריגה',
+  'logger.member.unusual_dm_activity_cleared': 'כבר לא מסומן בפעילות הודעות פרטיות חריגה',
+  'logger.member.unusual_dm_activity_until': 'מסומן בפעילות הודעות פרטיות חריגה עד {until}',
 
   'logger.message.amount': 'כמות',
   'logger.message.attachments': 'קבצים מצורפים',

@@ -313,6 +313,10 @@ export const English = Object.freeze({
   'logger.member.timeout_changed': 'Timeout changed from {old} to {new}',
   'logger.member.timeout_cleared': 'Timeout Cleared',
   'logger.member.unboosted': 'Unboosted',
+  'logger.member.unusual_dm_activity': 'Unusual DM Activity',
+  'logger.member.unusual_dm_activity_change': 'Unusual DM Activity Change',
+  'logger.member.unusual_dm_activity_cleared': 'No longer flagged for unusual DM activity',
+  'logger.member.unusual_dm_activity_until': 'Flagged for unusual DM activity until {until}',
 
   'logger.message.amount': 'Amount',
   'logger.message.attachments': 'Attachments',

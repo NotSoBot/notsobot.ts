@@ -315,6 +315,10 @@ export const Hindi: Translations = Object.freeze({
   'logger.member.timeout_changed': 'टाइमआउट {old} से {new} में बदला',
   'logger.member.timeout_cleared': 'टाइमआउट हटाया गया',
   'logger.member.unboosted': 'बूस्ट हटाया',
+  'logger.member.unusual_dm_activity': 'असामान्य DM गतिविधि',
+  'logger.member.unusual_dm_activity_change': 'असामान्य DM गतिविधि में बदलाव',
+  'logger.member.unusual_dm_activity_cleared': 'अब असामान्य DM गतिविधि के लिए चिह्नित नहीं है',
+  'logger.member.unusual_dm_activity_until': '{until} तक असामान्य DM गतिविधि के लिए चिह्नित',
 
   'logger.message.amount': 'संख्या',
   'logger.message.attachments': 'अटैचमेंट',

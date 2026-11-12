@@ -315,6 +315,10 @@ export const Vietnamese: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Timeout đổi từ {old} thành {new}',
   'logger.member.timeout_cleared': 'Đã gỡ timeout',
   'logger.member.unboosted': 'Đã hủy boost',
+  'logger.member.unusual_dm_activity': 'Hoạt động tin nhắn riêng bất thường',
+  'logger.member.unusual_dm_activity_change': 'Thay đổi hoạt động tin nhắn riêng bất thường',
+  'logger.member.unusual_dm_activity_cleared': 'Không còn bị gắn cờ hoạt động tin nhắn riêng bất thường',
+  'logger.member.unusual_dm_activity_until': 'Bị gắn cờ hoạt động tin nhắn riêng bất thường đến {until}',
 
   'logger.message.amount': 'Số lượng',
   'logger.message.attachments': 'Tệp đính kèm',

@@ -315,6 +315,10 @@ export const Korean: Translations = Object.freeze({
   'logger.member.timeout_changed': '타임아웃이 {old}에서 {new}(으)로 변경됨',
   'logger.member.timeout_cleared': '타임아웃 해제됨',
   'logger.member.unboosted': '부스트 해제함',
+  'logger.member.unusual_dm_activity': '비정상적인 DM 활동',
+  'logger.member.unusual_dm_activity_change': '비정상적인 DM 활동 변경',
+  'logger.member.unusual_dm_activity_cleared': '더 이상 비정상적인 DM 활동으로 표시되지 않음',
+  'logger.member.unusual_dm_activity_until': '{until}까지 비정상적인 DM 활동으로 표시됨',
 
   'logger.message.amount': '개수',
   'logger.message.attachments': '첨부 파일',

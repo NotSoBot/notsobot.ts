@@ -315,6 +315,10 @@ export const Spanish: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Aislamiento cambiado de {old} a {new}',
   'logger.member.timeout_cleared': 'Aislamiento retirado',
   'logger.member.unboosted': 'Dejó de mejorar el servidor',
+  'logger.member.unusual_dm_activity': 'Actividad inusual de MD',
+  'logger.member.unusual_dm_activity_change': 'Cambio de actividad inusual de MD',
+  'logger.member.unusual_dm_activity_cleared': 'Ya no está marcado por actividad inusual de MD',
+  'logger.member.unusual_dm_activity_until': 'Marcado por actividad inusual de MD hasta {until}',
 
   'logger.message.amount': 'Cantidad',
   'logger.message.attachments': 'Archivos adjuntos',

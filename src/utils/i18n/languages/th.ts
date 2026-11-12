@@ -315,6 +315,10 @@ export const Thai: Translations = Object.freeze({
   'logger.member.timeout_changed': 'เปลี่ยนการหมดเวลาจาก {old} เป็น {new}',
   'logger.member.timeout_cleared': 'ล้างการหมดเวลาแล้ว',
   'logger.member.unboosted': 'ยกเลิกบูสต์',
+  'logger.member.unusual_dm_activity': 'กิจกรรม DM ผิดปกติ',
+  'logger.member.unusual_dm_activity_change': 'การเปลี่ยนแปลงกิจกรรม DM ผิดปกติ',
+  'logger.member.unusual_dm_activity_cleared': 'ไม่ถูกทำเครื่องหมายว่ามีกิจกรรม DM ผิดปกติแล้ว',
+  'logger.member.unusual_dm_activity_until': 'ถูกทำเครื่องหมายว่ามีกิจกรรม DM ผิดปกติจนถึง {until}',
 
   'logger.message.amount': 'จำนวน',
   'logger.message.attachments': 'ไฟล์แนบ',

@@ -616,6 +616,7 @@ class GuildLoggingListener extends Listener {
         DetritusKeys[DiscordKeys.PENDING],
         DetritusKeys[DiscordKeys.PREMIUM_SINCE],
         DetritusKeys[DiscordKeys.ROLES],
+        DetritusKeys[DiscordKeys.UNUSUAL_DM_ACTIVITY_UNTIL],
       ];
       const name = ClientEvents.GUILD_MEMBER_UPDATE;
 

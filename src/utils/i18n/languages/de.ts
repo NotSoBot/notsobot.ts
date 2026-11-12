@@ -315,6 +315,10 @@ export const German: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Timeout von {old} auf {new} geändert',
   'logger.member.timeout_cleared': 'Timeout aufgehoben',
   'logger.member.unboosted': 'Boost beendet',
+  'logger.member.unusual_dm_activity': 'Ungewöhnliche DM-Aktivität',
+  'logger.member.unusual_dm_activity_change': 'Änderung der ungewöhnlichen DM-Aktivität',
+  'logger.member.unusual_dm_activity_cleared': 'Nicht mehr wegen ungewöhnlicher DM-Aktivität markiert',
+  'logger.member.unusual_dm_activity_until': 'Wegen ungewöhnlicher DM-Aktivität markiert bis {until}',
 
   'logger.message.amount': 'Anzahl',
   'logger.message.attachments': 'Anhänge',

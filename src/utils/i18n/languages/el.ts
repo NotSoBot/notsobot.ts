@@ -315,6 +315,10 @@ export const Greek: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Η αποβολή χρόνου άλλαξε από {old} σε {new}',
   'logger.member.timeout_cleared': 'Η αποβολή χρόνου καταργήθηκε',
   'logger.member.unboosted': 'Σταμάτησε την ενίσχυση',
+  'logger.member.unusual_dm_activity': 'Ασυνήθιστη δραστηριότητα DM',
+  'logger.member.unusual_dm_activity_change': 'Αλλαγή ασυνήθιστης δραστηριότητας DM',
+  'logger.member.unusual_dm_activity_cleared': 'Δεν επισημαίνεται πλέον για ασυνήθιστη δραστηριότητα DM',
+  'logger.member.unusual_dm_activity_until': 'Επισημασμένος για ασυνήθιστη δραστηριότητα DM έως {until}',
 
   'logger.message.amount': 'Ποσότητα',
   'logger.message.attachments': 'Συνημμένα',

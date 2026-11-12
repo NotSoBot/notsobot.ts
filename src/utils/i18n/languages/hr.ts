@@ -315,6 +315,10 @@ export const Croatian: Translations = Object.freeze({
   'logger.member.timeout_changed': 'Vremensko ograničenje promijenjeno s {old} na {new}',
   'logger.member.timeout_cleared': 'Vremensko ograničenje uklonjeno',
   'logger.member.unboosted': 'Uklonio pojačanje',
+  'logger.member.unusual_dm_activity': 'Neobična aktivnost u DM-ovima',
+  'logger.member.unusual_dm_activity_change': 'Promjena neobične aktivnosti u DM-ovima',
+  'logger.member.unusual_dm_activity_cleared': 'Više nije označen zbog neobične aktivnosti u DM-ovima',
+  'logger.member.unusual_dm_activity_until': 'Označen zbog neobične aktivnosti u DM-ovima do {until}',
 
   'logger.message.amount': 'Količina',
   'logger.message.attachments': 'Privici',
