@@ -2087,10 +2087,15 @@ export async function jobReply(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
   // `describe` makes the text shown above the result, from its response (like the `arguments` the job sent back)
-  options: {describe?: (response: RestResponsesRaw.FileResponse) => string | undefined, spoiler?: boolean} = {},
+  options: {
+    actions?: MediaReplyActions,
+    describe?: (response: RestResponsesRaw.FileResponse) => string | undefined,
+    spoiler?: boolean,
+  } = {},
   pollingTime: number = 500,
 ) {
   const replyOptions = (response: RestResponsesRaw.FileResponse) => ({
+    actions: options.actions,
     description: (options.describe) ? options.describe(response) : undefined,
     spoiler: options.spoiler,
   });
@@ -3057,6 +3062,7 @@ export async function mediaReply(
   context: ComponentContext | Command.Context | Interaction.InteractionContext,
   response: RestResponsesRaw.FileResponse,
   options: {
+    actions?: MediaReplyActions,
     content?: string,
     description?: string,
     filename?: string,
@@ -3074,6 +3080,7 @@ export async function mediaReply(
   }
   const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return mediaReplyFromOptions(context, buffer, {
+    actions: options.actions,
     content: options.content,
     description: options.description,
     extension: response.file.metadata.extension,
@@ -3092,10 +3099,19 @@ export async function mediaReply(
 }
 
 
+// rows under a media result (like `.eyes`' picker), their callbacks stay on the reply until `timeout`
+export interface MediaReplyActions {
+  // `strip` edits the reply without the rows, left to the caller since a newer render might own the reply by then
+  onTimeout?: (strip: () => Promise<void>) => Promise<void> | void,
+  rows: Array<ComponentActionRow>,
+  timeout: number,
+}
+
 export async function mediaReplyFromOptions(
   context: ComponentContext | Command.Context | Interaction.InteractionContext,
   value: any,
   options: {
+    actions?: MediaReplyActions,
     // alt text for the media, `description` is shown as text above it
     altText?: string,
     content?: string,
@@ -3196,7 +3212,26 @@ export async function mediaReplyFromOptions(
     case Mimetypes.IMAGE_X_APNG: shouldBeEmbed = false; break; // discord now only uploads the first frame of an apng, so we will just send a file ending in `.apng`
   }
 
-  const components: Components = new Components();
+  const actions = options.actions;
+  const components: Components = new Components((actions) ? {
+    timeout: actions.timeout,
+    onTimeout: async () => {
+      if (!actions.onTimeout) {
+        return;
+      }
+      await actions.onTimeout(async () => {
+        // the rows are at the top level, or in the components v2 container
+        const isAction = (x: any) => actions.rows.includes(x);
+        components.components = components.components.filter((x) => !isAction(x));
+        for (let x of components.components) {
+          if (x instanceof ComponentContainer) {
+            x.components = x.components.filter((c) => !isAction(c));
+          }
+        }
+        await editOrReply(options.context || context, {components});
+      });
+    },
+  } : {});
 
   if (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT) {
     let canBeMedia = (
@@ -3255,6 +3290,11 @@ export async function mediaReplyFromOptions(
       }
       container.addTextDisplay({content: `-# ${footer}`});
 
+      if (actions) {
+        for (let row of actions.rows) {
+          container.addActionRow(row);
+        }
+      }
       if (reuploadButton) {
         const actionRow = container.createActionRow();
         actionRow.addButton(reuploadButton);
@@ -3266,6 +3306,12 @@ export async function mediaReplyFromOptions(
 
   if (reuploadButton) {
     components.addButton(reuploadButton);
+  }
+  // after the button, `addButton` would otherwise look for room in a select menu's row
+  if (actions) {
+    for (let row of actions.rows) {
+      components.addActionRow(row);
+    }
   }
 
   if (

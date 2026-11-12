@@ -4416,6 +4416,10 @@ export const Ukrainian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Тег виконувався надто довго (максимум {max} секунд)',
   'tagscript.tag_used_too_much_processing_time': 'Тег витратив забагато часу в {math}/{replace} (максимум {max} мс)',
 
+  'media_eyes_pick.drawn': 'Лазери та блискавки',
+  'media_eyes_pick.prompt': 'Виберіть ефект для очей',
+  'media_eyes_pick.stickers': 'Очі',
+  'media_eyes_pick.timed_out': 'Ефект для очей не було вибрано вчасно',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Ви не можете переглядати історію цього каналу',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Не вдається переглянути історію цього каналу',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Неможливо читати повідомлення в групових ПП, ПП між користувачами або на серверах, де немає бота',

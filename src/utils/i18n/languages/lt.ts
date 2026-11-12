@@ -4416,6 +4416,10 @@ export const Lithuanian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Žyma vykdyta per ilgai (daugiausia {max} sek.)',
   'tagscript.tag_used_too_much_processing_time': 'Žyma per ilgai užtruko {math}/{replace} (daugiausia {max} ms)',
 
+  'media_eyes_pick.drawn': 'Lazeriai ir žaibai',
+  'media_eyes_pick.prompt': 'Pasirinkite akių efektą',
+  'media_eyes_pick.stickers': 'Akys',
+  'media_eyes_pick.timed_out': 'Akių efektas nebuvo pasirinktas laiku',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Tu negali matyti to kanalo istorijos',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Negaliu matyti to kanalo istorijos',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Negalima skaityti žinučių grupiniuose AŽ, AŽ tarp naudotojų ar serveriuose, kuriuose nėra boto',

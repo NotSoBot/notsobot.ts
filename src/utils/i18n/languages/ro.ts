@@ -4416,6 +4416,10 @@ export const Romanian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tagul a rulat prea mult timp (maxim {max} secunde)',
   'tagscript.tag_used_too_much_processing_time': 'Tagul a stat prea mult în {math}/{replace} (maxim {max} ms)',
 
+  'media_eyes_pick.drawn': 'Lasere și fulgere',
+  'media_eyes_pick.prompt': 'Alege un efect pentru ochi',
+  'media_eyes_pick.stickers': 'Ochi',
+  'media_eyes_pick.timed_out': 'Nu a fost ales un efect pentru ochi la timp',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nu poți vedea istoricul acelui canal',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nu pot vedea istoricul acelui canal',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Nu se pot citi mesaje în DM-uri de grup, DM-uri între utilizatori sau servere în care botul nu este',

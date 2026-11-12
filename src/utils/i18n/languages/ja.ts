@@ -4416,6 +4416,10 @@ export const Japanese: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'タグの実行に時間がかかりすぎました (最大{max}秒)',
   'tagscript.tag_used_too_much_processing_time': 'タグが{math}/{replace}に時間をかけすぎました (最大{max}ミリ秒)',
 
+  'media_eyes_pick.drawn': 'レーザーと稲妻',
+  'media_eyes_pick.prompt': '目のエフェクトを選択',
+  'media_eyes_pick.stickers': '目',
+  'media_eyes_pick.timed_out': '時間内に目のエフェクトが選ばれませんでした',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'あなたはそのチャンネルの履歴を見られません',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'そのチャンネルの履歴を見られません',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'グループDM、ユーザー同士のDM、またはBotがいないサーバーではメッセージを読み取れません',

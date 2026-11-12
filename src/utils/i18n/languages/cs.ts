@@ -4416,6 +4416,10 @@ export const Czech: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tag běžel příliš dlouho (max. {max} sekund)',
   'tagscript.tag_used_too_much_processing_time': 'Tag strávil příliš dlouho v {math}/{replace} (max. {max} ms)',
 
+  'media_eyes_pick.drawn': 'Lasery a blesky',
+  'media_eyes_pick.prompt': 'Vyberte efekt očí',
+  'media_eyes_pick.stickers': 'Oči',
+  'media_eyes_pick.timed_out': 'Efekt očí nebyl vybrán včas',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nevidíš historii tohoto kanálu',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nevidím historii tohoto kanálu',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Nelze číst zprávy ve skupinových DM, DM mezi uživateli nebo na serverech, kde bot není',

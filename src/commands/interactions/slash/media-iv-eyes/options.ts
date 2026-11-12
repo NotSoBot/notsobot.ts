@@ -1,4 +1,3 @@
-import { MediaEyeTypes } from '../../../../constants';
 import { I18n } from '../../../../utils';
 
 
@@ -11,14 +10,9 @@ export const EYES_FLIPPED_OPTION = {
 };
 
 
-// the drawn eye types get their own `/eyes laser` and `/eyes lightning` with a color, `/eyes default`'s type keeps the
-// sticker ones (all of them together are over discord's 25 choices)
-function eyeTypesStartingWith(prefix: string): Record<string, MediaEyeTypes> {
-  return Object.fromEntries(Object.entries(MediaEyeTypes).filter(([key]) => key.startsWith(prefix)));
-}
-
-export const EYES_LASER_TYPES = eyeTypesStartingWith('LASER_');
-export const EYES_LIGHTNING_TYPES = eyeTypesStartingWith('LIGHTNING_');
-export const EYES_STICKER_TYPES = Object.fromEntries(
-  Object.entries(MediaEyeTypes).filter(([key]) => !(key in EYES_LASER_TYPES) && !(key in EYES_LIGHTNING_TYPES)),
-) as Record<string, MediaEyeTypes>;
+// `/eyes laser` and `/eyes lightning` get the drawn types, `/eyes default`'s type the sticker ones
+export {
+  EYES_LASER_TYPES,
+  EYES_LIGHTNING_TYPES,
+  EYES_STICKER_TYPES,
+} from '../../../../utils/formatter/commands/media.iv.manipulation.eyes';

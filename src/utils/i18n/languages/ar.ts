@@ -4416,6 +4416,10 @@ export const Arabic: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'استغرق تشغيل الوسم وقتًا طويلًا جدًا (الحد {max} ثانية)',
   'tagscript.tag_used_too_much_processing_time': 'قضى الوسم وقتًا طويلًا جدًا في {math}/{replace} (الحد {max} مللي ثانية)',
 
+  'media_eyes_pick.drawn': 'الليزر والبرق',
+  'media_eyes_pick.prompt': 'اختر تأثيرًا للعيون',
+  'media_eyes_pick.stickers': 'العيون',
+  'media_eyes_pick.timed_out': 'لم يتم اختيار تأثير للعيون في الوقت المحدد',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'لا يمكنك عرض سجل تلك القناة',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'لا يمكن عرض سجل تلك القناة',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'لا يمكن قراءة الرسائل في مجموعات الرسائل المباشرة أو الرسائل المباشرة بين المستخدمين أو الخوادم التي لا يوجد فيها البوت',

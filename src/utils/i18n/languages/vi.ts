@@ -4416,6 +4416,10 @@ export const Vietnamese: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tag chạy quá lâu (Tối đa {max} giây)',
   'tagscript.tag_used_too_much_processing_time': 'Tag tốn quá nhiều thời gian trong {math}/{replace} (Tối đa {max} ms)',
 
+  'media_eyes_pick.drawn': 'Laser và tia sét',
+  'media_eyes_pick.prompt': 'Chọn hiệu ứng mắt',
+  'media_eyes_pick.stickers': 'Mắt',
+  'media_eyes_pick.timed_out': 'Không chọn hiệu ứng mắt kịp thời',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Bạn không thể xem lịch sử của kênh đó',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Không thể xem lịch sử của kênh đó',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Không thể đọc tin nhắn trong DM nhóm, DM giữa người dùng hoặc máy chủ không có bot',

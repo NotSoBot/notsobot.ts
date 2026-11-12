@@ -4416,6 +4416,10 @@ export const Danish: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tagget tog for lang tid om at køre (maks. {max} sekunder)',
   'tagscript.tag_used_too_much_processing_time': 'Tagget brugte for lang tid i {math}/{replace} (maks. {max} ms)',
 
+  'media_eyes_pick.drawn': 'Lasere og lyn',
+  'media_eyes_pick.prompt': 'Vælg en øjeneffekt',
+  'media_eyes_pick.stickers': 'Øjne',
+  'media_eyes_pick.timed_out': 'Der blev ikke valgt en øjeneffekt i tide',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Du kan ikke se den kanals historik',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan ikke se den kanals historik',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Kan ikke læse beskeder i gruppe-DM\'er, DM\'er mellem brugere eller servere, som botten ikke er på',

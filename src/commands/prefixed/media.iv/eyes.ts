@@ -35,7 +35,8 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
     });
   }
 
+  // without `-type` it asks which first, every result has the picker under it
   async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationEyes.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationEyes.createMessage(context, args);
+    return Formatter.Commands.MediaIVManipulationEyes.createPickerMessage(context, args);
   }
 }

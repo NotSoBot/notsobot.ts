@@ -4416,6 +4416,10 @@ export const Spanish: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'El tag tardó demasiado en ejecutarse (máximo {max} segundos)',
   'tagscript.tag_used_too_much_processing_time': 'El tag pasó demasiado tiempo en {math}/{replace} (máximo {max} ms)',
 
+  'media_eyes_pick.drawn': 'Láseres y rayos',
+  'media_eyes_pick.prompt': 'Elige un efecto de ojos',
+  'media_eyes_pick.stickers': 'Ojos',
+  'media_eyes_pick.timed_out': 'No se eligió un efecto de ojos a tiempo',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'No puedes ver el historial de ese canal',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'No se puede ver el historial de ese canal',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'No se pueden leer mensajes en MD grupales, MD entre usuarios o servidores en los que no está el bot',

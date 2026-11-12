@@ -4416,6 +4416,10 @@ export const Russian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Тег выполнялся слишком долго (максимум {max} секунд)',
   'tagscript.tag_used_too_much_processing_time': 'Тег провёл слишком много времени в {math}/{replace} (максимум {max} мс)',
 
+  'media_eyes_pick.drawn': 'Лазеры и молнии',
+  'media_eyes_pick.prompt': 'Выберите эффект для глаз',
+  'media_eyes_pick.stickers': 'Глаза',
+  'media_eyes_pick.timed_out': 'Эффект для глаз не был выбран вовремя',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Вы не можете просматривать историю этого канала',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Не удаётся просмотреть историю этого канала',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Невозможно читать сообщения в групповых ЛС, ЛС между пользователями или на серверах, где нет бота',

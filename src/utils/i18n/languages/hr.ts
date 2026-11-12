@@ -4416,6 +4416,10 @@ export const Croatian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tag se izvršavao predugo (najviše {max} sekundi)',
   'tagscript.tag_used_too_much_processing_time': 'Tag je proveo predugo u {math}/{replace} (najviše {max} ms)',
 
+  'media_eyes_pick.drawn': 'Laseri i munje',
+  'media_eyes_pick.prompt': 'Odaberite efekt očiju',
+  'media_eyes_pick.stickers': 'Oči',
+  'media_eyes_pick.timed_out': 'Efekt očiju nije odabran na vrijeme',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Ne možeš vidjeti povijest tog kanala',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Ne mogu vidjeti povijest tog kanala',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Nije moguće čitati poruke u grupnim DM-ovima, DM-ovima između korisnika ili serverima na kojima bot nije',

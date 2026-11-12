@@ -4416,6 +4416,10 @@ export const Italian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Il tag ci ha messo troppo a essere eseguito (max {max} secondi)',
   'tagscript.tag_used_too_much_processing_time': 'Il tag ha passato troppo tempo in {math}/{replace} (max {max} ms)',
 
+  'media_eyes_pick.drawn': 'Laser e fulmini',
+  'media_eyes_pick.prompt': 'Scegli un effetto per gli occhi',
+  'media_eyes_pick.stickers': 'Occhi',
+  'media_eyes_pick.timed_out': 'Nessun effetto per gli occhi scelto in tempo',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Non puoi vedere la cronologia di quel canale',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Non posso vedere la cronologia di quel canale',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Impossibile leggere i messaggi nei DM di gruppo, nei DM tra utenti o nei server in cui il bot non è presente',

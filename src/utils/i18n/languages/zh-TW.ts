@@ -4416,6 +4416,10 @@ export const ChineseTraditional: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': '標籤執行時間過長（最多 {max} 秒）',
   'tagscript.tag_used_too_much_processing_time': '標籤在 {math}/{replace} 中花費太多時間（最多 {max} 毫秒）',
 
+  'media_eyes_pick.drawn': '雷射與閃電',
+  'media_eyes_pick.prompt': '選擇眼睛特效',
+  'media_eyes_pick.stickers': '眼睛',
+  'media_eyes_pick.timed_out': '未及時選擇眼睛特效',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '你無法查看那個頻道的訊息記錄',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '無法查看那個頻道的訊息記錄',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': '無法讀取群組私訊、使用者之間的私訊或機器人不在的伺服器中的訊息',

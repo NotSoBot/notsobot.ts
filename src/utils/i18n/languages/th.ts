@@ -4416,6 +4416,10 @@ export const Thai: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'แท็กรันนานเกินไป (สูงสุด {max} วินาที)',
   'tagscript.tag_used_too_much_processing_time': 'แท็กใช้เวลาใน {math}/{replace} นานเกินไป (สูงสุด {max} มิลลิวินาที)',
 
+  'media_eyes_pick.drawn': 'เลเซอร์และสายฟ้า',
+  'media_eyes_pick.prompt': 'เลือกเอฟเฟกต์ดวงตา',
+  'media_eyes_pick.stickers': 'ดวงตา',
+  'media_eyes_pick.timed_out': 'ไม่ได้เลือกเอฟเฟกต์ดวงตาภายในเวลาที่กำหนด',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'คุณไม่สามารถดูประวัติของช่องนั้นได้',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'ไม่สามารถดูประวัติของช่องนั้นได้',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'ไม่สามารถอ่านข้อความใน DM กลุ่ม, DM ระหว่างผู้ใช้ หรือเซิร์ฟเวอร์ที่ไม่มีบอทได้',

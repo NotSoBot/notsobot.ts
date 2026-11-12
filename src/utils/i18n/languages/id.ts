@@ -4416,6 +4416,10 @@ export const Indonesian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tag berjalan terlalu lama (Maks {max} detik)',
   'tagscript.tag_used_too_much_processing_time': 'Tag terlalu lama di {math}/{replace} (Maks {max} ms)',
 
+  'media_eyes_pick.drawn': 'Laser dan petir',
+  'media_eyes_pick.prompt': 'Pilih efek mata',
+  'media_eyes_pick.stickers': 'Mata',
+  'media_eyes_pick.timed_out': 'Efek mata tidak dipilih tepat waktu',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Kamu tidak bisa melihat riwayat channel itu',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Tidak bisa melihat riwayat channel itu',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Tidak dapat membaca pesan di DM grup, DM antar pengguna, atau server yang tidak ada botnya',

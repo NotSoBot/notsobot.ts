@@ -4416,6 +4416,10 @@ export const Bulgarian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Тагът работи твърде дълго (макс. {max} секунди)',
   'tagscript.tag_used_too_much_processing_time': 'Тагът прекара твърде дълго в {math}/{replace} (макс. {max} мс)',
 
+  'media_eyes_pick.drawn': 'Лазери и светкавици',
+  'media_eyes_pick.prompt': 'Изберете ефект за очите',
+  'media_eyes_pick.stickers': 'Очи',
+  'media_eyes_pick.timed_out': 'Не беше избран ефект за очите навреме',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Не можеш да виждаш историята на този канал',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Не мога да виждам историята на този канал',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Не могат да се четат съобщения в групови ЛС, ЛС между потребители или сървъри, в които ботът не е',

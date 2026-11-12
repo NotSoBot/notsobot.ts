@@ -4416,6 +4416,10 @@ export const Hindi: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'टैग को चलने में बहुत ज़्यादा समय लगा (अधिकतम {max} सेकंड)',
   'tagscript.tag_used_too_much_processing_time': 'टैग ने {math}/{replace} में बहुत ज़्यादा समय लगाया (अधिकतम {max} ms)',
 
+  'media_eyes_pick.drawn': 'लेज़र और बिजली',
+  'media_eyes_pick.prompt': 'आँखों का इफ़ेक्ट चुनें',
+  'media_eyes_pick.stickers': 'आँखें',
+  'media_eyes_pick.timed_out': 'समय पर आँखों का इफ़ेक्ट नहीं चुना गया',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'आप उस चैनल की हिस्ट्री नहीं देख सकते',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'उस चैनल की हिस्ट्री नहीं देखी जा सकती',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'ग्रुप DM, उपयोगकर्ताओं के बीच DM या उन सर्वरों में संदेश नहीं पढ़े जा सकते जिनमें बॉट नहीं है',

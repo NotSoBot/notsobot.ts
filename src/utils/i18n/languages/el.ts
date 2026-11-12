@@ -4416,6 +4416,10 @@ export const Greek: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Το tag έτρεξε για πάρα πολύ ώρα (Μέγ. {max} δευτερόλεπτα)',
   'tagscript.tag_used_too_much_processing_time': 'Το tag πέρασε πάρα πολύ χρόνο στα {math}/{replace} (Μέγ. {max} ms)',
 
+  'media_eyes_pick.drawn': 'Λέιζερ και κεραυνοί',
+  'media_eyes_pick.prompt': 'Διαλέξτε ένα εφέ ματιών',
+  'media_eyes_pick.stickers': 'Μάτια',
+  'media_eyes_pick.timed_out': 'Δεν επιλέχθηκε εφέ ματιών εγκαίρως',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Δεν μπορείς να δεις το ιστορικό αυτού του καναλιού',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Δεν είναι δυνατή η προβολή του ιστορικού αυτού του καναλιού',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Δεν είναι δυνατή η ανάγνωση μηνυμάτων σε ομαδικά DM, DM μεταξύ χρηστών ή διακομιστές όπου δεν είναι το bot',

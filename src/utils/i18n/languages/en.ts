@@ -4414,6 +4414,10 @@ export const English = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tag took too long to run (max {max} seconds)',
   'tagscript.tag_used_too_much_processing_time': 'Tag spent too long in {math}/{replace} (max {max}ms)',
 
+  'media_eyes_pick.drawn': 'Lasers and lightning',
+  'media_eyes_pick.prompt': 'Pick an eye effect',
+  'media_eyes_pick.stickers': 'Eyes',
+  'media_eyes_pick.timed_out': 'Didn\'t pick an eye effect in time',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'You cannot view the history of that channel',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Cannot view the history of that channel',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Cannot read messages in Group DMs, DMs between users or servers the bot isn\'t in',

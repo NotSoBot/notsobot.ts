@@ -4416,6 +4416,10 @@ export const Hungarian: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'A címke futása túl sokáig tartott (max. {max} másodperc)',
   'tagscript.tag_used_too_much_processing_time': 'A címke túl sok időt töltött a {math}/{replace} függvényekben (max. {max} ms)',
 
+  'media_eyes_pick.drawn': 'Lézerek és villámok',
+  'media_eyes_pick.prompt': 'Válassz szemeffektet',
+  'media_eyes_pick.stickers': 'Szemek',
+  'media_eyes_pick.timed_out': 'Nem választottál időben szemeffektet',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nem látod annak a csatornának az előzményeit',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nem látom annak a csatornának az előzményeit',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Nem olvashatók üzenetek csoportos DM-ekben, felhasználók közötti DM-ekben vagy olyan szervereken, ahol a bot nincs bent',

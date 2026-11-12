@@ -4416,6 +4416,10 @@ export const ChineseSimplified: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': '标签运行时间过长（最多 {max} 秒）',
   'tagscript.tag_used_too_much_processing_time': '标签在 {math}/{replace} 中耗时过长（最多 {max} 毫秒）',
 
+  'media_eyes_pick.drawn': '激光和闪电',
+  'media_eyes_pick.prompt': '选择眼睛特效',
+  'media_eyes_pick.stickers': '眼睛',
+  'media_eyes_pick.timed_out': '未及时选择眼睛特效',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '你无法查看那个频道的消息历史',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '无法查看那个频道的消息历史',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': '无法读取群组私信、用户之间的私信或机器人不在的服务器中的消息',

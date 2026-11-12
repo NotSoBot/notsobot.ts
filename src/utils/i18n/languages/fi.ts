@@ -4416,6 +4416,10 @@ export const Finnish: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tagin suoritus kesti liian kauan (enintään {max} sekuntia)',
   'tagscript.tag_used_too_much_processing_time': 'Tagi vietti liian kauan {math}/{replace}-funktioissa (enintään {max} ms)',
 
+  'media_eyes_pick.drawn': 'Laserit ja salamat',
+  'media_eyes_pick.prompt': 'Valitse silmäefekti',
+  'media_eyes_pick.stickers': 'Silmät',
+  'media_eyes_pick.timed_out': 'Silmäefektiä ei valittu ajoissa',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Et näe tuon kanavan historiaa',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Tuon kanavan historiaa ei voi nähdä',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Viestejä ei voi lukea ryhmä-DM:issä, käyttäjien välisissä DM:issä tai palvelimilla, joilla botti ei ole',

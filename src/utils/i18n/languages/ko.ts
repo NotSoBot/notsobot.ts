@@ -4416,6 +4416,10 @@ export const Korean: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': '태그 실행 시간이 너무 길었어요 (최대 {max}초)',
   'tagscript.tag_used_too_much_processing_time': '태그가 {math}/{replace}에서 너무 오래 걸렸어요 (최대 {max}ms)',
 
+  'media_eyes_pick.drawn': '레이저와 번개',
+  'media_eyes_pick.prompt': '눈 효과 선택',
+  'media_eyes_pick.stickers': '눈',
+  'media_eyes_pick.timed_out': '시간 안에 눈 효과를 선택하지 않았습니다',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '해당 채널의 기록을 볼 수 없어요',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '해당 채널의 기록을 볼 수 없어요',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': '그룹 DM, 사용자 간 DM 또는 봇이 없는 서버에서는 메시지를 읽을 수 없습니다',

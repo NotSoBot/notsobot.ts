@@ -4416,6 +4416,10 @@ export const Turkish: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Etiketin çalışması çok uzun sürdü (En fazla {max} saniye)',
   'tagscript.tag_used_too_much_processing_time': 'Etiket {math}/{replace} içinde çok uzun süre harcadı (En fazla {max} ms)',
 
+  'media_eyes_pick.drawn': 'Lazerler ve şimşekler',
+  'media_eyes_pick.prompt': 'Bir göz efekti seç',
+  'media_eyes_pick.stickers': 'Gözler',
+  'media_eyes_pick.timed_out': 'Zamanında bir göz efekti seçilmedi',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'O kanalın geçmişini göremezsin',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'O kanalın geçmişi görüntülenemiyor',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Grup DM\'lerinde, kullanıcılar arasındaki DM\'lerde veya botun olmadığı sunucularda mesajlar okunamaz',

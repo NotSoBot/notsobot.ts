@@ -4416,6 +4416,10 @@ export const Dutch: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'Tag deed er te lang over om uit te voeren (max {max} seconden)',
   'tagscript.tag_used_too_much_processing_time': 'Tag was te lang bezig in {math}/{replace} (max {max} ms)',
 
+  'media_eyes_pick.drawn': 'Lasers en bliksem',
+  'media_eyes_pick.prompt': 'Kies een ogeneffect',
+  'media_eyes_pick.stickers': 'Ogen',
+  'media_eyes_pick.timed_out': 'Er is niet op tijd een ogeneffect gekozen',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Je kunt de geschiedenis van dat kanaal niet zien',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan de geschiedenis van dat kanaal niet zien',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'Kan geen berichten lezen in groeps-DM\'s, DM\'s tussen gebruikers of servers waar de bot niet in zit',

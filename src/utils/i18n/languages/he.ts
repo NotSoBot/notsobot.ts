@@ -4416,6 +4416,10 @@ export const Hebrew: Translations = Object.freeze({
   'tagscript.tag_took_too_long_to_run': 'הרצת התג לקחה יותר מדי זמן (מקסימום {max} שניות)',
   'tagscript.tag_used_too_much_processing_time': 'התג בילה יותר מדי זמן ב-{math}/{replace} (מקסימום {max} מילישניות)',
 
+  'media_eyes_pick.drawn': 'לייזרים וברקים',
+  'media_eyes_pick.prompt': 'בחרו אפקט עיניים',
+  'media_eyes_pick.stickers': 'עיניים',
+  'media_eyes_pick.timed_out': 'לא נבחר אפקט עיניים בזמן',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'אתה לא יכול לראות את ההיסטוריה של הערוץ הזה',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'לא יכול לראות את ההיסטוריה של הערוץ הזה',
   'media_i_create_wordcloud_channel.cannot_read_messages_here': 'לא ניתן לקרוא הודעות בהודעות פרטיות קבוצתיות, הודעות פרטיות בין משתמשים או שרתים שהבוט לא נמצא בהם',
