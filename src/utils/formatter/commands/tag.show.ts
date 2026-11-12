@@ -271,6 +271,7 @@ export async function createTagMessage(
         durationSecs: file.durationSecs,
         filename: file.filename,
         hasSpoiler: file.spoiler,
+        title: TagFormatter.getTagFileTitle(file),
         waveform: file.waveform,
         value: file.buffer,
       };
@@ -746,6 +747,7 @@ export function generatePages(
         durationSecs: file.durationSecs,
         filename: file.filename,
         hasSpoiler: file.spoiler,
+        title: TagFormatter.getTagFileTitle(file),
         value: file.buffer,
       };
     }

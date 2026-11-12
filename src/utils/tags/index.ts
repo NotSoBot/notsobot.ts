@@ -8,7 +8,7 @@ import {
   MessageComponentTypes,
   Permissions,
 } from 'detritus-client/lib/constants';
-import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { Embed, isValidAttachmentUrl, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
 
@@ -155,7 +155,6 @@ import {
   getGuildObjectForJSONSerialization,
   htmlDecode,
   isSnowflake,
-  isValidAttachmentUrl,
   jobWaitForResponse,
   jobWaitForResult,
   languageCodeToText,
@@ -1683,17 +1682,13 @@ export async function parse(
   if (!hasSharedVariables) {
     // go through the text and replace
 
+    // expired, unsigned or badly signed (`ex`/`is`/`hm`) urls all get refreshed, discord signs them again
     const expired = new Set<string>();
-    // go through them all and see if they are expired, if so then replace
-    for (let match of value.matchAll(ATTACHMENT_URL_REGEX)) {
-      if (!isValidAttachmentUrl(match[0])) {
-        expired.add(match[0]);
-      }
-    }
-
-    for (let match of args.matchAll(ATTACHMENT_URL_REGEX)) {
-      if (!isValidAttachmentUrl(match[0])) {
-        expired.add(match[0]);
+    for (let text of [value, args]) {
+      for (let match of text.matchAll(ATTACHMENT_URL_REGEX)) {
+        if (!isValidAttachmentUrl(match[0])) {
+          expired.add(match[0]);
+        }
       }
     }
 
@@ -1709,14 +1704,10 @@ export async function parse(
 
       let refreshedUrls: Array<{original: string, refreshed: string}> = [];
       try {
-        ({ refreshed_urls: refreshedUrls } = await withDeadline(context, {limits: tagLimits, variables}, (signal) => context.rest.request({
-          body: {attachment_urls: urls.slice(i, i + ATTACHMENT_REFRESH_CHUNK_SIZE)},
-          route: {
-            method: 'post',
-            path: '/attachments/refresh-urls',
-          },
-          signal,
-        })));
+        // the deadline still stops the tag waiting on it, the request itself just isn't cancelled
+        ({ refreshed_urls: refreshedUrls } = await withDeadline(context, {limits: tagLimits, variables}, () => {
+          return context.rest.refreshAttachmentUrls(urls.slice(i, i + ATTACHMENT_REFRESH_CHUNK_SIZE));
+        }));
       } catch(error) {
         // the urls just stay expired
         break;
@@ -2553,6 +2544,17 @@ function addFileResponseToTag(
     spoiler: false,
     url: '',
   });
+}
+
+
+// a file still named the api's `filename_safe` shows its original name (unicode, spaces) as the attachment title,
+// one the tag renamed (or made unique, `image_2.png`) keeps its own
+export function getTagFileTitle(file: TagResult['files'][number]): string | undefined {
+  const response = file.response;
+  if (response && file.filename === response.file.filename_safe && response.file.filename !== file.filename) {
+    return response.file.filename;
+  }
+  return undefined;
 }
 
 

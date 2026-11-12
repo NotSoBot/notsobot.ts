@@ -3066,8 +3066,11 @@ export async function mediaReply(
   if (typeof(options) === 'string') {
     options = {filename: options};
   }
+  // discord sanitizes upload filenames like `filename_safe` does, the title shows the original (unicode, spaces) instead
+  let title: string | undefined;
   if (!options.filename) {
     options.filename = response.file.filename_safe_base;
+    title = response.file.filename;
   }
   const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return mediaReplyFromOptions(context, buffer, {
@@ -3081,6 +3084,7 @@ export async function mediaReply(
     size: response.file.metadata.size,
     spoiler: response.file.has_nsfw || options.spoiler,
     storage: response.storage,
+    title,
     took: response.took,
     variableFrameSizes: response.file.metadata.variable_frame_sizes,
     width: response.file.metadata.width,
@@ -3107,6 +3111,8 @@ export async function mediaReplyFromOptions(
     spoiler?: boolean,
     storage?: null | RestResponsesRaw.FileResponseStorage,
     storageUserId?: string,
+    // shown by discord instead of the (sanitized) filename, left out when it's the same as the upload's
+    title?: string,
     took?: number,
     // a bouncing webm, discord's player keeps every frame at the first one's size and only a pasted link shows them
     variableFrameSizes?: boolean,
@@ -3134,6 +3140,7 @@ export async function mediaReplyFromOptions(
     }
   }
   filename = `${filename}.${options.extension || 'unknown'}`;
+  const title = (options.title && options.title !== filename) ? options.title : undefined;
 
   let footer = '';
   if (options.width || options.height) {
@@ -3221,14 +3228,14 @@ export async function mediaReplyFromOptions(
           mediaGallery.addItem({description: options.altText, media: {url: options.storage.urls.cdn}, spoiler: options.spoiler});
         } else {
           mediaGallery.addItem({description: options.altText, media: {url: `attachment://${filename}`}, spoiler: options.spoiler});
-          file = {contentType: options.mimetype, description: options.altText, filename, value};
+          file = {contentType: options.mimetype, description: options.altText, filename, title, value};
         }
       } else {
         if (options.storage) {
           container.addTextDisplay({content: options.storage.urls.vanity});
         } else {
           container.createFile({file: {url: `attachment://${filename}`}, spoiler: options.spoiler});
-          file = {contentType: options.mimetype, description: options.altText, filename, value};
+          file = {contentType: options.mimetype, description: options.altText, filename, title, value};
         }
       }
       container.addSeparator();
@@ -3293,7 +3300,7 @@ export async function mediaReplyFromOptions(
       embed.setImage(options.storage.urls.cdn);
     } else {
       embed.setImage(`attachment://${filename}`);
-      file = {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, value};
+      file = {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, title, value};
     }
 
     return editOrReply(options.context || context, {components, content: options.content || '', embed, file});
@@ -3364,7 +3371,7 @@ export async function mediaReplyFromOptions(
       (isFromInteraction && !replacesResponse) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
       `-# ${footer}`,
     ].filter(Boolean).join('\n'),
-    file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, value},
+    file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, title, value},
   };
   if (replacesResponse) {
     return replaceInteractionResponse(context as Interaction.InteractionContext, message);
@@ -3407,7 +3414,7 @@ export function slashCommandMention(
     return x.type === ApplicationCommandTypes.CHAT_INPUT && x.name === topLevelName;
   }) : undefined;
   const commandId = (command) ? command.ids.get(LOCAL_GUILD_ID) : undefined;
-  return (commandId) ? `</${fullName}:${commandId}>` : Markup.codestring(`/${fullName}`);
+  return (commandId) ? Markup.commandMention(fullName, commandId) : Markup.codestring(`/${fullName}`);
 }
 
 
@@ -3459,39 +3466,6 @@ export function findCachedTagDirectoryIds(
     }
   }
   return Array.from(ids);
-}
-
-
-const IS_HEX_REGEX = /^[0-9a-fA-F]+$/;
-
-export function isValidAttachmentUrl(urlString: string): boolean {
-  const url = new URL(urlString);
-  const expiresAtString = url.searchParams.get('ex');
-  const issuedAtString = url.searchParams.get('is');
-  const hmacString = url.searchParams.get('hm');
-  if (!expiresAtString || !issuedAtString || !hmacString) {
-    return false;
-  }
-
-  if (!IS_HEX_REGEX.test(expiresAtString) || !IS_HEX_REGEX.test(issuedAtString) || !IS_HEX_REGEX.test(hmacString)) {
-    return false;
-  }
-
-  const expiresAt = parseInt(expiresAtString, 16);
-  if (isNaN(expiresAt) || expiresAt < (Date.now() / 1000)) {
-    return false;
-  }
-
-  const issuedAt = parseInt(issuedAtString, 16);
-  if (isNaN(issuedAt)) {
-    return false;
-  }
-
-  if (hmacString.length !== 64 || isNaN(parseInt(hmacString, 16))) {
-    return false;
-  }
-
-  return true;
 }
 
 
