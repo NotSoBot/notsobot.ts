@@ -175,6 +175,16 @@ function translateApiError(
   // the tier it needs when that's above premium itself, or a premium server (a member with plus gives it). the api's
   // message stays as details, it says what needed it
   if (apiError.code === ApiErrorCodes.PREMIUM_REQUIRED) {
+    // NotSoCredits unlock it too (NotSoAI, voice cloning): they don't need the tier if they buy (or are given) some
+    if (apiError.credits === true) {
+      const skuId = getPremiumSkuFromTier(apiError.tier);
+      if (apiError.tier === 'premium_server') {
+        return {specific: false, text: translator.translate(`${key}_server_credits` as I18n.TranslationKey)};
+      }
+      if (skuId) {
+        return {specific: false, text: translator.translate(`${key}_tier_credits` as I18n.TranslationKey, {tier: getPremiumSkuName(skuId)})};
+      }
+    }
     if (apiError.tier === 'premium_server') {
       return {specific: false, text: translator.translate(`${key}_server` as I18n.TranslationKey)};
     }

@@ -1635,6 +1635,8 @@ export const Croatian: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL VivaVideo predloška, umjesto datoteke',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID ili naziv VivaVideo predloška',
+  'commands.media_iv_5.fun.xyt.text.name': 'tekst',
+  'commands.media_iv_5.fun.xyt.text.description': 'Riječi za VivaVideo predložak tekstualnog oblačića',
   'commands.media_iv_5.fun.tunnel.description': 'Primijeni tunel efekt na sliku ili video',
   'commands.media_iv_5.fun.tunnel.name': 'tunel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spirala',

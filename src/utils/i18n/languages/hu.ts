@@ -1635,6 +1635,8 @@ export const Hungarian: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'VivaVideo sablon URL-je a fájl helyett',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo sablon azonosítója vagy neve',
+  'commands.media_iv_5.fun.xyt.text.name': 'szöveg',
+  'commands.media_iv_5.fun.xyt.text.description': 'Szöveg egy VivaVideo szövegbuborék-sablonhoz',
   'commands.media_iv_5.fun.tunnel.description': 'Alagút effekt alkalmazása képen vagy videón',
   'commands.media_iv_5.fun.tunnel.name': 'alagút',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spirál',

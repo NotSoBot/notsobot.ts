@@ -1635,6 +1635,8 @@ export const Indonesian: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL template VivaVideo, sebagai ganti file',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID atau nama template VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'teks',
+  'commands.media_iv_5.fun.xyt.text.description': 'Kata-kata untuk template gelembung teks VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Terapkan efek Terowongan pada Gambar atau Video',
   'commands.media_iv_5.fun.tunnel.name': 'terowongan',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spiral',

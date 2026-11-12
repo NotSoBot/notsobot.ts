@@ -1635,6 +1635,8 @@ export const Korean: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': '파일 대신 사용할 VivaVideo 템플릿 URL',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo 템플릿 ID 또는 이름',
+  'commands.media_iv_5.fun.xyt.text.name': '텍스트',
+  'commands.media_iv_5.fun.xyt.text.description': 'VivaVideo 말풍선 템플릿에 넣을 글자',
   'commands.media_iv_5.fun.tunnel.description': '이미지 또는 동영상에 터널 효과를 적용해요',
   'commands.media_iv_5.fun.tunnel.name': '터널',
   'commands.media_iv_5.fun.tunnel.spiral.name': '나선',

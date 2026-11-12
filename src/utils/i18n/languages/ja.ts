@@ -1635,6 +1635,8 @@ export const Japanese: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'ファイルの代わりに使うVivaVideoテンプレートのURL',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideoテンプレートのIDまたは名前',
+  'commands.media_iv_5.fun.xyt.text.name': 'テキスト',
+  'commands.media_iv_5.fun.xyt.text.description': 'VivaVideoの吹き出しテンプレートに入れる文字',
   'commands.media_iv_5.fun.tunnel.description': '画像または動画にトンネルエフェクトをかける',
   'commands.media_iv_5.fun.tunnel.name': 'トンネル',
   'commands.media_iv_5.fun.tunnel.spiral.name': '渦巻き',

@@ -1635,6 +1635,8 @@ export const Hebrew: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'כתובת URL של תבנית VivaVideo, במקום הקובץ',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'מזהה או שם של תבנית VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'טקסט',
+  'commands.media_iv_5.fun.xyt.text.description': 'מילים לתבנית בועת טקסט של VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'החל אפקט מנהרה על תמונה או וידאו',
   'commands.media_iv_5.fun.tunnel.name': 'מנהרה',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'ספירלה',

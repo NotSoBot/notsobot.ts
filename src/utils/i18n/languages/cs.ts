@@ -1635,6 +1635,8 @@ export const Czech: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL šablony VivaVideo místo souboru',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID nebo název šablony VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'text',
+  'commands.media_iv_5.fun.xyt.text.description': 'Slova pro šablonu textové bubliny VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Použije na obrázek nebo video efekt tunelu',
   'commands.media_iv_5.fun.tunnel.name': 'tunel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spirála',

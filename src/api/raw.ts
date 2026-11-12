@@ -12967,6 +12967,7 @@ export async function mediaIVManipulationXyt(
   const query = {
     max_file_size: maxFileSize,
     safe: options.safe,
+    text: options.text,
     url: options.url,
     xyt_id: options.xytId,
     xyt_url: options.xytUrl,

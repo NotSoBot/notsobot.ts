@@ -1635,6 +1635,8 @@ export const Ukrainian: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL шаблону VivaVideo замість файлу',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID або назва шаблону VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'текст',
+  'commands.media_iv_5.fun.xyt.text.description': 'Слова для шаблону текстової хмаринки VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Застосувати ефект тунелю до зображення або відео',
   'commands.media_iv_5.fun.tunnel.name': 'тунель',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'спіраль',

@@ -10,6 +10,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'xyt';
 
 export interface CommandArgsBefore {
+  text?: string,
   url?: null | string,
   xyt?: Structures.Attachment | string,
   xytId?: string,
@@ -31,6 +32,7 @@ export class MediaIVXytCommand extends BaseInteractionImageOrVideoCommandOption 
         {name: 'xyt', description: 'VivaVideo template file (.xyt)', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt'), type: ApplicationCommandOptionTypes.ATTACHMENT},
         {name: 'xyt-url', description: 'VivaVideo template URL, instead of the file', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt_url'), label: 'xytUrl'},
         {name: 'xyt-id', description: 'VivaVideo template id or name', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.xyt_id'), label: 'xytId', onAutoComplete: Parameters.AutoComplete.xytTemplates},
+        {name: 'text', description: 'Words for a VivaVideo text bubble template', ...I18n.optionLocalizations('commands.media_iv_5.fun.xyt.text'), maxLength: 200, value: Parameters.parsedMentionsText},
       ],
     }, {skipFiles: ['.xyt']});
   }
@@ -49,6 +51,7 @@ export class MediaIVXytCommand extends BaseInteractionImageOrVideoCommandOption 
 
   async run(context: Interaction.InteractionContext, args: CommandArgsBefore) {
     return Formatter.Commands.MediaIVManipulationXyt.createMessage(context, {
+      text: args.text || undefined,
       url: args.url!,
       ...getXytSource(args)!,
     });

@@ -1635,6 +1635,8 @@ export const Hindi: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'फ़ाइल के बजाय VivaVideo टेम्पलेट का URL',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo टेम्पलेट की ID या नाम',
+  'commands.media_iv_5.fun.xyt.text.name': 'टेक्स्ट',
+  'commands.media_iv_5.fun.xyt.text.description': 'VivaVideo टेक्स्ट बबल टेम्पलेट के लिए शब्द',
   'commands.media_iv_5.fun.tunnel.description': 'इमेज या वीडियो पर टनल इफ़ेक्ट लगाएँ',
   'commands.media_iv_5.fun.tunnel.name': 'टनल',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'स्पाइरल',

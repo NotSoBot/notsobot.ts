@@ -1635,6 +1635,8 @@ export const ChineseTraditional: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'VivaVideo 範本的 URL，代替檔案',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo 範本的 ID 或名稱',
+  'commands.media_iv_5.fun.xyt.text.name': '文字',
+  'commands.media_iv_5.fun.xyt.text.description': 'VivaVideo 文字泡泡範本裡的文字',
   'commands.media_iv_5.fun.tunnel.description': '為圖片或影片套用隧道效果',
   'commands.media_iv_5.fun.tunnel.name': '隧道',
   'commands.media_iv_5.fun.tunnel.spiral.name': '螺旋',

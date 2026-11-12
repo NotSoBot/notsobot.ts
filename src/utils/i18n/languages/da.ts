@@ -1635,6 +1635,8 @@ export const Danish: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL til VivaVideo-skabelon i stedet for filen',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID eller navn på VivaVideo-skabelon',
+  'commands.media_iv_5.fun.xyt.text.name': 'tekst',
+  'commands.media_iv_5.fun.xyt.text.description': 'Ord til en VivaVideo-tekstbobleskabelon',
   'commands.media_iv_5.fun.tunnel.description': 'Tilføj en tunneleffekt til et billede eller en video',
   'commands.media_iv_5.fun.tunnel.name': 'tunnel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spiral',

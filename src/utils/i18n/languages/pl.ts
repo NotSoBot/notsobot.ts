@@ -1635,6 +1635,8 @@ export const Polish: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL szablonu VivaVideo zamiast pliku',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID lub nazwa szablonu VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'tekst',
+  'commands.media_iv_5.fun.xyt.text.description': 'Słowa do szablonu dymka tekstowego VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Nałóż efekt tunelu na obraz lub wideo',
   'commands.media_iv_5.fun.tunnel.name': 'tunel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spirala',

@@ -1635,6 +1635,8 @@ export const Dutch: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL van het VivaVideo-sjabloon, in plaats van het bestand',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID of naam van het VivaVideo-sjabloon',
+  'commands.media_iv_5.fun.xyt.text.name': 'tekst',
+  'commands.media_iv_5.fun.xyt.text.description': 'Woorden voor een VivaVideo-tekstballonsjabloon',
   'commands.media_iv_5.fun.tunnel.description': 'Pas een tunneleffect toe op een afbeelding of video',
   'commands.media_iv_5.fun.tunnel.name': 'tunnel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spiraal',

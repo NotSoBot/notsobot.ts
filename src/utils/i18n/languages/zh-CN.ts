@@ -1635,6 +1635,8 @@ export const ChineseSimplified: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'VivaVideo 模板的 URL，代替文件',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo 模板的 ID 或名称',
+  'commands.media_iv_5.fun.xyt.text.name': '文本',
+  'commands.media_iv_5.fun.xyt.text.description': 'VivaVideo 文字气泡模板里的文字',
   'commands.media_iv_5.fun.tunnel.description': '给图片或视频加上隧道效果',
   'commands.media_iv_5.fun.tunnel.name': '隧道',
   'commands.media_iv_5.fun.tunnel.spiral.name': '螺旋',

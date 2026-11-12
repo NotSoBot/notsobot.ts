@@ -1635,6 +1635,8 @@ export const Turkish: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'Dosya yerine VivaVideo şablon URL\'si',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo şablon kimliği veya adı',
+  'commands.media_iv_5.fun.xyt.text.name': 'metin',
+  'commands.media_iv_5.fun.xyt.text.description': 'VivaVideo metin balonu şablonu için kelimeler',
   'commands.media_iv_5.fun.tunnel.description': 'Bir Görsele veya Videoya Tünel efekti uygula',
   'commands.media_iv_5.fun.tunnel.name': 'tünel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spiral',

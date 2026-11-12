@@ -1635,6 +1635,8 @@ export const Finnish: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'VivaVideo-mallin URL tiedoston sijaan',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo-mallin tunnus tai nimi',
+  'commands.media_iv_5.fun.xyt.text.name': 'teksti',
+  'commands.media_iv_5.fun.xyt.text.description': 'Sanat VivaVideon tekstikuplamalliin',
   'commands.media_iv_5.fun.tunnel.description': 'Lisää tunneliefekti kuvaan tai videoon',
   'commands.media_iv_5.fun.tunnel.name': 'tunneli',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spiraali',

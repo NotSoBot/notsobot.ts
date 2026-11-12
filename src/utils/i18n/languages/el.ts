@@ -1635,6 +1635,8 @@ export const Greek: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL προτύπου VivaVideo, αντί για το αρχείο',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID ή όνομα προτύπου VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'κείμενο',
+  'commands.media_iv_5.fun.xyt.text.description': 'Λέξεις για πρότυπο συννεφάκι κειμένου VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Εφαρμογή εφέ τούνελ σε εικόνα ή βίντεο',
   'commands.media_iv_5.fun.tunnel.name': 'τούνελ',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'σπιράλ',

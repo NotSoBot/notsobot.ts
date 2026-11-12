@@ -1635,6 +1635,8 @@ export const Vietnamese: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL mẫu VivaVideo, thay cho tệp',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID hoặc tên mẫu VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'văn-bản',
+  'commands.media_iv_5.fun.xyt.text.description': 'Chữ cho mẫu bong bóng văn bản VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Áp dụng hiệu ứng đường hầm cho Ảnh hoặc Video',
   'commands.media_iv_5.fun.tunnel.name': 'đường-hầm',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'xoắn-ốc',

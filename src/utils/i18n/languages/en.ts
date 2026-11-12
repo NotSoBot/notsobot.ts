@@ -1633,6 +1633,8 @@ export const English = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'VivaVideo template URL, instead of the file',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo template id or name',
+  'commands.media_iv_5.fun.xyt.text.name': 'text',
+  'commands.media_iv_5.fun.xyt.text.description': 'Words for a VivaVideo text bubble template',
   'commands.media_iv_5.fun.tunnel.description': 'Apply a Tunnel effect on an Image or Video',
   'commands.media_iv_5.fun.tunnel.name': 'tunnel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spiral',

@@ -1635,6 +1635,8 @@ export const Thai: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL ของเทมเพลต VivaVideo แทนไฟล์',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID หรือชื่อเทมเพลต VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'ข้อความ',
+  'commands.media_iv_5.fun.xyt.text.description': 'ข้อความสำหรับเทมเพลตบับเบิลข้อความของ VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'ใส่เอฟเฟกต์อุโมงค์ให้รูปภาพหรือวิดีโอ',
   'commands.media_iv_5.fun.tunnel.name': 'อุโมงค์',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'เกลียว',

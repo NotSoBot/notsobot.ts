@@ -1635,6 +1635,8 @@ export const PortugueseBrazil: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL do modelo do VivaVideo, em vez do arquivo',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID ou nome do modelo do VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'texto',
+  'commands.media_iv_5.fun.xyt.text.description': 'Palavras para um modelo de balão de texto do VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Aplicar um efeito de túnel em uma imagem ou vídeo',
   'commands.media_iv_5.fun.tunnel.name': 'túnel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'espiral',

@@ -1635,6 +1635,8 @@ export const Lithuanian: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'VivaVideo šablono URL vietoj failo',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'VivaVideo šablono ID arba pavadinimas',
+  'commands.media_iv_5.fun.xyt.text.name': 'tekstas',
+  'commands.media_iv_5.fun.xyt.text.description': 'Žodžiai VivaVideo teksto burbulo šablonui',
   'commands.media_iv_5.fun.tunnel.description': 'Pritaikyti tunelio efektą vaizdui ar video',
   'commands.media_iv_5.fun.tunnel.name': 'tunelis',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spiralė',

@@ -1635,6 +1635,8 @@ export const Arabic: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'رابط قالب VivaVideo بدلاً من الملف',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'معرّف أو اسم قالب VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'النص',
+  'commands.media_iv_5.fun.xyt.text.description': 'كلمات قالب فقاعة نص VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'تطبيق تأثير النفق على صورة أو فيديو',
   'commands.media_iv_5.fun.tunnel.name': 'نفق',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'حلزوني',

@@ -1635,6 +1635,8 @@ export const Bulgarian: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL на шаблон на VivaVideo, вместо файла',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID или име на шаблон на VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'текст',
+  'commands.media_iv_5.fun.xyt.text.description': 'Думи за шаблон на текстов балон на VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Приложи тунел ефект върху изображение или видео',
   'commands.media_iv_5.fun.tunnel.name': 'тунел',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'спирала',

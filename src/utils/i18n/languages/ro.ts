@@ -1635,6 +1635,8 @@ export const Romanian: Translations = Object.freeze({
   'commands.media_iv_5.fun.xyt.xyt_url.description': 'URL-ul șablonului VivaVideo, în locul fișierului',
   'commands.media_iv_5.fun.xyt.xyt_id.name': 'xyt-id',
   'commands.media_iv_5.fun.xyt.xyt_id.description': 'ID-ul sau numele șablonului VivaVideo',
+  'commands.media_iv_5.fun.xyt.text.name': 'text',
+  'commands.media_iv_5.fun.xyt.text.description': 'Cuvinte pentru un șablon de bulă de text VivaVideo',
   'commands.media_iv_5.fun.tunnel.description': 'Aplică un efect de tunel pe o imagine sau un video',
   'commands.media_iv_5.fun.tunnel.name': 'tunel',
   'commands.media_iv_5.fun.tunnel.spiral.name': 'spirală',

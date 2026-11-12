@@ -12,6 +12,7 @@ export const COMMAND_NAME = 'xyt';
 // the label is `payload` instead of the media command's `url`, both are here so the hooks below can override its own
 export interface CommandArgsBefore {
   payload?: Parameters.FilePayload,
+  text?: string,
   url?: null | string,
 }
 
@@ -21,6 +22,10 @@ export default class XytCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       aliases: ['vivavideo'],
+      args: [
+        // a text bubble template's words
+        {name: 'text', aliases: ['t'], type: Parameters.parsedMentionsText},
+      ],
       label: 'payload',
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -29,9 +34,10 @@ export default class XytCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/funface.xyt notsobot`,
           `${COMMAND_NAME} 0x060000000000000A notsobot`,
           `${COMMAND_NAME} rose notsobot`,
+          `${COMMAND_NAME} 0x0900000000000154 notsobot -text hello world`,
         ],
         id: Formatter.Commands.MediaIVManipulationXyt.COMMAND_ID,
-        usage: '<.xyt url or attachment,template id or name> ?<emoji,user:id|mention|name,url>',
+        usage: '<.xyt url or attachment,template id or name> ?<emoji,user:id|mention|name,url> ?<-text words>',
       },
       // a leading word that isn't a url or media is a built-in template's id or name
       type: Parameters.filePayload('.xyt', {audio: false}, {names: true}),
@@ -58,6 +64,7 @@ export default class XytCommand extends BaseImageOrVideoCommand {
   async run(context: Command.Context, args: CommandArgsBefore) {
     const { file: xyt, name: xytId, url } = args.payload!;
     return Formatter.Commands.MediaIVManipulationXyt.createMessage(context, {
+      text: args.text || undefined,
       url: url!,
       ...((xyt) ? {xyt} : {xytId: xytId!}),
     });

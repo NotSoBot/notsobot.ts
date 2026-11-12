@@ -1742,6 +1742,8 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationXyt extends MediaBaseOptions {
+    // a text bubble template's words (its own without them)
+    text?: string,
     // the .xyt as an upload, a url, or a built-in template's id/name (the api's library), one of them is needed
     xytFile?: RequestFile,
     xytId?: string,
