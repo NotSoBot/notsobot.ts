@@ -22,7 +22,6 @@ export default class TTSVoiceDeleteCommand extends BaseCommand {
           `${COMMAND_NAME} cake`,
         ],
         id: Formatter.Commands.VoiceDelete.COMMAND_ID,
-        premiumPlus: true,
         usage: '<voice:string>',
       },
     });

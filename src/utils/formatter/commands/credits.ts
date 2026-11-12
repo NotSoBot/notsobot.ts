@@ -15,8 +15,8 @@ export const COMMAND_ID = 'credits';
 // the api's `CREDITS_AI_MESSAGE` and `CREDITS_PER_TTS_BYTE`, what one NotSoAI message and a letter of cloned speech cost
 export const CREDITS_AI_MESSAGE = 75;
 export const CREDITS_PER_TTS_BYTE = 4;
-// the most Plus AI's unused weeks bank (the api's `CREDITS_ROLLOVER_WEEKS_PREMIUM_PLUS_AI` of its weekly 60,000)
-export const CREDITS_ROLLOVER_PREMIUM_PLUS_AI = 120_000;
+// the most Max's unused weeks bank (the api's `CREDITS_ROLLOVER_WEEKS_PREMIUM_MAX` of its weekly 60,000)
+export const CREDITS_ROLLOVER_PREMIUM_MAX = 120_000;
 
 export interface CommandArgs {
 
@@ -37,7 +37,7 @@ function balanceDetails(
       left: balance.weekly_left.toLocaleString(language),
       weekly: balance.weekly.toLocaleString(language),
     }) : null,
-    // always shown for Plus AI, even empty, so they know what they don't use carries over
+    // always shown for Max, even empty, so they know what they don't use carries over
     (balance.rollover_max) ? translate('credits.rollover', {
       left: (balance.rollover_left || 0).toLocaleString(language),
       max: balance.rollover_max.toLocaleString(language),
@@ -100,7 +100,7 @@ export function formatCreditsAlert(
   if (server && alert.voices) {
     return `-# ${translate((alert.kind === 'weekly_out') ? 'credits.alert.weekly_out_server_voices' : 'credits.alert.weekly_used_server_voices', variables)}`;
   }
-  // Plus AI: the bank comes after the week, and what's left at the reset goes into it
+  // Max: the bank comes after the week, and what's left at the reset goes into it
   if (!server && alert.rollover_max) {
     return `-# ${translate((alert.kind === 'weekly_out') ? 'credits.alert.weekly_out_rollover' : 'credits.alert.weekly_used_rollover', variables)}`;
   }

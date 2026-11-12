@@ -4,23 +4,26 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import MiniSearch from 'minisearch';
 
+import { ErrorPayload, warning } from '../../../commands/errors';
+import GuildSettingsStore from '../../../stores/guildsettings';
 import { getPremiumServerId } from '../../../stores/premiumservers';
-import { fetchServerVoices, fetchUserVoices } from '../../../api';
+import { fetchPremiumCredits, fetchServerVoices, fetchUserVoices } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import {
+  DiscordSkuIds,
   EmbedBrands,
   EmbedColors,
   GoogleLocales,
   GoogleLocalesText,
+  GuildFeatures,
 } from '../../../constants';
 import { DisplayPayload, displayReply } from '../../../utils';
+import { getPremiumSkuName } from '../../premium';
 
 
 export const COMMAND_ID = 'voice.list';
 
-// the api's `MAX_SERVER_VOICE_CLONE_AMOUNT`
-export const MAX_SERVER_VOICES = 5;
 
 export interface CommandArgs {
   // the server's voices instead of the user's
@@ -49,15 +52,53 @@ export function serverVoicesProblem(
   return null;
 }
 
-// the user's own voices, or with `server` the server's it's used in
+// why the user (with `server`, the server it's used in) can't clone voices or add audio to them, null when they can.
+// The api's check, asked before the ownership confirmation so it doesn't fail after it: NotSoPremium Plus (a member's
+// plus slot for a server, or the staff-given `VOICE_CLONE_ACCESS`), or bought NotSoCredits (given to the server). From
+// `/premium/credits`, where a user's `weekly` is only there with plus and a server's voices' only with a plus slot
+export async function voiceCloneAccessProblem(
+  context: Command.Context | Interaction.InteractionContext,
+  server: boolean,
+): Promise<ErrorPayload | null> {
+  const credits = await fetchPremiumCredits(context);
+  const { translate } = await getTranslator(context);
+  const skuId = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
+  if (server) {
+    if ((credits.server_voices && 0 < credits.server_voices.weekly) || (credits.server && 0 < credits.server.refill_left)) {
+      return null;
+    }
+    if (context.guildId) {
+      const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+      if (settings && settings.features.has(GuildFeatures.VOICE_CLONE_ACCESS)) {
+        return null;
+      }
+    }
+    return {
+      description: warning(translate('api_errors.premium_required_server_credits')),
+      upsell: {skuId, text: translate('errors.upsell.premium_server')},
+    };
+  }
+  // owners have no pool, they never need either
+  if (!credits.user || 0 < credits.user.weekly || 0 < credits.user.refill_left) {
+    return null;
+  }
+  return {
+    description: warning(translate('api_errors.premium_required_tier_credits', {tier: getPremiumSkuName(skuId)})),
+    upsell: {skuId},
+  };
+}
+
+// the user's own voices, or with `server` the server's it's used in and how many it can have (the api's, it depends on
+// the server's premium), null for the user's
 export async function fetchVoices(
   context: Command.Context | Interaction.InteractionContext,
   server?: boolean,
-): Promise<Array<RestResponsesRaw.Voice>> {
+): Promise<{limit: null | number, voices: Array<RestResponsesRaw.Voice>}> {
   if (server) {
-    return (await fetchServerVoices(context)).voices;
+    const { limit, voices } = await fetchServerVoices(context);
+    return {limit, voices};
   }
-  return (await fetchUserVoices(context, context.userId)).voices;
+  return {limit: null, voices: (await fetchUserVoices(context, context.userId)).voices};
 }
 
 export async function createMessage(
@@ -73,17 +114,17 @@ export async function createMessage(
     }
   }
 
-  const voices = await fetchVoices(context, args.server);
+  const { limit, voices } = await fetchVoices(context, args.server);
   if (!voices.length) {
     if (args.server) {
-      return displayReply(context, {description: translate('voice_server.no_voices', {max: MAX_SERVER_VOICES})});
+      return displayReply(context, {description: translate('voice_server.no_voices', {max: limit ?? 0})});
     }
     return displayReply(context, {description: translate('voice_list.you_have_no_cloned_voices')});
   }
 
   const payload: DisplayPayload = {fields: []};
   payload.color = EmbedColors.DEFAULT;
-  payload.footer = (args.server) ? translate('voice_server.voices', {count: voices.length, max: MAX_SERVER_VOICES}) : translate('voice_list.cloned_voices');
+  payload.footer = (args.server) ? translate('voice_server.voices', {count: voices.length, max: limit ?? 0}) : translate('voice_list.cloned_voices');
 
   const description: Array<string> = [];
   for (let i = 0; i < voices.length; i++) {

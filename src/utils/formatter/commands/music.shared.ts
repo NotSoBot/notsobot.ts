@@ -21,9 +21,11 @@ import VoiceNode from '../../../voicenode';
 import { Translator } from '../../i18n';
 
 
-// the api's queue limit for premium servers (100 otherwise), the most positions a range can name
+// the api's queue limit for premium servers (100 otherwise), and for ones with a max member's slot, the most
+// positions a range can name
 export const MUSIC_QUEUE_PREMIUM_LIMIT = 1000;
-const MAX_QUEUE_POSITION = MUSIC_QUEUE_PREMIUM_LIMIT;
+export const MUSIC_QUEUE_PREMIUM_MAX_LIMIT = 2000;
+const MAX_QUEUE_POSITION = MUSIC_QUEUE_PREMIUM_MAX_LIMIT;
 
 // a music dj: the owner, manage server, or the dj role the server picked (`music dj role`, from the cached guild
 // settings). Without one picked, any role with "notsomusic" in its name counts

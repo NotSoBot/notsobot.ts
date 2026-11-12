@@ -1895,7 +1895,7 @@ export function htmlDecode(value: string): string {
 }
 
 
-// how long a job is polled for before giving up on it (and cancelling it): the longest command budget (120s, plus ai,
+// how long a job is polled for before giving up on it (and cancelling it): the longest command budget (120s, max,
 // the api's `command_budget.py`) plus up to 2 minutes waiting in the queue. a job queued longer than that is cancelled
 // instead of running with nobody waiting on it
 export const MAX_JOB_WAIT_TIME = 4 * 60 * 1000;
@@ -1992,7 +1992,7 @@ function jobStatusText(
 
 
 // what gave a media job or tag its time, the api's job queues only know the first three
-export type TimeLimitTier = 'free' | 'premium' | 'premium_server' | 'directory' | 'premium_plus' | 'premium_plus_ai';
+export type TimeLimitTier = 'free' | 'premium' | 'premium_server' | 'directory' | 'premium_plus' | 'premium_max';
 
 // the tier and a live countdown to its deadline (unix ms), for under the thinking text of media jobs and slow tags.
 // the countdown is a discord timestamp so it ticks without edits, and stays the same text so it doesn't cause any

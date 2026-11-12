@@ -302,7 +302,7 @@ const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
 
 
 // the errors a higher tier lifts, only for users without it. job timeouts and the queue come from
-// `enqueue_job` (premium gets the high queue and more time), weekly credits only come with plus (more with plus ai). a
+// `enqueue_job` (premium gets the high queue and more time), weekly credits only come with plus (more with max). a
 // file too large only gets `premium_max_size` when premium would've taken it (`.download`'s fetch job), time limits
 // get `premium_tier`/`premium_seconds` for the cheapest tier above the user's own that gives more, none when nothing does
 async function getApiErrorUpsell(
@@ -362,11 +362,12 @@ async function getApiErrorUpsell(
       if (apiError.scope === 'server') {
         return null;
       }
-      wanted = (apiError.weekly) ? DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI : DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
+      // NotSoAI's (`ai`) always points at max, a voice's at plus unless they already get weekly credits
+      wanted = (apiError.weekly || apiError.ai === true) ? DiscordSkuIds.USER_NOTSOPREMIUM_MAX : DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
       text = translator.translate('errors.upsell.credits', {tier: getPremiumSkuName(wanted)});
     }; break;
     case ApiErrorCodes.SERVER_AI_LIMIT: {
-      wanted = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI;
+      wanted = DiscordSkuIds.USER_NOTSOPREMIUM_MAX;
       text = translator.translate('errors.upsell.server_ai');
     }; break;
     case ApiErrorCodes.MUSIC_PREMIUM_REQUIRED: {

@@ -9,7 +9,6 @@ export class TTSVoiceCreateCommand extends BaseInteractionAudioOrVideoCommandOpt
   description = 'Clone a voice from an Audio or Video File';
   metadata = {
     id: Formatter.Commands.VoiceClone.COMMAND_ID,
-    premiumPlus: true,
   };
   name = 'create';
 

@@ -4,12 +4,13 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import { createVoiceClone } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
+import { replyError } from '../../../commands/errors';
 import { getTranslator } from '../../i18n';
 import { DiscordEmojis, StatusEmojis } from '../../../constants';
 
 import { displayReply } from '../../../utils';
 
-import { serverVoicesProblem } from './voice.list';
+import { serverVoicesProblem, voiceCloneAccessProblem } from './voice.list';
 
 
 export const MAX_TIME_TO_RESPOND = 2 * 60 * 1000;
@@ -19,7 +20,8 @@ export const COMMAND_ID = 'voice.clone';
 
 export interface CommandArgs {
   name?: string,
-  // the server it's used in gets the voice instead (needs Manage Server and a member's premium plus on the server)
+  // the server it's used in gets the voice instead (needs Manage Server, and a member's premium plus on the server or
+  // NotSoCredits given to it)
   server?: boolean,
   url: string,
 }
@@ -35,6 +37,11 @@ export async function createMessage(
     if (problem) {
       return displayReply(context, {description: translate(problem)});
     }
+  }
+  // plus or NotSoCredits, checked before they confirm instead of after
+  const accessProblem = await voiceCloneAccessProblem(context, !!args.server);
+  if (accessProblem) {
+    return replyError(context, accessProblem);
   }
 
   // the user has to confirm they own the voice (or have its owner's permission) before the audio goes to elevenlabs

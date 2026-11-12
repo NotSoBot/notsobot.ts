@@ -64,7 +64,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  // "premium plus ai · ai is ruminating" while NotSoAI writes, then the tag's countdown once its tagscript runs
+  // "premium max · ai is ruminating" while NotSoAI writes, then the tag's countdown once its tagscript runs
   const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate));
   try {
     return await generateAndRunTag(context, args, thinking);

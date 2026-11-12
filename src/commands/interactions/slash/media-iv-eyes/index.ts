@@ -13,11 +13,14 @@ import { MediaIVEyesBlackCommand } from './black';
 import { MediaIVEyesBloodshotCommand } from './bloodshot';
 import { MediaIVEyesBlueCommand } from './blue';
 import { MediaIVEyesCenterCommand } from './center';
+import { MediaIVEyesCutoutCommand } from './cutout';
 import { MediaIVEyesDefaultCommand } from './default';
 import { MediaIVEyesGooglyCommand } from './googly';
 import { MediaIVEyesGreenCommand } from './green';
 import { MediaIVEyesHorrorCommand } from './horror';
 import { MediaIVEyesIlluminatiCommand } from './illuminati';
+import { MediaIVEyesLaserCommand } from './laser';
+import { MediaIVEyesLightningCommand } from './lightning';
 import { MediaIVEyesMoneyCommand } from './money';
 import { MediaIVEyesPinkCommand } from './pink';
 import { MediaIVEyesRedCommand } from './red';
@@ -53,10 +56,13 @@ export default class MediaIVEyesGroupCommand extends BaseSlashCommand {
         new MediaIVEyesBloodshotCommand(),
         new MediaIVEyesBlueCommand(),
         new MediaIVEyesCenterCommand(),
+        new MediaIVEyesCutoutCommand(),
         new MediaIVEyesGooglyCommand(),
         new MediaIVEyesGreenCommand(),
         new MediaIVEyesHorrorCommand(),
         new MediaIVEyesIlluminatiCommand(),
+        new MediaIVEyesLaserCommand(),
+        new MediaIVEyesLightningCommand(),
         new MediaIVEyesMoneyCommand(),
         new MediaIVEyesPinkCommand(),
         new MediaIVEyesRedCommand(),

@@ -21,7 +21,6 @@ export default class TTSVoiceListCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceList.COMMAND_ID,
-        premiumPlus: true,
         usage: '',
       },
     });

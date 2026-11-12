@@ -5,7 +5,7 @@ import { voiceCloneEdit } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { displayReply } from '../../../utils';
 
-import { MAX_SERVER_VOICES, fetchVoices, findVoice, serverVoicesProblem } from './voice.list';
+import { fetchVoices, findVoice, serverVoicesProblem } from './voice.list';
 
 
 export const COMMAND_ID = 'voice.rename';
@@ -29,10 +29,10 @@ export async function createMessage(
     }
   }
 
-  const voices = await fetchVoices(context, args.server);
+  const { limit, voices } = await fetchVoices(context, args.server);
   if (!voices.length) {
     if (args.server) {
-      return displayReply(context, {description: translate('voice_server.no_voices', {max: MAX_SERVER_VOICES})});
+      return displayReply(context, {description: translate('voice_server.no_voices', {max: limit ?? 0})});
     }
     return displayReply(context, {description: translate('voice_rename.you_have_no_cloned_voices')});
   }

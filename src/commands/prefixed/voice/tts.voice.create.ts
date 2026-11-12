@@ -26,7 +26,6 @@ export default class TTSVoiceCreateCommand extends BaseAudioOrVideoCommand {
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 -name cake`,
         ],
         id: Formatter.Commands.VoiceClone.COMMAND_ID,
-        premiumPlus: true,
         usage: '?<emoji,user:id|mention|name,url> (-name <string>)',
       },
     });

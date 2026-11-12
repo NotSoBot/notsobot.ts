@@ -1,20 +1,12 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import GuildSettingsStore from '../../../stores/guildsettings';
-import { getServerPremiumUsers } from '../../../stores/premiumservers';
-import UserStore from '../../../stores/users';
-
 import {
   CommandCategories,
-  DiscordSkuIds,
-  GuildFeatures,
   TagGenerationPersonalityPreferences,
   TagGenerationPersonalityPreferencesToText,
-  UserFlags,
 } from '../../../constants';
-import { Formatter, I18n, Parameters } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
-import { warning } from '../../errors';
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
 
@@ -60,40 +52,7 @@ export default class AiCommand extends BaseCommand {
 
   // replace get commandDescription():
 
-  async onBefore(context: Command.Context) {
-    let hasPremium: boolean = false;
-
-    const user = await UserStore.getOrFetch(context, context.userId);
-    if (user && (user.isPremiumPlusAI || user.hasFlag(UserFlags.OWNER))) {
-      hasPremium = true;
-    }
-
-    if (!hasPremium) {
-      if (context.guildId) {
-        const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
-        if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
-          hasPremium = true;
-        }
-      }
-
-      if (!hasPremium) {
-        // someone in here gave it one of their premium server slots (or owns it, for a group dm) and has plus ai
-        const users = await getServerPremiumUsers(context);
-        hasPremium = users.some((x) => x.isPremiumPlusAI);
-      }
-    }
-
-    if (!hasPremium) {
-      // without a reason `onCancel` doesn't reply at all, so non-premium users got nothing back
-      const { translate } = await I18n.getTranslator(context);
-      context.metadata = context.metadata || {};
-      context.metadata.reason = warning(translate('errors.premium_ai_required'));
-      context.metadata.reasonPremiumSku = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI;
-    }
-
-    return hasPremium;
-  }
-
+  // no premium check here, the api decides who can use NotSoAI (see the slash `/ai`)
   onBeforeRun(context: Command.Context, args: Formatter.Commands.TagGenerate.CommandArgs) {
     return !!args.prompt;
   }

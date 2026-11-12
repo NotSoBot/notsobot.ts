@@ -504,7 +504,7 @@ export const DiscordReactionEmojis = Object.freeze({
 export enum DiscordSkuIds {
   USER_NOTSOPREMIUM = '1182569865735831582',
   USER_NOTSOPREMIUM_PLUS = '1318864356179710044',
-  USER_NOTSOPREMIUM_PLUS_AI = '1492322196146618429',
+  USER_NOTSOPREMIUM_MAX = '1492322196146618429',
 }
 
 
@@ -1563,6 +1563,14 @@ export enum MediaEyeTypes {
   FLARE_YELLOW = 'FLARE_YELLOW',
   GOOGLY = 'GOOGLY',
   ILLUMINATI = 'ILLUMINATI',
+  LASER_BLUE = 'LASER_BLUE',
+  LASER_GREEN = 'LASER_GREEN',
+  LASER_RED = 'LASER_RED',
+  LASER_YELLOW = 'LASER_YELLOW',
+  LIGHTNING_BLUE = 'LIGHTNING_BLUE',
+  LIGHTNING_GREEN = 'LIGHTNING_GREEN',
+  LIGHTNING_PINK = 'LIGHTNING_PINK',
+  LIGHTNING_RED = 'LIGHTNING_RED',
   MONEY = 'MONEY',
   RED = 'RED',
   SMALL = 'SMALL',
@@ -2211,7 +2219,7 @@ export const TagGenerationModelsToText = Object.freeze({
 });
 
 
-// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM`, usable with the user's or the server's plus ai (from a
+// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM`, usable with the user's or the server's max (from a
 // member who gave it their premium)
 export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM = Object.freeze([
   TagGenerationModels.ANTHROPIC_CLAUDE_HAIKU_5_5,
@@ -2231,7 +2239,7 @@ export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM = Object.freeze([
 ]);
 
 
-// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS`, needs the user's own plus ai (the server's doesn't count)
+// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS`, needs the user's own max (the server's doesn't count)
 export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS = Object.freeze([
   TagGenerationModels.ANTHROPIC_CLAUDE_SONNET_5_5,
   TagGenerationModels.DEEPSEEK_PRO,
@@ -2249,11 +2257,9 @@ export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS = Object.freeze([
 export const TagGenerationModelsToTextWithTier = Object.freeze(Object.fromEntries(Object.values(TagGenerationModels).map((value) => {
   const name = TagGenerationModelsToText[value] || value;
   if (TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS.includes(value)) {
-    return [value, `${name} (Plus AI, personal)`];
+    return [value, `${name} (Max, personal)`];
   }
-  if (TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM.includes(value)) {
-    return [value, `${name} (Plus AI)`];
-  }
+  // the rest need what NotSoAI itself does (Plus, Max or NotSoCredits), no tier to name
   return [value, name];
 })) as Record<TagGenerationModels, string>);
 
@@ -2763,7 +2769,7 @@ export enum UserPremiumTypes {
   PREMIUM_FREE = 1,
   PREMIUM = 2,
   PREMIUM_PLUS = 3,
-  PREMIUM_PLUS_AI = 4,
+  PREMIUM_MAX = 4,
 }
 
 

@@ -21,7 +21,6 @@ export default class TTSVoiceRenameCommand extends BaseCommand {
           `${COMMAND_NAME} chewbacca ralph`,
         ],
         id: Formatter.Commands.VoiceRename.COMMAND_ID,
-        premiumPlus: true,
         usage: '<voice:string> <...name:string>',
       },
       type: [

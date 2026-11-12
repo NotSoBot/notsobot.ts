@@ -108,7 +108,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           const user = await UserStore.getOrFetch(context, context.userId);
           if (user) {
             if (metadata.premiumPlus) {
-              // PLUS_AI subscribers were locked out of plus commands
+              // MAX subscribers were locked out of plus commands
               hasPremium = user.isPremiumPlus || user.hasFlag(UserFlags.OWNER);
             } else {
               hasPremium = !!user.premiumType || user.hasFlag(UserFlags.OWNER);

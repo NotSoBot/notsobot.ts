@@ -4,12 +4,13 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import { voiceCloneAdd } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
+import { replyError } from '../../../commands/errors';
 import { getTranslator } from '../../i18n';
 import { DiscordEmojis, StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
 
 import { MAX_TIME_TO_RESPOND } from './voice.clone';
-import { MAX_SERVER_VOICES, fetchVoices, findVoice, serverVoicesProblem } from './voice.list';
+import { fetchVoices, findVoice, serverVoicesProblem, voiceCloneAccessProblem } from './voice.list';
 
 
 export const COMMAND_ID = 'voice.clone.add';
@@ -32,11 +33,16 @@ export async function createMessage(
       return displayReply(context, {description: translate(problem)});
     }
   }
+  // plus or NotSoCredits, checked before they confirm instead of after
+  const accessProblem = await voiceCloneAccessProblem(context, !!args.server);
+  if (accessProblem) {
+    return replyError(context, accessProblem);
+  }
 
-  const voices = await fetchVoices(context, args.server);
+  const { limit, voices } = await fetchVoices(context, args.server);
   if (!voices.length) {
     if (args.server) {
-      return displayReply(context, {description: translate('voice_server.no_voices', {max: MAX_SERVER_VOICES})});
+      return displayReply(context, {description: translate('voice_server.no_voices', {max: limit ?? 0})});
     }
     return displayReply(context, {description: translate('voice_clone_add.you_have_no_cloned_voices')});
   }

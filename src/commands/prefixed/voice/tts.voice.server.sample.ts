@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GuildFeatures } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseAudioOrVideoCommand } from '../basecommand';
@@ -23,7 +23,6 @@ export default class TTSVoiceServerSampleCommand extends BaseAudioOrVideoCommand
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 cake`,
         ],
         id: Formatter.Commands.VoiceServer.COMMAND_ID_SAMPLE,
-        premiumServer: GuildFeatures.VOICE_CLONE_ACCESS,
         usage: '?<emoji,user:id|mention,url> <...voice:string>',
       },
       permissions: [Permissions.MANAGE_GUILD],

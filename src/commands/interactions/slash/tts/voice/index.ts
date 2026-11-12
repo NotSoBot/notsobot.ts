@@ -7,7 +7,8 @@ import { TTSVoiceRenameCommand } from './rename';
 import { TTSVoiceSampleCommand } from './sample';
 
 
-// every subcommand needs premium plus, like the prefix commands
+// cloning and adding audio need premium plus or NotSoCredits (checked before the confirmation, and by the api), listing,
+// renaming and deleting their voices never do
 export class TTSVoiceGroupCommand extends BaseInteractionCommandOptionGroup {
   description = 'Clone voices to use for Text-to-Speech';
   name = 'voice';

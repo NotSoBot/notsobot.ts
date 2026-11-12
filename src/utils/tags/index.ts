@@ -260,7 +260,7 @@ export interface TagLimits {
   MAX_TIME_PREMIUM: number,
   MAX_TIME_PREMIUM_FROM_SERVER: number,
   MAX_TIME_PREMIUM_PLUS: number,
-  MAX_TIME_PREMIUM_PLUS_AI: number,
+  MAX_TIME_PREMIUM_MAX: number,
   MAX_TIME_REGEX: number,
   MAX_VARIABLE_KEY_LENGTH: number,
   MAX_VARIABLE_LENGTH: number,
@@ -299,7 +299,7 @@ export const TagLimitDefaults: TagLimits = Object.freeze({
   MAX_TIME_PREMIUM: 70 * 1000,
   MAX_TIME_PREMIUM_FROM_SERVER: 60 * 1000,
   MAX_TIME_PREMIUM_PLUS: 100 * 1000,
-  MAX_TIME_PREMIUM_PLUS_AI: 130 * 1000,
+  MAX_TIME_PREMIUM_MAX: 130 * 1000,
   MAX_TIME_REGEX: 25,
   MAX_VARIABLE_KEY_LENGTH: 64,
   MAX_VARIABLE_LENGTH: 1 * 1024 * 1024,
@@ -2855,9 +2855,9 @@ export async function getMaxTimeTier(
   } catch(error) {
     // no user means no premium
   }
-  if (user && user.isPremiumPlusAI) {
+  if (user && user.isPremiumMax) {
     // nothing is higher, skip looking at the server
-    return raise(limits.MAX_TIME_PREMIUM_PLUS_AI, 'premium_plus_ai');
+    return raise(limits.MAX_TIME_PREMIUM_MAX, 'premium_max');
   }
   if (user && user.isPremiumPlus) {
     // a premium server gives less, skip looking at it

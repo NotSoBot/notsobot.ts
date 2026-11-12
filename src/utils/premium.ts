@@ -13,7 +13,7 @@ import { DiscordSkuIds, UserPremiumTypes } from '../constants';
 const PREMIUM_SKU_NAMES: Record<DiscordSkuIds, string> = Object.freeze({
   [DiscordSkuIds.USER_NOTSOPREMIUM]: 'NotSoPremium',
   [DiscordSkuIds.USER_NOTSOPREMIUM_PLUS]: 'NotSoPremium Plus',
-  [DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI]: 'NotSoPremium Plus AI',
+  [DiscordSkuIds.USER_NOTSOPREMIUM_MAX]: 'NotSoPremium Max',
 });
 
 export function getPremiumSkuName(skuId: DiscordSkuIds): string {
@@ -24,7 +24,9 @@ export function getPremiumSkuName(skuId: DiscordSkuIds): string {
 const PREMIUM_TIER_SKUS: Record<string, DiscordSkuIds> = Object.freeze({
   premium: DiscordSkuIds.USER_NOTSOPREMIUM,
   premium_plus: DiscordSkuIds.USER_NOTSOPREMIUM_PLUS,
-  premium_plus_ai: DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI,
+  premium_max: DiscordSkuIds.USER_NOTSOPREMIUM_MAX,
+  // what an api from before the 2026-11-12 rename to Max sends, kept while the two are deployed apart
+  premium_plus_ai: DiscordSkuIds.USER_NOTSOPREMIUM_MAX,
 });
 
 export function getPremiumSkuFromTier(tier: unknown): DiscordSkuIds | null {
@@ -38,7 +40,7 @@ export function getPremiumSkuFromType(premiumType: UserPremiumTypes): DiscordSku
     case UserPremiumTypes.PREMIUM: return DiscordSkuIds.USER_NOTSOPREMIUM;
     case UserPremiumTypes.PREMIUM_PLUS: return DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
     case UserPremiumTypes.PREMIUM_FREE:
-    case UserPremiumTypes.PREMIUM_PLUS_AI: return DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI;
+    case UserPremiumTypes.PREMIUM_MAX: return DiscordSkuIds.USER_NOTSOPREMIUM_MAX;
   }
   return null;
 }
@@ -46,9 +48,9 @@ export function getPremiumSkuFromType(premiumType: UserPremiumTypes): DiscordSku
 // the tier's name on its own, not the start of a longer one ('NotSoPremium' in 'NotSoPremium Plus'). every language keeps
 // the names in english, so this finds them in any translation
 const PREMIUM_SKU_NAME_REGEXES: Record<DiscordSkuIds, RegExp> = Object.freeze({
-  [DiscordSkuIds.USER_NOTSOPREMIUM]: /NotSoPremium(?! Plus)/,
-  [DiscordSkuIds.USER_NOTSOPREMIUM_PLUS]: /NotSoPremium Plus(?! AI)/,
-  [DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI]: /NotSoPremium Plus AI/,
+  [DiscordSkuIds.USER_NOTSOPREMIUM]: /NotSoPremium(?! Plus| Max)/,
+  [DiscordSkuIds.USER_NOTSOPREMIUM_PLUS]: /NotSoPremium Plus/,
+  [DiscordSkuIds.USER_NOTSOPREMIUM_MAX]: /NotSoPremium Max/,
 });
 
 
@@ -56,7 +58,7 @@ function hasPremiumSku(user: UserFull, skuId: DiscordSkuIds): boolean {
   switch (skuId) {
     case DiscordSkuIds.USER_NOTSOPREMIUM: return user.isPremium;
     case DiscordSkuIds.USER_NOTSOPREMIUM_PLUS: return user.isPremiumPlus;
-    case DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI: return user.isPremiumPlusAI;
+    case DiscordSkuIds.USER_NOTSOPREMIUM_MAX: return user.isPremiumMax;
   }
 }
 

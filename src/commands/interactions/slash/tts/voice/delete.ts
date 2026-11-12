@@ -9,7 +9,6 @@ export class TTSVoiceDeleteCommand extends BaseInteractionCommandOption {
   description = 'Delete one of your cloned voices';
   metadata = {
     id: Formatter.Commands.VoiceDelete.COMMAND_ID,
-    premiumPlus: true,
   };
   name = 'delete';
 

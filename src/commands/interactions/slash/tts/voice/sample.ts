@@ -9,7 +9,6 @@ export class TTSVoiceSampleCommand extends BaseInteractionAudioOrVideoCommandOpt
   description = 'Add another Audio or Video File to one of your cloned voices';
   metadata = {
     id: Formatter.Commands.VoiceCloneAdd.COMMAND_ID,
-    premiumPlus: true,
   };
   name = 'sample';
 

@@ -2193,6 +2193,14 @@ export async function mediaIVManipulationFaceClown(
 }
 
 
+export async function mediaIVManipulationFaceCutout(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceCutout,
+) {
+  return raw.mediaIVManipulationFaceCutout(context, options);
+}
+
+
 export async function mediaIVManipulationFaceFat(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationFaceFat,

@@ -177,7 +177,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           const user = await UserStore.getOrFetch(context, context.userId);
           if (user) {
             if (metadata.premiumPlus) {
-              // same as the prefixed commands, PLUS_AI alone isn't plus
+              // same as the prefixed commands, MAX alone isn't plus
               hasPremium = user.isPremiumPlus || user.hasFlag(UserFlags.OWNER);
             } else {
               hasPremium = !!user.premiumType || user.hasFlag(UserFlags.OWNER);

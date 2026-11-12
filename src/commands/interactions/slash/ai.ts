@@ -5,18 +5,10 @@ import {
   InteractionContextTypes,
 } from 'detritus-client/lib/constants';
 
-import GuildSettingsStore from '../../../stores/guildsettings';
-import { getServerPremiumUsers } from '../../../stores/premiumservers';
-import ServerSettingsStore from '../../../stores/serversettings';
-import UserStore from '../../../stores/users';
-
 import {
   CommandCategories,
-  DiscordSkuIds,
-  GuildFeatures,
   TagGenerationPersonalityPreferences,
   TagGenerationPersonalityPreferencesToText,
-  UserFlags,
 } from '../../../constants';
 import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
@@ -28,8 +20,6 @@ export default class AICommand extends BaseSlashCommand {
   descriptionLocalizations = I18n.localizations('commands.ai.description');
   metadata = {
     id: Formatter.Commands.TagGenerate.COMMAND_ID,
-    premium: true,
-    premiumServer: GuildFeatures.AI_ACCESS,
   };
   name = 'ai';
 
@@ -96,50 +86,8 @@ export default class AICommand extends BaseSlashCommand {
     return 'NotSoAI';
   }
 
-  async onBefore(context: Interaction.InteractionContext) {
-    const shouldProceed = await super.onBefore(context);
-    if (!shouldProceed) {
-      return shouldProceed;
-    }
-
-    let hasPremium: boolean = false;
-
-    const user = await UserStore.getOrFetch(context, context.userId);
-    if (user && (user.isPremiumPlusAI || user.hasFlag(UserFlags.OWNER))) {
-      hasPremium = true;
-    }
-
-    if (!hasPremium) {
-      if (context.guildId) {
-        const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
-        if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
-          hasPremium = true;
-        }
-      } else if (context.inDm && context.channel && context.channel.ownerId) {
-        // a group dm
-        const settings = await ServerSettingsStore.getOrFetch(context, context.channelId!);
-        if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
-          hasPremium = true;
-        }
-      }
-
-      if (!hasPremium) {
-        // someone in here gave it one of their premium server slots (or owns it, for a group dm) and has plus ai
-        const users = await getServerPremiumUsers(context);
-        hasPremium = users.some((x) => x.isPremiumPlusAI);
-      }
-    }
-
-    if (!hasPremium) {
-      context.metadata = context.metadata || {};
-      const { translate } = await I18n.getTranslator(context);
-      context.metadata.reason = translate('errors.premium_ai_required');
-      context.metadata.reasonPremiumSku = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS_AI;
-    }
-
-    return hasPremium;
-  }
-
+  // no premium check here: the api lets in Plus (weekly credits), anyone with NotSoCredits, Max servers and
+  // `AI_ACCESS`, and its PREMIUM_REQUIRED (`credits: true`, max tier) says what's missing
   run(context: Interaction.InteractionContext, args: Formatter.Commands.TagGenerate.CommandArgs) {
     return Formatter.Commands.TagGenerate.createMessage(context, args);
   }

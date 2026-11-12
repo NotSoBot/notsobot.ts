@@ -9,7 +9,6 @@ export class TTSVoiceRenameCommand extends BaseInteractionCommandOption {
   description = 'Rename one of your cloned voices';
   metadata = {
     id: Formatter.Commands.VoiceRename.COMMAND_ID,
-    premiumPlus: true,
   };
   name = 'rename';
 

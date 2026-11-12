@@ -6,7 +6,7 @@ import { Domains } from '../../../api/endpoints';
 import { displayReply } from '../../../utils';
 import { getTranslator, Languages } from '../../i18n';
 
-import { CREDITS_ROLLOVER_PREMIUM_PLUS_AI } from './credits';
+import { CREDITS_ROLLOVER_PREMIUM_MAX } from './credits';
 
 
 export const COMMAND_ID = 'bot.premium';
@@ -24,7 +24,7 @@ export async function createMessage(
   const { language, translate } = await getTranslator(context);
   const description = [
     translate('utils_premium.description'),
-    translate('utils_premium.rollover', {credits: CREDITS_ROLLOVER_PREMIUM_PLUS_AI.toLocaleString(language)}),
+    translate('utils_premium.rollover', {credits: CREDITS_ROLLOVER_PREMIUM_MAX.toLocaleString(language)}),
   ];
   // the store tab lists every tier and the credit packs
   const storeUrl = Endpoints.Routes.URL + Endpoints.Routes.APPLICATION_DIRECTORY_STORE(context.applicationId);

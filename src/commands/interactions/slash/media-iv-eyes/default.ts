@@ -1,11 +1,10 @@
 import { Interaction } from 'detritus-client';
 
-import { MediaEyeTypes } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
-import { EYES_FLIPPED_OPTION } from './options';
+import { EYES_FLIPPED_OPTION, EYES_STICKER_TYPES } from './options';
 
 
 export const COMMAND_NAME = 'default';
@@ -27,7 +26,7 @@ export class MediaIVEyesDefaultCommand extends BaseInteractionImageOrVideoComman
           name: 'type',
           description: 'Eye Type',
           ...I18n.optionLocalizations('commands.media_iv_4.eyes.default.type'),
-          choices: Parameters.Slash.oneOf({choices: MediaEyeTypes, localizationKey: 'choices.media_eye_types'}),
+          choices: Parameters.Slash.oneOf({choices: EYES_STICKER_TYPES, localizationKey: 'choices.media_eye_types'}),
         },
       ],
     });

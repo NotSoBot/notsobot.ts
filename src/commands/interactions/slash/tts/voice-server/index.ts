@@ -8,7 +8,7 @@ import { TTSVoiceServerSampleCommand } from './sample';
 
 
 // the server's own cloned voices, everyone there can use them for tts. Making one (or adding audio) needs a member's
-// premium plus on the server, changing them needs Manage Server
+// premium plus on the server or NotSoCredits given to it (the api checks), changing them needs Manage Server
 export class TTSVoiceServerGroupCommand extends BaseInteractionCommandOptionGroup {
   description = 'The server\'s own cloned voices, everyone here can use them';
   name = 'voice-server';

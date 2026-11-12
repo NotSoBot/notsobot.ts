@@ -9,7 +9,6 @@ export class TTSVoiceListCommand extends BaseInteractionCommandOption {
   description = 'List your cloned voices';
   metadata = {
     id: Formatter.Commands.VoiceList.COMMAND_ID,
-    premiumPlus: true,
   };
   name = 'list';
 

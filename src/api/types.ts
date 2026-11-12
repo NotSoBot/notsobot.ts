@@ -1103,6 +1103,12 @@ export namespace RestOptions {
     face?: number,
   }
 
+  export interface MediaIVManipulationFaceCutout extends MediaBaseOptionsMultiple {
+    color?: string,
+    face?: number,
+    size?: number,
+  }
+
   export interface MediaIVManipulationFaceAnime extends MediaIVManipulationFace {
     eyes?: string,
   }
@@ -2938,7 +2944,7 @@ export namespace RestResponsesRaw {
     // when it can be taken off, servers are locked for a while after getting someone's premium
     removable_at: string,
     server_id: string,
-    // how many of the user's slots are on it, plus ai subscribers can stack them to raise its NotSoAI limit
+    // how many of the user's slots are on it, max subscribers can stack them to raise its NotSoAI limit
     slots: number,
     user_id: string,
   }
@@ -2955,7 +2961,7 @@ export namespace RestResponsesRaw {
   }
 
   export interface PutUserPremiumServer extends FetchUserPremiumServers {
-    // false when the server already had it and another slot wouldn't give it more (no plus ai to stack)
+    // false when the server already had it and another slot wouldn't give it more (no max to stack)
     created: boolean,
   }
 
@@ -2998,7 +3004,7 @@ export namespace RestResponsesRaw {
   export type DeleteSavedFont = EditSavedFonts;
   export type EditSavedFont = EditSavedFonts;
 
-  // a pool of credits, `weekly` is 0 when it only has bought ones (refills). `rollover_left` is a plus ai user's banked
+  // a pool of credits, `weekly` is 0 when it only has bought ones (refills). `rollover_left` is a max user's banked
   // leftover weeks (spent after the week's, before bought ones), up to `rollover_max`, 0 for everyone else. Both missing
   // from an api before rollover
   export interface CreditBalance {
@@ -3142,7 +3148,7 @@ export namespace RestResponsesRaw {
     refill_left: null | number,
     resets_at: string,
     scope: 'server' | 'user',
-    // a Plus AI user's bank (`CreditBalance`), missing from an api before rollover
+    // a Max user's bank (`CreditBalance`), missing from an api before rollover
     rollover_left?: number,
     rollover_max?: number,
     // a server's cloned voices' week rather than its NotSoAI one

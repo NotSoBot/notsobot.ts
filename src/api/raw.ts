@@ -5479,6 +5479,31 @@ export async function mediaIVManipulationFaceClown(
 }
 
 
+export async function mediaIVManipulationFaceCutout(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceCutout,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    color: options.color,
+    face: options.face,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    size: options.size,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_CUTOUT,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationFaceFat(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationFaceFat,

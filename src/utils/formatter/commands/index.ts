@@ -161,6 +161,8 @@ import * as MediaIVManipulationEyesGoogly from './media.iv.manipulation.eyes.goo
 import * as MediaIVManipulationEyesGreen from './media.iv.manipulation.eyes.green';
 import * as MediaIVManipulationEyesHorror from './media.iv.manipulation.eyes.horror';
 import * as MediaIVManipulationEyesIlluminati from './media.iv.manipulation.eyes.illuminati';
+import * as MediaIVManipulationEyesLaser from './media.iv.manipulation.eyes.laser';
+import * as MediaIVManipulationEyesLightning from './media.iv.manipulation.eyes.lightning';
 import * as MediaIVManipulationEyesMoney from './media.iv.manipulation.eyes.money';
 import * as MediaIVManipulationEyesPink from './media.iv.manipulation.eyes.pink';
 import * as MediaIVManipulationEyesRed from './media.iv.manipulation.eyes.red';
@@ -172,6 +174,7 @@ import * as MediaIVManipulationEyesYellow from './media.iv.manipulation.eyes.yel
 import * as MediaIVManipulationFaceAlien from './media.iv.manipulation.face.alien';
 import * as MediaIVManipulationFaceAnime from './media.iv.manipulation.face.anime';
 import * as MediaIVManipulationFaceClown from './media.iv.manipulation.face.clown';
+import * as MediaIVManipulationFaceCutout from './media.iv.manipulation.face.cutout';
 import * as MediaIVManipulationFaceFat from './media.iv.manipulation.face.fat';
 import * as MediaIVManipulationFaceForehead from './media.iv.manipulation.face.forehead';
 import * as MediaIVManipulationFaceFeaturesSwap from './media.iv.manipulation.face.features.swap';
@@ -913,6 +916,8 @@ export {
   MediaIVManipulationEyesGreen,
   MediaIVManipulationEyesHorror,
   MediaIVManipulationEyesIlluminati,
+  MediaIVManipulationEyesLaser,
+  MediaIVManipulationEyesLightning,
   MediaIVManipulationEyesMoney,
   MediaIVManipulationEyesPink,
   MediaIVManipulationEyesRed,
@@ -924,6 +929,7 @@ export {
   MediaIVManipulationFaceAlien,
   MediaIVManipulationFaceAnime,
   MediaIVManipulationFaceClown,
+  MediaIVManipulationFaceCutout,
   MediaIVManipulationFaceFat,
   MediaIVManipulationFaceForehead,
   MediaIVManipulationFaceFeaturesSwap,

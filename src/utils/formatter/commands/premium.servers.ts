@@ -12,7 +12,7 @@ import { DisplayPayload, displayDetailsLine, displayReply, displayTimestamp } fr
 
 export const COMMAND_ID = 'premium.servers';
 
-// NotSoAI messages each plus ai slot gives a server every week, the api's
+// NotSoAI messages each max slot gives a server every week, the api's
 // `CREDITS_WEEKLY_SERVER_AI_SLOT` (25,000) over `CREDITS_AI_MESSAGE` (75)
 export const SERVER_AI_MESSAGES_PER_SLOT = 333;
 
