@@ -3252,6 +3252,33 @@ export async function mediaAIVManipulationVeg(
 }
 
 
+export async function mediaAIVManipulationVep(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationVep,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
+    url: options.url,
+    vep_url: options.vepUrl,
+  };
+  return request(context, {
+    file: options.file,
+    // the api tells the .vep upload apart from the media by its key
+    files: (options.vepFile) ? [{...options.vepFile, key: 'vep_file'}] : undefined,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_VEP,
+    },
+  });
+}
+
+
 export async function mediaAIVManipulationWlmp(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationWlmp,

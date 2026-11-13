@@ -53,6 +53,7 @@ import * as MediaAIVManipulationShuffle from './media.aiv.manipulation.shuffle';
 import * as MediaAIVManipulationSnip from './media.aiv.manipulation.snip';
 import * as MediaAIVManipulationSpeed from './media.aiv.manipulation.speed';
 import * as MediaAIVManipulationVeg from './media.aiv.manipulation.veg';
+import * as MediaAIVManipulationVep from './media.aiv.manipulation.vep';
 import * as MediaAIVManipulationWlmp from './media.aiv.manipulation.wlmp';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
@@ -808,6 +809,7 @@ export {
   MediaAIVManipulationSnip,
   MediaAIVManipulationSpeed,
   MediaAIVManipulationVeg,
+  MediaAIVManipulationVep,
   MediaAIVManipulationWlmp,
 
   MediaAIVPipe,

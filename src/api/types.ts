@@ -766,6 +766,12 @@ export namespace RestOptions {
     vegUrl?: string,
   }
 
+  export interface MediaAIVManipulationVep extends MediaBaseOptions {
+    // the .vep as an upload or a url, one of them is needed
+    vepFile?: RequestFile,
+    vepUrl?: string,
+  }
+
   export interface MediaAIVManipulationWlmp extends MediaBaseOptions {
     // the .wlmp as an upload or a url, one of them is needed
     wlmpFile?: RequestFile,
@@ -2060,7 +2066,7 @@ export namespace RestOptions {
   export interface CommandPreview {
     // what it shows, as typed without the prefix
     example: string,
-    inputs: Array<'b1' | 'bordered' | 'captioned' | 'displacement' | 'face' | 'face2' | 'funface' | 'grade' | 'gradient' | 'greenscreen' | 'movie' | 'music' | 'photo' | 'preview1280' | 'qr' | 'quiet' | 'stereo' | 'video' | 'video2' | 'voice'>,
+    inputs: Array<'b1' | 'bordered' | 'captioned' | 'displacement' | 'face' | 'face2' | 'funface' | 'grade' | 'gradient' | 'greenscreen' | 'movie' | 'music' | 'photo' | 'preview1280' | 'qr' | 'quiet' | 'stereo' | 'twirl' | 'video' | 'video2' | 'voice'>,
     script: string,
   }
 

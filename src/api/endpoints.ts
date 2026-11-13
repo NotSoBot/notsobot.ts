@@ -115,6 +115,8 @@ export const Api = Object.freeze({
     '/media/aiv/manipulation/speed',
   MEDIA_AIV_MANIPULATION_VEG:
     '/media/aiv/manipulation/veg',
+  MEDIA_AIV_MANIPULATION_VEP:
+    '/media/aiv/manipulation/vep',
   MEDIA_AIV_MANIPULATION_WLMP:
     '/media/aiv/manipulation/wlmp',
 

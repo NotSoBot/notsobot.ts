@@ -1425,6 +1425,14 @@ export async function mediaAIVManipulationVeg(
 }
 
 
+export async function mediaAIVManipulationVep(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationVep,
+) {
+  return raw.mediaAIVManipulationVep(context, options);
+}
+
+
 export async function mediaAIVManipulationWlmp(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationWlmp,
