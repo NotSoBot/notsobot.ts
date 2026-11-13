@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 
 import { NotSoHeaders, RedisChannels } from './constants';
 import { log } from './log';
-import { captureError } from './sentry';
+import { captureApiDown, captureError, isApiRestarting, markApiReachable, markApiUnreachable } from './sentry';
 import { RedisPayloads } from './types';
 
 
@@ -261,6 +261,7 @@ export class ApiEventsSpewer extends EventSpewer {
   }
 
   onSessionReady(): void {
+    markApiReachable();
     this.sessionTimeout.stop();
     this.missedEvents = false;
     this.reconnectAttempts = 0;
@@ -319,7 +320,17 @@ export class ApiEventsSpewer extends EventSpewer {
       delay = RECONNECT_DELAY_MAX;
       this.reportError(new Error(`Api events connection unauthorized (${(handshakeStatusCode) ? `status ${handshakeStatusCode}` : `close code ${code}`}), check NOTSOBOT_API_TOKEN`));
     } else if (handshakeStatusCode !== null) {
-      this.reportError(new Error(`Api events connection handshake failed with status ${handshakeStatusCode}`));
+      const error = new Error(`Api events connection handshake failed with status ${handshakeStatusCode}`);
+      if (500 <= handshakeStatusCode) {
+        // nginx without an api behind it, a deploy or an outage. the same issue as the 502s commands get
+        markApiUnreachable();
+        log.error('Api events connection error', error);
+        if (!isApiRestarting()) {
+          captureApiDown(error, {tags: {source: 'api_events.connection'}});
+        }
+      } else {
+        this.reportError(error);
+      }
     }
 
     const wait = this.scheduleReconnect(delay);

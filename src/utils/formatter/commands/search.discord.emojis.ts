@@ -10,6 +10,7 @@ import {
   createTimestampMomentFromGuild,
   isSnowflake,
 } from '../../../utils';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'search.discord.emojis';
@@ -99,10 +100,10 @@ export async function emojisSearch(value: string, context: Command.Context | Int
   const { language, translate, translateMaybe } = await getTranslator(context);
   value = value.toLowerCase();
   if (!value) {
-    throw new Error(`${StatusEmojis.WARNING} ${translate('search_discord_emojis.please_enter_some_kind_of_emoji_name')}`);
+    throw new UserError(`${StatusEmojis.WARNING} ${translate('search_discord_emojis.please_enter_some_kind_of_emoji_name')}`);
   }
   if (value.length <= 2) {
-    throw new Error(`${StatusEmojis.WARNING} ${translate('search_discord_emojis.emoji_names_must_be_longer_than_2')}`);
+    throw new UserError(`${StatusEmojis.WARNING} ${translate('search_discord_emojis.emoji_names_must_be_longer_than_2')}`);
   }
 
   let chunks: Array<Array<Structures.Emoji>>;

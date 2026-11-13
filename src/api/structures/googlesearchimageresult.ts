@@ -187,7 +187,8 @@ export class GoogleSearchImageRecipe extends BaseStructure {
 
   description: string = '';
   duration: string = '';
-  ingredients: Array<string> = [];
+  // the api sends null when google has none
+  ingredients: null | Array<string> = null;
   servings: null | string = null;
   stars: null | number = null;
   starsAmount: null | number = null;

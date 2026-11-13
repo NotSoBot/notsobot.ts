@@ -48,6 +48,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
+import { CommandRunCancelledError } from './errors';
 import { getTranslator, randomThinkingText, TranslationKey, Translator } from './i18n';
 
 import { Endpoints, deleteJob, fetchJob, moderationSafetyScan, moderationTextScan, utilitiesFetchMedia } from '../api';
@@ -286,6 +287,20 @@ export async function editOrReply(
     const components = new Components();
     components.addTextDisplay({content: options.content});
     options = {...options, components, content: ''};
+  }
+
+  // detritus edits a stored reply with `attachments: []` unless told otherwise, dropping its files, so components that
+  // still point at one of them (`attachment://name`, like a media result losing its picker rows) need them kept or
+  // discord refuses the edit
+  if (
+    response && !response.deleted && response.attachments.length && options.components && !options.attachments &&
+    !(options.files && options.files.length)
+  ) {
+    const json = JSON.stringify(options.components);
+    const kept = response.attachments.filter((x) => json.includes(`attachment://${x.filename}`));
+    if (kept.length) {
+      options = {...options, attachments: kept.map((x) => ({filename: x.filename, id: x.id}))};
+    }
   }
 
   return context.editOrReply({
@@ -2017,13 +2032,6 @@ function cancelJob(context: Command.Context | Interaction.InteractionContext | C
   deleteJob(context, jobId).catch(() => {});
 }
 
-
-// thrown in a prefixed command run that got cancelled by its trigger being edited or deleted, `onRunError` ignores it
-export class CommandRunCancelledError extends Error {
-  constructor() {
-    super('Command run was cancelled');
-  }
-}
 
 // the latest run of each trigger message, edits past the edit duration don't re-run anything so they're dropped by then
 const commandRuns = new Collections.BaseCollection<string, Command.Context>({expire: COMMAND_EDIT_DURATION});

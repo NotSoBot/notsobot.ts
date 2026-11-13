@@ -104,8 +104,15 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     return this._commandIds;
   }
 
+  // an autocomplete answered after discord's 3 seconds (event loop lag, the user typing on) 404s with Unknown interaction,
+  // kept as info to track how often (by command and cluster), it isn't a bug in the autocomplete itself. other http
+  // errors were already seen by `captureRestResponse`
   onAutoCompleteError(context: Interaction.InteractionAutoCompleteContext, error: any) {
-    captureError(error, {context});
+    if (error && error.response && error.response.statusCode === 404) {
+      captureError(error, {context, fingerprint: ['autocomplete-unknown-interaction'], level: 'info', tags: {source: 'autocomplete'}});
+      return;
+    }
+    captureCommandError(context, error, 'autocomplete');
   }
 
   onLoadingTrigger(context: Interaction.InteractionContext) {

@@ -8,6 +8,7 @@ import VoiceNode from '../../../voicenode';
 import { getCachedTranslator, getTranslator } from '../../i18n';
 
 import { musicSoundSettingRefusal, replyMusicNeedsPremium, resetSavedMusicSound } from './music.shared';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'music.volume';
@@ -29,7 +30,7 @@ export function parseMusicVolume(value: string, context?: Command.Context | Inte
   const match = /^(\d{1,3})\s*%?$/.exec(text);
   const volume = (match) ? parseInt(match[1]) : NaN;
   if (isNaN(volume) || MAX_MUSIC_VOLUME < volume) {
-    throw new Error(getCachedTranslator(context).translate('params.value_between', {max: MAX_MUSIC_VOLUME, min: 0}));
+    throw new UserError(getCachedTranslator(context).translate('params.value_between', {max: MAX_MUSIC_VOLUME, min: 0}));
   }
   return volume;
 }

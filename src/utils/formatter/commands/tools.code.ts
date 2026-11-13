@@ -22,6 +22,7 @@ import {
   generateCodeStdin,
   toTitleCase,
 } from '../../tools';
+import { UserError } from '../../errors';
 
 
 
@@ -106,7 +107,7 @@ export async function createMessage(
         continue;
       }
       if (maxFileSize <= currentFileSize + size) {
-        throw new Error(translate('tools_code.attachments_surpassed_max_file_size_of_bytes', {maxFileSize: maxFileSize}));
+        throw new UserError(translate('tools_code.attachments_surpassed_max_file_size_of_bytes', {maxFileSize: maxFileSize}));
       }
       currentFileSize += size;
 

@@ -7,7 +7,7 @@ import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  commands: Array<any>,
+  commands?: Array<any>,
   url?: null | string,
 }
 
@@ -35,11 +35,11 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return !!args.commands.length && super.onBeforeRun(context, args);
+    return !!(args.commands && args.commands.length) && super.onBeforeRun(context, args);
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    if (!args.commands.length) {
+    if (!args.commands || !args.commands.length) {
       return BaseCommand.prototype.onCancelRun.call(this, context, args);
     }
     return super.onCancelRun(context, args);

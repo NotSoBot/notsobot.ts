@@ -16,6 +16,7 @@ import { getCachedTranslator } from '../i18n';
 
 import * as ContextMenu from './context-menu';
 import * as Slash from './slash';
+import { UserError } from '../errors';
 
 export { ContextMenu, Slash };
 
@@ -491,7 +492,7 @@ export function oneOf<T>(options: OneOfOptions<T>) {
           const description: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
           return Markup.codestring(description || String(value));
         }).join(', ');
-        throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${text})`}));
+        throw new UserError(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${text})`}));
       }
       return null;
     }

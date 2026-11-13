@@ -102,7 +102,7 @@ export async function createMessage(
             if (recipe.description) {
               description.push(Markup.escape.all(recipe.description));
             }
-            if (recipe.ingredients.length) {
+            if (recipe.ingredients && recipe.ingredients.length) {
               payload.fields!.push({name: translate('search_google_images.ingredients'), value: recipe.ingredients.join('\n')});
             }
           }

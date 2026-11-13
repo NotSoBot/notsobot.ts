@@ -11,6 +11,7 @@ import {
   SocketGatewayCloseCodes,
   SocketStates,
 } from 'detritus-client/lib/constants';
+import { ImportedCommandsError } from 'detritus-client/lib/errors';
 
 import { deleteCommandsResponses } from './api';
 import ApiEventsClient from './apievents';
@@ -25,6 +26,7 @@ import {
   SentryCommandContext,
   captureError,
   captureRestResponse,
+  markApiReachable,
   captureUnhandledError,
   connectCommandErrorReporting,
   getCommandContext,
@@ -77,6 +79,68 @@ const FATAL_GATEWAY_CLOSE_CODES: ReadonlyArray<number> = [
   SocketGatewayCloseCodes.DISALLOWED_INTENTS,
 ];
 
+// detritus kills a shard for good on 4004, so it stays offline until the process restarts. discord has rejected the
+// token for a while across every cluster at once (2026-11-03, 2026-11-13, REST 401s alongside it), so exit for the
+// manager to respawn the cluster with a fresh identify for every shard. the jitter spreads out the clusters, and if the
+// token really is bad the respawned process never readies, so the manager backs off instead of looping
+const AUTHENTICATION_FAILED_EXIT_CODE = 4;
+const AUTHENTICATION_FAILED_RESPAWN_DELAY = 30 * 1000;
+const AUTHENTICATION_FAILED_RESPAWN_JITTER = 60 * 1000;
+let isRespawningFromAuthenticationFailed = false;
+
+function respawnAfterAuthenticationFailed(shardId: number): void {
+  if (isRespawningFromAuthenticationFailed) {
+    return;
+  }
+  isRespawningFromAuthenticationFailed = true;
+  const delay = AUTHENTICATION_FAILED_RESPAWN_DELAY + Math.round(Math.random() * AUTHENTICATION_FAILED_RESPAWN_JITTER);
+  log.warn(`Shard #${shardId} failed authenticating, restarting the cluster in ${delay}ms`);
+  setTimeout(async () => {
+    try {
+      await Sentry.flush(2000);
+    } catch(e) {
+
+    }
+    process.exit(AUTHENTICATION_FAILED_EXIT_CODE);
+  }, delay);
+}
+
+// a command file failing to import (usually lib/ being rebuilt while the cluster starts) used to leave this cluster's
+// shards without any commands, the error is only per file so retry it a few times before giving up
+const COMMAND_IMPORT_ATTEMPTS = 3;
+const COMMAND_IMPORT_RETRY_DELAY = 10 * 1000;
+
+async function addCommandsIn(
+  client: NotSoCommandClient | NotSoInteractionClient,
+  directory: string,
+  shardsText: string,
+): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await client.addMultipleIn(directory);
+      return;
+    } catch(error) {
+      if (!(error instanceof ImportedCommandsError)) {
+        throw error;
+      }
+      // the file paths are ours, the messages say what broke (syntax error, missing export, etc..)
+      const files: Record<string, string> = {};
+      for (let filepath in error.errors) {
+        const reason = (error.errors as any)[filepath];
+        files[filepath.split('/lib/').pop() || filepath] = String((reason && reason.stack) || reason).slice(0, 1000);
+      }
+      log.error(`${shardsText} - ${directory} failed importing (attempt ${attempt}/${COMMAND_IMPORT_ATTEMPTS})`, files);
+      if (attempt === COMMAND_IMPORT_ATTEMPTS) {
+        captureError(error, {extra: {directory, files}, tags: {source: 'cluster.startup'}});
+        throw error;
+      }
+      // the files that did import were added, drop them so the retry doesn't add them twice
+      client.clearCommands();
+      await new Promise((resolve) => setTimeout(resolve, COMMAND_IMPORT_RETRY_DELAY));
+    }
+  }
+}
+
 const cluster = new ClusterClient('', {
   cache: {
     applicationCommandPermissions: {enabled: true},
@@ -122,7 +186,13 @@ const cluster = new ClusterClient('', {
     const route = response.request.route;
     if (route) {
       const url = redactUrlTokens(response.request.url.href);
+      // our api goes through the same rest client, with its own url
+      const { baseUrl } = shard.rest.raw.restClient;
+      const isNotSoBotApi = !(baseUrl instanceof URL && baseUrl.host === response.request.parsedUrl.host);
       if (response.ok) {
+        if (isNotSoBotApi) {
+          markApiReachable();
+        }
         log.debug(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.method}-${url} (${route.path})`);
       } else {
         const message = `Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.method}-${url} (${route.path})`;
@@ -134,12 +204,10 @@ const cluster = new ClusterClient('', {
         } catch(error) {
 
         }
-        // our api goes through the same rest client, with its own url
-        const { baseUrl } = shard.rest.raw.restClient;
         captureRestResponse({
           body,
           context: restRequestCommandContexts.get(restRequest),
-          isNotSoBotApi: !(baseUrl instanceof URL && baseUrl.host === response.request.parsedUrl.host),
+          isNotSoBotApi,
           method: response.request.method,
           route: route.path,
           shardId: shard.shardId,
@@ -174,6 +242,9 @@ const cluster = new ClusterClient('', {
           fingerprint: ['gateway-close', String(code)],
           tags: {'gateway.close_code': code, shard_id: shardId},
         });
+        if (code === SocketGatewayCloseCodes.AUTHENTICATION_FAILED) {
+          respawnAfterAuthenticationFailed(shardId);
+        }
       }
     });
 
@@ -263,7 +334,7 @@ const cluster = new ClusterClient('', {
         }
       });
 
-      await notSoCommandBot.addMultipleIn('./commands/prefixed');
+      await addCommandsIn(notSoCommandBot, './commands/prefixed', shardsText);
       await notSoCommandBot.run();
       log.info(`${shardsText} - Command Client Loaded`);
     }
@@ -272,7 +343,7 @@ const cluster = new ClusterClient('', {
       const notSoInteractionBot = new NotSoInteractionClient(cluster, {ratelimiter});
       connectCommandResults(notSoInteractionBot);
       connectCommandErrorReporting(notSoInteractionBot);
-      await notSoInteractionBot.addMultipleIn('./commands/interactions');
+      await addCommandsIn(notSoInteractionBot, './commands/interactions', shardsText);
       for (let x of notSoInteractionBot.getOversizedCommands()) {
         log.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
       }
@@ -284,7 +355,9 @@ const cluster = new ClusterClient('', {
     }
   } catch(error) {
     log.error(error);
-    log.error(error.errors);
-    captureError(error, {tags: {source: 'cluster.startup'}});
+    // `addCommandsIn` already reported a failed import with its files
+    if (!(error instanceof ImportedCommandsError)) {
+      captureError(error, {tags: {source: 'cluster.startup'}});
+    }
   }
 })();

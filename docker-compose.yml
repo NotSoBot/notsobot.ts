@@ -12,6 +12,8 @@
 services:
   bot-build:
     build:
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-}
       context: .
       target: build
     image: notsobot-ts-build

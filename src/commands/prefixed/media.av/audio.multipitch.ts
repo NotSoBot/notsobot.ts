@@ -27,6 +27,8 @@ export default class AudioMultiPitchCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 0,7,12`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 0,4,7 -normalize`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 0,7,12 -engine rubberband`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 -5 -engine a17`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 7 -engine elastique`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioMultiPitch.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<semitones,comma-separated> (-normalize) (-engine <choice>)',

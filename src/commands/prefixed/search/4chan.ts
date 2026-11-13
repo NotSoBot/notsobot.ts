@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -24,11 +24,13 @@ export default class ChanCommand extends BaseSearchCommand<Formatter.Commands.Se
         description: 'Search 4chan',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} fitness`,
+          `${COMMAND_NAME} fit`,
+          `${COMMAND_NAME} technology`,
         ],
         id: Formatter.Commands.Search4Chan.COMMAND_ID,
         usage: '?<board> (-closed) (-randomize)',
       },
+      type: Parameters.fourChanBoard,
     });
   }
 

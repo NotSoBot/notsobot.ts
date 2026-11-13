@@ -3630,7 +3630,7 @@ export namespace RestResponsesRaw {
         description: string,
         duration: null | string,
         duration_milliseconds: null | number,
-        ingredients: Array<string>,
+        ingredients: null | Array<string>,
         servings: null | string,
         stars: null | number,
         stars_amount: null | number,

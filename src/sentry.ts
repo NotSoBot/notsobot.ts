@@ -1,10 +1,13 @@
 import * as Sentry from '@sentry/node';
 import { AsyncLocalStorage } from 'async_hooks';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { Command, CommandClient, Interaction, InteractionCommandClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 
 import { JobError } from './api/errors';
+import { CommandRunCancelledError, UserError } from './utils/errors';
 import { isTagError } from './utils/tags/exceptions';
 
 
@@ -32,6 +35,10 @@ export interface CaptureOptions {
 
 // 160 cluster processes report on their own, so during an outage each sends a network error this often at most
 const NETWORK_ERROR_THROTTLE = 5 * 60 * 1000;
+// an api deploy recreates its container: nginx answers 502 while the old one drains (up to its 90s graceful timeout)
+// and the new one boots, and every cluster sees it at once (~150 events a deploy). its 5xx are only reported once it's
+// been unreachable longer than that
+const API_RESTART_GRACE = 3 * 60 * 1000;
 const RESPONSE_BODY_MAX_LENGTH = 2000;
 // our own breadcrumbs, sentry's console/http ones are shared by every command running in the process, so they'd attach
 // other users' urls and search terms to an unrelated error
@@ -66,6 +73,25 @@ const lastSentAt = new Map<string, number>();
 const commandContextStorage = new AsyncLocalStorage<SentryCommandContext>();
 
 
+// when this process first saw the api unreachable (a failed events connection or a 502 from it), until it answers again
+let apiUnreachableSince: number | null = null;
+
+export function markApiUnreachable(): void {
+  if (apiUnreachableSince === null) {
+    apiUnreachableSince = Date.now();
+  }
+}
+
+export function markApiReachable(): void {
+  apiUnreachableSince = null;
+}
+
+// unreachable for less than a deploy takes, not worth an event yet (the bot retries on its own)
+export function isApiRestarting(): boolean {
+  return apiUnreachableSince !== null && Date.now() - apiUnreachableSince < API_RESTART_GRACE;
+}
+
+
 export function runWithCommandContext<T>(context: SentryCommandContext, callback: () => T): T {
   return commandContextStorage.run(context, callback);
 }
@@ -73,6 +99,24 @@ export function runWithCommandContext<T>(context: SentryCommandContext, callback
 
 export function getCommandContext(): SentryCommandContext | undefined {
   return commandContextStorage.getStore();
+}
+
+
+// SENTRY_RELEASE, or the build's id the Dockerfile writes next to the compiled source. read when each process starts, so
+// a cluster respawned onto new code (SIGUSR2) reports that code while the manager keeps reporting the one it started on
+function getRelease(): string | undefined {
+  if (process.env.SENTRY_RELEASE) {
+    return process.env.SENTRY_RELEASE;
+  }
+  try {
+    const { release } = JSON.parse(fs.readFileSync(path.join(__dirname, 'release.json'), 'utf8'));
+    if (typeof(release) === 'string' && release) {
+      return release;
+    }
+  } catch(error) {
+    // built without the Dockerfile (`npm run build`), sentry tries detecting it on its own
+  }
+  return undefined;
 }
 
 
@@ -90,6 +134,7 @@ export function initSentry(processType: SentryProcess): void {
     dataCollection: {httpBodies: [], httpHeaders: false, urlQueryParams: false},
     dsn,
     initialScope: {tags: {process: processType}},
+    release: getRelease(),
     integrations: (integrations) => {
       if (processType === 'manager') {
         return integrations;
@@ -151,6 +196,11 @@ export function captureCommandError(context: SentryCommandContext, error: any, s
   if (!error || error.response || isTagError(error)) {
     return;
   }
+  // the reply already says what's wrong (bad input, a disabled feature), or a newer run took over (also seen through
+  // COMMAND_ERROR when a hook's reply is the one that gets cancelled)
+  if (error instanceof UserError || error instanceof CommandRunCancelledError) {
+    return;
+  }
   // a failed job with an error code is a translated error, like the media being too big
   if (error instanceof JobError && error.apiError) {
     return;
@@ -183,6 +233,10 @@ export function connectCommandErrorReporting(client: CommandClient | Interaction
 
 // discord's non-ok responses, minus the expected ones (missing/deleted things, no permissions, ratelimits the lib retries)
 const IGNORED_DISCORD_STATUSES: ReadonlyArray<number> = [403, 404, 429];
+// discord error codes that are the user's or server's doing: the user has DMs closed (like a ban's DM), or the server's
+// AutoMod blocked the message (its content or its title). still sent so they can be tracked, but as info and one issue
+// per code instead of errors
+const EXPECTED_DISCORD_ERROR_CODES: ReadonlyArray<number> = [50007, 200000, 200001];
 // our api's own error responses are user facing (invalid tag, media too big, etc..), only its 5xx and responses without a
 // coded body are bugs. 502 and 520-523 without a body is the api restarting or cloudflare not reaching it
 const API_DOWN_STATUSES: ReadonlyArray<number> = [502, 520, 521, 522, 523];
@@ -215,6 +269,17 @@ export function captureRestResponse(options: {
     if (IGNORED_DISCORD_STATUSES.includes(status)) {
       return;
     }
+    const code = getErrorBodyCode(body);
+    if (code !== null && EXPECTED_DISCORD_ERROR_CODES.includes(code)) {
+      captureError(new RestResponseError('Discord', status, method, route, code), {
+        context,
+        extra,
+        fingerprint: ['discord-rest-expected', String(code)],
+        level: 'info',
+        tags: {...tags, 'discord.code': code},
+      });
+      return;
+    }
     captureError(new RestResponseError('Discord', status, method, route), {
       context,
       extra,
@@ -230,14 +295,11 @@ export function captureRestResponse(options: {
     return;
   }
   if (API_DOWN_STATUSES.includes(status) && !hasErrorCode) {
-    captureError(new RestResponseError('NotSoBot Api is down,', status, method, route), {
-      context,
-      extra,
-      fingerprint: ['notsobot-api-down'],
-      level: 'warning',
-      tags,
-      throttle: NETWORK_ERROR_THROTTLE,
-    });
+    markApiUnreachable();
+    if (isApiRestarting()) {
+      return;
+    }
+    captureApiDown(new RestResponseError('NotSoBot Api is down,', status, method, route), {context, extra, tags});
     return;
   }
   captureError(new RestResponseError('NotSoBot Api', status, method, route), {
@@ -249,22 +311,39 @@ export function captureRestResponse(options: {
 }
 
 
+// the api being unreachable is one issue however a cluster noticed it (a 502 response, the events connection's
+// handshake), and the per process throttle covers both
+export function captureApiDown(error: Error, options: Pick<CaptureOptions, 'context' | 'extra' | 'tags'> = {}): void {
+  captureError(error, {
+    ...options,
+    fingerprint: ['notsobot-api-down'],
+    level: 'warning',
+    throttle: NETWORK_ERROR_THROTTLE,
+  });
+}
+
+
 export class RestResponseError extends Error {
   name = 'RestResponseError';
 
-  constructor(service: string, status: number, method: string, route: string) {
-    super(`${service} ${status} ${method} ${route}`);
+  constructor(service: string, status: number, method: string, route: string, code?: number) {
+    super(`${service} ${status} ${method} ${route}` + ((code === undefined) ? '' : ` (code ${code})`));
+  }
+}
+
+
+function getErrorBodyCode(body: string): number | null {
+  try {
+    const information = JSON.parse(body);
+    return (!!information && typeof(information) === 'object' && typeof(information.code) === 'number') ? information.code : null;
+  } catch(error) {
+    return null;
   }
 }
 
 
 function isCodedApiErrorBody(body: string): boolean {
-  try {
-    const information = JSON.parse(body);
-    return !!information && typeof(information) === 'object' && typeof(information.code) === 'number';
-  } catch(error) {
-    return false;
-  }
+  return getErrorBodyCode(body) !== null;
 }
 
 

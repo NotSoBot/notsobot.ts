@@ -28,6 +28,7 @@ import {
   replyThinking,
   timeLimitParts,
 } from '../../../utils';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'tag.show';
@@ -211,7 +212,7 @@ export async function createTagMessage(
 
   if (parsedTag.pages.length) {
     if (context instanceof ComponentContext) {
-      throw new Error(translate('tag_show.tagscript_does_not_support_pages_inside_of'));
+      throw new UserError(translate('tag_show.tagscript_does_not_support_pages_inside_of'));
     }
 
     const pages = generatePages(context, parsedTag);

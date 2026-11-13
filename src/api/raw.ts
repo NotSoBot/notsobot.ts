@@ -2716,15 +2716,16 @@ export async function googleTranslate(
   context: RequestContext,
   options: RestOptions.GoogleTranslate,
 ): Promise<RestResponsesRaw.GoogleTranslate> {
-  const query = {
+  // a body instead of a query, ocr'd text url encoded can be over nginx's uri limit (414)
+  const body = {
     from_language: options.from,
     text: options.text,
     to_language: options.to,
   };
   return request(context, {
-    query,
+    body,
     route: {
-      method: HTTPMethods.GET,
+      method: HTTPMethods.POST,
       path: Api.GOOGLE_TRANSLATE,
     },
   });

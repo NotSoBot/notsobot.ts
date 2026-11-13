@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 import { RequestFile, Response } from 'detritus-rest';
 
+import { JobError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import {
   EmbedBrands,
@@ -19,6 +20,7 @@ import {
   mediaReply,
 } from '../../../utils';
 import { getTranslator } from '../../i18n';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'media.aiv.pipe';
@@ -90,7 +92,7 @@ export async function createMessage(
   for (let {command, commandArgs} of args.commands) {
     const commandId = (command.metadata && command.metadata.id) || '';
     if (!commandId) {
-      throw new Error(translate('media.pipe.cant_pipe', {command: command.name}));
+      throw new UserError(translate('media.pipe.cant_pipe', {command: command.name}));
     }
     let found = false;
     for (let key in Formatter.Commands) {
@@ -105,13 +107,13 @@ export async function createMessage(
           });
           found = true;
         } else {
-          throw new Error(translate('media.pipe.not_pipeable', {command: command.name}));
+          throw new UserError(translate('media.pipe.not_pipeable', {command: command.name}));
         }
         break;
       }
     }
     if (!found) {
-      throw new Error(translate('media.pipe.unknown_command', {command: command.name}));
+      throw new UserError(translate('media.pipe.unknown_command', {command: command.name}));
     }
   }
 
@@ -150,7 +152,8 @@ export async function createMessage(
           }
           fileResponse = job.result.response;
         } else if (job.result.error) {
-          throw new Error(`Job Failed: ${job.result.error}`);
+          // coded ones get translated (and skipped by sentry) like any other job's
+          throw new JobError(job);
         } else {
           throw new Error('Job Failed for some reason');
         }

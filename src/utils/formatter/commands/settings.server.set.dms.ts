@@ -6,6 +6,7 @@ import { GuildSettingsChild } from '../../../api/structures/guildsettings';
 import { GUILD_MODERATION_DM_ALL, GuildModerationDmFlags, StatusEmojis } from '../../../constants';
 import { TranslationKey, Translator, getCachedTranslator, getTranslator } from '../../i18n';
 import { displayDetailsLine, displayReply } from '../../../utils';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'server.set.dms';
@@ -40,7 +41,7 @@ export function dmParser(value: string, context: Command.Context | Interaction.I
   if (DM_OFF_VALUES.includes(text)) {
     return false;
   }
-  throw new Error(getCachedTranslator(context).translate('settings_server_moderation.invalid_dm'));
+  throw new UserError(getCachedTranslator(context).translate('settings_server_moderation.invalid_dm'));
 }
 
 export function forParser(value: string, context: Command.Context | Interaction.InteractionContext): GuildModerationDmFlags | undefined {
@@ -52,7 +53,7 @@ export function forParser(value: string, context: Command.Context | Interaction.
   if (kind) {
     return kind.flag;
   }
-  throw new Error(getCachedTranslator(context).translate('settings_server_moderation.invalid_dm_for'));
+  throw new UserError(getCachedTranslator(context).translate('settings_server_moderation.invalid_dm_for'));
 }
 
 // the slash command's `for` choices are the kind's value

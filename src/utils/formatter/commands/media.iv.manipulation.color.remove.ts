@@ -7,6 +7,7 @@ import { getTranslator } from '../../i18n';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 import * as ToolsColor from './tools.color';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'media.iv.tools.color.remove';
@@ -45,7 +46,7 @@ export async function createJob(
     const value = ToolsColor.parseColor(args.color);
     if (value === null) {
       const { translate } = await getTranslator(context);
-      throw new Error(translate('tools_color.unknown_color', {color: Markup.codestring(args.color.slice(0, 64))}));
+      throw new UserError(translate('tools_color.unknown_color', {color: Markup.codestring(args.color.slice(0, 64))}));
     }
     color = intToHex(value, true);
   }

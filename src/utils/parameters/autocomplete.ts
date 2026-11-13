@@ -24,6 +24,7 @@ import {
   CommandCategories,
   CommandCategoryNames,
   DateMomentLogFormat,
+  FourChanBoards,
   GoogleLocales,
   GoogleLocalesText,
   GuildFeatures,
@@ -273,6 +274,58 @@ export async function mlLLMModel(context: Interaction.InteractionAutoCompleteCon
     */
   }
   return context.respond({choices});
+}
+
+
+// what `/4chan` shows before anything is typed, the most used boards
+const FOUR_CHAN_BOARDS_POPULAR = [
+  'g', 'v', 'a', 'tv', 'fit', 'sci', 'mu', 'ck', 'his', 'lit', 'co', 'vg', 'int', 'biz', 'k', 'o', 'out', 'p', 'sp', 'tg',
+  'diy', 'trv', 'an', 'jp', 'vt',
+];
+
+export function formatFourChanBoard(board: string): string {
+  return `/${board}/ - ${FourChanBoards[board]}`;
+}
+
+// lowercase without accents, so `pokemon` is /vp/'s `Pokémon`
+export function toFourChanBoardSearchText(value: string): string {
+  return value.trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
+
+// the boards matching what was typed, by their id or title: the exact id first, then ids starting with it, titles
+// starting with it, a word of the title starting with it, and titles containing it. Only the worksafe ones
+export function searchFourChanBoards(value: string, limit: number): Array<string> {
+  const text = toFourChanBoardSearchText(value);
+  const id = text.replace(/\//g, '');
+  if (!id) {
+    return [];
+  }
+  const ranked: Array<{board: string, rank: number}> = [];
+  for (let board in FourChanBoards) {
+    const title = toFourChanBoardSearchText(FourChanBoards[board]);
+    let rank: number;
+    if (board === id) {
+      rank = 0;
+    } else if (board.startsWith(id)) {
+      rank = 1;
+    } else if (title.startsWith(text)) {
+      rank = 2;
+    } else if (title.split(/[\s&/]+/).some((word) => word.startsWith(text))) {
+      rank = 3;
+    } else if (title.includes(text)) {
+      rank = 4;
+    } else {
+      continue;
+    }
+    ranked.push({board, rank});
+  }
+  ranked.sort((x, y) => x.rank - y.rank || x.board.length - y.board.length || x.board.localeCompare(y.board));
+  return ranked.slice(0, limit).map((x) => x.board);
+}
+
+export function fourChanBoards(context: Interaction.InteractionAutoCompleteContext) {
+  const boards = (context.value) ? searchFourChanBoards(context.value, 25) : FOUR_CHAN_BOARDS_POPULAR;
+  return context.respond({choices: boards.map((board) => ({name: formatFourChanBoard(board), value: board}))});
 }
 
 

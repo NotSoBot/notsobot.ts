@@ -4,6 +4,7 @@ import { utilitiesFetchMedia, utilitiesMLMashup } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { getTranslator } from '../../i18n';
 import { EmojiKitchen, jobWaitForResponse, jobWaitForResult, mediaReply } from '../../../utils';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'tools.ml.mashup';
@@ -55,7 +56,7 @@ export async function createResponse(
     safe: true,
   }).then((x) => jobWaitForResult(context, x, undefined, signal));
   if (job.result.error) {
-    throw new Error(translate('tools_ml_mashup.mashup_error', {error: job.result.error}));
+    throw new UserError(translate('tools_ml_mashup.mashup_error', {error: job.result.error}));
   }
   if (!job.result.response) {
     throw new Error(translate('tools_ml_mashup.mashup_did_not_return_a_response_should'));

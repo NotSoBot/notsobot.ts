@@ -8,6 +8,7 @@ import VoiceNode from '../../../voicenode';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
 import { musicPlayerSpeed, musicSoundSettingRefusal, musicSpeedText, replyMusicNeedsPremium, resetSavedMusicSound } from './music.shared';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'music.speed';
@@ -35,7 +36,7 @@ export function parseMusicSpeed(value: string, context?: Command.Context | Inter
   speed = Math.round(speed);
   if (isNaN(speed) || speed < MIN_MUSIC_SPEED || MAX_MUSIC_SPEED < speed) {
     const { translate } = getCachedTranslator(context);
-    throw new Error(translate('params.value_between', {max: musicSpeedText(MAX_MUSIC_SPEED), min: musicSpeedText(MIN_MUSIC_SPEED)}));
+    throw new UserError(translate('params.value_between', {max: musicSpeedText(MAX_MUSIC_SPEED), min: musicSpeedText(MIN_MUSIC_SPEED)}));
   }
   return speed;
 }

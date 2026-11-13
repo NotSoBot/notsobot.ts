@@ -603,6 +603,75 @@ export const EmojiTypesToText: Record<EmojiTypes, string> = Object.freeze({
 });
 
 
+// 4chan's boards by id with their titles, the same boards as notsobot.api's `BOARDS_TO_CHOOSE` (apis/chan.py), keep them
+// in sync. The api still checks the board, these are for the autocomplete and a short error before asking it
+export const FourChanBoards: Readonly<Record<string, string>> = Object.freeze({
+  '3': '3DCG',
+  a: 'Anime & Manga',
+  adv: 'Advice',
+  an: 'Animals & Nature',
+  biz: 'Business & Finance',
+  c: 'Anime/Cute',
+  cgl: 'Cosplay & EGL',
+  ck: 'Food & Cooking',
+  cm: 'Cute/Male',
+  co: 'Comics & Cartoons',
+  diy: 'Do It Yourself',
+  f: 'Flash',
+  fa: 'Fashion',
+  fit: 'Fitness',
+  g: 'Technology',
+  gd: 'Graphic Design',
+  his: 'History & Humanities',
+  i: 'Oekaki',
+  ic: 'Artwork/Critique',
+  int: 'International',
+  jp: 'Otaku Culture',
+  k: 'Weapons',
+  lgbt: 'LGBT',
+  lit: 'Literature',
+  m: 'Mecha',
+  mlp: 'Pony',
+  mu: 'Music',
+  n: 'Transportation',
+  news: 'Current News',
+  o: 'Auto',
+  out: 'Outdoors',
+  p: 'Photography',
+  po: 'Papercraft & Origami',
+  pw: 'Professional Wrestling',
+  qst: 'Quests',
+  sci: 'Science & Math',
+  sp: 'Sports',
+  tg: 'Traditional Games',
+  toy: 'Toys',
+  trv: 'Travel',
+  tv: 'Television & Film',
+  v: 'Video Games',
+  vg: 'Video Game Generals',
+  vip: 'Very Important Posts',
+  vm: 'Video Games/Multiplayer',
+  vmg: 'Video Games/Mobile',
+  vp: 'Pokémon',
+  vr: 'Retro Games',
+  vrpg: 'Video Games/RPG',
+  vst: 'Video Games/Strategy',
+  vt: 'Virtual YouTubers',
+  w: 'Anime/Wallpapers',
+  wg: 'Wallpapers/General',
+  wsg: 'Worksafe GIF',
+  wsr: 'Worksafe Requests',
+  x: 'Paranormal',
+  xs: 'Extreme Sports',
+});
+
+// notsobot.api's `BOARDS_NSFW`, never shown or suggested (adult content isn't allowed anywhere, `DefaultParameters.safe`)
+// but still passed on so the command answers with its own nsfw error instead of saying the board doesn't exist
+export const FOUR_CHAN_BOARDS_NSFW: ReadonlySet<string> = Object.freeze(new Set([
+  'aco', 'b', 'bant', 'd', 'e', 'gif', 'h', 'hc', 'hm', 'hr', 'pol', 'r', 'r9k', 's', 's4s', 'soc', 't', 'u', 'y',
+]));
+
+
 
 export enum GoogleCardTypes {
   CALCULATOR = 'CALCULATOR',
@@ -1379,12 +1448,16 @@ export enum MediaAudioMultiPitchEngines {
   BUNGEE = 'BUNGEE',
   RUBBERBAND = 'RUBBERBAND',
   SIGNALSMITH = 'SIGNALSMITH',
+  A17 = 'A17',
+  ELASTIQUE = 'ELASTIQUE',
 }
 
 export const MediaAudioMultiPitchEnginesToText: Record<MediaAudioMultiPitchEngines, string> = Object.freeze({
   [MediaAudioMultiPitchEngines.BUNGEE]: 'Bungee (like the multipitch program)',
   [MediaAudioMultiPitchEngines.RUBBERBAND]: 'Rubber Band (like ffmpeg\'s rubberband)',
   [MediaAudioMultiPitchEngines.SIGNALSMITH]: 'Signalsmith Stretch',
+  [MediaAudioMultiPitchEngines.A17]: 'A17 (Drums, minimum echo; metallic)',
+  [MediaAudioMultiPitchEngines.ELASTIQUE]: 'élastique Pro (Vegas)',
 });
 
 

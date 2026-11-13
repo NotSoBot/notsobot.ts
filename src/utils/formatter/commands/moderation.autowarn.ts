@@ -26,6 +26,7 @@ import { GuildLoggingCustomEvents } from '../loggers';
 
 import { formatCounts, formatWarningAction, getWarningActionPermissions } from './moderation.warn';
 import { DM_OFF_VALUES, DM_ON_VALUES } from './settings.server.set.dms';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'server.autowarn.list';
@@ -123,7 +124,7 @@ export async function automodRuleParser(
       return {id, name};
     }
   }
-  throw new Error(getCachedTranslator(context).translate('moderation_autowarn.unknown_automod_rule', {rule: Markup.codestring(text.slice(0, 100))}));
+  throw new UserError(getCachedTranslator(context).translate('moderation_autowarn.unknown_automod_rule', {rule: Markup.codestring(text.slice(0, 100))}));
 }
 
 
@@ -256,7 +257,7 @@ export function deleteParser(value: string, context: Command.Context | Interacti
   if (DM_OFF_VALUES.includes(text)) {
     return false;
   }
-  throw new Error(getCachedTranslator(context).translate('moderation_autowarn.invalid_delete'));
+  throw new UserError(getCachedTranslator(context).translate('moderation_autowarn.invalid_delete'));
 }
 
 export function exemptPermissionsParser(value: string, context: Command.Context | Interaction.InteractionContext): bigint | undefined {
@@ -279,7 +280,7 @@ export function exemptPermissionsParser(value: string, context: Command.Context 
   }
   if (unknown.length) {
     const { translate } = getCachedTranslator(context);
-    throw new Error(translate('moderation_autowarn.unknown_permissions', {permissions: unknown.map((x) => Markup.codestring(x)).join(', ')}));
+    throw new UserError(translate('moderation_autowarn.unknown_permissions', {permissions: unknown.map((x) => Markup.codestring(x)).join(', ')}));
   }
   return permissions;
 }
@@ -295,7 +296,7 @@ export function exemptRolesParser(value: string, context: Command.Context | Inte
   }
   const roles = Parameters.roles(text, context);
   if (!roles.length) {
-    throw new Error(getCachedTranslator(context).translate('moderation.items_not_found', {
+    throw new UserError(getCachedTranslator(context).translate('moderation.items_not_found', {
       items: getCachedTranslator(context).translate('moderation.types.role').toLowerCase(),
     }));
   }

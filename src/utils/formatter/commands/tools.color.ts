@@ -11,6 +11,7 @@ import {
   displayLinks,
   displayReply,
 } from '../../../utils';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'tools.color';
@@ -309,7 +310,7 @@ export async function createMessage(
 
   const color = parseColor(args.color || 'random');
   if (color === null) {
-    throw new Error(translate('tools_color.unknown_color', {color: Markup.codestring(args.color.slice(0, 64))}));
+    throw new UserError(translate('tools_color.unknown_color', {color: Markup.codestring(args.color.slice(0, 64))}));
   }
 
   const rgb = intToRgb(color);

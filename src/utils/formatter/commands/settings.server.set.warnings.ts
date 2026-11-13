@@ -20,6 +20,7 @@ import { Parameters, displayReply, formatDuration } from '../../../utils';
 import * as ModerationBan from './moderation.ban';
 import * as ModerationMute from './moderation.mute';
 import { formatWarningAction } from './moderation.warn';
+import { UserError } from '../../errors';
 
 
 export const COMMAND_ID = 'server.set.warnings';
@@ -77,7 +78,7 @@ export function actionParser(value: string, context: Command.Context | Interacti
   if (text in ACTION_VALUES) {
     return ACTION_VALUES[text];
   }
-  throw new Error(getCachedTranslator(context).translate('settings_server_set_warnings.invalid_action'));
+  throw new UserError(getCachedTranslator(context).translate('settings_server_set_warnings.invalid_action'));
 }
 
 export function durationParser(value: string, context: Command.Context | Interaction.InteractionContext): number | undefined {

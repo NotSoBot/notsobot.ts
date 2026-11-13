@@ -34,6 +34,8 @@ import { CDN, CUSTOM } from '../../api/endpoints';
 import { RestResponsesRaw } from '../../api/types';
 import { captureCommandError } from '../../sentry';
 import {
+  FOUR_CHAN_BOARDS_NSFW,
+  FourChanBoards,
   GoogleLocales,
   GoogleLocalesText,
   MEDIA_HISTORY_LIMIT,
@@ -86,6 +88,7 @@ import * as ContextMenu from './context-menu';
 import * as Prefixed from './prefixed';
 import * as Slash from './slash';
 import { SAVED_FONT_NAME, normalizeSavedFontName } from './fonts';
+import { UserError } from '../errors';
 
 export { AutoComplete, ContextMenu, Prefixed, Slash };
 
@@ -121,7 +124,7 @@ export function arrayOfFloats(value: string, context?: Command.Context | Interac
       for (let match of matches) {
         const number = parseFloat(match);
         if (isNaN(number)) {
-          throw new Error(getCachedTranslator(context).translate('params.invalid_float'));
+          throw new UserError(getCachedTranslator(context).translate('params.invalid_float'));
         }
         floats.push(number);
       }
@@ -157,12 +160,41 @@ export function hueCurveCoordinates(value: string, context?: Command.Context | I
         y = parseFloat(match[1]);
       }
       if (isNaN(x) || isNaN(y)) {
-        throw new Error(getCachedTranslator(context).translate('params.invalid_coordinate'));
+        throw new UserError(getCachedTranslator(context).translate('params.invalid_coordinate'));
       }
       coordinates.push([x, y]);
     }
   }
   return (coordinates.length) ? coordinates : null;
+}
+
+
+// a 4chan board id from what was typed: `/G/`, ` g ` and `technology` (its title) are all `g`. Exact matches only, a fuzzy
+// one would quietly search some other board. Nothing typed is a random board (the formatter), the api still checks it
+export function fourChanBoard(value: string, context?: Command.Context | Interaction.InteractionContext): string | null {
+  const text = value.trim().toLowerCase();
+  if (!text) {
+    return null;
+  }
+  // own keys only, `constructor` is `in` every object
+  const id = text.replace(/\//g, '');
+  if (Object.prototype.hasOwnProperty.call(FourChanBoards, id) || FOUR_CHAN_BOARDS_NSFW.has(id)) {
+    return id;
+  }
+  const title = AutoComplete.toFourChanBoardSearchText(text);
+  for (let board in FourChanBoards) {
+    if (AutoComplete.toFourChanBoardSearchText(FourChanBoards[board]) === title) {
+      return board;
+    }
+  }
+  const suggestions = AutoComplete.searchFourChanBoards(text, 5);
+  const boards = ((suggestions.length) ? suggestions : ['g', 'v', 'fit']).map((board) => {
+    return Markup.codestring(AutoComplete.formatFourChanBoard(board));
+  }).join(', ');
+  throw new Error(getCachedTranslator(context).translate('search_4chan.unknown_board', {
+    board: Markup.codestring(value.trim()),
+    boards,
+  }));
 }
 
 
@@ -204,7 +236,7 @@ export async function locale(
     }
     return `\`${locale}\``;
   });
-  throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: locales.join(', ')}));
+  throw new UserError(getCachedTranslator(context).translate('params.must_be_one_of', {choices: locales.join(', ')}));
 }
 
 // for `.help` and the commands page (see `getArgChoices`)
@@ -243,7 +275,7 @@ export async function localeDiscord(value: string, context?: Command.Context | I
     }
     return `\`${locale}\``;
   });
-  throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: locales.join(', ')}));
+  throw new UserError(getCachedTranslator(context).translate('params.must_be_one_of', {choices: locales.join(', ')}));
 }
 
 
@@ -308,7 +340,7 @@ export function nlpTimestamp(
     timezone: getTimezoneAbbreviation(getTimezoneFromContext(context)),
   }, {forwardDate: true});
   if (!results.length) {
-    throw new Error(getCachedTranslator(context).translate('params.no_time'));
+    throw new UserError(getCachedTranslator(context).translate('params.no_time'));
   }
 
   /*
@@ -376,23 +408,23 @@ export function number(options: NumberOptions = {}) {
     const translate = getCachedTranslator(context).translate;
     // parseInt alone takes `5 -user @someone` as 5, so an unknown flag would silently turn into a looser command
     if (typeof(valueStrOrNum) === 'string' && !/^[-+]?\d+$/.test(valueStrOrNum.trim())) {
-      throw new Error(translate('params.value_number'));
+      throw new UserError(translate('params.value_number'));
     }
     const value = parseInt(valueStrOrNum as string);
     if (isNaN(value)) {
-      throw new Error(translate('params.value_number'));
+      throw new UserError(translate('params.value_number'));
     }
     if (options.max !== undefined && options.min !== undefined) {
       if (value < options.min || options.max < value) {
-        throw new Error(translate('params.value_between', {max: options.max, min: options.min}));
+        throw new UserError(translate('params.value_between', {max: options.max, min: options.min}));
       }
     } else if (options.max !== undefined) {
       if (options.max < value) {
-        throw new Error(translate('params.value_less_than', {max: options.max}));
+        throw new UserError(translate('params.value_less_than', {max: options.max}));
       }
     } else if (options.min !== undefined) {
       if (value < options.min) {
-        throw new Error(translate('params.value_more_than', {min: options.min}));
+        throw new UserError(translate('params.value_more_than', {min: options.min}));
       }
     }
     return value;
@@ -436,11 +468,11 @@ export function phosimpFilters(value: string, context?: Command.Context | Intera
     return value.split(' ').map((x) => x.trim()).filter((x) => x).map((x) => {
       const filter = parseInt(x);
       if (isNaN(filter)) {
-        throw new Error(getCachedTranslator(context).translate('params.phosimp_number'));
+        throw new UserError(getCachedTranslator(context).translate('params.phosimp_number'));
       }
       // the api's filters go from 0 to 1256 (the message said 999 and only negatives were rejected here)
       if (filter < 0 || MAX_PHOSIMP_FILTER < filter) {
-        throw new Error(getCachedTranslator(context).translate('params.phosimp_range'));
+        throw new UserError(getCachedTranslator(context).translate('params.phosimp_range'));
       }
       return filter;
     });
@@ -487,17 +519,17 @@ export async function pipingCommands(
 
         const {errors, parsed: commandArgs} = await command.getArgs(attributes, context as any);
         if (Object.keys(errors).length) {
-          throw new Error(getCachedTranslator(context).translate('params.pipe_parse_error', {command: `\`${command.name}\``}));
+          throw new UserError(getCachedTranslator(context).translate('params.pipe_parse_error', {command: `\`${command.name}\``}));
         }
         pipers.push({command, commandArgs});
 
         context.metadata.shouldSkipMediaCheck = false;
       } else {
-        throw new Error(getCachedTranslator(context).translate('media.pipe.not_pipeable', {command: content}));
+        throw new UserError(getCachedTranslator(context).translate('media.pipe.not_pipeable', {command: content}));
       }
     }
     if (5 < pipers.length) {
-      throw new Error(getCachedTranslator(context).translate('params.pipe_too_many'));
+      throw new UserError(getCachedTranslator(context).translate('params.pipe_too_many'));
     }
   }
   const mlCount = pipers.reduce((x, y) => {
@@ -508,7 +540,7 @@ export async function pipingCommands(
     return x;
   }, 0);
   if (3 <= mlCount) {
-    throw new Error(getCachedTranslator(context).translate('params.pipe_too_many_ml'));
+    throw new UserError(getCachedTranslator(context).translate('params.pipe_too_many_ml'));
   }
   return pipers;
 }
@@ -529,12 +561,12 @@ export function seconds(value: number | string, allowFloats: boolean = false, co
     if (typeof(error) === 'string') {
       let text = error.slice(error.indexOf(':', error.indexOf(':') + 1) + 1).trim();
       if (text === 'a falsey value') {
-        throw new Error(getCachedTranslator(context).translate('params.unable_to_parse'));
+        throw new UserError(getCachedTranslator(context).translate('params.unable_to_parse'));
       }
       if (25 < text.length) {
         text = text.slice(0, 22) + '...';
       }
-      throw new Error(getCachedTranslator(context).translate('params.time_format', {text: Markup.codestring(text)}));
+      throw new UserError(getCachedTranslator(context).translate('params.time_format', {text: Markup.codestring(text)}));
     }
     throw error;
   }
@@ -560,7 +592,7 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
     }
     // `-5` parsed fine and went straight through for commands that don't take negatives (ban clean)
     if (!allowNegatives && duration < 0) {
-      throw new Error(getCachedTranslator(context).translate('params.time_format', {text: Markup.codestring(valueString)}));
+      throw new UserError(getCachedTranslator(context).translate('params.time_format', {text: Markup.codestring(valueString)}));
     }
 
     if (allowFloats) {
@@ -573,7 +605,7 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
 
 export function snowflake(value: string, context?: Command.Context | Interaction.InteractionContext): string {
   if (!isSnowflake(value)) {
-    throw new Error(getCachedTranslator(context).translate('params.snowflake'));
+    throw new UserError(getCachedTranslator(context).translate('params.snowflake'));
   }
   return value;
 }
@@ -589,15 +621,15 @@ export function string(options: StringOptions = {}) {
     const translate = getCachedTranslator(context).translate;
     if (options.maxLength !== undefined && options.minLength !== undefined) {
       if (value.length < options.minLength || options.maxLength < value.length) {
-        throw new Error(translate('params.length_between', {max: options.maxLength, min: options.minLength}));
+        throw new UserError(translate('params.length_between', {max: options.maxLength, min: options.minLength}));
       }
     } else if (options.maxLength !== undefined) {
       if (options.maxLength < value.length) {
-        throw new Error(translate('params.length_less_than', {max: options.maxLength}));
+        throw new UserError(translate('params.length_less_than', {max: options.maxLength}));
       }
     } else if (options.minLength !== undefined) {
       if (value.length < options.minLength) {
-        throw new Error(translate('params.length_more_than', {min: options.minLength}));
+        throw new UserError(translate('params.length_more_than', {min: options.minLength}));
       }
     }
     return value;
@@ -688,7 +720,7 @@ export async function url(
     }
 
     if (!validateUrl(value)) {
-      throw new Error(getCachedTranslator(context).translate('params.malformed_url'));
+      throw new UserError(getCachedTranslator(context).translate('params.malformed_url'));
     }
 
     return (await getOrFetchRealUrl(context, value)) || value;
@@ -1372,7 +1404,7 @@ export async function textToSpeechVoice(
 
   const voice = oneOfTextToSpeechVoices(value);
   if (!voice) {
-    throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${TTS_VOICES.map((x) => Markup.codestring(x)).join(', ')})`}));
+    throw new UserError(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${TTS_VOICES.map((x) => Markup.codestring(x)).join(', ')})`}));
   }
   return {voice};
 }
@@ -1590,7 +1622,7 @@ export function membersOrUsers(
     if (value) {
       const args = new Set<string>(stringArguments(value));
       if ((options.max as number) < args.size) {
-        throw new Error(getCachedTranslator(context).translate('params.too_many_users', {max: options.max as number}));
+        throw new UserError(getCachedTranslator(context).translate('params.too_many_users', {max: options.max as number}));
       }
 
       const membersOrUsers: Array<Structures.Member | Structures.User> = [];
@@ -2299,7 +2331,7 @@ export function mediaUrls(
     }
 
     if (minAmount && urls.length < minAmount) {
-      throw new Error(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
+      throw new UserError(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
     }
 
     const filteredUrls: Record<string, string | null> = {};
@@ -2316,7 +2348,7 @@ export function mediaUrls(
 
     // some urls can fail to resolve, check what's actually left
     if (minAmount && parsedUrls.length < minAmount) {
-      throw new Error(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
+      throw new UserError(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
     }
 
     if (mediaSearchOptions.positional && !foundFromText) {
@@ -2763,7 +2795,7 @@ export function sizeOrScale(value: string, context?: Command.Context | Interacti
         response.size = String(parts.shift()!);
       }
     } else {
-      throw new Error(getCachedTranslator(context).translate('params.size_format'));
+      throw new UserError(getCachedTranslator(context).translate('params.size_format'));
     }
   } else {
     if (value.includes('.')) {
