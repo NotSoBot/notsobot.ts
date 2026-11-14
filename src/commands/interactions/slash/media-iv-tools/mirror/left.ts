@@ -16,6 +16,14 @@ export class MediaIVMirrorLeftCommand extends BaseInteractionImageOrVideoCommand
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_4.mirror.left.name');
 
+  constructor() {
+    super({
+      options: [
+        {name: 'percentage', description: 'How Much of the Media the Reflection Covers (1..99) (Default: 50)', ...I18n.optionLocalizations('commands.media_iv_4.mirror.left.percentage'), type: Number},
+      ],
+    });
+  }
+
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationMirrorLeft.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationMirrorLeft.createMessage(context, args);
   }

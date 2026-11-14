@@ -1213,6 +1213,48 @@ export enum GuildWarningAutoTriggers {
 }
 
 
+// the sites a server can have the bot auto-embed (`settings.autoEmbed`, the api's `GuildAutoEmbedSites`): a message
+// that's only a link to one of them gets a download of it, like `.dl`. A premium server perk, their links are matched by
+// `utils/autoembed.ts`
+export enum GuildAutoEmbedSites {
+  BLUESKY = 'bluesky',
+  FACEBOOK = 'facebook',
+  INSTAGRAM = 'instagram',
+  PINTEREST = 'pinterest',
+  REDDIT = 'reddit',
+  STREAMABLE = 'streamable',
+  THREADS = 'threads',
+  TIKTOK = 'tiktok',
+  TUMBLR = 'tumblr',
+  X = 'x',
+}
+
+// brand names, never translated
+export const GuildAutoEmbedSitesToText: Record<GuildAutoEmbedSites, string> = Object.freeze({
+  [GuildAutoEmbedSites.BLUESKY]: 'Bluesky',
+  [GuildAutoEmbedSites.FACEBOOK]: 'Facebook',
+  [GuildAutoEmbedSites.INSTAGRAM]: 'Instagram',
+  [GuildAutoEmbedSites.PINTEREST]: 'Pinterest',
+  [GuildAutoEmbedSites.REDDIT]: 'Reddit',
+  [GuildAutoEmbedSites.STREAMABLE]: 'Streamable',
+  [GuildAutoEmbedSites.THREADS]: 'Threads',
+  [GuildAutoEmbedSites.TIKTOK]: 'TikTok',
+  [GuildAutoEmbedSites.TUMBLR]: 'Tumblr',
+  [GuildAutoEmbedSites.X]: 'X (Twitter)',
+});
+
+// what an auto-embed that didn't work reacts to the link with, instead of replying. Ratelimits use
+// `DiscordReactionEmojis.WAIT` like every other prefixed command
+export const AutoEmbedReactions = Object.freeze({
+  // the nsfw or guidelines filters blocked it
+  BLOCKED: '🔞',
+  // anything else: no media there, the site failed, it timed out
+  FAILED: StatusEmojis.NO as string,
+  // too big, too long or too many frames
+  TOO_LARGE: '📏',
+});
+
+
 export enum GuildFeatures {
   AI_ACCESS = 'AI_ACCESS',
   FREE_CUSTOM_COMMANDS = 'FREE_CUSTOM_COMMANDS',
@@ -1965,6 +2007,8 @@ export enum Mimetypes {
   AUDIO_AAC = 'audio/aac',
   AUDIO_FLAC = 'audio/flac',
   AUDIO_MP3 = 'audio/mp3',
+  // an mp4 with only audio (`.m4a`)
+  AUDIO_MP4 = 'audio/mp4',
   AUDIO_MPEG = 'audio/mpeg',
   AUDIO_OGG = 'audio/ogg',
   AUDIO_WAV = 'audio/wav',
@@ -1991,6 +2035,7 @@ export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
   [Mimetypes.AUDIO_AAC]: 'm4a',
   [Mimetypes.AUDIO_FLAC]: 'flac',
   [Mimetypes.AUDIO_MP3]: 'mp3',
+  [Mimetypes.AUDIO_MP4]: 'm4a',
   [Mimetypes.AUDIO_MPEG]: 'mp3',
   [Mimetypes.AUDIO_OGG]: 'ogg',
   [Mimetypes.AUDIO_WAV]: 'wav',
@@ -2961,6 +3006,8 @@ export const NotSoApiKeys = Object.freeze({
   ADDED: 'added',
   ADMIN_BYPASS: 'admin_bypass',
   ACTION: 'action',
+  AUTO_EMBED: 'auto_embed',
+  AUTO_EMBED_TEXT: 'auto_embed_text',
   AVATAR: 'avatar',
   BAN_CLEAN: 'ban_clean',
   BLOCKED: 'blocked',
@@ -3060,6 +3107,8 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ADDED]: 'added',
   [NotSoApiKeys.ADMIN_BYPASS]: 'adminBypass',
   [NotSoApiKeys.ACTION]: 'action',
+  [NotSoApiKeys.AUTO_EMBED]: 'autoEmbed',
+  [NotSoApiKeys.AUTO_EMBED_TEXT]: 'autoEmbedText',
   [NotSoApiKeys.AVATAR]: 'avatar',
   [NotSoApiKeys.BLOCKED]: 'blocked',
   [NotSoApiKeys.BLOCKED_REASON]: 'blockedReason',

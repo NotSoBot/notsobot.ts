@@ -3,6 +3,7 @@ import { I18n } from '../../../../../utils';
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { ServerSetAIPersonalityCommand } from './set.ai.personality';
+import { ServerSetAutoEmbedCommand } from './set.auto-embed';
 import { ServerSetBanCleanCommand } from './set.ban-clean';
 import { ServerSetDmsCommand } from './set.dms';
 import { ServerSetFontCommand } from './set.font';
@@ -23,6 +24,7 @@ export class ServerSetGroupCommand extends BaseInteractionCommandOptionGroup {
     super({
       options: [
         new ServerSetAIPersonalityCommand(),
+        new ServerSetAutoEmbedCommand(),
         new ServerSetBanCleanCommand(),
         new ServerSetDmsCommand(),
         new ServerSetFontCommand(),

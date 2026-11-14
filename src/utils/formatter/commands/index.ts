@@ -657,6 +657,7 @@ import * as SettingsAIMemoryForget from './settings.ai.memory.forget';
 import * as SettingsAIMemoryList from './settings.ai.memory.list';
 
 import * as SettingsServerSetAIPersonality from './settings.server.set.ai.personality';
+import * as SettingsServerSetAutoEmbed from './settings.server.set.autoembed';
 import * as SettingsServerSetBanClean from './settings.server.set.ban.clean';
 import * as SettingsServerSetDms from './settings.server.set.dms';
 import * as SettingsServerSetFont from './settings.server.set.font';
@@ -712,6 +713,7 @@ import * as TagShowCustomCommand from './tag.show.custom.command';
 import * as ToolsCode from './tools.code';
 import * as ToolsColor from './tools.color';
 import * as ToolsDownload from './tools.download';
+import * as ToolsEmbed from './tools.embed';
 import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
 import * as ToolsLabels from './tools.labels';
@@ -1413,6 +1415,7 @@ export {
   SettingsAIMemoryForget,
   SettingsAIMemoryList,
   SettingsServerSetAIPersonality,
+  SettingsServerSetAutoEmbed,
   SettingsServerSetBanClean,
   SettingsServerSetDms,
   SettingsServerSetFont,
@@ -1468,6 +1471,7 @@ export {
   ToolsCode,
   ToolsColor,
   ToolsDownload,
+  ToolsEmbed,
   ToolsExif,
   ToolsHash,
   ToolsLabels,

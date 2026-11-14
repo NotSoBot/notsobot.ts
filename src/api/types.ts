@@ -176,6 +176,10 @@ export namespace RestOptions {
   }
 
   export interface EditGuildSettings {
+    // replaces the `GuildAutoEmbedSites` that get auto-embedded, empty or null turns it off
+    autoEmbed?: Array<string> | null,
+    // null resets it to off
+    autoEmbedText?: boolean | null,
     // seconds, null resets it to 1 day
     banClean?: number | null,
     blocked?: boolean,
@@ -1483,6 +1487,10 @@ export namespace RestOptions {
     top: string,
   }
 
+  export interface MediaIVManipulationMirror extends MediaBaseOptions {
+    percentage?: number,
+  }
+
   export interface MediaIVManipulationMotionBlur extends MediaBaseOptionsMultiple {
     strength?: number,
     vertical?: boolean,
@@ -2270,6 +2278,25 @@ export namespace RestResponsesRaw {
     id: string,
   }
 
+  // `likes` (hearts, favorites), `upvotes` (reddit's score), `notes` (tumblr), `saves` (pinterest), `reposts` (retweets,
+  // shares), `comments` (replies), `views` (plays)
+  export type FetchMediaPostStat = 'comments' | 'likes' | 'notes' | 'reposts' | 'saves' | 'upvotes' | 'views';
+
+  // any field can be null, sites give different things
+  export interface FetchMediaPost {
+    author_name: null | string,
+    author_url: null | string,
+    author_username: null | string,
+    // the site's name, like 'TikTok'
+    site: null | string,
+    // what the site counted when it was downloaded, only the ones it gave (missing on posts cached before stats)
+    stats?: Partial<Record<FetchMediaPostStat, number>>,
+    text: null | string,
+    // unix seconds
+    timestamp: null | number,
+    url: null | string,
+  }
+
   export interface FileResponse {
     arguments: null | Record<string, any>,
     // text to speech with a cloned voice, see `GenerateTag`
@@ -2277,6 +2304,8 @@ export namespace RestResponsesRaw {
     // a fetch (`.download`) without (enough) premium whose video had a better quality than their cap, `tier` is the
     // lowest one that downloads `best`
     download_quality?: {best: string, capped: string, tier: 'premium' | 'premium_plus'},
+    // a fetch (`.download`) of a social media post: its text and who posted it, whatever the site gave (auto-embed's text)
+    post?: FetchMediaPost | null,
     file: {
       filename: string,
       filename_base: string,
@@ -3249,6 +3278,8 @@ export namespace RestResponsesRaw {
     prefixes: Array<GuildPrefix>,
     rules: Array<GuildRule>,
     settings: {
+      auto_embed: Array<string>,
+      auto_embed_text: boolean,
       ban_clean: number,
       media_font: string | null,
       ml_diffusion_model: string | null,

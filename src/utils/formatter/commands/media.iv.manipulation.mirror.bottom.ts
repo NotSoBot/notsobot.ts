@@ -20,6 +20,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 };
 
 export interface CommandArgs {
+  percentage?: number,
   url: string,
 }
 

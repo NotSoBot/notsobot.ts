@@ -29,9 +29,10 @@ export default class URLCommand extends BaseCommand<CommandArgs> {
       label: 'value',
       metadata: {
         category: CommandCategories.UTILITY,
-        description: 'Get the url of an image, video or audio (the last one in chat, a reply, a user\'s avatar or an emoji)',
+        description: 'Get the url of any media or file (the last one in chat, a reply, a user\'s avatar or an emoji)',
         examples: [
           COMMAND_NAME,
+          `${COMMAND_NAME} ^2`,
           `${COMMAND_NAME} -video`,
           `${COMMAND_NAME} -audio -video`,
           `${COMMAND_NAME} @user`,
@@ -43,12 +44,13 @@ export default class URLCommand extends BaseCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    // the flags pick which kinds of media count (none given, any), so the media is found here instead of by the
-    // command's `type`, whose search options are fixed
+    // the flags pick which kinds of media count (none given, any attachment, text files too), so the media is found
+    // here instead of by the command's `type`, whose search options are fixed
     const any = !(args.audio || args.image || args.video);
     const findUrl = Parameters.lastMediaUrl({
       audio: any || !!args.audio,
       image: any || !!args.image,
+      text: any,
       video: any || !!args.video,
     });
 

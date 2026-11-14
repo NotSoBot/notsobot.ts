@@ -11,7 +11,7 @@ import { runWithCommandContext } from './sentry';
 
 import CommandResponsesStore from './stores/commandresponses';
 import GuildSettingsStore from './stores/guildsettings';
-import PremiumServersStore from './stores/premiumservers';
+import PremiumServersStore, { getServerPremiumUsers } from './stores/premiumservers';
 import PremiumUsersStore from './stores/premiumusers';
 import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
@@ -35,6 +35,7 @@ import {
   trackCommandRun,
   untrackCommandRun,
 } from './utils';
+import { AutoEmbedLink, findAutoEmbedLink, getAutoEmbedLink } from './utils/autoembed';
 
 
 
@@ -77,8 +78,9 @@ export class NotSoCommandClient extends CommandClient {
     }
 
     // a warning from NotSoBot staff takes the place of this command, they run it again after reading it. not for the
-    // custom command fallback (`onCommandCancel` says nothing for those), it runs for every unmatched message
-    if (user.warningsPending.length && command.name) {
+    // custom command fallback (`onCommandCancel` says nothing for those), it runs for every unmatched message, or an
+    // auto-embed (they only pasted a link)
+    if (user.warningsPending.length && command.name && !getAutoEmbedLink(context)) {
       contextMetadata.userWarnings = user.warningsPending;
       return false;
     }
@@ -167,11 +169,55 @@ export class NotSoCommandClient extends CommandClient {
         return {content: context.message.content.trim(), prefix: ''};
       }
     }
+    // just a link to one of the server's auto-embed sites, `getCommand` sends it to `download`
+    const autoEmbed = await this.findAutoEmbedLink(context);
+    if (autoEmbed) {
+      const contextMetadata = context.metadata = context.metadata || {};
+      contextMetadata.autoEmbed = autoEmbed;
+      return {content: autoEmbed.url, prefix: ''};
+    }
     return null;
+  }
+
+  // auto-embed (a premium server perk): the link a message is made of, if it's to one of the sites the server turned on,
+  // it has a premium server slot and we can post the download there. it runs for every message without a prefix, so the
+  // link check (no awaits) goes first and the settings and premium slots come from what's already loaded
+  async findAutoEmbedLink(context: Command.Context): Promise<AutoEmbedLink | null> {
+    const { channel, message } = context;
+    if (!context.guildId || !channel || message.attachments.length || message.stickerItems.length) {
+      return null;
+    }
+    const link = findAutoEmbedLink(message.content);
+    if (!link) {
+      return null;
+    }
+    // nowhere to put the download, don't make one
+    if (!channel.canMessage || !channel.canAttachFiles) {
+      return null;
+    }
+    // already loaded by the prefix check
+    const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+    if (!settings || settings.isBlocked || !settings.settings || !settings.settings.autoEmbed.includes(link.site)) {
+      return null;
+    }
+    // the slots aren't loaded or nobody gave it one, skip looking up the users
+    if (!(await PremiumServersStore.load(context)) || !PremiumServersStore.has(context.guildId)) {
+      return null;
+    }
+    // whoever gave the slot still has premium plus
+    if (!(await getServerPremiumUsers(context)).length) {
+      return null;
+    }
+    return link;
   }
 
   async getCommand(attributes: CommandAttributes, context?: Command.Context): Promise<Command.Command | null> {
     let command: Command.Command | null = null;
+
+    if (context && getAutoEmbedLink(context)) {
+      // `attributes.content` is the link, which is what `download` takes
+      return this.commands.find((x) => x.name === 'download') || null;
+    }
 
     if (context) {
       let maybePassToAICommand = this.prefixes.mention.has(attributes.prefix);
@@ -298,8 +344,9 @@ export class NotSoCommandClient extends CommandClient {
   // often, so an api outage doesn't spam every channel)
   async onCommandCancel(context: Command.Context, command: Command.Command) {
     setCommandResult(context, CommandResults.BLOCKED);
-    // the custom command fallback runs for every unmatched prefixed message, those aren't commands
-    if (!context.metadata || !command.name) {
+    // the custom command fallback runs for every unmatched prefixed message, those aren't commands. an auto-embed the
+    // rules (or a block, or a pending warning) stopped was just someone posting a link: no reply, no auto-warn
+    if (!context.metadata || !command.name || getAutoEmbedLink(context)) {
       return;
     }
     if (context.metadata.userWarnings) {

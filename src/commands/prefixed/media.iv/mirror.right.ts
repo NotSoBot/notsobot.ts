@@ -14,15 +14,19 @@ export default class MirrorRightCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       aliases: ['waaw'],
+      args: [
+        {aliases: ['p'], name: 'percentage', type: Number, metadata: {description: '1 to 99, how much of the media the reflection covers (default 50)'}},
+      ],
       metadata: {
         description: 'Mirror the right half of an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -percentage 15`,
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationMirrorRight.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-percentage <number>)',
       },
     });
   }

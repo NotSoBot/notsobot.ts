@@ -67,6 +67,7 @@ import {
   LanguageCodesText,
   MessageComponentCustomIds,
   Mimetypes,
+  MimetypesToExtension,
   ReminderMessages,
   ReuploadStatuses,
   StatusEmojis,
@@ -3153,6 +3154,27 @@ export async function mediaReplyFromOptions(
     options = {...options, description: (options.description) ? `${options.description}\n${notice}` : notice};
   }
 
+  // a video without a picture (no width or height) is only audio, like an `.m4a` a server called `video/mp4`. discord's
+  // media gallery shows nothing for it, so an mp4/mov's is sent as the `.m4a` it really is (discord's audio player)
+  const isAudioOnlyVideo = (
+    !!options.mimetype && options.mimetype.startsWith('video/') && !options.width && !options.height
+  );
+  if (isAudioOnlyVideo) {
+    switch (options.mimetype) {
+      case Mimetypes.VIDEO_M4V:
+      case Mimetypes.VIDEO_MP4:
+      case Mimetypes.VIDEO_QUICKTIME: {
+        options = {
+          ...options,
+          extension: MimetypesToExtension[Mimetypes.AUDIO_MP4],
+          mimetype: Mimetypes.AUDIO_MP4,
+          // the original's name would still end in `.mp4`
+          title: undefined,
+        };
+      }; break;
+    }
+  }
+
   let filename: string = '';
   if (options.filename) {
     filename = options.filename;
@@ -3242,7 +3264,8 @@ export async function mediaReplyFromOptions(
   } : {});
 
   if (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT) {
-    let canBeMedia = (
+    // an audio only video that's still a video type (like a webm) is a file, the gallery would show nothing
+    let canBeMedia = !isAudioOnlyVideo && (
       MIMETYPES_IMAGE_EMBEDDABLE.includes(options.mimetype as Mimetypes) ||
       MIMETYPES_VIDEO_EMBEDDABLE.includes(options.mimetype as Mimetypes)
     );

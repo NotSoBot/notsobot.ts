@@ -2699,7 +2699,7 @@ export async function mediaIVManipulationMeme(
 
 export async function mediaIVManipulationMirrorBottom(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ) {
   return raw.mediaIVManipulationMirrorBottom(context, options);
 }
@@ -2707,7 +2707,7 @@ export async function mediaIVManipulationMirrorBottom(
 
 export async function mediaIVManipulationMirrorLeft(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ) {
   return raw.mediaIVManipulationMirrorLeft(context, options);
 }
@@ -2715,7 +2715,7 @@ export async function mediaIVManipulationMirrorLeft(
 
 export async function mediaIVManipulationMirrorRight(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ) {
   return raw.mediaIVManipulationMirrorRight(context, options);
 }
@@ -2723,7 +2723,7 @@ export async function mediaIVManipulationMirrorRight(
 
 export async function mediaIVManipulationMirrorTop(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ) {
   return raw.mediaIVManipulationMirrorTop(context, options);
 }

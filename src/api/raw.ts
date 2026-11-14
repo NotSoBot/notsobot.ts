@@ -884,6 +884,8 @@ export async function editGuildSettings(
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponsesRaw.EditGuildSettings> {
   const body = {
+    auto_embed: options.autoEmbed,
+    auto_embed_text: options.autoEmbedText,
     ban_clean: options.banClean,
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
@@ -6913,12 +6915,13 @@ export async function mediaIVManipulationMeme(
 
 export async function mediaIVManipulationMirrorBottom(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
     safe: options.safe,
+    percentage: options.percentage,
     url: options.url,
   };
   return request(context, {
@@ -6934,12 +6937,13 @@ export async function mediaIVManipulationMirrorBottom(
 
 export async function mediaIVManipulationMirrorLeft(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
     safe: options.safe,
+    percentage: options.percentage,
     url: options.url,
   };
   return request(context, {
@@ -6955,12 +6959,13 @@ export async function mediaIVManipulationMirrorLeft(
 
 export async function mediaIVManipulationMirrorRight(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
     safe: options.safe,
+    percentage: options.percentage,
     url: options.url,
   };
   return request(context, {
@@ -6976,12 +6981,13 @@ export async function mediaIVManipulationMirrorRight(
 
 export async function mediaIVManipulationMirrorTop(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationMirror,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
     safe: options.safe,
+    percentage: options.percentage,
     url: options.url,
   };
   return request(context, {

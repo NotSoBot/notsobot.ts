@@ -20,7 +20,7 @@ import {
   StatusEmojis,
 } from '../../../constants';
 import { LanguageContext, Translator, getCachedTranslator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { Parameters, createTimestampMomentFromGuild, describeGuildRule, displayDetailsLine, displayReply, formatUserTag } from '../../../utils';
+import { Parameters, createTimestampMomentFromGuild, describeGuildRule, displayDetailsLine, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 import { GuildLoggingCustomEvents } from '../loggers';
 
@@ -762,18 +762,25 @@ async function runWarningStep(
   if (step.action === 'mute' && (member.isOwner || member.canAdministrator)) {
     return false;
   }
+  // a timed ban's end, the same moment goes in the audit log and to the unban scheduler
+  const banUntil = (step.action === 'ban' && step.duration) ? Date.now() + step.duration * 1000 : null;
   const auditReason = [
     audit.translate('moderation_mute.moderator', {user: formatUserTag(me.user), user2: me.id}),
+    // same line as the ban command's audit log, the reason goes last since it can be long
+    (step.action === 'ban') && ((banUntil) ? audit.translate('moderation_ban.duration', {
+      duration: formatDuration(step.duration! * 1000, audit.language),
+      until: createTimestampMomentFromGuild(banUntil, guildId).format(DateMomentLogFormat),
+    }) : audit.translate('moderation_ban.duration_permanent')),
     audit.translate('moderation_mute.reason', {
       text: `${audit.translate('moderation_warn.auto_reached', {count: step.threshold.toLocaleString(audit.language)})}: ${reason}`,
     }),
-  ].join('\n').slice(0, 512);
+  ].filter(Boolean).join('\n').slice(0, 512);
 
   try {
     switch (step.action) {
       case 'ban': {
-        if (step.duration) {
-          await putGuildTimedBans(context, guildId, {moderatorId: me.id, timestampEnd: Date.now() + step.duration * 1000, userIds: [member.id]});
+        if (banUntil) {
+          await putGuildTimedBans(context, guildId, {moderatorId: me.id, timestampEnd: banUntil, userIds: [member.id]});
         } else {
           // a permanent ban replaces an earlier timed one
           await deleteGuildTimedBans(context, guildId, {userIds: [member.id]}).catch(() => null);

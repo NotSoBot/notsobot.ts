@@ -333,6 +333,8 @@ export class GuildSettingsPrefix extends BaseStructure {
 
 
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
+  NotSoApiKeys.AUTO_EMBED,
+  NotSoApiKeys.AUTO_EMBED_TEXT,
   NotSoApiKeys.BAN_CLEAN,
   NotSoApiKeys.MEDIA_FONT,
   NotSoApiKeys.ML_DIFFUSION_MODEL,
@@ -354,6 +356,10 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
 export class GuildSettingsChild extends BaseStructure {
   readonly _keys = keysGuildSettingsChild;
 
+  // the `GuildAutoEmbedSites` whose links get auto-embedded (premium servers only), empty: off
+  autoEmbed: Array<string> = [];
+  // auto-embeds post the post's text (author, caption) with the media too
+  autoEmbedText: boolean = false;
   // seconds of a member's messages `ban` deletes when the moderator doesn't pick (0: none)
   banClean: number = BAN_CLEAN_DEFAULT;
   // a `MediaMemeFonts` name, caption/meme/recaption use it after the user's own (the api picks)
