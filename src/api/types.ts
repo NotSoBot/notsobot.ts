@@ -2294,6 +2294,8 @@ export namespace RestResponsesRaw {
     text: null | string,
     // unix seconds
     timestamp: null | number,
+    // only on sites whose posts have one apart from their text (a video's or a reddit post's)
+    title?: null | string,
     url: null | string,
   }
 

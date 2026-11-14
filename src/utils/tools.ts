@@ -2099,6 +2099,8 @@ export async function jobReply(
   options: {
     actions?: MediaReplyActions,
     describe?: (response: RestResponsesRaw.FileResponse) => string | undefined,
+    // the small text under the result (components v2, the others show it after `describe`'s)
+    describeBelow?: (response: RestResponsesRaw.FileResponse) => string | undefined,
     spoiler?: boolean,
   } = {},
   pollingTime: number = 500,
@@ -2106,6 +2108,7 @@ export async function jobReply(
   const replyOptions = (response: RestResponsesRaw.FileResponse) => ({
     actions: options.actions,
     description: (options.describe) ? options.describe(response) : undefined,
+    descriptionBelow: (options.describeBelow) ? options.describeBelow(response) : undefined,
     spoiler: options.spoiler,
   });
   if (job.result.error) {
@@ -3074,6 +3077,7 @@ export async function mediaReply(
     actions?: MediaReplyActions,
     content?: string,
     description?: string,
+    descriptionBelow?: string,
     filename?: string,
     spoiler?: boolean,
   } | string = {},
@@ -3092,6 +3096,7 @@ export async function mediaReply(
     actions: options.actions,
     content: options.content,
     description: options.description,
+    descriptionBelow: options.descriptionBelow,
     extension: response.file.metadata.extension,
     filename: options.filename,
     framecount: response.file.metadata.framecount,
@@ -3126,6 +3131,8 @@ export async function mediaReplyFromOptions(
     content?: string,
     context?: ComponentContext,
     description?: string,
+    // under the media in components v2 (like a post's site and stats), the other displays add it after `description`
+    descriptionBelow?: string,
     extension?: string,
     filename?: string,
     framecount?: number,
@@ -3147,12 +3154,15 @@ export async function mediaReplyFromOptions(
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const isFromPrefix = (context instanceof Command.Context);
   const { language, translate } = await getTranslator(context);
-
   if (options.variableFrameSizes) {
     // every way of replying below shows the description
     const notice = `-# ${translate('media.paste_link_for_frame_sizes')}`;
     options = {...options, description: (options.description) ? `${options.description}\n${notice}` : notice};
   }
+
+  // only components v2 can put text under the media, the rest keep it with the description
+  const descriptionBelow = options.descriptionBelow;
+  const descriptionWithBelow = [options.description, descriptionBelow].filter(Boolean).join('\n') || undefined;
 
   // a video without a picture (no width or height) is only audio, like an `.m4a` a server called `video/mp4`. discord's
   // media gallery shows nothing for it, so an mp4/mov's is sent as the `.m4a` it really is (discord's audio player)
@@ -3304,6 +3314,9 @@ export async function mediaReplyFromOptions(
           file = {contentType: options.mimetype, description: options.altText, filename, title, value};
         }
       }
+      if (descriptionBelow) {
+        container.addTextDisplay({content: descriptionBelow});
+      }
       container.addSeparator();
       if (!isFromInteraction) {
         container.addTextDisplay({content: `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`});
@@ -3353,10 +3366,10 @@ export async function mediaReplyFromOptions(
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
     embed.setFooter(footer);
 
-    if (options.description || (options.storage && options.storage.expires_at)) {
+    if (descriptionWithBelow || (options.storage && options.storage.expires_at)) {
       const description: Array<string> = [];
-      if (options.description) {
-        description.push(options.description);
+      if (descriptionWithBelow) {
+        description.push(descriptionWithBelow);
       }
       if (options.storage && options.storage.expires_at) {
         const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
@@ -3401,8 +3414,8 @@ export async function mediaReplyFromOptions(
     // In the same order as components v2: what it's about, the link, who used it, when it expires, then its details
     const vanityUrl = `${options.storage.urls.vanity}?embed=true`;
     const content: Array<string> = [];
-    if (options.description) {
-      content.push(options.description);
+    if (descriptionWithBelow) {
+      content.push(descriptionWithBelow);
     }
     content.push(`> ${(options.spoiler) ? Markup.spoiler(vanityUrl) : vanityUrl}`);
     if (!isFromInteraction) {
@@ -3444,7 +3457,7 @@ export async function mediaReplyFromOptions(
   const message = {
     content: [
       options.content || '',
-      options.description || '',
+      descriptionWithBelow || '',
       (isFromInteraction && !replacesResponse) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
       `-# ${footer}`,
     ].filter(Boolean).join('\n'),

@@ -1,0 +1,23 @@
+#!/bin/sh
+# Respawns the bot's clusters one at a time, the manager and the other clusters' shards stay connected.
+#   ./respawn            respawns with the files already in the lib volume
+#   ./respawn --build    compiles first (a type error stops before anything respawns), then respawns
+# Runs from any folder. src/run.ts changes still need `docker compose restart bot` (see docker-compose.yml)
+set -e
+cd "$(dirname "$0")"
+
+case "$1" in
+  "") ;;
+  --build)
+    docker compose build
+    # waits for bot-build to finish updating the lib volume (service_completed_successfully)
+    docker compose up -d
+    ;;
+  *)
+    echo "usage: ./respawn [--build]" >&2
+    exit 1
+    ;;
+esac
+
+docker compose kill -s SIGUSR2 bot
+echo "respawning the clusters one at a time, follow it with: docker compose logs -f bot"

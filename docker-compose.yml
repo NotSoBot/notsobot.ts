@@ -7,6 +7,7 @@
 #   `.refresh` on discord                           loads them in place, the shards stay connected
 #   docker compose kill -s SIGUSR2 bot              or respawns the clusters one at a time (what refresh skips: bot.ts,
 #                                                   apievents.ts)
+#   ./respawn [--build]                             the SIGUSR2 respawn from any folder, --build compiles and updates first
 # Only package-lock.json, the Dockerfile, .env or this file changing recreates `bot` on `up -d` (every shard reconnects).
 # src/run.ts is the manager itself, it needs `docker compose restart bot`
 services:

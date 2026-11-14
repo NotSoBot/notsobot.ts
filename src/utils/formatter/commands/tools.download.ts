@@ -66,11 +66,12 @@ export async function createMessage(
   return jobReply(context, job, {
     describe: (response) => {
       const lines = [
-        (options.post && response.post) ? formatPost(translator, response.post, !!args.spoiler) : undefined,
+        (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).above : undefined,
         describeQuality(response),
       ].filter(Boolean);
       return (lines.length) ? lines.join('\n') : undefined;
     },
+    describeBelow: (response) => (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).below : undefined,
     spoiler: args.spoiler,
   });
 }
@@ -83,79 +84,99 @@ async function autoEmbedReply(context: Command.Context, job: Parameters<typeof j
   const response = await jobWaitForResponse(context, job);
   const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
   const showText = !!(settings && settings.settings && settings.settings.autoEmbedText);
-  const description = (showText && response.post) ? formatPost(await getTranslator(context), response.post, spoiler) : undefined;
-  const reply = await mediaReply(context, response, {description, spoiler});
+  const post = (showText && response.post) ? formatPost(await getTranslator(context), response.post, {spoiler}) : {};
+  const reply = await mediaReply(context, response, {description: post.above, descriptionBelow: post.below, spoiler});
   await suppressLinkEmbed(context);
   return reply;
 }
 
 
-// a post's text isn't ours, keep it from restyling the reply (`# heading`, `-# subtext`, lists). it can't ping anyone,
-// replies don't allow mentions
-function escapePostText(text: string): string {
-  return Markup.escape.subtext(Markup.escape.header(Markup.escape.list(text)));
-}
-
-// the order the counts are shown in, what people react with first and how far it went last
+// the counts in the order they're shown, what people react with first and how far it went last
 const POST_STATS: Array<RestResponsesRaw.FetchMediaPostStat> = ['likes', 'upvotes', 'notes', 'saves', 'reposts', 'comments', 'views'];
 
-// `12.4K likes • 340 comments`, short numbers in their language. counts are from when it was downloaded
-export function formatPostStats(translator: Translator, stats: RestResponsesRaw.FetchMediaPost['stats']): Array<string> {
+// a post's text isn't ours, keep it from restyling the reply (`# heading`, `-# subtext`, lists), one line at a time
+// since the escapes join lines. it can't ping anyone, replies don't allow mentions
+function quotePostText(text: string, spoiler: boolean): string {
+  return text.split('\n').map((line) => {
+    line = (line.trim()) ? Markup.escape.subtext(Markup.escape.header(Markup.escape.list(line.trimEnd()))) : '';
+    return (line && spoiler) ? `> ||${line}||` : `> ${line}`;
+  }).join('\n');
+}
+
+export interface FormattedPost {
+  // above the media: what it is and who posted it, then its text
+  above?: string,
+  // under the media: where it's from, when, and its counts
+  below?: string,
+}
+
+// a post around its downloaded media. titled posts (videos, reddit) like a `.yt` result, the rest like a link preview:
+// ### [Title](<post>)              **Name** ([@handle](<profile>))
+// -# Uploaded by [Name](<profile>) > the text
+// > the text
+// [media]
+// -# [TikTok](<post>) • 2 hours ago • 12.4K likes • 340 comments • 1.1M views
+export function formatPost(
+  translator: Translator,
+  post: RestResponsesRaw.FetchMediaPost,
+  options: {spoiler?: boolean} = {},
+): FormattedPost {
+  const { language, translate } = translator;
+  const above: Array<string> = [];
+
+  const name = (post.author_name) ? Markup.escape.all(post.author_name) : null;
+  const handle = (post.author_username) ? Markup.escape.all(`@${post.author_username}`) : null;
+  const link = (text: string) => (post.author_url) ? Markup.url(text, `<${post.author_url}>`) : text;
+  if (post.title) {
+    const title = Markup.escape.all(post.title);
+    above.push(`### ${(post.url) ? Markup.url(title, `<${post.url}>`) : title}`);
+    if (name || handle) {
+      // small, the title is what matters
+      above.push(`-# ${translate('search_youtube.uploaded_by', {name: link((name || handle)!)})}`);
+    }
+  } else if (name && handle) {
+    above.push(`**${name}** (${link(handle)})`);
+  } else if (name || handle) {
+    above.push(`**${link((name || handle)!)}**`);
+  }
+  if (post.text) {
+    above.push(quotePostText(post.text, !!options.spoiler));
+  }
+
+  const below: Array<string> = [];
+  if (post.site) {
+    const site = Markup.escape.all(post.site);
+    below.push((post.url) ? Markup.url(site, `<${post.url}>`) : site);
+  }
+  if (post.timestamp) {
+    below.push(Markup.timestamp(post.timestamp * 1000, MarkupTimestampStyles.RELATIVE));
+  }
+  below.push(...formatPostStats(language, translate, post.stats));
+
+  return {
+    above: (above.length) ? above.join('\n') : undefined,
+    below: (below.length) ? `-# ${below.join(' • ')}` : undefined,
+  };
+}
+
+// `12.4K likes`, short numbers in their language. a 0 is real but just noise in a preview
+function formatPostStats(
+  language: string,
+  translate: Translator['translate'],
+  stats: RestResponsesRaw.FetchMediaPost['stats'],
+): Array<string> {
   if (!stats) {
     return [];
   }
   let format: Intl.NumberFormat;
   try {
-    format = new Intl.NumberFormat(translator.language, {maximumFractionDigits: 1, notation: 'compact'});
+    format = new Intl.NumberFormat(language, {maximumFractionDigits: 1, notation: 'compact'});
   } catch(error) {
     format = new Intl.NumberFormat('en', {maximumFractionDigits: 1, notation: 'compact'});
   }
   return POST_STATS
-    // a 0 is real but just noise in a preview line
     .filter((key) => typeof(stats[key]) === 'number' && 0 < stats[key]!)
-    .map((key) => translator.translate(`tools_embed.stat_${key}` as const, {count: format.format(stats[key]!)}));
-}
-
-// the post's author, text (quoted) and where it's from, like a link preview:
-// **Name** ([@handle](<profile>))
-// > the caption
-// -# [TikTok](<post>) • 2 hours ago • 12.4K likes • 340 comments
-export function formatPost(translator: Translator, post: RestResponsesRaw.FetchMediaPost, spoiler: boolean = false): string | undefined {
-  const lines: Array<string> = [];
-
-  const author: Array<string> = [];
-  if (post.author_name) {
-    author.push(Markup.bold(Markup.escape.all(post.author_name)));
-  }
-  if (post.author_username) {
-    const handle = Markup.escape.all(`@${post.author_username}`);
-    const text = (post.author_url) ? `[${handle}](<${post.author_url}>)` : handle;
-    author.push((author.length) ? `(${text})` : text);
-  }
-  if (author.length) {
-    lines.push(author.join(' '));
-  }
-
-  if (post.text) {
-    // one line at a time, the escapes join lines
-    for (let line of post.text.split('\n')) {
-      line = (line.trim()) ? escapePostText(line.trimEnd()) : '';
-      lines.push((line && spoiler) ? `> ||${line}||` : `> ${line}`);
-    }
-  }
-
-  const footer: Array<string> = [];
-  if (post.site) {
-    footer.push((post.url) ? `[${Markup.escape.all(post.site)}](<${post.url}>)` : Markup.escape.all(post.site));
-  }
-  if (post.timestamp) {
-    footer.push(Markup.timestamp(post.timestamp * 1000, MarkupTimestampStyles.RELATIVE));
-  }
-  footer.push(...formatPostStats(translator, post.stats));
-  if (footer.length) {
-    lines.push(`-# ${footer.join(' • ')}`);
-  }
-  return (lines.length) ? lines.join('\n') : undefined;
+    .map((key) => translate(`tools_embed.stat_${key}` as const, {count: format.format(stats[key]!)}));
 }
 
 
