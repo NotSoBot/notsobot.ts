@@ -321,7 +321,21 @@ export async function createMessage(
     });
   }
 
-  const error = shardIds.find((shardId: any) => shardId instanceof Error) as any;
+  // a cluster the manager was restarting meanwhile (SIGUSR2 respawnAll, or one that took too long to ready) died under
+  // the eval or had no process yet. it comes back on the code in lib anyway, so it isn't a refresh failure. the results
+  // are in the manager's cluster order, so the index is the cluster id
+  const restarting: Array<number> = [];
+  let error: any = null;
+  shardIds.forEach((result: any, clusterId: number) => {
+    if (!(result instanceof Error)) {
+      return;
+    }
+    if (isRestartingError(result)) {
+      restarting.push(clusterId);
+    } else if (!error) {
+      error = result;
+    }
+  });
   if (error) {
     if (error.errors) {
       return displayReply(context, {description: `${error.message} (${JSON.stringify(error.errors)})`});
@@ -329,5 +343,20 @@ export async function createMessage(
     log.error(error);
     return displayReply(context, {description: `Error: ${error.message}`});
   }
-  return displayReply(context, {description: `ok, refreshed commands on ${shardIds.flat().length} shards.`});
+
+  const refreshed = shardIds.filter((x: any) => Array.isArray(x)).flat().length;
+  const description = [`ok, refreshed commands on ${refreshed} shards.`];
+  if (restarting.length) {
+    const clusters = restarting.slice(0, 20).join(', ') + ((20 < restarting.length) ? ', ...' : '');
+    description.push(`restarting (they load the new code when they're back): cluster ${clusters}`);
+  }
+  return displayReply(context, {description: description.join('\n')});
+}
+
+
+// detritus' messages for a cluster process that died while the eval waited on it, or that had none to eval on
+const RESTARTING_ERRORS = ['Process has closed with', 'Cannot eval without a child', 'Process was killed'];
+
+function isRestartingError(error: Error): boolean {
+  return RESTARTING_ERRORS.some((text) => (error.message || '').startsWith(text));
 }

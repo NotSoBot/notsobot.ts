@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsRule } from '../../../api/structures/guildsettings';
 import { getTranslator, Translator } from '../../i18n';
-import { EmbedColors, GuildRuleTargetTypes } from '../../../constants';
+import { EmbedColors, GuildRuleTargetTypes, StatusEmojis } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import {
   DisplayPayload,
@@ -59,7 +59,7 @@ export function formatGuildRule(
   index?: number,
 ): string {
   const lines = [
-    `${(index !== undefined) ? `**${index}.** ` : ''}${(rule.allows) ? '✅' : '⛔'} ${describeGuildRule(translate, rule)}`,
+    `${(index !== undefined) ? `**${index}.** ` : ''}${(rule.allows) ? StatusEmojis.YES : StatusEmojis.NOT_ALLOWED} ${describeGuildRule(translate, rule)}`,
   ];
   if (rule.value.message) {
     lines.push(`-# ${translate('rules.list.message', {message: Markup.escape.all(rule.value.message)})}`);

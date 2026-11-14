@@ -2,7 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { getTranslator } from '../../i18n';
-import { CommandCategories, CommandCategoryNames, EmbedColors, GuildRuleActions } from '../../../constants';
+import { CommandCategories, CommandCategoryNames, EmbedColors, GuildRuleActions, StatusEmojis } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import {
   displayReply,
@@ -43,7 +43,7 @@ export async function createMessage(
   const subject = `${Markup.codestring(args.command.name)} • <@${user.id}> • ${(channel) ? `<#${channel.id}>` : translate('rules.targets.server')}`;
   const lines: Array<string> = [`-# ${subject}`, ''];
   if (isAdmin && isGuildRulesCommandId(commandId)) {
-    lines.push(`✅ ${translate('rules.check.rules_command')}`);
+    lines.push(`${StatusEmojis.YES} ${translate('rules.check.rules_command')}`);
   } else {
     const match = resolveGuildRule(settings, GuildRuleActions.ACCESS, {
       category,
@@ -55,7 +55,7 @@ export async function createMessage(
       userId: user.id,
     });
     if (match) {
-      lines.push(`${(match.rule.allows) ? '✅' : '⛔'} ${translate((match.rule.allows) ? 'rules.check.allowed_by' : 'rules.check.blocked_by')}`);
+      lines.push(`${(match.rule.allows) ? StatusEmojis.YES : StatusEmojis.NOT_ALLOWED} ${translate((match.rule.allows) ? 'rules.check.allowed_by' : 'rules.check.blocked_by')}`);
       lines.push(formatGuildRule(translate, settings, match.rule));
       switch (match.via) {
         case 'parent':
@@ -64,7 +64,7 @@ export async function createMessage(
         }; break;
       }
     } else {
-      lines.push(`✅ ${translate('rules.check.no_rule')}`);
+      lines.push(`${StatusEmojis.YES} ${translate('rules.check.no_rule')}`);
     }
     if (isAdmin) {
       const skipped = settings.rules.filter((rule) => rule.action === GuildRuleActions.ACCESS && settings.canAdminBypass(rule)).length;

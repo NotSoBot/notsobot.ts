@@ -2101,6 +2101,8 @@ export async function jobReply(
     describe?: (response: RestResponsesRaw.FileResponse) => string | undefined,
     // the small text under the result (components v2, the others show it after `describe`'s)
     describeBelow?: (response: RestResponsesRaw.FileResponse) => string | undefined,
+    // after the result is posted (not for errors), its failures are ignored, the result is already there
+    onSuccess?: () => Promise<void> | void,
     spoiler?: boolean,
   } = {},
   pollingTime: number = 500,
@@ -2111,11 +2113,22 @@ export async function jobReply(
     descriptionBelow: (options.describeBelow) ? options.describeBelow(response) : undefined,
     spoiler: options.spoiler,
   });
+  const replyResult = async (response: RestResponsesRaw.FileResponse) => {
+    const reply = await mediaReply(context, response, replyOptions(response));
+    if (options.onSuccess) {
+      try {
+        await options.onSuccess();
+      } catch(error) {
+
+      }
+    }
+    return reply;
+  };
   if (job.result.error) {
     throw new JobError(job);
   }
   if (job.result.response) {
-    return mediaReply(context, job.result.response, replyOptions(job.result.response));
+    return replyResult(job.result.response);
   }
 
   if (!trackJob(context, job.id)) {
@@ -2163,7 +2176,7 @@ export async function jobReply(
         return await replyJobError(context, refreshedJob);
       }
       if (refreshedJob.result.response) {
-        return await mediaReply(context, refreshedJob.result.response, replyOptions(refreshedJob.result.response));
+        return await replyResult(refreshedJob.result.response);
       }
       if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
         return await replyJobWarning(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
@@ -3079,6 +3092,8 @@ export async function mediaReply(
     description?: string,
     descriptionBelow?: string,
     filename?: string,
+    // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
+    hideDetails?: boolean,
     spoiler?: boolean,
   } | string = {},
 ) {
@@ -3098,6 +3113,7 @@ export async function mediaReply(
     description: options.description,
     descriptionBelow: options.descriptionBelow,
     extension: response.file.metadata.extension,
+    hideDetails: options.hideDetails,
     filename: options.filename,
     framecount: response.file.metadata.framecount,
     height: response.file.metadata.height,
@@ -3137,6 +3153,8 @@ export async function mediaReplyFromOptions(
     filename?: string,
     framecount?: number,
     height?: number,
+    // leaves out the size/dimensions/took line in every display
+    hideDetails?: boolean,
     mimetype?: string,
     reuploading?: ReuploadStatuses,
     size: number,
@@ -3332,7 +3350,9 @@ export async function mediaReplyFromOptions(
         }
         container.addTextDisplay({content: `-# **${warning.join(' ')}**`});
       }
-      container.addTextDisplay({content: `-# ${footer}`});
+      if (!options.hideDetails) {
+        container.addTextDisplay({content: `-# ${footer}`});
+      }
 
       if (actions) {
         for (let row of actions.rows) {
@@ -3364,7 +3384,9 @@ export async function mediaReplyFromOptions(
   ) {
     const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
-    embed.setFooter(footer);
+    if (!options.hideDetails) {
+      embed.setFooter(footer);
+    }
 
     if (descriptionWithBelow || (options.storage && options.storage.expires_at)) {
       const description: Array<string> = [];
@@ -3399,7 +3421,7 @@ export async function mediaReplyFromOptions(
   if (options.storage) {
     // the embed has the dimensions/duration/filesize already, we just want to display the took
     footer = '';
-    if (options.took) {
+    if (options.took && !options.hideDetails) {
       let took = options.took;
       if (context.metadata && context.metadata.started) {
         took = Date.now() - context.metadata.started;
@@ -3459,7 +3481,7 @@ export async function mediaReplyFromOptions(
       options.content || '',
       descriptionWithBelow || '',
       (isFromInteraction && !replacesResponse) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
-      `-# ${footer}`,
+      (options.hideDetails) ? '' : `-# ${footer}`,
     ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, title, value},
   };

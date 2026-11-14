@@ -7,7 +7,7 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import { utilitiesFetchMedia } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { CONTENT_BLOCKED_API_ERRORS, JobError, getApiError } from '../../../api/errors';
-import { ApiErrorCodes, AutoEmbedReactions, DiscordReactionEmojis, DiscordSkuIds } from '../../../constants';
+import { ApiErrorCodes, AutoEmbedReactions, DiscordEmojis, DiscordReactionEmojis, DiscordSkuIds } from '../../../constants';
 import { DefaultParameters, jobReply, jobWaitForResponse, linkPremiumSkuName, mediaReply } from '../../../utils';
 import { getAutoEmbedLink } from '../../autoembed';
 import { Translator, getTranslator } from '../../i18n';
@@ -72,6 +72,8 @@ export async function createMessage(
       return (lines.length) ? lines.join('\n') : undefined;
     },
     describeBelow: (response) => (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).below : undefined,
+    // `.embed` replaces the link's preview like auto-embed does (slash commands have no message of theirs to change)
+    onSuccess: (options.post && context instanceof Command.Context) ? () => suppressLinkEmbed(context) : undefined,
     spoiler: args.spoiler,
   });
 }
@@ -85,7 +87,7 @@ async function autoEmbedReply(context: Command.Context, job: Parameters<typeof j
   const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
   const showText = !!(settings && settings.settings && settings.settings.autoEmbedText);
   const post = (showText && response.post) ? formatPost(await getTranslator(context), response.post, {spoiler}) : {};
-  const reply = await mediaReply(context, response, {description: post.above, descriptionBelow: post.below, spoiler});
+  const reply = await mediaReply(context, response, {description: post.above, descriptionBelow: post.below, hideDetails: true, spoiler});
   await suppressLinkEmbed(context);
   return reply;
 }
@@ -101,6 +103,42 @@ function quotePostText(text: string, spoiler: boolean): string {
     line = (line.trim()) ? Markup.escape.subtext(Markup.escape.header(Markup.escape.list(line.trimEnd()))) : '';
     return (line && spoiler) ? `> ||${line}||` : `> ${line}`;
   }).join('\n');
+}
+
+// the provider a post's link is on, for its icon (`DiscordEmojis.POST_SITES`). by the link and not `site`, reddit's site
+// is the subreddit
+const POST_PROVIDER_HOSTS: Array<[string, string]> = [
+  ['bsky.app', 'bluesky'],
+  ['facebook.com', 'facebook'],
+  ['fb.watch', 'facebook'],
+  ['instagram.com', 'instagram'],
+  ['pin.it', 'pinterest'],
+  ['redd.it', 'reddit'],
+  ['reddit.com', 'reddit'],
+  ['streamable.com', 'streamable'],
+  ['threads.com', 'threads'],
+  ['threads.net', 'threads'],
+  ['tiktok.com', 'tiktok'],
+  ['tumblr.com', 'tumblr'],
+  ['twitter.com', 'x'],
+  ['x.com', 'x'],
+  ['youtu.be', 'youtube'],
+  ['youtube.com', 'youtube'],
+];
+
+function getPostSiteEmoji(post: RestResponsesRaw.FetchMediaPost): string {
+  let hostname = '';
+  try {
+    hostname = new URL(post.url || '').hostname.toLowerCase();
+  } catch(error) {
+    return '';
+  }
+  // pinterest has a domain per country
+  if (/(?:^|\.)pinterest\.[a-z.]+$/.test(hostname)) {
+    return DiscordEmojis.POST_SITES.pinterest || '';
+  }
+  const match = POST_PROVIDER_HOSTS.find(([host]) => hostname === host || hostname.endsWith(`.${host}`));
+  return (match) ? (DiscordEmojis.POST_SITES[match[1]] || '') : '';
 }
 
 export interface FormattedPost {
@@ -146,7 +184,9 @@ export function formatPost(
   const below: Array<string> = [];
   if (post.site) {
     const site = Markup.escape.all(post.site);
-    below.push((post.url) ? Markup.url(site, `<${post.url}>`) : site);
+    const emoji = getPostSiteEmoji(post);
+    const text = (post.url) ? Markup.url(site, `<${post.url}>`) : site;
+    below.push((emoji) ? `${emoji} ${text}` : text);
   }
   if (post.timestamp) {
     below.push(Markup.timestamp(post.timestamp * 1000, MarkupTimestampStyles.RELATIVE));

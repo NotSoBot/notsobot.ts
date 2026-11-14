@@ -28,10 +28,14 @@ export const COMMAND_EDIT_DURATION = 15 * 60 * 1000;
 export const MEDIA_HISTORY_LIMIT = 25;
 
 
+// application emojis (`status-icons/` in the workspace has their svgs and render-icons.js). only for text that renders
+// custom emojis (content, descriptions, titles, field values), never button/select labels, footers or audit log reasons
 export enum StatusEmojis {
-  NO = '❌',
-  WARNING = '⚠️',
-  YES = '✅',
+  NO = '<:no:1571271465448378570>',
+  // a server rule blocks it, the same stop sign a rule-blocked prefixed command gets reacted with
+  NOT_ALLOWED = '<:not_allowed:1571271466404544654>',
+  WARNING = '<:warning:1571271469319717024>',
+  YES = '<:yes:1571271470292664370>',
 }
 
 
@@ -473,7 +477,7 @@ export const DiscordEmojis = Object.freeze({
   DISCORD_BADGES: {
     [DiscordUserFlags.STAFF]: '<:d_staff:1561507805972930652> ',
     [DiscordUserFlags.PARTNER]: '<:d_partner:1561507804693663846>',
-    [DiscordUserFlags.HYPESQUAD]: '<:d_hypesquad:1561509278781669436>',
+    [DiscordUserFlags.HYPESQUAD]: '<:d_hypesquad:1561510289189380207>',
     [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: '<:d_bug_hunter_level_1:1561507801908383754>',
     [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: '<:d_hypesquad_bravery:1561507802936119460>',
     [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: '<:d_hypesquad_brilliance:1561508431523745804>',
@@ -492,12 +496,30 @@ export const DiscordEmojis = Object.freeze({
     RESTART: '<:music_restart:1563424006944591953>',
     SKIP: '<:music_skip:1563424008681164842>',
   },
+  // each site's icon before a post's site under `.embed`/auto-embed media, by provider (`site-icons/` in the workspace has
+  // them as provider.png). empty until they're uploaded as application emojis, `formatPost` leaves an empty one out
+  POST_SITES: {
+    bluesky: '<:bluesky:1571255991662682173>',
+    facebook: '<:facebook:1571255992593817671>',
+    instagram: '<:instagram:1571255993575411922>',
+    pinterest: '<:pinterest:1571255994603020409>',
+    reddit: '<:reddit:1571255995152339037>',
+    streamable: '<:streamable:1571255996569882704>',
+    threads: '<:threads:1571255997803003934>',
+    tiktok: '<:tiktok:1571255998608449556>',
+    tumblr: '<:tumblr:1571255999329865828>',
+    x: '<:x_:1571256000563126413>',
+    youtube: '<:youtube:1571256001695326278>',
+  } as Record<string, string>,
   TYPING: '<a:typingdown:1561506806667149412>',
 });
 
 
+// application emojis used as reactions (`status-icons/` in the workspace), `message.react` takes them as `name:id`
 export const DiscordReactionEmojis = Object.freeze({
-  WAIT: {id: '1561508420144734278', name: 'stopthonk'},
+  // the red thinking stop sign that took over from stopthonk, on prefixed commands a server's rules block
+  NOT_ALLOWED: {id: '1571271466404544654', name: 'not_allowed'},
+  WAIT: {id: '1571271467323101416', name: 'ratelimited'},
 });
 
 
@@ -1243,15 +1265,15 @@ export const GuildAutoEmbedSitesToText: Record<GuildAutoEmbedSites, string> = Ob
   [GuildAutoEmbedSites.X]: 'X (Twitter)',
 });
 
-// what an auto-embed that didn't work reacts to the link with, instead of replying. Ratelimits use
-// `DiscordReactionEmojis.WAIT` like every other prefixed command
+// what an auto-embed that didn't work reacts to the link with (`name:id` application emojis, `status-icons/` in the
+// workspace), instead of replying. Ratelimits use `DiscordReactionEmojis.WAIT` like every other prefixed command
 export const AutoEmbedReactions = Object.freeze({
-  // the nsfw or guidelines filters blocked it
-  BLOCKED: '🔞',
-  // anything else: no media there, the site failed, it timed out
-  FAILED: StatusEmojis.NO as string,
-  // too big, too long or too many frames
-  TOO_LARGE: '📏',
+  // the nsfw or guidelines filters blocked it (18+)
+  BLOCKED: 'blocked:1571271464072511629',
+  // anything else: no media there, the site failed, it timed out (the same ✕ as `StatusEmojis.NO`)
+  FAILED: 'no:1571271465448378570',
+  // too big, too long, too many frames or too large dimensions (XL)
+  TOO_LARGE: 'too_large:1571271468422013080',
 });
 
 

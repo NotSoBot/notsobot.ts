@@ -71,16 +71,16 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
       if (context.inDm) {
         // the bot can always see its own dms, but never dms/group dms between users
         if (context.inDmWithBot) {
-          description.push(`-> ${translate('permcheck.send_message')}: ✅`);
-          description.push(`-> ${translate('permcheck.view')}: ✅`);
+          description.push(`-> ${translate('permcheck.send_message')}: ${StatusEmojis.YES}`);
+          description.push(`-> ${translate('permcheck.view')}: ${StatusEmojis.YES}`);
         } else {
-          description.push(`-> ${translate('permcheck.send_message')}: ✅`);
-          description.push(`-> ${translate('permcheck.view')}: ❌`);
+          description.push(`-> ${translate('permcheck.send_message')}: ${StatusEmojis.YES}`);
+          description.push(`-> ${translate('permcheck.view')}: ${StatusEmojis.NO}`);
           willPrefixCommandsWork = false;
         }
       } else {
-        description.push(`-> ${translate('permcheck.send_message')}: ${(channel.can([Permissions.SEND_MESSAGES])) ? '✅': '❌'}`);
-        description.push(`-> ${translate('permcheck.view')}: ${(channel.can([Permissions.VIEW_CHANNEL])) ? '✅': '❌'}`);
+        description.push(`-> ${translate('permcheck.send_message')}: ${(channel.can([Permissions.SEND_MESSAGES])) ? StatusEmojis.YES : StatusEmojis.NO}`);
+        description.push(`-> ${translate('permcheck.view')}: ${(channel.can([Permissions.VIEW_CHANNEL])) ? StatusEmojis.YES : StatusEmojis.NO}`);
         willPrefixCommandsWork = channel.canMessage;
       }
     }
@@ -93,7 +93,7 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
       ) {
         description.push('');
         description.push(`**${translate('permcheck.timed_out')}**`);
-        description.push(`-> ${translate('permcheck.can_message')}: ❌`);
+        description.push(`-> ${translate('permcheck.can_message')}: ${StatusEmojis.NO}`);
         description.push(`-> ${translate('permcheck.until', {time: Markup.timestamp(me.communicationDisabledUntil)})}`);
         willPrefixCommandsWork = false;
       }
@@ -152,14 +152,14 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
           });
           if (match) {
             const rule = describeGuildRule(translate, match.rule);
-            description.push(`-> ${translate((match.rule.allows) ? 'permcheck.rule_allows' : 'permcheck.rule_blocks', {rule})}: ${(match.rule.allows) ? '✅' : '❌'}`);
+            description.push(`-> ${translate((match.rule.allows) ? 'permcheck.rule_allows' : 'permcheck.rule_blocks', {rule})}: ${(match.rule.allows) ? StatusEmojis.YES : StatusEmojis.NOT_ALLOWED}`);
             if (!match.rule.allows) {
               willPrefixCommandsWork = false;
             }
           } else if (args.command) {
-            description.push(`-> ${translate('permcheck.no_rule', {command: Markup.codestring(args.command.name)})}: ✅`);
+            description.push(`-> ${translate('permcheck.no_rule', {command: Markup.codestring(args.command.name)})}: ${StatusEmojis.YES}`);
           } else {
-            description.push(`-> ${translate('permcheck.no_rule_everything')}: ✅`);
+            description.push(`-> ${translate('permcheck.no_rule_everything')}: ${StatusEmojis.YES}`);
           }
           if (!args.command && settings.rules.length) {
             description.push(`-> ${translate('permcheck.rules_check_command')}`);

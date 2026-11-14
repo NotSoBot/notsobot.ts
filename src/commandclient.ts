@@ -17,6 +17,7 @@ import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
 
 import {
+  DiscordReactionEmojis,
   EmbedColors,
   GuildFeatures,
   GuildRuleActions,
@@ -127,6 +128,8 @@ export class NotSoCommandClient extends CommandClient {
           for (let applicationCommandId of applicationCommandIds) {
             const applicationCommandPermission = applicationCommandPermissions.get(applicationCommandId);
             if (applicationCommandPermission && !applicationCommandPermission.isAllowed(context.channel, member)) {
+              // the server's discord command permissions for its slash version, `onCommandCancel` reacts like a rule
+              contextMetadata.blockedByCommandPermissions = true;
               return false;
             }
           }
@@ -387,6 +390,12 @@ export class NotSoCommandClient extends CommandClient {
     if (context.metadata.blockedMessage) {
       return;
     }
+    // a rule without a message (or the slash version's discord permissions) and no auto-warn: react so the command
+    // isn't silently ignored. blocked users and servers never get here with these set
+    if ((context.metadata.blockedByRule || context.metadata.blockedByCommandPermissions) && !autoWarnRule) {
+      await this.reactNotAllowed(context, command.name);
+      return;
+    }
     if (!context.metadata.settingsFetchFailed) {
       return;
     }
@@ -402,6 +411,25 @@ export class NotSoCommandClient extends CommandClient {
     try {
       const { translate } = await I18n.getTranslator(context);
       await replyWarning(context, translate('blocked.server_fetch_failed'));
+    } catch(error) {
+
+    }
+  }
+
+  // the not allowed stop sign on a blocked command, once per user and command in a channel every few minutes so a busy
+  // channel with a blocked command doesn't fill up with them
+  async reactNotAllowed(context: Command.Context, commandName: string): Promise<void> {
+    const { message } = context;
+    if (message.deleted || !message.canReact || message.reactions.has(DiscordReactionEmojis.NOT_ALLOWED.id)) {
+      return;
+    }
+    const key = `${context.channelId}.${context.userId}.${commandName}`;
+    if (notAllowedReactions.has(key)) {
+      return;
+    }
+    notAllowedReactions.set(key, Date.now());
+    try {
+      await message.react(`${DiscordReactionEmojis.NOT_ALLOWED.name}:${DiscordReactionEmojis.NOT_ALLOWED.id}`);
     } catch(error) {
 
     }
@@ -537,6 +565,10 @@ const settingsFetchFailedReplies = new Collections.BaseCollection<string, number
 // `channel id.user id` -> when we last showed them a block rule's message
 const BLOCKED_MESSAGE_REPLY_INTERVAL = 30 * 1000;
 const blockedMessageReplies = new Collections.BaseCollection<string, number>({expire: BLOCKED_MESSAGE_REPLY_INTERVAL});
+
+// `channel id.user id.command name` -> when we last reacted to them using a blocked command
+const NOT_ALLOWED_REACTION_INTERVAL = 5 * 60 * 1000;
+const notAllowedReactions = new Collections.BaseCollection<string, number>({expire: NOT_ALLOWED_REACTION_INTERVAL});
 
 // getAttributes and getCommand both check the same reply, only hit the api once per message
 const aiResponseChecks = new WeakMap<Structures.Message, Promise<boolean>>();
