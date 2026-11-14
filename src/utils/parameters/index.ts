@@ -181,11 +181,20 @@ export function fourChanBoard(value: string, context?: Command.Context | Interac
   if (Object.prototype.hasOwnProperty.call(FourChanBoards, id) || FOUR_CHAN_BOARDS_NSFW.has(id)) {
     return id;
   }
+  // a full title, or the start of one when only one title starts with it (`fitnes`, not `vid` or `fi`)
   const title = AutoComplete.toFourChanBoardSearchText(text);
+  const prefixed: Array<string> = [];
   for (let board in FourChanBoards) {
-    if (AutoComplete.toFourChanBoardSearchText(FourChanBoards[board]) === title) {
+    const boardTitle = AutoComplete.toFourChanBoardSearchText(FourChanBoards[board]);
+    if (boardTitle === title) {
       return board;
     }
+    if (boardTitle.startsWith(title)) {
+      prefixed.push(board);
+    }
+  }
+  if (3 <= title.length && prefixed.length === 1) {
+    return prefixed[0];
   }
   const suggestions = AutoComplete.searchFourChanBoards(text, 5);
   const boards = ((suggestions.length) ? suggestions : ['g', 'v', 'fit']).map((board) => {

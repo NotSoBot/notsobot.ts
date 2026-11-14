@@ -26,6 +26,7 @@ export const DEFAULT_ENGINE = MediaAudioMultiPitchEngines.BUNGEE;
 
 export interface CommandArgs {
   engine?: MediaAudioMultiPitchEngines,
+  formants?: boolean,
   normalize?: boolean,
   semitones?: string,
   url: string,
@@ -38,8 +39,8 @@ export function createJob(
   return mediaAVManipulationAudioMultiPitch(context, {
     safe: DefaultParameters.safe(context),
     ...args,
-    // `0, 7, 12` works too
-    semitones: args.semitones?.replace(/\s+/g, '') || undefined,
+    // `0, 7, 12` and `0 7 12` work too, the api splits on commas or spaces
+    semitones: args.semitones?.trim() || undefined,
   });
 }
 

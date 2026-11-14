@@ -846,6 +846,7 @@ export namespace RestOptions {
 
   export interface MediaAVManipulationAudioMultiPitch extends MediaBaseOptions {
     engine?: MediaAudioMultiPitchEngines,
+    formants?: boolean,
     normalize?: boolean,
     semitones?: string,
   }

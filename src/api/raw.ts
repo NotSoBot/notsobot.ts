@@ -3709,6 +3709,7 @@ export async function mediaAVManipulationAudioMultiPitch(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     engine: options.engine,
+    formants: options.formants,
     max_file_size: maxFileSize,
     normalize: options.normalize,
     safe: options.safe,

@@ -17,6 +17,7 @@ export default class AudioMultiPitchCommand extends BaseMediaCommand {
       args: [
         {name: 'normalize', aliases: ['n'], type: Boolean},
         {name: 'engine', aliases: ['e'], type: Parameters.oneOf({choices: MediaAudioMultiPitchEngines, descriptions: MediaAudioMultiPitchEnginesToText})},
+        {name: 'formants', aliases: ['f'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.AUDIO,
@@ -29,9 +30,11 @@ export default class AudioMultiPitchCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 0,7,12 -engine rubberband`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 -5 -engine a17`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 7 -engine elastique`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 -12 -5 0 7 -engine elastique -formants`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/music.mp3 major 12@0.5`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioMultiPitch.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<semitones,comma-separated> (-normalize) (-engine <choice>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<semitones|chord,comma or space separated,@volume> (-normalize) (-engine <choice>) (-formants)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: true, image: false, video: true})},

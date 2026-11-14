@@ -23,7 +23,7 @@ export class MediaAVAudioMultiPitchCommand extends BaseInteractionAudioOrVideoCo
   constructor() {
     super({
       options: [
-        {name: 'semitones', description: 'Semitones split by commas, 0 is the original, -48 to 48 each (Default: 0,7,12)', ...I18n.optionLocalizations('commands.media_av.audio.multipitch.semitones')},
+        {name: 'semitones', description: 'Semitones split by commas or spaces, 0 is the original, -48 to 48 each (Default: 0,7,12)', ...I18n.optionLocalizations('commands.media_av.audio.multipitch.semitones')},
         {name: 'normalize', description: 'Keep the mixed chord from getting louder than the original', ...I18n.optionLocalizations('commands.media_av.audio.multipitch.normalize'), type: Boolean},
         {
           name: 'engine',
@@ -36,6 +36,7 @@ export class MediaAVAudioMultiPitchCommand extends BaseInteractionAudioOrVideoCo
             localizationKey: 'choices.media_audio_multipitch_engines',
           }),
         },
+        {name: 'formants', description: 'Keep a voice sounding like the same person (elastique and rubberband only)', ...I18n.optionLocalizations('commands.media_av.audio.multipitch.formants'), type: Boolean},
       ],
     });
   }
