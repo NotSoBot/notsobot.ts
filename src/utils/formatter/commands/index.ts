@@ -529,6 +529,8 @@ import * as MediaIVManipulationWobble from './media.iv.manipulation.wobble';
 import * as MediaIVManipulationXyt from './media.iv.manipulation.xyt';
 import * as MediaIVManipulationZoom from './media.iv.manipulation.zoom';
 import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur';
+import * as MediaIVToolsImageToAudio from './media.iv.tools.image.to.audio';
+import * as MediaIVToolsSSTV from './media.iv.tools.sstv';
 
 import * as ModerationAutowarn from './moderation.autowarn';
 import * as ModerationBan from './moderation.ban';
@@ -1287,6 +1289,8 @@ export {
   MediaIVManipulationXyt,
   MediaIVManipulationZoom,
   MediaIVManipulationZoomBlur,
+  MediaIVToolsImageToAudio,
+  MediaIVToolsSSTV,
 
   ModerationAutowarn,
   ModerationBan,

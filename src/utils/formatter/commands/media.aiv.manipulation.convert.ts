@@ -43,11 +43,14 @@ export const SLASH_PARAMETERS: {
   VIDEO: {COMMAND_ID: `${COMMAND_ID}.video`, DEFAULT_MIMETYPE: Mimetypes.VIDEO_MP4, SLASH_CHOICES: []},
 };
 
-// one list for audio, images and video (audio can become an image too, its cover art or waveform), 14 of discord's 25
+// one list for audio, images and video (audio can become an image, an SSTV signal's picture, its cover art or its bytes,
+// or a video, and an image audio, a raw picture's audio or an SSTV signal, and anything a pdf), 15 of discord's 25
 SLASH_PARAMETERS.AIV.SLASH_CHOICES = [
   ...MIMETYPES_IMAGE_EMBEDDABLE,
   ...MIMETYPES_VIDEO_EMBEDDABLE,
   ...MIMETYPES_AUDIO_EMBEDDABLE,
+  // a page per picture/frame
+  Mimetypes.APPLICATION_PDF,
 ].map((mimetype) => {
   let name = `.${MimetypesToExtension[mimetype]} (${mimetype})`;
   return {name, value: mimetype};

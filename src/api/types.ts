@@ -15,11 +15,14 @@ import {
   MediaAudioBitcrushModes,
   MediaAudioMultiPitchEngines,
   MediaEyeTypes,
+  MediaImageToAudioModes,
+  MediaImageToAudioScales,
   MediaMemeFonts,
   MediaPixelSortFunctions,
   MediaPixelSortIntervals,
   MediaQuadartTypes,
   MediaSongSounds,
+  MediaSSTVModes,
   MusicLoopModes,
   MusicStatsPeriods,
   MusicStatsSorts,
@@ -1780,9 +1783,22 @@ export namespace RestOptions {
     expand?: boolean,
   }
 
+  export interface MediaIVToolsImageToAudio extends MediaBaseOptions {
+    duration?: number,
+    high?: number,
+    invert?: boolean,
+    low?: number,
+    mode?: MediaImageToAudioModes,
+    scale?: MediaImageToAudioScales,
+  }
+
   export interface MediaIVToolsOCRTranslate extends MediaBaseOptions {
     from?: GoogleLocales,
     to?: GoogleLocales,
+  }
+
+  export interface MediaIVToolsSSTV extends MediaBaseOptions {
+    mode?: MediaSSTVModes,
   }
 
 

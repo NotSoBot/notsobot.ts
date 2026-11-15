@@ -13102,6 +13102,33 @@ export async function mediaIVManipulationZoomBlur(
 }
 
 
+export async function mediaIVToolsImageToAudio(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsImageToAudio,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    duration: options.duration,
+    high: options.high,
+    invert: options.invert,
+    low: options.low,
+    max_file_size: maxFileSize,
+    mode: options.mode,
+    safe: options.safe,
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_IMAGE_TO_AUDIO,
+    },
+  });
+}
+
+
 export async function mediaIVToolsOCRTranslate(
   context: RequestContext,
   options: RestOptions.MediaIVToolsOCRTranslate,
@@ -13120,6 +13147,28 @@ export async function mediaIVToolsOCRTranslate(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_TOOLS_OCR_TRANSLATE,
+    },
+  });
+}
+
+
+export async function mediaIVToolsSSTV(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSSTV,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    mode: options.mode,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_SSTV,
     },
   });
 }

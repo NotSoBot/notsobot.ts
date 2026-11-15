@@ -1889,6 +1889,48 @@ export enum MediaSlideDirections {
 }
 
 
+// how `imagetoaudio` turns the image into sound (the api's `MediaImageToAudioModes`, by value)
+export enum MediaImageToAudioModes {
+  RAW = 'raw',
+  SPECTROGRAM = 'spectrogram',
+}
+
+export const MediaImageToAudioModesToText: Record<MediaImageToAudioModes, string> = Object.freeze({
+  [MediaImageToAudioModes.RAW]: 'Raw Bytes',
+  [MediaImageToAudioModes.SPECTROGRAM]: 'Spectrogram',
+});
+
+// how a spectrogram's rows are spread over the frequencies
+export enum MediaImageToAudioScales {
+  LINEAR = 'linear',
+  LOG = 'log',
+}
+
+export const MediaImageToAudioScalesToText: Record<MediaImageToAudioScales, string> = Object.freeze({
+  [MediaImageToAudioScales.LINEAR]: 'Linear',
+  [MediaImageToAudioScales.LOG]: 'Logarithmic',
+});
+
+// slow-scan tv modes `sstv` can send (the api's `MediaSSTVModes`, by value)
+export enum MediaSSTVModes {
+  MARTIN_1 = 'martin1',
+  MARTIN_2 = 'martin2',
+  PD_120 = 'pd120',
+  ROBOT_36 = 'robot36',
+  SCOTTIE_1 = 'scottie1',
+  SCOTTIE_2 = 'scottie2',
+}
+
+export const MediaSSTVModesToText: Record<MediaSSTVModes, string> = Object.freeze({
+  [MediaSSTVModes.MARTIN_1]: 'Martin 1',
+  [MediaSSTVModes.MARTIN_2]: 'Martin 2',
+  [MediaSSTVModes.PD_120]: 'PD 120',
+  [MediaSSTVModes.ROBOT_36]: 'Robot 36',
+  [MediaSSTVModes.SCOTTIE_1]: 'Scottie 1',
+  [MediaSSTVModes.SCOTTIE_2]: 'Scottie 2',
+});
+
+
 // what `song` plays its chords on (the api's `MediaSongSounds`)
 export enum MediaSongSounds {
   CHIPTUNE = 'CHIPTUNE',
@@ -2026,6 +2068,8 @@ export enum MessageComponentCustomIds {
 
 
 export enum Mimetypes {
+  // only as `convert`'s output, a document of the media's picture(s)
+  APPLICATION_PDF = 'application/pdf',
   AUDIO_AAC = 'audio/aac',
   AUDIO_FLAC = 'audio/flac',
   AUDIO_MP3 = 'audio/mp3',
@@ -2054,6 +2098,7 @@ export enum Mimetypes {
 }
 
 export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
+  [Mimetypes.APPLICATION_PDF]: 'pdf',
   [Mimetypes.AUDIO_AAC]: 'm4a',
   [Mimetypes.AUDIO_FLAC]: 'flac',
   [Mimetypes.AUDIO_MP3]: 'mp3',

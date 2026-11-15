@@ -8,11 +8,13 @@ import { ToolsCodeCommand } from './code';
 import { ToolsColorCommand } from './color';
 import { ToolsExifCommand } from './exif';
 import { ToolsHashCommand } from './hash';
+import { ToolsImageToAudioCommand } from './image-to-audio';
 import { ToolsLabelsCommand } from './labels';
 import { ToolsMathCommand } from './math';
 import { ToolsOCRTranslateCommand } from './ocr-translate';
 import { ToolsSafetyLabelsCommand } from './safety-labels';
 import { ToolsScreenshotCommand } from './screenshot';
+import { ToolsSSTVCommand } from './sstv';
 import { ToolsToneCommand } from './tone';
 import { ToolsTranscribeCommand } from './transcribe';
 import { ToolsTranscribeTranslateCommand } from './transcribe-translate';
@@ -47,6 +49,7 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
         new ToolsColorCommand(),
         new ToolsExifCommand(),
         new ToolsHashCommand(),
+        new ToolsImageToAudioCommand(),
         new ToolsLabelsCommand(),
         new ToolsMLGroupCommand(),
         new ToolsMathCommand(),
@@ -54,6 +57,7 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
         new ToolsQrGroupCommand(),
         new ToolsSafetyLabelsCommand(),
         new ToolsScreenshotCommand(),
+        new ToolsSSTVCommand(),
         new ToolsToneCommand(),
         new ToolsTranscribeCommand(),
         new ToolsTranscribeTranslateCommand(),

@@ -4990,11 +4990,27 @@ export async function mediaIVManipulationZoomBlur(
 }
 
 
+export async function mediaIVToolsImageToAudio(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsImageToAudio,
+) {
+  return raw.mediaIVToolsImageToAudio(context, options);
+}
+
+
 export async function mediaIVToolsOCRTranslate(
   context: RequestContext,
   options: RestOptions.MediaIVToolsOCRTranslate,
 ) {
   return raw.mediaIVToolsOCRTranslate(context, options);
+}
+
+
+export async function mediaIVToolsSSTV(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSSTV,
+) {
+  return raw.mediaIVToolsSSTV(context, options);
 }
 
 
