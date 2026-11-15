@@ -1,5 +1,4 @@
 import { Interaction } from 'detritus-client';
-import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { GameFlagDifficulties } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
@@ -36,14 +35,6 @@ export class GameFlagCommand extends BaseInteractionCommandOption {
               [GameFlagDifficulties.HARD]: 'Hard (territories too)',
             },
           }),
-        },
-        {
-          name: 'rounds',
-          description: `How many flags (${Formatter.Commands.GameFlag.MIN_ROUNDS} to ${Formatter.Commands.GameFlag.MAX_ROUNDS}, ${Formatter.Commands.GameFlag.DEFAULT_ROUNDS} by default)`,
-          ...I18n.optionLocalizations('commands.game.flag.rounds'),
-          maxValue: Formatter.Commands.GameFlag.MAX_ROUNDS,
-          minValue: Formatter.Commands.GameFlag.MIN_ROUNDS,
-          type: ApplicationCommandOptionTypes.INTEGER,
         },
       ],
     });

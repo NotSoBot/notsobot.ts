@@ -15,8 +15,10 @@ import {
 } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
 
+import { fetchGameFlag } from '../../../api';
 import { EmbedColors, GameFlagDifficulties, StatusEmojis } from '../../../constants';
 import {
+  Countries,
   Country,
   CountryMatcher,
   CountryTiers,
@@ -31,7 +33,6 @@ import {
   displayDetail,
   displayDetails,
   displayDetailsLine,
-  displayReply,
   displayTimestamp,
   editOrReply,
   isCommandRunCancelled,
@@ -41,34 +42,29 @@ import {
 
 export const COMMAND_ID = 'game.flag';
 
-export const DEFAULT_ROUNDS = 10;
-export const MIN_ROUNDS = 1;
-export const MAX_ROUNDS = 20;
-
 // every flag starts worth `MAX_POINTS`, each hint takes a point off, so knowing it right away pays the most
-export const HINT_TIME = 10 * 1000;
+export const HINT_TIME = 20 * 1000;
 export const MAX_POINTS = 3;
 export const ROUND_TIME = MAX_POINTS * HINT_TIME;
 // naming this many flags in a row (without anyone else naming one in between) adds a point to each one after
 export const STREAK_BONUS_AT = 3;
-// the result stays up on its own for a moment before the next flag
-const BREAK_TIME = 4 * 1000;
-// flags in a row nobody even tried before the game ends itself
-const IDLE_ROUNDS = 2;
 // longer messages are people talking, not guessing
 const MAX_GUESS_LENGTH = 64;
-// buttons stay listening a little past their round, so a click right at the end still gets an answer
+// buttons stay listening a little past their flag, so a click right at the end still gets an answer
 const COMPONENTS_TIMEOUT_PADDING = 10 * 1000;
-// a slash command's token can only send and edit its messages for 15 minutes, 20 rounds fit in about 12
-const INTERACTION_TOKEN_TIME = 15 * 60 * 1000 - 30 * 1000;
-// how many players the scores line under a result shows, the final standings show everyone
+// how long a finished flag's Play Again button works
+const PLAY_AGAIN_TIME = 15 * 60 * 1000;
+// how many players the scores under a result show
 const SCORES_SHOWN = 5;
+// flags a session won't show again until this many others came up (or the pool runs out)
+const RECENT_FLAGS = 30;
 
-// flagcdn (flagpedia) has every iso country at its real aspect ratio, they're fetched once and attached as `flag.png`
-// so the answer isn't in an image url anyone could open
-const FLAG_URL = (code: string) => `https://flagcdn.com/w640/${code}.png`;
+// the api has every flag at its real proportions (`assets/images/flags`, the overlays use the same files), each one is
+// fetched once per process and attached as `flag.png` so the answer isn't in a url anyone could open. Shown as a
+// thumbnail beside the text instead of a full width image so a game doesn't take over the channel, 320px still looks
+// sharp when it's clicked open
+const FLAG_WIDTH = 320;
 const FLAG_FILENAME = 'flag.png';
-const FLAG_FETCH_TIMEOUT = 10 * 1000;
 
 export const DIFFICULTY_TIERS: Record<GameFlagDifficulties, CountryTiers> = {
   [GameFlagDifficulties.EASY]: CountryTiers.EASY,
@@ -84,10 +80,10 @@ const DIFFICULTY_KEYS: Record<GameFlagDifficulties, TranslationKey> = {
 
 export interface CommandArgs {
   difficulty?: GameFlagDifficulties,
-  rounds?: number,
 }
 
-type GameContext = Command.Context | Interaction.InteractionContext;
+// a Play Again click starts the next flag from its button
+type GameContext = Command.Context | Interaction.InteractionContext | ComponentContext;
 
 enum RoundOutcomes {
   CORRECT = 'CORRECT',
@@ -95,132 +91,198 @@ enum RoundOutcomes {
   TIMED_OUT = 'TIMED_OUT',
 }
 
-interface GameRound {
-  country: Country,
-  deadline: number,
-  finished: boolean,
-  flag: Buffer,
-  // hints shown so far, 0 to `MAX_POINTS - 1`
-  hints: number,
-  // the round's message, null for the command's own response (the first round)
-  message: Structures.Message | null,
-  number: number,
-  // set once it's over
-  result: string | null,
-  startedAt: number,
-  // someone guessed (right or wrong, in chat or with the button), so it isn't an idle round
-  tried: boolean,
-}
-
-interface Game {
-  channelId: string,
-  context: GameContext,
+// carried from one flag to the next through Play Again, running the command again starts a new one
+interface GameSession {
   difficulty: GameFlagDifficulties,
-  // edits of the round messages go one at a time, so a slow hint edit can't land after the result
-  edits: Promise<void>,
-  expiresAt: number,
-  finished: boolean,
-  hintTimer: Timers.Timeout,
-  hostId: string,
-  idleRounds: number,
-  matcher: CountryMatcher,
-  // the flags for this game in order, picked when it starts so none repeat
-  pool: Array<Country>,
-  // the bot is in the channel's guild (or it's a prefixed command/its own dm), so chat messages reach it
-  readsChat: boolean,
-  round: GameRound | null,
-  rounds: number,
+  // the latest flags shown, so they don't come right back
+  recent: Array<string>,
   scores: Map<string, number>,
   streak: {count: number, userId: string} | null,
-  subscription: EventSubscription | null,
+}
+
+// one flag, its message is the command's (or the Play Again click's) response
+interface Game {
+  // its start was deleted (or a prefixed trigger edited into a new run), it stopped and took its message with it
+  aborted: boolean,
+  channelId: string,
+  context: GameContext,
+  country: Country,
+  deadline: number,
+  // edits of the message go one at a time, so a slow hint edit can't land after the result
+  edits: Promise<void>,
+  finished: boolean,
+  flag: Buffer,
+  hintTimer: Timers.Timeout,
+  // hints shown so far, 0 to `MAX_POINTS - 1`
+  hints: number,
+  hostId: string,
+  matcher: CountryMatcher,
+  // the bot is in the channel's guild (or it's a prefixed command/its own dm), so chat messages reach it
+  readsChat: boolean,
+  responseId: string | undefined,
+  // set once it's over
+  result: string | null,
+  session: GameSession,
+  startedAt: number,
+  subscriptions: Array<EventSubscription>,
   timer: Timers.Timeout,
   translator: Translator,
 }
 
-// one game per channel, so guesses go to the right one
+// one flag per channel, so guesses go to the right one
 const activeGames = new Map<string, Game>();
+// channels whose flag is still starting, taken before anything is awaited so two Play Again clicks at once can't both
+// start one
+const startingChannels = new Set<string>();
 const flagCache = new Map<string, Promise<Buffer>>();
+// every country's names in a language, built once
+const matchers = new Map<string, CountryMatcher>();
 
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const translator = await getTranslator(context);
-  const { translate } = translator;
-  const channelId = context.channelId || context.userId;
-  // editing a prefixed trigger re-runs it, the game from the old run can't edit its message anymore
-  const existing = activeGames.get(channelId);
-  if (existing && isCommandRunCancelled(existing.context)) {
-    cleanupGame(existing);
-  }
-  if (activeGames.has(channelId)) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('game.flag.already_running')}`});
-  }
-
-  const difficulty = args.difficulty || GameFlagDifficulties.EASY;
-  const pool = shuffle(countriesForTier(DIFFICULTY_TIERS[difficulty]));
-  const rounds = Math.min(Math.max(Math.floor(args.rounds || DEFAULT_ROUNDS), MIN_ROUNDS), MAX_ROUNDS, pool.length);
-
-  const game: Game = {
-    channelId,
-    context,
-    difficulty,
-    edits: Promise.resolve(),
-    expiresAt: (context instanceof Command.Context) ? Infinity : Date.now() + INTERACTION_TOKEN_TIME,
-    finished: false,
-    hintTimer: new Timers.Timeout(),
-    hostId: context.userId,
-    idleRounds: 0,
-    // english always counts, plus the server's language
-    matcher: new CountryMatcher(pool, [translator.language]),
-    pool: pool.slice(0, rounds),
-    readsChat: (context instanceof Command.Context) || context.interaction.isBotPresent,
-    round: null,
-    rounds,
+  const session: GameSession = {
+    difficulty: args.difficulty || GameFlagDifficulties.EASY,
+    recent: [],
     scores: new Map(),
     streak: null,
-    subscription: null,
+  };
+  return startGame(context, session);
+}
+
+
+function getChannelId(context: GameContext): string {
+  return context.channelId || context.userId;
+}
+
+
+// editing a prefixed trigger re-runs it, the game from the old run can't edit its message anymore
+function getActiveGame(context: GameContext): Game | undefined {
+  const existing = activeGames.get(getChannelId(context));
+  if (existing && isCommandRunCancelled(existing.context)) {
+    // keeping the response, the new run replies in it
+    abortGame(existing, true);
+    return undefined;
+  }
+  return existing;
+}
+
+
+async function startGame(context: GameContext, session: GameSession): Promise<void> {
+  const channelId = getChannelId(context);
+  if (getActiveGame(context) || startingChannels.has(channelId)) {
+    const { translate } = await getTranslator(context);
+    return replyWarning(context, translate('game.flag.already_running'));
+  }
+  startingChannels.add(channelId);
+  let translator: Translator;
+  try {
+    translator = await getTranslator(context);
+  } finally {
+    startingChannels.delete(channelId);
+  }
+
+  const country = pickCountry(session);
+  const game: Game = {
+    aborted: false,
+    channelId,
+    context,
+    country,
+    deadline: 0,
+    edits: Promise.resolve(),
+    finished: false,
+    flag: Buffer.alloc(0),
+    hintTimer: new Timers.Timeout(),
+    hints: 0,
+    hostId: context.userId,
+    matcher: getMatcher(translator.language),
+    readsChat: (context instanceof Command.Context) || ((context instanceof ComponentContext) ? context.isBotPresent : context.interaction.isBotPresent),
+    responseId: undefined,
+    result: null,
+    session,
+    startedAt: 0,
+    subscriptions: [],
     timer: new Timers.Timeout(),
     translator,
   };
   activeGames.set(channelId, game);
 
-  if (game.readsChat) {
-    game.subscription = context.client.subscribe(ClientEvents.MESSAGE_CREATE, (event: GatewayClientEvents.MessageCreate) => {
-      onChatMessage(game, event.message).catch(() => {});
-    });
+  try {
+    game.flag = await fetchFlag(context, country);
+  } catch(error) {
+    return failGame(game, error);
   }
 
+  // events only reach the bot where it's present, a user install in a server it isn't in has the Guess button
+  if (game.readsChat) {
+    game.subscriptions.push(
+      context.client.subscribe(ClientEvents.MESSAGE_CREATE, (event: GatewayClientEvents.MessageCreate) => {
+        onChatMessage(game, event.message).catch(() => {});
+      }),
+      context.client.subscribe(ClientEvents.MESSAGE_DELETE, (event: GatewayClientEvents.MessageDelete) => {
+        onMessagesDeleted(game, event.channelId, [event.messageId]);
+      }),
+      context.client.subscribe(ClientEvents.MESSAGE_DELETE_BULK, (event: GatewayClientEvents.MessageDeleteBulk) => {
+        onMessagesDeleted(game, event.channelId, Array.from(event.messages.keys()));
+      }),
+    );
+  }
+
+  game.startedAt = Date.now();
+  game.deadline = game.startedAt + ROUND_TIME;
   try {
-    await startRound(game);
+    await editOrReply(context, await renderDisplay(context, createGamePayload(game)));
   } catch(error) {
     cleanupGame(game);
     throw error;
   }
-}
-
-
-function shuffle<T>(values: Array<T>): Array<T> {
-  const shuffled = values.slice();
-  for (let i = shuffled.length - 1; 0 < i; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  game.responseId = await getResponseId(game);
+  // its start was deleted while the flag was going up
+  if (game.aborted) {
+    deleteResponse(game);
+    return;
   }
-  return shuffled;
+  // the timers count from when the flag is out
+  game.startedAt = Date.now();
+  game.deadline = game.startedAt + ROUND_TIME;
+  scheduleHint(game);
+  game.timer.start(ROUND_TIME, () => {
+    endGame(game, RoundOutcomes.TIMED_OUT, null).catch(() => {});
+  });
 }
 
 
-function fetchFlag(country: Country): Promise<Buffer> {
+function getMatcher(language: string): CountryMatcher {
+  let matcher = matchers.get(language);
+  if (!matcher) {
+    // english always counts, plus the server's language
+    matcher = new CountryMatcher(Countries, [language]);
+    matchers.set(language, matcher);
+  }
+  return matcher;
+}
+
+
+function pickCountry(session: GameSession): Country {
+  const pool = countriesForTier(DIFFICULTY_TIERS[session.difficulty]);
+  const fresh = pool.filter((country) => !session.recent.includes(country.code));
+  const choices = (fresh.length) ? fresh : pool;
+  const country = choices[Math.floor(Math.random() * choices.length)];
+  session.recent.push(country.code);
+  while (Math.min(RECENT_FLAGS, pool.length - 1) < session.recent.length) {
+    session.recent.shift();
+  }
+  return country;
+}
+
+
+function fetchFlag(context: GameContext, country: Country): Promise<Buffer> {
   let promise = flagCache.get(country.code);
   if (!promise) {
-    promise = (async () => {
-      const response = await fetch(FLAG_URL(country.code), {signal: AbortSignal.timeout(FLAG_FETCH_TIMEOUT)});
-      if (!response.ok) {
-        throw new Error(`Flag ${country.code} returned ${response.status}`);
-      }
-      return Buffer.from(await response.arrayBuffer());
-    })();
+    // as the bot, nothing about the player is needed for a flag
+    promise = fetchGameFlag({client: context.client}, country.code, {width: FLAG_WIDTH});
     // a failed fetch isn't kept, the next game tries again
     promise.catch(() => flagCache.delete(country.code));
     flagCache.set(country.code, promise);
@@ -233,9 +295,8 @@ function cleanupGame(game: Game): void {
   game.finished = true;
   game.timer.stop();
   game.hintTimer.stop();
-  if (game.subscription) {
-    game.subscription.remove();
-    game.subscription = null;
+  while (game.subscriptions.length) {
+    game.subscriptions.shift()!.remove();
   }
   if (activeGames.get(game.channelId) === game) {
     activeGames.delete(game.channelId);
@@ -243,8 +304,66 @@ function cleanupGame(game: Game): void {
 }
 
 
-function roundPoints(round: GameRound): number {
-  return MAX_POINTS - round.hints;
+async function getResponseId(game: Game): Promise<string | undefined> {
+  const context = game.context;
+  if (context instanceof Command.Context) {
+    return (context.response) ? context.response.id : undefined;
+  }
+  if (context.responseId) {
+    return context.responseId;
+  }
+  try {
+    return (await context.fetchResponse()).id;
+  } catch(error) {
+    return undefined;
+  }
+}
+
+
+function deleteResponse(game: Game): void {
+  const context = game.context;
+  if (context instanceof Command.Context) {
+    if (context.response && !context.response.deleted) {
+      context.response.delete().catch(() => {});
+    }
+  } else {
+    context.deleteResponse().catch(() => {});
+  }
+}
+
+
+// deleting a prefixed trigger or the game's message stops it (and takes the message with it, like any other command's
+// reply), instead of it still taking answers for a flag nobody can see
+function onMessagesDeleted(game: Game, channelId: string, messageIds: Array<string>): void {
+  if (channelId !== game.channelId || game.aborted || game.finished) {
+    return;
+  }
+  const starts = [game.responseId];
+  if (game.context instanceof Command.Context) {
+    starts.push(game.context.messageId);
+  }
+  if (messageIds.some((messageId) => starts.includes(messageId))) {
+    abortGame(game, false);
+  }
+}
+
+
+// stops right away, `keepResponse` for an edited prefixed trigger whose new run replies in the same message (a deleted
+// trigger's response is already deleted by the command hooks, deleting it again just fails quietly)
+function abortGame(game: Game, keepResponse: boolean): void {
+  if (game.aborted) {
+    return;
+  }
+  game.aborted = true;
+  cleanupGame(game);
+  if (!keepResponse && game.responseId) {
+    deleteResponse(game);
+  }
+}
+
+
+function roundPoints(game: Game): number {
+  return MAX_POINTS - game.hints;
 }
 
 
@@ -262,103 +381,86 @@ function formatLetters(name: string): string {
 }
 
 
-function formatCountry(game: Game, country: Country): string {
-  return `${countryEmoji(country)} **${countryName(country, game.translator.language)}**`;
-}
-
-
-function formatScores(game: Game, limit: number): Array<string> {
-  const sorted = Array.from(game.scores.entries()).sort((x, y) => y[1] - x[1]);
-  return sorted.slice(0, limit).map(([ userId, points ], index) => {
+function formatScores(game: Game): Array<string> {
+  const sorted = Array.from(game.session.scores.entries()).sort((x, y) => y[1] - x[1]);
+  return sorted.slice(0, SCORES_SHOWN).map(([ userId, points ], index) => {
     return displayDetailsLine([`**${index + 1}.** <@${userId}>`, game.translator.translate('game.flag.points', {points})]);
   });
 }
 
 
-function createRoundPayload(game: Game, round: GameRound): DisplayPayload {
+function createGamePayload(game: Game): DisplayPayload {
   const { translate } = game.translator;
-  const file = {filename: FLAG_FILENAME, value: round.flag};
-  const title = translate('game.flag.round_title', {number: round.number, total: game.rounds});
+  const file = {filename: FLAG_FILENAME, value: game.flag};
+  const title = translate('game.flag.modal_title');
+  const difficulty = translate(DIFFICULTY_KEYS[game.session.difficulty]);
 
-  if (round.finished) {
-    const scores = formatScores(game, SCORES_SHOWN);
+  if (game.finished) {
+    const scores = formatScores(game);
     return {
+      components: createPlayAgainComponents(game),
+      componentsInside: true,
       description: displayDetails([
-        round.result,
+        game.result,
         (scores.length) ? `\n**${translate('game.flag.scores')}**` : null,
         ...scores,
       ]),
       files: [file],
-      image: `attachment://${FLAG_FILENAME}`,
+      note: difficulty,
+      thumbnail: `attachment://${FLAG_FILENAME}`,
       title,
     };
   }
 
   const hints: Array<string> = [];
-  if (1 <= round.hints) {
-    hints.push(displayDetail(translate('game.flag.region'), translate(`game.flag.region.${countryRegion(round.country)}` as TranslationKey)));
+  if (1 <= game.hints) {
+    hints.push(displayDetail(translate('game.flag.region'), translate(`game.flag.region.${countryRegion(game.country)}` as TranslationKey)));
   }
-  if (2 <= round.hints) {
-    hints.push(displayDetail(translate('game.flag.letters'), formatLetters(countryName(round.country, game.translator.language))));
+  if (2 <= game.hints) {
+    hints.push(displayDetail(translate('game.flag.letters'), formatLetters(countryName(game.country, game.translator.language))));
   }
-  const lastHint = MAX_POINTS - 1 <= round.hints;
-  const nextChange = (lastHint) ? round.deadline : round.startedAt + (round.hints + 1) * HINT_TIME;
+  const lastHint = MAX_POINTS - 1 <= game.hints;
+  const nextChange = (lastHint) ? game.deadline : game.startedAt + (game.hints + 1) * HINT_TIME;
   return {
-    components: createRoundComponents(game, round),
+    components: createGameComponents(game),
     componentsInside: true,
     description: displayDetails([
       (game.readsChat) ? translate('game.flag.prompt_chat') : translate('game.flag.prompt_button'),
       ...hints,
     ]),
     files: [file],
-    image: `attachment://${FLAG_FILENAME}`,
     note: displayDetailsLine([
-      translate('game.flag.worth', {points: roundPoints(round)}),
-      translate(DIFFICULTY_KEYS[game.difficulty]),
+      translate('game.flag.worth', {points: roundPoints(game)}),
+      difficulty,
       (lastHint) ? (
         translate('game.flag.time_runs_out', {time: displayTimestamp(nextChange)})
       ) : (
         translate('game.flag.next_hint', {time: displayTimestamp(nextChange)})
       ),
     ]),
+    thumbnail: `attachment://${FLAG_FILENAME}`,
     title,
   };
 }
 
 
-function createRoundComponents(game: Game, round: GameRound): Components {
+function createGameComponents(game: Game): Components {
   const { translate } = game.translator;
-  const components = new Components({timeout: Math.max(round.deadline - Date.now(), 0) + COMPONENTS_TIMEOUT_PADDING});
+  const components = new Components({timeout: Math.max(game.deadline - Date.now(), 0) + COMPONENTS_TIMEOUT_PADDING});
 
   components.createButton({
     label: translate('game.flag.guess'),
     run: async (ctx: ComponentContext) => {
-      if (round.finished) {
+      if (game.finished) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      return ctx.respond(createGuessModal(game, round, await getTranslator(ctx)));
+      return ctx.respond(createGuessModal(game, await getTranslator(ctx)));
     },
   });
 
   components.createButton({
     label: translate('game.flag.skip'),
     style: MessageComponentButtonStyles.SECONDARY,
-    run: async (ctx: ComponentContext) => {
-      if (round.finished) {
-        return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      }
-      if (ctx.userId !== game.hostId) {
-        const { translate } = await getTranslator(ctx);
-        return respondEphemeral(ctx, translate('game.flag.only_host', {user: `<@${game.hostId}>`}));
-      }
-      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      await endRound(game, round, RoundOutcomes.SKIPPED, null);
-    },
-  });
-
-  components.createButton({
-    label: translate('game.flag.stop'),
-    style: MessageComponentButtonStyles.DANGER,
     run: async (ctx: ComponentContext) => {
       if (game.finished) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -368,12 +470,7 @@ function createRoundComponents(game: Game, round: GameRound): Components {
         return respondEphemeral(ctx, translate('game.flag.only_host', {user: `<@${game.hostId}>`}));
       }
       await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      const reason = translate('game.flag.stopped', {user: `<@${ctx.userId}>`});
-      // between flags there's no round left to end, the next one just doesn't start
-      if (round.finished || game.round !== round) {
-        return finishGame(game, reason);
-      }
-      await endRound(game, round, RoundOutcomes.SKIPPED, null, reason);
+      await endGame(game, RoundOutcomes.SKIPPED, null);
     },
   });
 
@@ -381,24 +478,44 @@ function createRoundComponents(game: Game, round: GameRound): Components {
 }
 
 
+// anyone can start the next flag, it's a new message at the bottom of the chat with the same difficulty and the scores
+// so far
+function createPlayAgainComponents(game: Game): Components {
+  const components = new Components({timeout: PLAY_AGAIN_TIME});
+  components.createButton({
+    label: game.translator.translate('game.flag.play_again'),
+    style: MessageComponentButtonStyles.SUCCESS,
+    run: async (ctx: ComponentContext) => {
+      if (getActiveGame(ctx) || startingChannels.has(getChannelId(ctx))) {
+        const { translate } = await getTranslator(ctx);
+        return respondEphemeral(ctx, `${StatusEmojis.WARNING} ${translate('game.flag.already_running')}`);
+      }
+      // the flag can take a moment to download, the deferred reply turns into the next flag's message
+      await ctx.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+      await startGame(ctx, game.session);
+    },
+  });
+  return components;
+}
+
+
 // for wherever chat doesn't reach the bot (a user install in a server it isn't in), and for anyone who'd rather not
 // guess where everyone can see it
-function createGuessModal(game: Game, round: GameRound, translator: Translator): InteractionModal {
+function createGuessModal(game: Game, translator: Translator): InteractionModal {
   const { translate } = translator;
   const modal = new InteractionModal({
-    timeout: Math.max(round.deadline - Date.now(), 0) + COMPONENTS_TIMEOUT_PADDING,
+    timeout: Math.max(game.deadline - Date.now(), 0) + COMPONENTS_TIMEOUT_PADDING,
     title: translate('game.flag.modal_title'),
     run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
       const guess = String(args.guess || '');
-      if (round.finished) {
+      if (game.finished) {
         return respondEphemeral(modalContext, translate('game.flag.round_over'));
       }
-      round.tried = true;
-      if (!game.matcher.isCorrect(round.country, guess)) {
+      if (!game.matcher.isCorrect(game.country, guess)) {
         return respondEphemeral(modalContext, `${StatusEmojis.NO} ${translate('game.flag.wrong')}`);
       }
       await modalContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      await endRound(game, round, RoundOutcomes.CORRECT, modalContext.userId);
+      await endGame(game, RoundOutcomes.CORRECT, modalContext.userId);
     },
   });
   modal.createLabel({
@@ -414,7 +531,7 @@ function createGuessModal(game: Game, round: GameRound, translator: Translator):
 
 
 // plain text, detritus keys a click's response listener by the clicked message, so a reply with components would take
-// over the round's buttons (same as the imagine game)
+// over the game's buttons (same as the imagine game)
 function respondEphemeral(ctx: ComponentContext | InteractionModalContext, content: string) {
   return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
     allowedMentions: {parse: []},
@@ -424,252 +541,110 @@ function respondEphemeral(ctx: ComponentContext | InteractionModalContext, conte
 }
 
 
+// a Play Again click that lost the race to another one already deferred, its thinking message becomes the warning
+async function replyWarning(context: GameContext, text: string): Promise<void> {
+  if (context instanceof ComponentContext && !context.responded) {
+    await respondEphemeral(context, `${StatusEmojis.WARNING} ${text}`);
+    return;
+  }
+  await editOrReply(context, await renderDisplay(context, {description: `${StatusEmojis.WARNING} ${text}`}));
+}
+
+
 async function onChatMessage(game: Game, message: Structures.Message): Promise<void> {
   if (message.channelId !== game.channelId || message.fromBot || game.finished) {
     return;
   }
-  const round = game.round;
-  if (!round || round.finished) {
-    return;
-  }
-  // any talking counts as playing, only short messages are guesses
-  round.tried = true;
   const content = message.content;
+  // only short messages are guesses
   if (!content || MAX_GUESS_LENGTH < content.length) {
     return;
   }
-  if (!game.matcher.isCorrect(round.country, content)) {
+  if (!game.matcher.isCorrect(game.country, content)) {
     return;
   }
   const emoji = StatusEmojis.YES.replace(/^<:|>$/g, '');
   message.react(emoji).catch(() => {});
-  await endRound(game, round, RoundOutcomes.CORRECT, message.author.id);
+  await endGame(game, RoundOutcomes.CORRECT, message.author.id);
 }
 
 
-async function sendMessage(game: Game, payload: DisplayPayload): Promise<Structures.Message | null> {
-  const message = {...await renderDisplay(game.context, payload), allowedMentions: {parse: []}};
-  if (game.context instanceof Command.Context) {
-    return game.context.rest.createMessage(game.context.channelId, message);
-  }
-  return game.context.createMessage(message);
-}
-
-
-// renders the round as it is when the edit runs (not when it was queued), one edit at a time
-function refreshRound(game: Game, round: GameRound): Promise<void> {
+// renders the game as it is when the edit runs (not when it was queued), one edit at a time
+function refreshGame(game: Game): Promise<void> {
   game.edits = game.edits.then(async () => {
-    if (isCommandRunCancelled(game.context)) {
-      cleanupGame(game);
+    if (game.aborted) {
       return;
     }
-    const message = {...await renderDisplay(game.context, createRoundPayload(game, round)), attachments: []};
-    if (!round.message) {
-      await editOrReply(game.context, message);
-    } else if (game.context instanceof Command.Context) {
-      await round.message.edit({...message, allowedMentions: {parse: []}});
-    } else {
-      await game.context.editMessage(round.message.id, {...message, allowedMentions: {parse: []}});
+    // a prefixed trigger edited into a new run (that run aborts this game too, whichever notices first)
+    if (isCommandRunCancelled(game.context)) {
+      return abortGame(game, true);
     }
+    const message = await renderDisplay(game.context, createGamePayload(game));
+    // the flag is re-uploaded every edit, `attachments: []` stops the old copies from piling up
+    await editOrReply(game.context, {...message, attachments: []});
   }).catch(() => {});
   return game.edits;
 }
 
 
-async function startRound(game: Game): Promise<void> {
-  if (game.finished) {
+function scheduleHint(game: Game): void {
+  if (MAX_POINTS - 1 <= game.hints) {
     return;
   }
-  // a prefixed command's trigger was edited or deleted, the newer run has its own game
-  if (isCommandRunCancelled(game.context)) {
-    return cleanupGame(game);
-  }
-  const number = (game.round) ? game.round.number + 1 : 1;
-  const country = game.pool[number - 1];
-
-  let flag: Buffer;
-  try {
-    flag = await fetchFlag(country);
-  } catch(error) {
-    return failGame(game, error);
-  }
-  if (game.finished) {
-    return;
-  }
-
-  const now = Date.now();
-  const round: GameRound = {
-    country,
-    deadline: now + ROUND_TIME,
-    finished: false,
-    flag,
-    hints: 0,
-    message: null,
-    number,
-    result: null,
-    startedAt: now,
-    tried: false,
-  };
-  game.round = round;
-
-  if (number === 1) {
-    const message = await renderDisplay(game.context, createRoundPayload(game, round));
-    await editOrReply(game.context, message);
-  } else {
-    try {
-      round.message = await sendMessage(game, createRoundPayload(game, round));
-    } catch(error) {
-      return failGame(game, error);
-    }
-  }
-  // the first flag went up slower than the timers' start, they count from when it's out
-  round.startedAt = Date.now();
-  round.deadline = round.startedAt + ROUND_TIME;
-
-  scheduleHint(game, round);
-  game.timer.start(ROUND_TIME, () => {
-    endRound(game, round, RoundOutcomes.TIMED_OUT, null).catch(() => {});
-  });
-
-  // the next flag downloads while this one's played
-  const next = game.pool[number];
-  if (next) {
-    fetchFlag(next).catch(() => {});
-  }
-}
-
-
-function scheduleHint(game: Game, round: GameRound): void {
-  if (MAX_POINTS - 1 <= round.hints) {
-    return;
-  }
-  const at = round.startedAt + (round.hints + 1) * HINT_TIME;
+  const at = game.startedAt + (game.hints + 1) * HINT_TIME;
   game.hintTimer.start(Math.max(at - Date.now(), 0), () => {
-    if (round.finished || game.round !== round) {
+    if (game.finished) {
       return;
     }
-    round.hints++;
-    refreshRound(game, round);
-    scheduleHint(game, round);
+    game.hints++;
+    refreshGame(game);
+    scheduleHint(game);
   });
 }
 
 
-// `stopped` ends the whole game after this round, with that as the reason
-async function endRound(
-  game: Game,
-  round: GameRound,
-  outcome: RoundOutcomes,
-  userId: string | null,
-  stopped: string | null = null,
-): Promise<void> {
-  if (round.finished || game.round !== round) {
+async function endGame(game: Game, outcome: RoundOutcomes, userId: string | null): Promise<void> {
+  if (game.finished) {
     return;
   }
-  round.finished = true;
-  game.timer.stop();
-  game.hintTimer.stop();
+  // frees the channel before the result goes up, so its Play Again works right away
+  cleanupGame(game);
 
   const { translate } = game.translator;
-  const country = formatCountry(game, round.country);
+  const session = game.session;
+  const country = `${countryEmoji(game.country)} **${countryName(game.country, game.translator.language)}**`;
   switch (outcome) {
     case RoundOutcomes.CORRECT: {
       const user = userId!;
-      game.streak = (game.streak && game.streak.userId === user) ? {count: game.streak.count + 1, userId: user} : {count: 1, userId: user};
-      const bonus = (STREAK_BONUS_AT <= game.streak.count) ? 1 : 0;
-      const points = roundPoints(round) + bonus;
-      game.scores.set(user, (game.scores.get(user) || 0) + points);
-      game.idleRounds = 0;
-      round.result = displayDetails([
+      session.streak = (session.streak && session.streak.userId === user) ? {count: session.streak.count + 1, userId: user} : {count: 1, userId: user};
+      const bonus = (STREAK_BONUS_AT <= session.streak.count) ? 1 : 0;
+      const points = roundPoints(game) + bonus;
+      session.scores.set(user, (session.scores.get(user) || 0) + points);
+      game.result = displayDetails([
         `${StatusEmojis.YES} ${translate('game.flag.correct', {user: `<@${user}>`, country, points: translate('game.flag.points', {points})})}`,
-        (bonus) ? `-# ${translate('game.flag.streak', {count: game.streak.count})}` : null,
+        (bonus) ? `-# ${translate('game.flag.streak', {count: session.streak.count})}` : null,
       ]);
     }; break;
     case RoundOutcomes.SKIPPED: {
-      game.streak = null;
-      round.result = translate('game.flag.skipped', {country});
+      session.streak = null;
+      game.result = translate('game.flag.skipped', {country});
     }; break;
     case RoundOutcomes.TIMED_OUT: {
-      game.streak = null;
-      game.idleRounds = (round.tried) ? 0 : game.idleRounds + 1;
-      round.result = translate('game.flag.times_up', {country});
+      session.streak = null;
+      game.result = translate('game.flag.times_up', {country});
     }; break;
   }
-
-  await refreshRound(game, round);
-
-  if (stopped) {
-    return finishGame(game, stopped);
-  }
-  if (game.rounds <= round.number) {
-    return finishGame(game, null);
-  }
-  if (IDLE_ROUNDS <= game.idleRounds) {
-    return finishGame(game, translate('game.flag.idle', {count: IDLE_ROUNDS}));
-  }
-  // another round wouldn't finish before the slash command's token stops working
-  if (game.expiresAt < Date.now() + BREAK_TIME + ROUND_TIME + 15 * 1000) {
-    return finishGame(game, null);
-  }
-  game.timer.start(BREAK_TIME, () => {
-    startRound(game).catch(() => cleanupGame(game));
-  });
-}
-
-
-async function finishGame(game: Game, reason: string | null): Promise<void> {
-  if (game.finished) {
-    return;
-  }
-  cleanupGame(game);
-  const { translate } = game.translator;
-
-  const sorted = Array.from(game.scores.entries()).sort((x, y) => y[1] - x[1]);
-  let outcome: string;
-  if (!sorted.length) {
-    outcome = translate('game.flag.no_points');
-  } else {
-    const most = sorted[0][1];
-    const winners = sorted.filter(([ userId, points ]) => points === most).map(([ userId ]) => `<@${userId}>`);
-    const label = (winners.length === 1) ? translate('game.flag.winner') : translate('game.flag.tie');
-    outcome = displayDetailsLine([displayDetail(label, winners.join(', ')), translate('game.flag.points', {points: most})]);
-  }
-
-  const played = (game.round) ? game.round.number : 0;
-  try {
-    await sendMessage(game, {
-      description: displayDetails([
-        outcome,
-        reason ? `-# ${reason}` : null,
-        (sorted.length) ? '' : null,
-        ...formatScores(game, sorted.length),
-      ]),
-      note: displayDetailsLine([
-        translate('game.flag.flags_played', {count: played}),
-        translate(DIFFICULTY_KEYS[game.difficulty]),
-      ]),
-      title: translate('game.flag.final_title'),
-    });
-  } catch(error) {
-
-  }
+  await refreshGame(game);
 }
 
 
 async function failGame(game: Game, error: any): Promise<void> {
-  if (game.finished) {
-    return;
-  }
   cleanupGame(game);
   // required here, commands/errors imports utils (and this file with it) back
   const { createRunErrorPayload, warning }: typeof import('../../../commands/errors') = require('../../../commands/errors');
-  const payload = await createRunErrorPayload(game.context, warning(game.translator.translate('game.flag.flag_failed')), error, game.translator);
+  const payload = await createRunErrorPayload(game.context as any, warning(game.translator.translate('game.flag.flag_failed')), error, game.translator);
   try {
-    if (!game.round) {
-      await displayReply(game.context, {...payload, color: EmbedColors.ERROR});
-    } else {
-      await sendMessage(game, {...payload, color: EmbedColors.ERROR});
-    }
+    await editOrReply(game.context, await renderDisplay(game.context, {...payload, color: EmbedColors.ERROR}));
   } catch(error) {
 
   }

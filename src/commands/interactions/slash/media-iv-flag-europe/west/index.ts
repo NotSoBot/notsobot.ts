@@ -5,6 +5,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { MediaIVFlagAustriaCommand } from './austria';
 import { MediaIVFlagBelgiumCommand } from './belgium';
 import { MediaIVFlagDenmarkCommand } from './denmark';
+import { MediaIVFlagEnglandCommand } from './england';
 import { MediaIVFlagEUCommand } from './eu';
 import { MediaIVFlagFinlandCommand } from './finland';
 import { MediaIVFlagFranceCommand } from './france';
@@ -16,9 +17,11 @@ import { MediaIVFlagLuxembourgCommand } from './luxembourg';
 import { MediaIVFlagMonacoCommand } from './monaco';
 import { MediaIVFlagNetherlandsCommand } from './netherlands';
 import { MediaIVFlagNorwayCommand } from './norway';
+import { MediaIVFlagScotlandCommand } from './scotland';
 import { MediaIVFlagSwedenCommand } from './sweden';
 import { MediaIVFlagSwitzerlandCommand } from './switzerland';
 import { MediaIVOverlayUKCommand } from './uk';
+import { MediaIVFlagWalesCommand } from './wales';
 
 
 export class MediaIVFlagEuropeWestGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -33,6 +36,7 @@ export class MediaIVFlagEuropeWestGroupCommand extends BaseInteractionCommandOpt
         new MediaIVFlagAustriaCommand(),
         new MediaIVFlagBelgiumCommand(),
         new MediaIVFlagDenmarkCommand(),
+        new MediaIVFlagEnglandCommand(),
         new MediaIVFlagEUCommand(),
         new MediaIVFlagFinlandCommand(),
         new MediaIVFlagFranceCommand(),
@@ -44,9 +48,11 @@ export class MediaIVFlagEuropeWestGroupCommand extends BaseInteractionCommandOpt
         new MediaIVFlagMonacoCommand(),
         new MediaIVFlagNetherlandsCommand(),
         new MediaIVFlagNorwayCommand(),
+        new MediaIVFlagScotlandCommand(),
         new MediaIVFlagSwedenCommand(),
         new MediaIVFlagSwitzerlandCommand(),
         new MediaIVOverlayUKCommand(),
+        new MediaIVFlagWalesCommand(),
       ],
     });
   }

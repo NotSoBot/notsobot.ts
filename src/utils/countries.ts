@@ -7,7 +7,8 @@ export enum CountryTiers {
   EASY = 1,
   // every other country (and the uk's home nations)
   MEDIUM = 2,
-  // territories with their own flag, the ones that just fly their country's flag are left out
+  // territories with their own flag (some only a local or regional one), the ones that just fly their country's flag
+  // (St. Martin, Bouvet Island, Svalbard, the US Outlying Islands, Heard & McDonald Islands) are left out
   HARD = 3,
 }
 
@@ -227,9 +228,12 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
   {code: 'zw', tier: MEDIUM},
 
   {code: 'ai', tier: HARD},
+  {code: 'aq', tier: HARD},
   {code: 'as', tier: HARD},
   {code: 'aw', tier: HARD},
   {code: 'ax', tier: HARD, aliases: ['aland']},
+  {code: 'bl', tier: HARD, aliases: ['saint barts', 'st barts', 'saint barths', 'st barths']},
+  {code: 'bq', tier: HARD, aliases: ['bonaire', 'bes islands']},
   {code: 'bm', tier: HARD},
   {code: 'cc', tier: HARD, aliases: ['cocos islands', 'keeling islands']},
   {code: 'ck', tier: HARD},
@@ -238,9 +242,11 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
   {code: 'eh', tier: HARD},
   {code: 'fk', tier: HARD, aliases: ['falklands', 'malvinas']},
   {code: 'fo', tier: HARD, aliases: ['faroes', 'faroe']},
+  {code: 'gf', tier: HARD, aliases: ['guyane']},
   {code: 'gg', tier: HARD},
   {code: 'gi', tier: HARD},
   {code: 'gl', tier: HARD},
+  {code: 'gp', tier: HARD},
   {code: 'gs', tier: HARD, aliases: ['south georgia']},
   {code: 'gu', tier: HARD},
   {code: 'hk', tier: HARD, name: 'Hong Kong'},
@@ -250,13 +256,16 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
   {code: 'ky', tier: HARD, aliases: ['caymans']},
   {code: 'mo', tier: HARD, name: 'Macau', aliases: ['macao']},
   {code: 'mp', tier: HARD},
+  {code: 'mq', tier: HARD},
   {code: 'ms', tier: HARD},
   {code: 'nc', tier: HARD},
   {code: 'nf', tier: HARD},
   {code: 'nu', tier: HARD},
   {code: 'pf', tier: HARD, aliases: ['tahiti']},
+  {code: 'pm', tier: HARD, aliases: ['saint pierre', 'st pierre']},
   {code: 'pn', tier: HARD, aliases: ['pitcairn']},
   {code: 'pr', tier: HARD},
+  {code: 're', tier: HARD},
   {code: 'sh', tier: HARD},
   {code: 'sx', tier: HARD},
   {code: 'tc', tier: HARD, aliases: ['turks and caicos']},
@@ -264,13 +273,16 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
   {code: 'tk', tier: HARD},
   {code: 'vg', tier: HARD, aliases: ['bvi', 'virgin islands']},
   {code: 'vi', tier: HARD, aliases: ['usvi', 'virgin islands']},
+  {code: 'wf', tier: HARD, aliases: ['wallis']},
+  {code: 'yt', tier: HARD},
 ] as Array<Country>);
 
 
 // the first hint `/game flag` gives, roughly the un's regions (the caribbean and central america are north america,
-// the middle east, turkey and the caucasus are asia, remote territories go with the nearest continent)
+// the middle east, turkey and the caucasus are asia, remote territories go with the nearest continent, antarctica is its own)
 export enum CountryRegions {
   AFRICA = 'africa',
+  ANTARCTICA = 'antarctica',
   ASIA = 'asia',
   EUROPE = 'europe',
   NORTH_AMERICA = 'north_america',
@@ -279,12 +291,13 @@ export enum CountryRegions {
 }
 
 const REGION_CODES: Record<CountryRegions, string> = {
-  [CountryRegions.AFRICA]: 'ao bf bi bj bw cd cf cg ci cm cv dj dz eg eh er et ga gh gm gn gq gw ke km lr ls ly ma mg ml mr mu mw mz na ne ng rw sc sd sh sl sn so ss st sz td tf tg tn tz ug za zm zw',
+  [CountryRegions.AFRICA]: 'ao bf bi bj bw cd cf cg ci cm cv dj dz eg eh er et ga gh gm gn gq gw ke km lr ls ly ma mg ml mr mu mw mz na ne ng rw sc sd sh sl sn so ss st sz td tf tg tn tz ug yt za zm zw re',
+  [CountryRegions.ANTARCTICA]: 'aq',
   [CountryRegions.ASIA]: 'ae af am az bd bh bn bt cc cn cx cy ge hk id il in io iq ir jo jp kg kh kp kr kw kz la lb lk mm mn mo mv my np om ph pk ps qa sa sg sy th tj tl tm tr tw uz vn ye',
   [CountryRegions.EUROPE]: 'ad al at ax ba be bg by ch cz de dk ee es fi fo fr gb gb-eng gb-sct gb-wls gg gi gr hr hu ie im is it je li lt lu lv mc md me mk mt nl no pl pt ro rs ru se si sk sm ua va xk',
-  [CountryRegions.NORTH_AMERICA]: 'ag ai aw bb bm bs bz ca cr cu cw dm do gd gl gt hn ht jm kn ky lc ms mx ni pa pr sv sx tc tt us vc vg vi',
-  [CountryRegions.OCEANIA]: 'as au ck fj fm gu ki mh mp nc nf nr nu nz pf pg pn pw sb tk to tv vu ws',
-  [CountryRegions.SOUTH_AMERICA]: 'ar bo br cl co ec fk gs gy pe py sr uy ve',
+  [CountryRegions.NORTH_AMERICA]: 'ag ai aw bb bl bm bq bs bz ca cr cu cw dm do gd gl gp gt hn ht jm kn ky lc mq ms mx ni pa pm pr sv sx tc tt us vc vg vi',
+  [CountryRegions.OCEANIA]: 'as au ck fj fm gu ki mh mp nc nf nr nu nz pf pg pn pw sb tk to tv vu wf ws',
+  [CountryRegions.SOUTH_AMERICA]: 'ar bo br cl co ec fk gf gs gy pe py sr uy ve',
 };
 
 const regionsByCode = new Map<string, CountryRegions>();

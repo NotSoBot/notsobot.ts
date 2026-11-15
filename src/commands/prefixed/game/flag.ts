@@ -15,20 +15,17 @@ export default class GameFlagCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['flaggame', 'guessflag'],
-      args: [
-        {name: 'rounds', aliases: ['r'], type: Number},
-      ],
       label: 'difficulty',
       metadata: {
         category: CommandCategories.GAMES,
-        description: `Name the country behind each flag in chat. Every flag starts worth ${Formatter.Commands.GameFlag.MAX_POINTS} points and a hint (its region, then its letters) takes one off every ${Formatter.Commands.GameFlag.HINT_TIME / 1000} seconds, naming ${Formatter.Commands.GameFlag.STREAK_BONUS_AT} or more in a row adds a point each`,
+        description: `Name the country behind a flag in chat within ${Formatter.Commands.GameFlag.ROUND_TIME / 1000} seconds. It starts worth ${Formatter.Commands.GameFlag.MAX_POINTS} points and a hint (its region, then its letters) takes one off every ${Formatter.Commands.GameFlag.HINT_TIME / 1000} seconds. Play Again shows another flag and keeps the scores, naming ${Formatter.Commands.GameFlag.STREAK_BONUS_AT} or more in a row adds a point each`,
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} medium`,
-          `${COMMAND_NAME} hard -rounds 5`,
+          `${COMMAND_NAME} hard`,
         ],
         id: Formatter.Commands.GameFlag.COMMAND_ID,
-        usage: `?<easy|medium|hard> (-rounds <${Formatter.Commands.GameFlag.MIN_ROUNDS}-${Formatter.Commands.GameFlag.MAX_ROUNDS}>)`,
+        usage: '?<easy|medium|hard>',
       },
       permissionsClient: [Permissions.ATTACH_FILES],
       type: Parameters.oneOf({choices: GameFlagDifficulties}),
