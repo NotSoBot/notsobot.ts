@@ -27,6 +27,7 @@ import * as InfoChannel from './info.channel';
 import * as InfoGuild from './info.guild';
 import * as InfoGuildIcon from './info.guild.icon';
 import * as InfoInvite from './info.invite';
+import * as InfoPermissions from './info.permissions';
 import * as InfoPlaying from './info.playing';
 import * as InfoRole from './info.role';
 import * as InfoUser from './info.user';
@@ -787,6 +788,7 @@ export {
   InfoGuild,
   InfoGuildIcon,
   InfoInvite,
+  InfoPermissions,
   InfoPlaying,
   InfoRole,
   InfoUser,

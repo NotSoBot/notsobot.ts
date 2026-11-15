@@ -1,4 +1,4 @@
-import { Interaction, Structures } from 'detritus-client';
+import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
@@ -28,29 +28,17 @@ export class InfoRoleCommand extends BaseInteractionCommandOption {
           default: DefaultParameters.defaultRole,
           type: ApplicationCommandOptionTypes.ROLE,
         },
-        {
-          name: 'channel',
-          description: 'Channel to check the role\'s permissions in (Default: Current Channel)',
-          ...I18n.optionLocalizations('commands.info.role.channel'),
-          default: DefaultParameters.channel,
-          type: ApplicationCommandOptionTypes.CHANNEL,
-          // discord's resolved channels don't include permission overwrites, so prefer our cached one
-          value: (channel: Structures.Channel, context: Interaction.InteractionContext) => {
-            return context.channels.get(channel.id) || channel;
-          },
-        },
       ],
     });
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: Formatter.Commands.InfoRole.CommandArgsBefore) {
-    return !!args.channel && !!args.role;
+    return !!args.role;
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.InfoRole.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    const key = (args.role) ? 'errors.channel_not_found' : 'errors.role_not_found';
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate(key)}`, ephemeral: true});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.role_not_found')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.InfoRole.CommandArgs) {

@@ -1,12 +1,8 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Markup, PermissionTools, intToHex, intToRGB } from 'detritus-client/lib/utils';
 
-import {
-  PermissionsText,
-  PERMISSIONS_ADMIN,
-  PERMISSIONS_TEXT,
-  PERMISSIONS_VOICE,
-} from '../../../constants';
+import { PermissionsText, PERMISSIONS_ADMIN } from '../../../constants';
 import { Endpoints } from '../../../api';
 import { getTranslator } from '../../i18n';
 import {
@@ -17,18 +13,16 @@ import {
   displayDetailsLine,
   displayReply,
   displayTimestamp,
-  permissionsToObject,
+  slashCommandMention,
   toCodePointForTwemoji,
 } from '../../../utils';
 
 
 export interface CommandArgsBefore {
-  channel: Structures.Channel | null,
   role: Structures.Role | null,
 }
 
 export interface CommandArgs {
-  channel: Structures.Channel,
   role: Structures.Role,
 }
 
@@ -41,7 +35,7 @@ export async function createMessage(
 ) {
   const { label, language, translate, translateMaybe } = await getTranslator(context);
 
-  const { channel, role } = args;
+  const { role } = args;
 
   const payload: DisplayPayload = {};
   payload.title = role.name;
@@ -59,7 +53,7 @@ export async function createMessage(
     payload.thumbnail = createColorUrl(role.color, 128, 128);
   }
 
-  const lines: Array<string> = [translate('info.role.description', {role: role.mention, channel: channel.mention})];
+  const lines: Array<string> = [(role.isDefault) ? '@everyone' : role.mention];
 
   {
     let color: string | null = null;
@@ -107,20 +101,19 @@ export async function createMessage(
     (role.mentionable) && displayDetail(translate('info.role.mentionable'), translate('common.yes')),
   ]));
 
-  // only the permissions the role has in the channel, instead of a table with every one
+  // the moderation permissions the role itself gives, the rest (and per channel) is `/info permissions`
   {
-    const permissions = permissionsToObject(role.permissionsIn(channel as Structures.ChannelGuildBase));
-    const allowed = (list: ReadonlyArray<bigint>): string => {
-      const names = list.filter((permission) => permissions[String(permission)]).map((permission) => label('permissions', PermissionsText[String(permission)]));
-      return (names.length) ? names.join(', ') : translate('common.none');
-    };
-
-    lines.push(displayDetail(translate('info.role.moderation'), allowed(PERMISSIONS_ADMIN)));
-    if (channel.isText) {
-      lines.push(displayDetail(translate('info.role.text'), allowed(PERMISSIONS_TEXT)));
-    } else if (channel.isVoice) {
-      lines.push(displayDetail(translate('info.role.voice'), allowed(PERMISSIONS_VOICE)));
+    let moderation: string;
+    if (PermissionTools.checkPermissions(role.permissions, Permissions.ADMINISTRATOR)) {
+      moderation = label('permissions', PermissionsText[String(Permissions.ADMINISTRATOR)]);
+    } else {
+      const names = PERMISSIONS_ADMIN
+        .filter((permission) => PermissionTools.checkPermissions(role.permissions, permission))
+        .map((permission) => label('permissions', PermissionsText[String(permission)]));
+      moderation = (names.length) ? names.join(', ') : translate('common.none');
     }
+    lines.push(displayDetail(translate('info.role.moderation'), moderation));
+    lines.push(`-# ${translate('info.role.permissions_hint', {command: slashCommandMention(context, 'info permissions')})}`);
   }
 
   lines.push(displayDetailsLine([

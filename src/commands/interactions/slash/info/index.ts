@@ -14,6 +14,7 @@ import { InfoChannelCommand } from './channel';
 import { InfoGuildCommand } from './guild';
 import { InfoGuildIconCommand } from './guild-icon';
 import { InfoInviteCommand } from './invite';
+import { InfoPermissionsCommand } from './permissions';
 import { InfoPlayingCommand } from './playing';
 import { InfoRoleCommand } from './role';
 import { InfoUserCommand } from './user';
@@ -46,6 +47,7 @@ export default class InfoGroupCommand extends BaseSlashCommand {
         new InfoGuildCommand(),
         new InfoGuildIconCommand(),
         new InfoInviteCommand(),
+        new InfoPermissionsCommand(),
         new InfoPlayingCommand(),
         new InfoRoleCommand(),
         new InfoUserCommand(),
