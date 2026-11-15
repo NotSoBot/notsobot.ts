@@ -60,9 +60,9 @@ const SCORES_SHOWN = 5;
 const RECENT_FLAGS = 30;
 
 // the api has every flag at its real proportions (`assets/images/flags`, the overlays use the same files), each one is
-// fetched once per process and attached as `flag.png` so the answer isn't in a url anyone could open. Shown as a
-// thumbnail beside the text instead of a full width image so a game doesn't take over the channel, 320px still looks
-// sharp when it's clicked open
+// fetched once per process and attached as `flag.png` so the answer isn't in a url anyone could open. Shown as the
+// message's image, a thumbnail would crop it to a square and cut wide flags off. 320px keeps it from taking over the
+// channel (it's one message per flag anyway)
 const FLAG_WIDTH = 320;
 const FLAG_FILENAME = 'flag.png';
 
@@ -407,7 +407,7 @@ function createGamePayload(game: Game): DisplayPayload {
       ]),
       files: [file],
       note: difficulty,
-      thumbnail: `attachment://${FLAG_FILENAME}`,
+      image: `attachment://${FLAG_FILENAME}`,
       title,
     };
   }
@@ -438,7 +438,7 @@ function createGamePayload(game: Game): DisplayPayload {
         translate('game.flag.next_hint', {time: displayTimestamp(nextChange)})
       ),
     ]),
-    thumbnail: `attachment://${FLAG_FILENAME}`,
+    image: `attachment://${FLAG_FILENAME}`,
     title,
   };
 }
