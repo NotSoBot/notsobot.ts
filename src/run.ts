@@ -3,6 +3,7 @@ import { ClusterManager } from 'detritus-client';
 import { Api } from './api/endpoints';
 import { log } from './log';
 import { captureError, initSentry } from './sentry';
+import { clearTempDirectory } from './tempfiles';
 
 
 // the settings come from the environment (.env.example), the cluster processes inherit it
@@ -94,6 +95,9 @@ process.on('SIGUSR2', async () => {
       captureError(error, {level: 'warning', tags: {cluster_id: clusterProcess.clusterId, source: 'cluster_process.warn'}});
     });
   });
+
+  // no cluster is running yet, so every temp file left in it is from the last run (a container restart keeps /tmp)
+  clearTempDirectory();
 
   await waitForApi();
   await manager.run();

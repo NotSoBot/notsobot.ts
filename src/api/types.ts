@@ -896,8 +896,11 @@ export namespace RestOptions {
   }
 
   export interface MediaAVManipulationAudioVibrato extends MediaBaseOptions {
+    blend?: boolean,
     depth?: number,
     frequency?: number,
+    points?: string,
+    semitones?: number,
   }
 
   export interface MediaAVManipulationAudioVocoder extends MediaBaseOptionsMultiple {

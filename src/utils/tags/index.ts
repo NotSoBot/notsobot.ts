@@ -160,6 +160,7 @@ import {
   languageCodeToText,
   randomFromArray,
   randomFromIterator,
+  MEDIA_COMMAND_TIME,
   textToBoolean,
   TimeLimitTier,
   traverseJSON,
@@ -543,6 +544,7 @@ export enum TagFunctions {
   JSON_MESSAGE_REPLY = 'JSON_MESSAGE_REPLY',
   JSON_ROLE = 'JSON_ROLE',
   JSON_USER = 'JSON_USER',
+  LIMITS = 'LIMITS',
   LOGICAL_AND = 'LOGICAL_AND',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
   LOGICAL_DELETE_CHANNEL = 'LOGICAL_DELETE_CHANNEL',
@@ -765,6 +767,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.JSON_MESSAGE_REPLY]: ['json.messagereply'],
   [TagFunctions.JSON_ROLE]: ['json.role'],
   [TagFunctions.JSON_USER]: ['json.user', 'userjson'],
+  [TagFunctions.LIMITS]: ['limits'],
   [TagFunctions.LOGICAL_AND]: ['and'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
   [TagFunctions.LOGICAL_DELETE_CHANNEL]: ['deletechannel'],
@@ -6138,6 +6141,23 @@ const ScriptTags = Object.freeze({
       tag.text += JSON.stringify(getTargetUser(context, tag));
     }
 
+    return true;
+  },
+
+  [TagFunctions.LIMITS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {limits}
+
+    // the caller's own tier (or the server's), the defaults since `tag.limits.MAX_TIME` is already the picked time. A
+    // verified directory tag's extra time only shows in `tag_ms`, the api doesn't give its mediascript jobs more
+    const { tier } = await getMaxTimeTier(context, TagLimitDefaults);
+    const mediaTier = (tier === 'directory') ? 'free' : tier;
+    tag.text += JSON.stringify({
+      tier,
+      tag_ms: tag.limits.MAX_TIME,
+      tag_left_ms: Math.max((tag.variables as any)[PrivateVariables.DEADLINE] - Date.now(), 0),
+      // a whole `{mediascript}` job, links it downloads included, mediascript's own `timeleft` counts down from this
+      mediascript_ms: MEDIA_COMMAND_TIME[mediaTier],
+    });
     return true;
   },
 

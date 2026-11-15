@@ -21,9 +21,18 @@ export const PREVIEW: RestOptions.CommandPreview = {
 };
 
 export interface CommandArgs {
+  blend?: boolean,
   depth?: number,
   frequency?: number,
+  points?: string,
+  semitones?: number,
   url: string,
+}
+
+// `-points "0,0 1,1"` keeps its quotes from the prefixed args
+function cleanPoints(points?: string): string | undefined {
+  const text = (points || '').trim().replace(/^["'`]+|["'`]+$/g, '').trim();
+  return text || undefined;
 }
 
 export function createJob(
@@ -33,11 +42,19 @@ export function createJob(
   return mediaAVManipulationAudioVibrato(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+    blend: args.blend || undefined,
+    points: cleanPoints(args.points),
   });
 }
 
 export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
-  return Mediascript.line('audiovibrato', chain.key, {frequency: args.frequency, depth: args.depth});
+  return Mediascript.line('audiovibrato', chain.key, {
+    frequency: args.frequency,
+    depth: args.depth,
+    semitones: args.semitones,
+    points: cleanPoints(args.points),
+    blend: args.blend || undefined,
+  });
 }
 
 export async function createMessage(

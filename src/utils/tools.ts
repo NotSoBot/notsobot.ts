@@ -1915,6 +1915,16 @@ export function htmlDecode(value: string): string {
 // the api's `command_budget.py`) plus up to 2 minutes waiting in the queue. a job queued longer than that is cancelled
 // instead of running with nobody waiting on it
 export const MAX_JOB_WAIT_TIME = 4 * 60 * 1000;
+
+// a media command's whole time budget (ms) by tier, the api's `MAX_PROCESS_TIME*` (`limits.py`), keep them the same.
+// a verified directory tag gets tag time only, the api doesn't know about it
+export const MEDIA_COMMAND_TIME: Readonly<Record<Exclude<TimeLimitTier, 'directory'>, number>> = Object.freeze({
+  free: 30 * 1000,
+  premium_server: 45 * 1000,
+  premium: 60 * 1000,
+  premium_plus: 90 * 1000,
+  premium_max: 120 * 1000,
+});
 const JOB_TIMED_OUT_MESSAGE = 'Timed out waiting for the job to finish';
 // the least time between edits showing a job's status, so a moving queue doesn't hit discord's ratelimits
 const JOB_STATUS_EDIT_INTERVAL = 3000;

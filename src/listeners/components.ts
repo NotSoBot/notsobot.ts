@@ -1,3 +1,7 @@
+import * as fs from 'fs';
+import { Readable, Transform } from 'stream';
+import { pipeline } from 'stream/promises';
+
 import { ClusterClient, Collections, ShardClient, Structures } from 'detritus-client';
 import {
   ClientEvents,
@@ -30,8 +34,14 @@ import {
   rerenderMusicQueue,
 } from '../utils/formatter/commands/music.queue';
 
+import { createTempFilePath, hasTempDiskSpace, removeTempFile } from '../tempfiles';
+
 import { Listener } from './listener';
 import { onReportRespondComponent } from './reportmessages';
+
+
+// our cdn to the bot host, 500 MB takes well under a minute
+const REUPLOAD_DOWNLOAD_TIMEOUT = 5 * 60 * 1000;
 
 
 class ComponentsListener extends Listener {
@@ -186,6 +196,15 @@ class ComponentsListener extends Listener {
       }));
     }
 
+    // the file is downloaded to disk first (see below), don't fill it up
+    const clusterId = (context.cluster) ? context.cluster.clusterId : 0;
+    if (!(await hasTempDiskSpace(clusterId, storage.metadata.size))) {
+      log.warn(`Not enough disk space to re-upload ${storage.id} (${storage.metadata.size} bytes)`);
+      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+        description: translate('media.reupload_failed'),
+      }));
+    }
+
     if (context.metadata) {
       context.metadata.started = Date.now();
     }
@@ -203,27 +222,75 @@ class ComponentsListener extends Listener {
     await context.createMessage(renderEphemeralDisplay(context, translator, {description: translate('media.reupload_started')}));
     // send a message saying reuploading
 
-    const buffer = await context.rest.get(storage.urls.cdn);
-    await mediaReplyFromOptions(context, buffer, {
-      content,
-      context,
-      description,
-      extension: storage.metadata.extension,
-      filename: storage.filename_safe_base,
-      framecount: storage.metadata.framecount,
-      height: storage.metadata.height,
-      mimetype: storage.metadata.mimetype,
-      size: storage.metadata.size,
-      spoiler,
-      storageUserId: storage.user.id,
-      took,
-      width: storage.metadata.width,
-    });
+    // these go up to 500 MB (nitro), held in memory they'd be copied over and over (the download, the upload) on a host
+    // with little memory to spare, so the file goes to disk and is uploaded from there a chunk at a time
+    // removed in the `finally`, or by this cluster's next start if the process is killed before it runs
+    const filepath = await createTempFilePath(clusterId, 'reupload');
+    try {
+      // one deadline for the whole download, a response that never answers or stalls mid-body would otherwise hold the
+      // file (and this button's lock) until the process restarts
+      const signal = AbortSignal.timeout(REUPLOAD_DOWNLOAD_TIMEOUT);
+      const response = await context.rest.get(storage.urls.cdn, {dataOnly: false, signal});
+      if (!response.body) {
+        throw new Error(`Reupload of ${storage.id} got an empty body`);
+      }
+      await pipeline(
+        Readable.fromWeb(response.body),
+        // discord would refuse anything bigger anyway, don't let a bad response keep writing to the disk
+        limitBytes(context.maxAttachmentSize),
+        fs.createWriteStream(filepath),
+        {signal},
+      );
+      const value = await fs.openAsBlob(filepath, {type: storage.metadata.mimetype});
+
+      await mediaReplyFromOptions(context, value, {
+        content,
+        context,
+        description,
+        extension: storage.metadata.extension,
+        filename: storage.filename_safe_base,
+        framecount: storage.metadata.framecount,
+        height: storage.metadata.height,
+        mimetype: storage.metadata.mimetype,
+        size: storage.metadata.size,
+        spoiler,
+        storageUserId: storage.user.id,
+        took,
+        width: storage.metadata.width,
+      });
+    } catch(error) {
+      // they were told it started, without this the "re-uploading" message would be the last thing they see
+      log.warn(`Failed to re-upload ${storage.id} (${storage.metadata.size} bytes)`, error);
+      await context.createMessage(renderEphemeralDisplay(context, translator, {
+        description: translate('media.reupload_failed'),
+      })).catch(() => {});
+      return;
+    } finally {
+      await removeTempFile(filepath);
+    }
 
     if (storage.temporary) {
       await deleteFile(context, storage.id);
     }
   }
 }
+
+/**
+ * Passes the chunks through, erroring once more than `max` bytes went by
+ */
+function limitBytes(max: number): Transform {
+  let total = 0;
+  return new Transform({
+    transform(chunk: Buffer, encoding, callback) {
+      total += chunk.length;
+      if (max < total) {
+        callback(new Error(`More than ${max} bytes`));
+      } else {
+        callback(null, chunk);
+      }
+    },
+  });
+}
+
 
 export default new ComponentsListener();

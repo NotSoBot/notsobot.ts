@@ -31,6 +31,7 @@ import {
   redactUrlTokens,
 } from './sentry';
 import { connectAllStores } from './stores';
+import { clearClusterTempDirectory } from './tempfiles';
 
 
 import { setGlobalDispatcher, Agent } from 'undici';
@@ -168,6 +169,9 @@ const cluster = new ClusterClient('', {
     process.title = `S:(${cluster.shardStart}-${cluster.shardEnd})`;
   }
   Sentry.setTags({cluster_id: cluster.clusterId, shards: `${cluster.shardStart}-${cluster.shardEnd}`});
+
+  // the temp files the last process of this cluster left behind (killed mid-reupload), it has exited by now
+  clearClusterTempDirectory(cluster.clusterId);
 
   // the request is made from the command's run, the response can come back from a ratelimit bucket's queue that another
   // request started, so the command is remembered per request

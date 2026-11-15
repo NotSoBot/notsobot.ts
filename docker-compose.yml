@@ -37,6 +37,10 @@ services:
       options:
         max-size: 100m
         max-file: "5"
+    # no core dumps: a cluster hitting its heap limit aborts and the host's apport wrote a 3-4gb core of it each time
+    # (2026-11-15 three of cluster 78 filled the 31gb disk). the FATAL ERROR line in the log says the same
+    ulimits:
+      core: 0
     depends_on:
       bot-build:
         condition: service_completed_successfully

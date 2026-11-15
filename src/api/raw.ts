@@ -3937,10 +3937,13 @@ export async function mediaAVManipulationAudioVibrato(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    blend: options.blend,
     depth: options.depth,
     frequency: options.frequency,
     max_file_size: maxFileSize,
+    points: options.points,
     safe: options.safe,
+    semitones: options.semitones,
     url: options.url,
   };
   return request(context, {
