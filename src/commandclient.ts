@@ -17,6 +17,7 @@ import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
 
 import {
+  AutoEmbedReactions,
   DiscordReactionEmojis,
   EmbedColors,
   GuildFeatures,
@@ -194,8 +195,8 @@ export class NotSoCommandClient extends CommandClient {
     if (!link) {
       return null;
     }
-    // nowhere to put the download, don't make one
-    if (!channel.canMessage || !channel.canAttachFiles) {
+    // can't talk here at all, the server muted us in this channel on purpose, say nothing
+    if (!channel.canMessage) {
       return null;
     }
     // already loaded by the prefix check
@@ -209,6 +210,14 @@ export class NotSoCommandClient extends CommandClient {
     }
     // whoever gave the slot still has premium plus
     if (!(await getServerPremiumUsers(context)).length) {
+      return null;
+    }
+    // it's on for this link but we can't do it properly: no file to post, or the link's own preview would stay under ours
+    // (two embeds of the same post). the padlock tells their admins a permission is missing instead of silently nothing
+    if (!channel.canAttachFiles || !channel.canManageMessages) {
+      if (AutoEmbedReactions.MISSING_PERMISSIONS) {
+        await Formatter.Commands.ToolsDownload.reactAutoEmbed(context, AutoEmbedReactions.MISSING_PERMISSIONS);
+      }
       return null;
     }
     return link;

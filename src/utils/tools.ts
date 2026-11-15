@@ -2106,6 +2106,8 @@ export async function jobReply(
     describe?: (response: RestResponsesRaw.FileResponse) => string | undefined,
     // the small text under the result (components v2, the others show it after `describe`'s)
     describeBelow?: (response: RestResponsesRaw.FileResponse) => string | undefined,
+    // the embed display's footer in place of `describeBelow` (the others keep using `describeBelow`)
+    describeEmbedFooter?: (response: RestResponsesRaw.FileResponse) => MediaReplyEmbedFooter | undefined,
     // after the result is posted (not for errors), its failures are ignored, the result is already there
     onSuccess?: () => Promise<void> | void,
     spoiler?: boolean,
@@ -2116,6 +2118,7 @@ export async function jobReply(
     actions: options.actions,
     description: (options.describe) ? options.describe(response) : undefined,
     descriptionBelow: (options.describeBelow) ? options.describeBelow(response) : undefined,
+    embedFooter: (options.describeEmbedFooter) ? options.describeEmbedFooter(response) : undefined,
     spoiler: options.spoiler,
   });
   const replyResult = async (response: RestResponsesRaw.FileResponse) => {
@@ -3096,6 +3099,7 @@ export async function mediaReply(
     content?: string,
     description?: string,
     descriptionBelow?: string,
+    embedFooter?: MediaReplyEmbedFooter,
     filename?: string,
     // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
     hideDetails?: boolean,
@@ -3117,6 +3121,7 @@ export async function mediaReply(
     content: options.content,
     description: options.description,
     descriptionBelow: options.descriptionBelow,
+    embedFooter: options.embedFooter,
     extension: response.file.metadata.extension,
     hideDetails: options.hideDetails,
     filename: options.filename,
@@ -3142,6 +3147,15 @@ export interface MediaReplyActions {
   timeout: number,
 }
 
+// what `descriptionBelow` says, as an embed's footer: plain text (footers don't render markdown), a small icon before
+// it, and a time discord shows after it in the viewer's timezone
+export interface MediaReplyEmbedFooter {
+  iconUrl?: string,
+  text?: string,
+  // unix ms
+  timestamp?: number,
+}
+
 export async function mediaReplyFromOptions(
   context: ComponentContext | Command.Context | Interaction.InteractionContext,
   value: any,
@@ -3154,6 +3168,8 @@ export async function mediaReplyFromOptions(
     description?: string,
     // under the media in components v2 (like a post's site and stats), the other displays add it after `description`
     descriptionBelow?: string,
+    // the embed display shows this in its footer instead of `descriptionBelow`
+    embedFooter?: MediaReplyEmbedFooter,
     extension?: string,
     filename?: string,
     framecount?: number,
@@ -3389,14 +3405,24 @@ export async function mediaReplyFromOptions(
   ) {
     const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
-    if (!options.hideDetails) {
-      embed.setFooter(footer);
+    // the post's site and counts first, then our details, then discord's time after both
+    const embedFooter = options.embedFooter;
+    const footerText = [
+      (embedFooter) ? embedFooter.text : undefined,
+      (options.hideDetails) ? undefined : footer,
+    ].filter(Boolean).join(' • ');
+    if (footerText) {
+      embed.setFooter(footerText, (embedFooter && embedFooter.iconUrl) || undefined);
+    }
+    if (embedFooter && embedFooter.timestamp) {
+      embed.setTimestamp(embedFooter.timestamp);
     }
 
-    if (descriptionWithBelow || (options.storage && options.storage.expires_at)) {
+    const embedDescription = (embedFooter) ? options.description : descriptionWithBelow;
+    if (embedDescription || (options.storage && options.storage.expires_at)) {
       const description: Array<string> = [];
-      if (descriptionWithBelow) {
-        description.push(descriptionWithBelow);
+      if (embedDescription) {
+        description.push(embedDescription);
       }
       if (options.storage && options.storage.expires_at) {
         const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);

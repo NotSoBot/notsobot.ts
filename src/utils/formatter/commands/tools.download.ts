@@ -1,6 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { MarkupTimestampStyles, MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
+import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 
@@ -9,6 +10,7 @@ import { RestResponsesRaw } from '../../../api/types';
 import { CONTENT_BLOCKED_API_ERRORS, JobError, getApiError } from '../../../api/errors';
 import { ApiErrorCodes, AutoEmbedReactions, DiscordEmojis, DiscordReactionEmojis, DiscordSkuIds } from '../../../constants';
 import { DefaultParameters, jobReply, jobWaitForResponse, linkPremiumSkuName, mediaReply } from '../../../utils';
+import { MediaReplyEmbedFooter } from '../../../utils/tools';
 import { getAutoEmbedLink } from '../../autoembed';
 import { Translator, getTranslator } from '../../i18n';
 
@@ -72,6 +74,7 @@ export async function createMessage(
       return (lines.length) ? lines.join('\n') : undefined;
     },
     describeBelow: (response) => (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).below : undefined,
+    describeEmbedFooter: (response) => (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).footer : undefined,
     // `.embed` replaces the link's preview like auto-embed does (slash commands have no message of theirs to change)
     onSuccess: (options.post && context instanceof Command.Context) ? () => suppressLinkEmbed(context) : undefined,
     spoiler: args.spoiler,
@@ -86,8 +89,14 @@ async function autoEmbedReply(context: Command.Context, job: Parameters<typeof j
   const response = await jobWaitForResponse(context, job);
   const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
   const showText = !!(settings && settings.settings && settings.settings.autoEmbedText);
-  const post = (showText && response.post) ? formatPost(await getTranslator(context), response.post, {spoiler}) : {};
-  const reply = await mediaReply(context, response, {description: post.above, descriptionBelow: post.below, hideDetails: true, spoiler});
+  const post: FormattedPost = (showText && response.post) ? formatPost(await getTranslator(context), response.post, {spoiler}) : {};
+  const reply = await mediaReply(context, response, {
+    description: post.above,
+    descriptionBelow: post.below,
+    embedFooter: post.footer,
+    hideDetails: true,
+    spoiler,
+  });
   await suppressLinkEmbed(context);
   return reply;
 }
@@ -141,11 +150,22 @@ function getPostSiteEmoji(post: RestResponsesRaw.FetchMediaPost): string {
   return (match) ? (DiscordEmojis.POST_SITES[match[1]] || '') : '';
 }
 
+// the site emoji's picture, for an embed footer's icon (footers can't show emojis)
+function getPostSiteIconUrl(post: RestResponsesRaw.FetchMediaPost): string | undefined {
+  const match = getPostSiteEmoji(post).match(/^<(a)?:\w+:(\d+)>$/);
+  if (!match) {
+    return undefined;
+  }
+  return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(match[2], (match[1]) ? 'gif' : 'png');
+}
+
 export interface FormattedPost {
   // above the media: what it is and who posted it, then its text
   above?: string,
   // under the media: where it's from, when, and its counts
   below?: string,
+  // `below` for the embed display: its footer (no links or markdown there) with discord's own time after it
+  footer?: MediaReplyEmbedFooter,
 }
 
 // a post around its downloaded media. titled posts (videos, reddit) like a `.yt` result, the rest like a link preview:
@@ -191,11 +211,21 @@ export function formatPost(
   if (post.timestamp) {
     below.push(Markup.timestamp(post.timestamp * 1000, MarkupTimestampStyles.RELATIVE));
   }
-  below.push(...formatPostStats(language, translate, post.stats));
+  const stats = formatPostStats(language, translate, post.stats);
+  below.push(...stats);
+
+  // like discord's own link previews: `[icon] X • 5.3K likes • 90 comments • Today at 5:55 AM`
+  const footerText = [post.site, ...stats].filter(Boolean).join(' • ');
+  const footer: MediaReplyEmbedFooter = {
+    iconUrl: (footerText) ? getPostSiteIconUrl(post) : undefined,
+    text: footerText || undefined,
+    timestamp: (post.timestamp) ? post.timestamp * 1000 : undefined,
+  };
 
   return {
     above: (above.length) ? above.join('\n') : undefined,
     below: (below.length) ? `-# ${below.join(' • ')}` : undefined,
+    footer: (footer.text || footer.timestamp) ? footer : undefined,
   };
 }
 

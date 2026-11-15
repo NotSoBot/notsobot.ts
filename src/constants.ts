@@ -1272,6 +1272,8 @@ export const AutoEmbedReactions = Object.freeze({
   BLOCKED: 'blocked:1571271464072511629',
   // anything else: no media there, the site failed, it timed out (the same ✕ as `StatusEmojis.NO`)
   FAILED: 'no:1571271465448378570',
+  // it's on for the link but we're missing manage messages or attach files there (padlock)
+  MISSING_PERMISSIONS: 'missing_permissions:1571353531254968380',
   // too big, too long, too many frames or too large dimensions (XL)
   TOO_LARGE: 'too_large:1571271468422013080',
 });
