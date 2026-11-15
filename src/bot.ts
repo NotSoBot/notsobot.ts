@@ -13,10 +13,9 @@ import {
 } from 'detritus-client/lib/constants';
 import { ImportedCommandsError } from 'detritus-client/lib/errors';
 
-import { deleteCommandsResponses } from './api';
 import ApiEventsClient from './apievents';
 import { NotSoCommandClient } from './commandclient';
-import { connectCommandResults } from './commandresults';
+import { connectCommandHooks } from './commandhooks';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
 import { connectAllListeners } from './listeners';
@@ -28,7 +27,6 @@ import {
   captureRestResponse,
   markApiReachable,
   captureUnhandledError,
-  connectCommandErrorReporting,
   getCommandContext,
   initSentry,
   redactUrlTokens,
@@ -302,37 +300,8 @@ const cluster = new ClusterClient('', {
           {duration: 5000, limit: 5, type: 'channel'},
         ],
       });
-      connectCommandResults(notSoCommandBot);
-      connectCommandErrorReporting(notSoCommandBot);
-
-      notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
-        // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
-      });
-
-      notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
-        // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
-      });
-
-      // the trigger message got deleted (or edited into something that isn't a command anymore), take our response with
-      // it, detritus already dropped it from the stored replies
-      notSoCommandBot.on(ClientEvents.COMMAND_DELETE, async ({context, event, reply}) => {
-        // purges are handled by the MESSAGE_DELETE_BULK listener, it bulk deletes every response (any age) at once
-        if (event === ClientEvents.MESSAGE_DELETE_BULK) {
-          return;
-        }
-        if (reply && !reply.deleted) {
-          try {
-            await reply.delete();
-          } catch(error) {
-
-          }
-        }
-        try {
-          await deleteCommandsResponses(context, {channelId: context.channelId, triggerIds: [context.messageId]});
-        } catch(error) {
-          // the stale cleanup will get them eventually
-        }
-      });
+      // in commandhooks.ts so `.refresh` reloads them
+      connectCommandHooks(notSoCommandBot);
 
       await addCommandsIn(notSoCommandBot, './commands/prefixed', shardsText);
       await notSoCommandBot.run();
@@ -341,8 +310,7 @@ const cluster = new ClusterClient('', {
 
     {
       const notSoInteractionBot = new NotSoInteractionClient(cluster, {ratelimiter});
-      connectCommandResults(notSoInteractionBot);
-      connectCommandErrorReporting(notSoInteractionBot);
+      connectCommandHooks(notSoInteractionBot);
       await addCommandsIn(notSoInteractionBot, './commands/interactions', shardsText);
       for (let x of notSoInteractionBot.getOversizedCommands()) {
         log.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);

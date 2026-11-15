@@ -1,5 +1,6 @@
 import { CommandClient, InteractionCommandClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
+import { EventSubscription } from 'detritus-utils';
 
 import { isContentBlockedError } from './api/errors';
 import { isTagError } from './utils/tags/exceptions';
@@ -48,15 +49,18 @@ export function getCommandResult(context: {metadata?: Record<string, any>}): Com
 }
 
 // the clients emit these before the command's `onFinally`, blocked and argument errors are set by the hooks instead
-export function connectCommandResults(client: CommandClient | InteractionCommandClient): void {
+// its subscriptions, `connectCommandHooks` keeps them so `.refresh` can swap them for the reloaded ones
+export function connectCommandResults(client: CommandClient | InteractionCommandClient): Array<EventSubscription> {
+  const subscriptions: Array<EventSubscription> = [];
   for (let [event, result] of RESULT_EVENTS) {
-    client.subscribe(event, ({context}: {context: {metadata?: Record<string, any>}}) => setCommandResult(context, result));
+    subscriptions.push(client.subscribe(event, ({context}: {context: {metadata?: Record<string, any>}}) => setCommandResult(context, result)));
   }
   // async for reading the api error's body, still set before `onFinally` since detritus awaits `onRunError` (which reads
   // the same cached body and replies) between emitting this and calling it
-  client.subscribe(ClientEvents.COMMAND_RUN_ERROR, async ({context, error}: {context: {metadata?: Record<string, any>}, error: any}) => {
+  subscriptions.push(client.subscribe(ClientEvents.COMMAND_RUN_ERROR, async ({context, error}: {context: {metadata?: Record<string, any>}, error: any}) => {
     setCommandResult(context, await getRunErrorResult(error));
-  });
+  }));
+  return subscriptions;
 }
 
 export async function getRunErrorResult(error: any): Promise<CommandResults> {

@@ -2034,8 +2034,13 @@ function cancelJob(context: Command.Context | Interaction.InteractionContext | C
 }
 
 
-// the latest run of each trigger message, edits past the edit duration don't re-run anything so they're dropped by then
-const commandRuns = new Collections.BaseCollection<string, Command.Context>({expire: COMMAND_EDIT_DURATION});
+// the latest run of each trigger message, edits past the edit duration don't re-run anything so they're dropped by then.
+// on the process (a global symbol) so a `.refresh` doesn't forget them: a run from before it can still be cancelled by
+// editing or deleting its message
+const COMMAND_RUNS = Symbol.for('notsobot.commandRuns');
+const commandRuns: Collections.BaseCollection<string, Command.Context> = (globalThis as any)[COMMAND_RUNS] = (
+  (globalThis as any)[COMMAND_RUNS] || new Collections.BaseCollection<string, Command.Context>({expire: COMMAND_EDIT_DURATION})
+);
 
 export function trackCommandRun(context: Command.Context): void {
   cancelCommandRun(context.messageId);

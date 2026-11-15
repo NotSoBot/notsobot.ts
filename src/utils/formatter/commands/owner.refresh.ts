@@ -176,6 +176,48 @@ async function refreshCommands(
     }
   }
 
+  // the command clients stay (detritus' handlers and the commands point at these objects), so their reloaded classes'
+  // methods go onto them instead (like the stores' above). as own properties, which also beats the ones detritus copied
+  // onto them in its constructor (`onCommandCheck`, `onCommandCancel`). then `setSubscriptions` re-binds the handlers
+  // it bound when it started (`handleDelete`...), it clears and subscribes again in one go so no event falls between
+  {
+    const path = require('path');
+    const clients: Array<[any, string, string]> = [
+      [cluster.commandClient, 'commandclient.js', 'NotSoCommandClient'],
+      [cluster.interactionCommandClient, 'interactioncommandclient.js', 'NotSoInteractionClient'],
+    ];
+    for (let [client, file, name] of clients) {
+      if (!client) {
+        continue;
+      }
+      try {
+        const NewClass = require(path.join(LIB_PATH, file))[name];
+        if (typeof(NewClass) !== 'function') {
+          throw new Error(`${name} isn't exported`);
+        }
+        for (let key of Object.getOwnPropertyNames(NewClass.prototype)) {
+          const descriptor = Object.getOwnPropertyDescriptor(NewClass.prototype, key);
+          if (key !== 'constructor' && descriptor && typeof(descriptor.value) === 'function') {
+            // assigned, detritus' own copies are writable but not configurable
+            client[key] = descriptor.value;
+          }
+        }
+        if (typeof(client.setSubscriptions) === 'function') {
+          client.setSubscriptions();
+        }
+      } catch(error) {
+        errors.push(`${file}: ${(error as any).message}`);
+      }
+      // its event hooks (command results, error reporting, deleting replies) from the reloaded file, which drops the
+      // old ones first. a process started before the hooks moved there has its old ones from bot.ts left too (one restart)
+      try {
+        require(path.join(LIB_PATH, 'commandhooks.js')).connectCommandHooks(client);
+      } catch(error) {
+        errors.push(`commandhooks.js: ${(error as any).message}`);
+      }
+    }
+  }
+
   if (cluster.commandClient) {
     const commandClient = cluster.commandClient as NotSoCommandClient;
     try {
