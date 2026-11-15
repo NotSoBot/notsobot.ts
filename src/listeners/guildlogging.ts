@@ -162,6 +162,14 @@ class GuildLoggingListener extends Listener {
 
     const { queues, shard, timeout } = storage;
     timeout.start(delay, async () => {
+      // only what's queued before the audit log fetch goes out this round. something that comes in while it waits (like a
+      // cleaning kick's unban right after its ban) waits for the next round's fetch instead of going out without its audit
+      const ready = new Set<GuildLoggingEventItem>();
+      for (let [loggerType, queue] of queues) {
+        for (let event of queue) {
+          ready.add(event);
+        }
+      }
       try {
         await this.populateAuditLogs(guildId, storage);
       } catch(error) {
@@ -179,7 +187,12 @@ class GuildLoggingListener extends Listener {
           const guild = shard.guilds.get(guildId);
           const language = languageFromLocale((guild) ? guild.preferredLocale : null) || Languages.ENGLISH;
           for (let [loggerType, queue] of queues) {
-            const events = queue.splice(0, 10);
+            // the queue is in the order they came in, so the ready ones are at the front
+            let count = 0;
+            while (count < queue.length && count < 10 && ready.has(queue[count])) {
+              count++;
+            }
+            const events = queue.splice(0, count);
             if (events.length) {
               const logPayloads = events.map((event) => createLogPayload(event, {componentsV2, language}));
               const loggers = settings.loggers.filter((logger) => logger.type === loggerType);
@@ -190,7 +203,7 @@ class GuildLoggingListener extends Listener {
                   promises.push(this.execute(shard, logger, payload));
                 }
               }
-            } else {
+            } else if (!queue.length) {
               queues.delete(loggerType);
             }
           }

@@ -764,14 +764,27 @@ async function runWarningStep(
   }
   // a timed ban's end, the same moment goes in the audit log and to the unban scheduler
   const banUntil = (step.action === 'ban' && step.duration) ? Date.now() + step.duration * 1000 : null;
+  const muteUntil = (step.action === 'mute') ? Date.now() + (step.duration || 0) * 1000 : null;
+  const formatTime = (timestamp: number) => createTimestampMomentFromGuild(timestamp, guildId).format(DateMomentLogFormat);
+  // the same lines as the kick/ban/mute commands' audit logs, the reason goes last since it can be long
+  const prefix = `moderation_${(step.action === 'ban') ? 'ban' : (step.action === 'kick') ? 'kick' : 'mute'}` as const;
   const auditReason = [
-    audit.translate('moderation_mute.moderator', {user: formatUserTag(me.user), user2: me.id}),
-    // same line as the ban command's audit log, the reason goes last since it can be long
+    audit.translate(`${prefix}.moderator`, {user: formatUserTag(me.user), user2: me.id}),
+    audit.translate(`${prefix}.date`, {timestamp: formatTime(Date.now())}),
+    // the audit log only shows a ban and an unban for a cleaning kick, so say it was a kick
+    (step.action === 'kick' && step.clean) && audit.translate('moderation_kick.type_kick_cleaning'),
     (step.action === 'ban') && ((banUntil) ? audit.translate('moderation_ban.duration', {
       duration: formatDuration(step.duration! * 1000, audit.language),
-      until: createTimestampMomentFromGuild(banUntil, guildId).format(DateMomentLogFormat),
+      until: formatTime(banUntil),
     }) : audit.translate('moderation_ban.duration_permanent')),
-    audit.translate('moderation_mute.reason', {
+    (muteUntil) && audit.translate('moderation_mute.duration', {
+      duration: formatDuration((step.duration || 0) * 1000, audit.language),
+      until: formatTime(muteUntil),
+    }),
+    (step.action !== 'mute' && step.clean) && audit.translate(`${prefix as 'moderation_ban' | 'moderation_kick'}.message_cleaning`, {
+      duration: formatDuration(step.clean * 1000, audit.language),
+    }),
+    audit.translate(`${prefix}.reason`, {
       text: `${audit.translate('moderation_warn.auto_reached', {count: step.threshold.toLocaleString(audit.language)})}: ${reason}`,
     }),
   ].filter(Boolean).join('\n').slice(0, 512);
@@ -797,7 +810,7 @@ async function runWarningStep(
         }
       }; break;
       case 'mute': {
-        await member.edit({communicationDisabledUntil: new Date(Date.now() + (step.duration || 0) * 1000), reason: auditReason});
+        await member.edit({communicationDisabledUntil: new Date(muteUntil!), reason: auditReason});
       }; break;
     }
   } catch(error) {
