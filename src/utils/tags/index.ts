@@ -122,7 +122,7 @@ import {
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
   YoutubeResultTypes,
-  CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
+  CODE_EXECUTION_FFMPEG_STDERR_BANNER,
   MAX_MEMBERS_SAFE,
 } from '../../constants';
 
@@ -160,6 +160,7 @@ import {
   languageCodeToText,
   randomFromArray,
   randomFromIterator,
+  requestAllGuildMembers,
   MEDIA_COMMAND_TIME,
   textToBoolean,
   TimeLimitTier,
@@ -3562,7 +3563,7 @@ const ScriptTags = Object.freeze({
     if (result.error) {
       // stderr is the tag's own code failing (or a `console.error` on purpose), not ours
       // if it starts with ffmpeg error, check if its only 1 or less files to throw error
-      if (result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) || result.error.includes('Input')) {
+      if (CODE_EXECUTION_FFMPEG_STDERR_BANNER.test(result.error) || result.error.includes('Input')) {
         if (result.files.every((x) => x.file.filename === '__internals__.json')) {
           throw new TagError(result.error);
         }
@@ -10017,12 +10018,8 @@ const ScriptTags = Object.freeze({
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
-        await context.guild.requestMembers({
-          limit: 0,
-          presences: true,
-          query: '',
-          timeout: 10000,
-        });
+        // a guild too big to load in full picks from the members we have cached
+        await requestAllGuildMembers(context.guild);
       }
       const member = randomFromIterator<Structures.Member>(context.guild.members.length, context.guild.members.values());
       tag.text += member.name;
@@ -10040,12 +10037,8 @@ const ScriptTags = Object.freeze({
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
-        await context.guild.requestMembers({
-          limit: 0,
-          presences: true,
-          query: '',
-          timeout: 10000,
-        });
+        // a guild too big to load in full picks from the members we have cached
+        await requestAllGuildMembers(context.guild);
       }
       const member = randomFromIterator<Structures.Member>(context.guild.members.length, context.guild.members.values());
       tag.text += member.id;
@@ -10114,12 +10107,8 @@ const ScriptTags = Object.freeze({
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
-        await context.guild.requestMembers({
-          limit: 0,
-          presences: true,
-          query: '',
-          timeout: 10000,
-        });
+        // a guild too big to load in full picks from the members we have cached
+        await requestAllGuildMembers(context.guild);
       }
       const member = randomFromIterator<Structures.Member>(context.guild.members.length, context.guild.members.values());
       tag.text += member.toString();

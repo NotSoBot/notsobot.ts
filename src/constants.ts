@@ -13,8 +13,13 @@ import { CommandRatelimitOptions } from 'detritus-client/lib/commandratelimit';
 
 
 export const MAX_MEMBERS_SAFE = 10000;
+// guilds above this many members are never loaded in full (`requestAllGuildMembers`), the members stay cached for good
+// and Blox Fruits (3.8m members, shard 628) alone would be more than a cluster's whole heap. name lookups search
+// discord instead (`requestGuildMembersByName`), the rest use the members already cached
+export const MAX_MEMBERS_FULL_REQUEST = 100000;
 
-export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version n8.';
+// first stderr line of ffmpeg's banner in notsocode (BtbN builds: `ffmpeg version n8.1.1-...`), any major version
+export const CODE_EXECUTION_FFMPEG_STDERR_BANNER = /^ffmpeg version n\d+\./;
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
 export const ZERO_WIDTH_SPACE = '\u200b';

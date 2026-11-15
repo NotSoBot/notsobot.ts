@@ -14,6 +14,7 @@ import {
   getCachedChannelMessages,
   getOrFetchRealUrl,
   isFileAttachment,
+  requestAllGuildMembers,
   FindMediaUrlOptions,
 } from './tools';
 
@@ -338,16 +339,11 @@ export async function mlDiffusionModel(
 export async function members(context: Command.Context | Interaction.InteractionContext): Promise<Array<Structures.Member | Structures.User>> {
   const guild = context.guild;
   if (guild) {
-    if (guild.isReady) {
-      return guild.members.toArray();
+    // a guild too big to load in full gives the members we have cached
+    if (!guild.isReady) {
+      await requestAllGuildMembers(guild);
     }
-    const { members } = await guild.requestMembers({
-      limit: 0,
-      presences: true,
-      query: '',
-      timeout: 10000,
-    });
-    return members.toArray();
+    return guild.members.toArray();
   }
   return [context.member || context.user];
 }

@@ -79,6 +79,7 @@ import {
   TimezonesToText,
   UserSettingsResponseDisplayTypes,
   UserSettingsSearchProviders,
+  MAX_MEMBERS_FULL_REQUEST,
   MAX_MEMBERS_SAFE,
   MIMETYPES_IMAGE_EMBEDDABLE,
   MIMETYPES_SAFE_EMBED,
@@ -1100,12 +1101,28 @@ export function findUrlsInMessages(
 /** Member Chunking */
 
 // loads every member of a guild we don't have all of yet (`guild.isReady`), the same options everywhere so concurrent
-// calls for a guild share one request
-export async function requestAllGuildMembers(guild: Structures.Guild): Promise<void> {
+// calls for a guild share one request. false (nothing requested) for guilds above `MAX_MEMBERS_FULL_REQUEST`
+export async function requestAllGuildMembers(guild: Structures.Guild): Promise<boolean> {
+  if (MAX_MEMBERS_FULL_REQUEST < guild.memberCount) {
+    return false;
+  }
   await guild.requestMembers({
     limit: 0,
     presences: true,
     query: '',
+    timeout: 10000,
+  });
+  return true;
+}
+
+
+// for guilds too big to load in full: discord's own search, the members whose username or nickname starts with
+// `username` (at most 100, its limit). a name only matched in the middle isn't found unless it's already cached
+export async function requestGuildMembersByName(guild: Structures.Guild, username: string): Promise<void> {
+  await guild.requestMembers({
+    limit: 100,
+    presences: true,
+    query: username,
     timeout: 10000,
   });
 }
@@ -1128,8 +1145,8 @@ export async function findMemberByChunk(
   }
 
   const guild = context.guild;
-  if (guild && !guild.isReady) {
-    await requestAllGuildMembers(guild);
+  if (guild && !guild.isReady && !await requestAllGuildMembers(guild)) {
+    await requestGuildMembersByName(guild, username);
   }
 
   const { channel } = context;
@@ -1256,8 +1273,8 @@ export async function findMembersByChunk(
 ): Promise<Array<Structures.Member | Structures.User>> {
   const guild = context.guild;
   if (guild) {
-    if (!guild.isReady) {
-      await requestAllGuildMembers(guild);
+    if (!guild.isReady && !await requestAllGuildMembers(guild)) {
+      await requestGuildMembersByName(guild, username);
     }
     // find via guild cache
     const found = findMembersByUsername(guild.members, username, discriminator);

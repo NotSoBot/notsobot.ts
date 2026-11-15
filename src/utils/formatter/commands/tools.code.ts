@@ -6,7 +6,6 @@ import { utilitiesCodeRun } from '../../../api';
 import { CommandResults, setCommandResult } from '../../../commandresults';
 import { getTranslator } from '../../i18n';
 import {
-  CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   CodeLanguages,
   CodeLanguagesToName,
   EmbedBrands,
@@ -74,7 +73,7 @@ export async function createMessage(
   const files: Array<{filename: string, value: Buffer}> = [];
 
   const languageMarkupString = language.extension;
-  if (result.error) {// && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
+  if (result.error) {
     // the command worked, the code didn't
     setCommandResult(context, CommandResults.SCRIPT_ERROR);
     payload.color = EmbedColors.ERROR;
