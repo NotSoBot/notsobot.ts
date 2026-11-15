@@ -4,7 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationMeme } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
-import { DefaultParameters, jobReply } from '../../../utils';
+import { DefaultParameters, Parameters, jobReply } from '../../../utils';
 import * as Mediascript from '../mediascript';
 
 
@@ -31,6 +31,14 @@ export interface CommandArgs {
   fontUrl?: string,
   text: string,
   url: string,
+}
+
+// the prefixed command's parsed args for a pipe step: its `-font` is `{font, fontUrl}` until `run` splits it
+export function fromCommandArgs(args: Omit<CommandArgs, 'font'> & {font?: Parameters.MediaFontArgs | string}): CommandArgs {
+  if (args.font && typeof(args.font) === 'object') {
+    return {...args, font: args.font.font, fontUrl: args.font.fontUrl || args.fontUrl};
+  }
+  return args as CommandArgs;
 }
 
 export function createJob(

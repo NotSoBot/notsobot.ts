@@ -4,7 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationCaption } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
-import { DefaultParameters, jobReply } from '../../../utils';
+import { DefaultParameters, Parameters, jobReply } from '../../../utils';
 import * as Mediascript from '../mediascript';
 
 
@@ -33,6 +33,14 @@ export interface CommandArgs {
   url: string,
 }
 
+// the prefixed command's parsed args for a pipe step: its `-font` is `{font, fontUrl}` until `run` splits it
+export function fromCommandArgs(args: Omit<CommandArgs, 'font'> & {font?: Parameters.MediaFontArgs | string}): CommandArgs {
+  if (args.font && typeof(args.font) === 'object') {
+    return {...args, font: args.font.font, fontUrl: args.font.fontUrl || args.fontUrl};
+  }
+  return args as CommandArgs;
+}
+
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
@@ -47,14 +55,12 @@ export function createJob(
 }
 
 export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
-  // piped, the prefixed command's `-font` is still `{font, fontUrl}` (its `run` splits it)
-  const { font, fontUrl }: {font?: string, fontUrl?: string} = (args.font && typeof(args.font) === 'object') ? args.font : args;
   // their own font file or a saved font's name, mediascript only knows the bundled fonts. no font is their Default Font
-  if (fontUrl || (font && !(Object.values(MediaMemeFonts) as Array<string>).includes(font))) {
+  if (args.fontUrl || (args.font && !(Object.values(MediaMemeFonts) as Array<string>).includes(args.font))) {
     return null;
   }
   // mediascript splits `top | bottom` on the first `|` like `splitText`
-  return Mediascript.line('caption', chain.key, {font, text: args.text});
+  return Mediascript.line('caption', chain.key, {font: args.font, text: args.text});
 }
 
 export async function createMessage(

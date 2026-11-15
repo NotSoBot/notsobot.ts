@@ -37,8 +37,8 @@ export function createJob(
 }
 
 export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
-  // mediascript caps SPEED at 100 (`MAX_MEDIASCRIPT_SPEED`) and takes 0 as "leave it", the endpoint doesn't
-  if (args.speed !== undefined && args.speed !== null && !(0 < args.speed && args.speed <= 100)) {
+  // mediascript takes 0 as "leave it", the endpoint rejects it (both clamp audio and video to 0.5..100)
+  if (args.speed !== undefined && args.speed !== null && !(0 < args.speed)) {
     return null;
   }
   return Mediascript.line('speed', chain.key, {speed: args.speed, pitch: args.pitch});

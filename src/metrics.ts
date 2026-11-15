@@ -113,6 +113,12 @@ export function recordRestRequest(method: string, route: string, status: string,
   }
 }
 
+// a `.pipe`, `script` when it ran as one mediascript job, `steps` when `blocker` (the first command without a mediascript
+// version for its args) made it run a job per command
+export function recordPipeRun(path: 'script' | 'steps', blocker: string = ''): void {
+  incrementCounter('notsobot_pipe_runs_total', {blocker, path});
+}
+
 // how long a request waited before going out, from being made (or its last attempt) to being sent. ratelimit buckets,
 // 429 retries and the 502 retry delay, recorded for every attempt so the average per route is over all of them
 export function recordRestWait(method: string, route: string, waited: number): void {

@@ -47,6 +47,7 @@ import {
   TTSVoicesToText,
   UserSettingsFallbacksMediaImageTypes,
   UserFlags,
+  MAX_PIPE_COMMANDS,
   PIPEABLE_COMMAND_CATEGORIES,
   TTS_VOICES,
 } from '../../constants';
@@ -516,10 +517,11 @@ export async function pipingCommands(
   const pipers: Array<PipingCommand> = [];
   if (value) {
     const contents = value.split(';').map((x) => x.trim()).filter(Boolean);
+    // more used to be dropped without a word, how many runs a job per step is checked once it's known which they are
+    if (MAX_PIPE_COMMANDS < contents.length) {
+      throw new UserError(getCachedTranslator(context).translate('params.pipe_too_many', {max: MAX_PIPE_COMMANDS}));
+    }
     for (let content of contents) {
-      if (pipers.length === 5) {
-        break;
-      }
       const attributes = {content, prefix: ''};
       const command = await commandClient.getCommand(attributes);
       if (command && command.metadata && command.metadata.id && isPipeableCommand(command.metadata)) {
@@ -536,9 +538,6 @@ export async function pipingCommands(
       } else {
         throw new UserError(getCachedTranslator(context).translate('media.pipe.not_pipeable', {command: content}));
       }
-    }
-    if (5 < pipers.length) {
-      throw new UserError(getCachedTranslator(context).translate('params.pipe_too_many'));
     }
   }
   const mlCount = pipers.reduce((x, y) => {

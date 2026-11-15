@@ -98,6 +98,8 @@ export async function createJob(
   return await mediaAIVManipulationConvert(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+    // the api's `remove_audio`, `noaudio` went nowhere
+    removeAudio: args.noaudio,
   });
 }
 

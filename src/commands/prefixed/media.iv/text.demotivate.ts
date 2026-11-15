@@ -48,12 +48,6 @@ export default class TextDemotivateCommand extends BaseImageOrVideoCommand {
   }
 
   run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationDemotivate.CommandArgs) {
-    // `title | text`, the text is optional
-    const [ before, ...after ] = (args.text || '').split('|');
-    args.title = before.trim();
-    if (after.length) {
-      args.text = after.join('|').trim();
-    }
-    return Formatter.Commands.MediaIVManipulationDemotivate.createMessage(context, args);
+    return Formatter.Commands.MediaIVManipulationDemotivate.createMessage(context, Formatter.Commands.MediaIVManipulationDemotivate.fromCommandArgs(args));
   }
 }

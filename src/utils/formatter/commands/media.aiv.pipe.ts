@@ -10,7 +10,10 @@ import {
   EmbedColors,
   GoogleLocales,
   GoogleLocalesText,
+  MAX_PIPE_COMMANDS_STEPS,
 } from '../../../constants';
+import { log } from '../../../log';
+import { recordPipeRun } from '../../../metrics';
 import {
   DefaultParameters,
   Formatter,
@@ -29,8 +32,13 @@ export const COMMAND_ID = 'media.aiv.pipe';
 
 export interface CommandArgs {
   commands: Array<Parameters.PipingCommand>,
+  // reply with the mediascript the pipe runs as (or what keeps it from being one) instead of running it
+  script?: boolean,
   url: string,
 }
+
+// longer goes as a file, a code block in the reply only fits so much
+const SCRIPT_MAX_INLINE_LENGTH = 3800;
 
 export interface PipingCommandExecution extends Parameters.PipingCommand {
   createJob?: (
@@ -46,6 +54,7 @@ export interface PipingCommandExecution extends Parameters.PipingCommand {
   createMediascript?: (
     args: Record<string, any>,
     chain: MediascriptChain,
+    context?: Command.Context | Interaction.InteractionContext,
   ) => Array<string> | null | string,
 }
 
@@ -88,29 +97,57 @@ async function withDeadline<T>(
   }
 }
 
-// null when any step has no mediascript version (or args it can't take), those pipes run a job per step
+export interface MediascriptChainResult {
+  chain: MediascriptChain | null,
+  // without a chain, the first step that has no mediascript version (or args it can't take) and why
+  blocker?: PipingCommandExecution,
+  reason?: string,
+}
+
+// no chain when any step has no mediascript version (or args it can't take), those pipes run a job per step
 export function createMediascriptChain(
   pipers: Array<PipingCommandExecution>,
   url: string,
-): MediascriptChain | null {
+  context?: Command.Context | Interaction.InteractionContext,
+): MediascriptChainResult {
   const chain = new MediascriptChain(url);
-  for (let { commandArgs, createMediascript } of pipers) {
+  for (let piper of pipers) {
+    const { commandArgs, createMediascript } = piper;
     if (!createMediascript) {
-      return null;
+      return {blocker: piper, chain: null, reason: 'no mediascript version'};
     }
     let lines: Array<string> | null | string;
     try {
-      lines = createMediascript(commandArgs, chain);
+      lines = createMediascript(commandArgs, chain, context);
     } catch(error) {
       // a value a line can't hold (NaN from a bad number), the job per step gives the route's own error for it
-      return null;
+      return {blocker: piper, chain: null, reason: String(error)};
     }
     if (lines === null) {
-      return null;
+      return {blocker: piper, chain: null, reason: 'args it can\'t take'};
     }
     chain.lines.push(...((Array.isArray(lines)) ? lines : [lines]));
   }
-  return chain;
+  return {chain};
+}
+
+// `-script`: the code to copy into a `{mediascript:...}` (the links are the media's, an attachment's expire), nothing runs
+async function replyScript(
+  context: Command.Context | Interaction.InteractionContext,
+  chain: MediascriptChain | null,
+  blocker: PipingCommandExecution | undefined,
+  translate: Awaited<ReturnType<typeof getTranslator>>['translate'],
+) {
+  if (!chain) {
+    return displayReply(context, {
+      description: translate('media.pipe.script_blocked', {command: Markup.codestring((blocker) ? blocker.command.name : '?')}),
+    });
+  }
+  const code = chain.code;
+  if (code.length <= SCRIPT_MAX_INLINE_LENGTH) {
+    return displayReply(context, {description: Markup.codeblock(code)});
+  }
+  return displayReply(context, {files: [{filename: 'pipe.mediascript.txt', value: Buffer.from(code)}]});
 }
 
 export async function createMessage(
@@ -157,8 +194,12 @@ export async function createMessage(
   const signal = AbortSignal.timeout(maxTime);
 
   // every step has a mediascript version: one job, the media stays on the worker between steps
-  const chain = createMediascriptChain(pipers, args.url);
+  const { blocker, chain, reason } = createMediascriptChain(pipers, args.url, context);
+  if (args.script) {
+    return replyScript(context, chain, blocker, translate);
+  }
   if (chain) {
+    recordPipeRun('script');
     const description = `piped: ${pipers.map((x) => x.command.name).join(' -> ')}`;
     try {
       const job = await withDeadline(signal, utilitiesMediascript(context, {code: chain.code, safe}).then((x) => {
@@ -177,6 +218,17 @@ export async function createMessage(
       }
       throw error;
     }
+  }
+
+  const blockerId = (blocker && blocker.command.metadata && blocker.command.metadata.id) || '';
+  recordPipeRun('steps', blockerId);
+  log.info(`[pipe] job per step, ${blockerId || 'unknown'} (${reason}): ${pipers.map((x) => x.command.name).join(' -> ')}`);
+  // every step is its own job and a round trip of the media, fewer of them than a script can do
+  if (MAX_PIPE_COMMANDS_STEPS < pipers.length) {
+    throw new UserError(translate('media.pipe.too_many_steps', {
+      command: (blocker) ? blocker.command.name : '?',
+      max: MAX_PIPE_COMMANDS_STEPS,
+    }));
   }
 
   let file: RequestFile | undefined;

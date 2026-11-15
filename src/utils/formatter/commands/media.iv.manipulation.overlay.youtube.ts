@@ -39,12 +39,17 @@ export function createJob(
   });
 }
 
-export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
-  // without one the channel is the user's name, which the mediascript doesn't know
-  if (!args.channel) {
+export function createMediascript(
+  args: CommandArgs,
+  chain: Mediascript.MediascriptChain,
+  context?: Command.Context | Interaction.InteractionContext,
+) {
+  // the channel is whoever made it unless they named one, like `createJob`
+  const channel = args.channel || (context && (context.user.globalName || context.user.username));
+  if (!channel) {
     return null;
   }
-  return Mediascript.line('youtube', chain.key, {channel: args.channel, text: args.text});
+  return Mediascript.line('youtube', chain.key, {channel, text: args.text});
 }
 
 export async function createMessage(

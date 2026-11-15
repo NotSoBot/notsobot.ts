@@ -20,6 +20,7 @@ export class MediaAIVPipeCommand extends BaseInteractionMediaCommandOption {
     super({
       options: [
         {name: 'commands', description: 'Media Commands (ex: flip; flop)', ...I18n.optionLocalizations('commands.media_aiv.pipe.commands'), required: true, value: Parameters.pipingCommands},
+        {name: 'script', description: 'Show the mediascript it runs as instead of running it', ...I18n.optionLocalizations('commands.media_aiv.pipe.script'), type: Boolean},
       ],
     });
   }

@@ -8,6 +8,7 @@ import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
 
 export interface CommandArgsBefore {
   commands?: Array<any>,
+  script?: boolean,
   url?: null | string,
 }
 
@@ -18,14 +19,19 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        // the mediascript it runs as, shown instead of run
+        {name: 'script', type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.CONVERSION,
         description: 'Run several media commands in a row, each on the last one\'s result',
         examples: [
           `${COMMAND_NAME} flip; flop`,
+          `${COMMAND_NAME} flip; deepfry -scale 30; speed 2 -script`,
         ],
         id: Formatter.Commands.MediaAIVPipe.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...commands>',
+        usage: '<emoji,user:id|mention,url> <...commands> (-script)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

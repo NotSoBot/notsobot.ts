@@ -429,6 +429,11 @@ export const CommandCategoryNames: Record<CommandCategories, string> = Object.fr
 });
 
 // `.pipe` accepts commands from these categories, unless a command sets `pipeable` explicitly
+// a pipe that runs as one mediascript job takes up to `MAX_PIPE_COMMANDS`, one that runs a job per step (a command
+// without a mediascript version in it) `MAX_PIPE_COMMANDS_STEPS`, every step there is a whole job and a round trip
+export const MAX_PIPE_COMMANDS = 10;
+export const MAX_PIPE_COMMANDS_STEPS = 5;
+
 export const PIPEABLE_COMMAND_CATEGORIES: ReadonlyArray<CommandCategories> = Object.freeze([
   CommandCategories.AI,
   CommandCategories.AUDIO,

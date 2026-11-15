@@ -41,9 +41,9 @@ export function createMediascript(args: CommandArgs, chain: Mediascript.Mediascr
     }
     return Mediascript.line((args.ratio) ? 'contain' : 'resize', chain.key, {width, height, kernel: args.kernel});
   }
-  // the route's default scale is 2, and mediascript's `scale` only takes up to 10 (the route has no limit)
+  // the route's default scale is 2. both stop at the max size, a scale of 0 or less gets the route's own error
   const scale = args.scale || (args.sizeorscale && args.sizeorscale.scale) || 2;
-  if (!(0 < scale && scale <= 10)) {
+  if (!(0 < scale)) {
     return null;
   }
   return Mediascript.line('scale', chain.key, {scale, kernel: args.kernel});

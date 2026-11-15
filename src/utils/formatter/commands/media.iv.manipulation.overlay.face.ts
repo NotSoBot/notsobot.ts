@@ -40,10 +40,6 @@ export function createMediascript(args: CommandArgs, chain: Mediascript.Mediascr
   if (args.urls.length < 2) {
     return null;
   }
-  // the route takes 0.01 to 1000, mediascript only 0.1 to 10
-  if (args.scale !== undefined && args.scale !== null && (args.scale < 0.1 || 10 < args.scale)) {
-    return null;
-  }
   const face = chain.load(args.urls[1]);
   return Mediascript.line('overlayface', chain.key, {face_media: face, face_scale: args.scale});
 }
