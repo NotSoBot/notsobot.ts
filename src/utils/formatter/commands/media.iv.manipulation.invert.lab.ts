@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationInvertLAB } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.invert.lab';
@@ -34,6 +35,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('invertlab', chain.key, {lightness: args.lightness, a: args.a, b: args.b});
 }
 
 export async function createMessage(

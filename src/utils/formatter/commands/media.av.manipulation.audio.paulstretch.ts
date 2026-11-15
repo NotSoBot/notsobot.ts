@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationAudioPaulstretch } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.paulstretch';
@@ -33,6 +34,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audiopaulstretch', chain.key, {stretch: args.stretch, resolution: args.resolution});
 }
 
 export async function createMessage(

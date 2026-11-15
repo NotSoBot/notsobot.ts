@@ -128,7 +128,7 @@ export async function createMessage(
     cleanupGame(existing);
   }
   if (activeGames.has(channelId)) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('fun.game_imagine.already_running')}`});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('game.imagine.already_running')}`});
   }
 
   const game: Game = {
@@ -157,7 +157,7 @@ export async function createMessage(
   activeGames.set(channelId, game);
 
   game.timer.start(LOBBY_TIME, () => {
-    endGame(game, {description: translate('fun.game_imagine.lobby_expired')});
+    endGame(game, {description: translate('game.imagine.lobby_expired')});
   });
 
   try {
@@ -227,7 +227,7 @@ function generateRandomReference(game: Game): void {
       // fails the lobby right away, a start that's waiting on it fails the game itself
       if (game.phase === GamePhases.LOBBY && !game.startRequested) {
         const { translate } = await getTranslator(game.context);
-        await failGame(game, translate('fun.game_imagine.image_failed'), error);
+        await failGame(game, translate('game.imagine.image_failed'), error);
       }
       return;
     }
@@ -302,7 +302,7 @@ async function failGame(game: Game, title: string, error: any): Promise<void> {
 
 function createGamePayload(game: Game, translator: Translator): DisplayPayload {
   const { translate } = translator;
-  const title = translate('fun.game_imagine.title');
+  const title = translate('game.imagine.title');
   if (game.ended) {
     return {...game.ended, title: game.ended.title || title};
   }
@@ -311,22 +311,22 @@ function createGamePayload(game: Game, translator: Translator): DisplayPayload {
     case GamePhases.LOBBY: {
       const players = Array.from(game.players.keys()).map((userId) => `<@${userId}>`);
       const note = (game.startRequested) ? (
-        translate('fun.game_imagine.starting_when_ready')
+        translate('game.imagine.starting_when_ready')
       ) : (
-        translate('fun.game_imagine.lobby_closes', {time: displayTimestamp(game.deadline)})
+        translate('game.imagine.lobby_closes', {time: displayTimestamp(game.deadline)})
       );
       return {
         components: createLobbyComponents(game, translator),
         description: displayDetails([
-          translate('fun.game_imagine.how_to_play'),
+          translate('game.imagine.how_to_play'),
           (game.hostPlays) ? (
-            translate('fun.game_imagine.prompt_random', {user: `<@${game.hostId}>`})
+            translate('game.imagine.prompt_random', {user: `<@${game.hostId}>`})
           ) : (
-            translate('fun.game_imagine.prompt_by_host', {user: `<@${game.hostId}>`})
+            translate('game.imagine.prompt_by_host', {user: `<@${game.hostId}>`})
           ),
           '',
-          `**${translate('fun.game_imagine.players', {count: game.players.size, max: MAX_PLAYERS})}**`,
-          (players.length) ? players.join(', ') : translate('fun.game_imagine.no_players_yet'),
+          `**${translate('game.imagine.players', {count: game.players.size, max: MAX_PLAYERS})}**`,
+          (players.length) ? players.join(', ') : translate('game.imagine.no_players_yet'),
         ]),
         note,
         title,
@@ -339,19 +339,19 @@ function createGamePayload(game: Game, translator: Translator): DisplayPayload {
       return {
         components: createRoundComponents(game, translator),
         description: displayDetails([
-          translate('fun.game_imagine.recreate'),
+          translate('game.imagine.recreate'),
           '',
-          (submitted.length) ? displayDetail(translate('fun.game_imagine.submitted'), submitted.join(', ')) : null,
-          (waiting.length) ? displayDetail(translate('fun.game_imagine.waiting_on'), waiting.join(', ')) : null,
+          (submitted.length) ? displayDetail(translate('game.imagine.submitted'), submitted.join(', ')) : null,
+          (waiting.length) ? displayDetail(translate('game.imagine.waiting_on'), waiting.join(', ')) : null,
         ]),
         files: [imageFile(game.reference!, 'secret')],
-        note: translate('fun.game_imagine.round_ends', {time: displayTimestamp(game.deadline)}),
+        note: translate('game.imagine.round_ends', {time: displayTimestamp(game.deadline)}),
         title,
       };
     };
     case GamePhases.VOTING: {
       return {
-        description: translate('fun.game_imagine.voting_below'),
+        description: translate('game.imagine.voting_below'),
         title,
       };
     };
@@ -366,20 +366,20 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
   const components = new Components({timeout: LOBBY_TIME + COMPONENTS_TIMEOUT_PADDING});
 
   components.createButton({
-    label: `${translator.translate('fun.game_imagine.join')} (${game.players.size}/${MAX_PLAYERS})`,
+    label: `${translator.translate('game.imagine.join')} (${game.players.size}/${MAX_PLAYERS})`,
     run: async (ctx: ComponentContext) => {
       if (game.phase !== GamePhases.LOBBY) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       const { translate } = await getTranslator(ctx);
       if (game.players.has(ctx.userId)) {
-        return respondEphemeral(ctx, translate('fun.game_imagine.already_joined'));
+        return respondEphemeral(ctx, translate('game.imagine.already_joined'));
       }
       if (!game.hostPlays && ctx.userId === game.hostId) {
-        return respondEphemeral(ctx, translate('fun.game_imagine.host_is_judging'));
+        return respondEphemeral(ctx, translate('game.imagine.host_is_judging'));
       }
       if (MAX_PLAYERS <= game.players.size) {
-        return respondEphemeral(ctx, translate('fun.game_imagine.game_full', {max: MAX_PLAYERS}));
+        return respondEphemeral(ctx, translate('game.imagine.game_full', {max: MAX_PLAYERS}));
       }
       game.players.set(ctx.userId, createPlayer(ctx.userId));
       await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -388,7 +388,7 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
   });
 
   components.createButton({
-    label: translator.translate('fun.game_imagine.leave'),
+    label: translator.translate('game.imagine.leave'),
     style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
       if (game.phase !== GamePhases.LOBBY) {
@@ -396,7 +396,7 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
       }
       if (!game.players.has(ctx.userId)) {
         const { translate } = await getTranslator(ctx);
-        return respondEphemeral(ctx, translate('fun.game_imagine.not_joined'));
+        return respondEphemeral(ctx, translate('game.imagine.not_joined'));
       }
       game.players.delete(ctx.userId);
       await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -406,7 +406,7 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
 
   components.createButton({
     disabled: game.startRequested,
-    label: translator.translate('fun.game_imagine.start'),
+    label: translator.translate('game.imagine.start'),
     style: MessageComponentButtonStyles.SUCCESS,
     run: async (ctx: ComponentContext) => {
       if (game.phase !== GamePhases.LOBBY || game.startRequested) {
@@ -414,10 +414,10 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
       }
       const { translate } = await getTranslator(ctx);
       if (ctx.userId !== game.hostId) {
-        return respondEphemeral(ctx, translate('fun.game_imagine.only_host', {user: `<@${game.hostId}>`}));
+        return respondEphemeral(ctx, translate('game.imagine.only_host', {user: `<@${game.hostId}>`}));
       }
       if (game.players.size < MIN_PLAYERS) {
-        return respondEphemeral(ctx, translate('fun.game_imagine.need_players', {count: MIN_PLAYERS}));
+        return respondEphemeral(ctx, translate('game.imagine.need_players', {count: MIN_PLAYERS}));
       }
       game.startRequested = true;
       // the image can take a bit, the lobby doesn't expire on them while it finishes (the job wait time still applies)
@@ -434,7 +434,7 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
 
   components.createButton({
     disabled: game.startRequested,
-    label: translator.translate('fun.game_imagine.set_prompt'),
+    label: translator.translate('game.imagine.set_prompt'),
     style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
       if (game.phase !== GamePhases.LOBBY || game.startRequested) {
@@ -442,7 +442,7 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
       }
       const hostTranslator = await getTranslator(ctx);
       if (ctx.userId !== game.hostId) {
-        return respondEphemeral(ctx, hostTranslator.translate('fun.game_imagine.only_host', {user: `<@${game.hostId}>`}));
+        return respondEphemeral(ctx, hostTranslator.translate('game.imagine.only_host', {user: `<@${game.hostId}>`}));
       }
       return ctx.respond(createSecretPromptModal(game, ctx, hostTranslator));
     },
@@ -457,10 +457,10 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
       }
       if (ctx.userId !== game.hostId) {
         const { translate } = await getTranslator(ctx);
-        return respondEphemeral(ctx, translate('fun.game_imagine.only_host', {user: `<@${game.hostId}>`}));
+        return respondEphemeral(ctx, translate('game.imagine.only_host', {user: `<@${game.hostId}>`}));
       }
       await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      await endGame(game, {description: translator.translate('fun.game_imagine.cancelled')});
+      await endGame(game, {description: translator.translate('game.imagine.cancelled')});
     },
   });
 
@@ -473,14 +473,14 @@ function createSecretPromptModal(game: Game, ctx: ComponentContext, translator: 
   const { translate } = translator;
   const modal = new InteractionModal({
     timeout: Math.max(game.deadline - Date.now(), 0) + COMPONENTS_TIMEOUT_PADDING,
-    title: translate('fun.game_imagine.secret_prompt_title'),
+    title: translate('game.imagine.secret_prompt_title'),
     run: (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
       return submitSecretPrompt(game, ctx, modalContext, String(args.prompt || '').trim());
     },
   });
   modal.createLabel({
-    description: translate('fun.game_imagine.secret_prompt_description'),
-    label: translate('fun.game_imagine.modal_prompt'),
+    description: translate('game.imagine.secret_prompt_description'),
+    label: translate('game.imagine.modal_prompt'),
   }).createInputText({
     customId: 'prompt',
     maxLength: MAX_PROMPT_LENGTH,
@@ -503,7 +503,7 @@ async function submitSecretPrompt(
   const { translate } = translator;
   if (game.phase !== GamePhases.LOBBY || game.startRequested) {
     return modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, await renderPlayerMessage(ctx, {
-      description: translate('fun.game_imagine.already_started'),
+      description: translate('game.imagine.already_started'),
     }, true));
   }
 
@@ -516,7 +516,7 @@ async function submitSecretPrompt(
     }
     generateRandomReference(game);
     await modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, await renderPlayerMessage(ctx, {
-      description: translate('fun.game_imagine.secret_prompt_random'),
+      description: translate('game.imagine.secret_prompt_random'),
     }, true));
     return refreshGame(game);
   }
@@ -530,14 +530,14 @@ async function submitSecretPrompt(
     image = await generateImage(ctx, prompt);
   } catch(error) {
     const { createRunErrorPayload, warning }: typeof import('../../../commands/errors') = require('../../../commands/errors');
-    const payload = await createRunErrorPayload(game.context, warning(translate('fun.game_imagine.secret_prompt_failed')), error, translator);
+    const payload = await createRunErrorPayload(game.context, warning(translate('game.imagine.secret_prompt_failed')), error, translator);
     return modalContext.editResponse(await renderPlayerMessage(ctx, {...payload, color: EmbedColors.ERROR}, false));
   }
 
   // they set another prompt meanwhile, or the game started with the old image
   if (secretPromptId !== game.secretPromptId || game.phase !== GamePhases.LOBBY || game.startRequested) {
     return modalContext.editResponse(await renderPlayerMessage(ctx, {
-      description: translate('fun.game_imagine.secret_prompt_replaced'),
+      description: translate('game.imagine.secret_prompt_replaced'),
     }, false));
   }
   // a random image still generating doesn't replace it once it's done
@@ -548,7 +548,7 @@ async function submitSecretPrompt(
   game.hostPlays = false;
   game.players.delete(game.hostId);
   await modalContext.editResponse(await renderPlayerMessage(ctx, {
-    description: displayDetails([translate('fun.game_imagine.secret_prompt_set'), formatPrompt(image.prompt)]),
+    description: displayDetails([translate('game.imagine.secret_prompt_set'), formatPrompt(image.prompt)]),
   }, false));
   return refreshGame(game);
 }
@@ -561,7 +561,7 @@ async function startRound(game: Game): Promise<void> {
   }
   if (game.referenceError || !game.reference) {
     const { translate } = await getTranslator(game.context);
-    return failGame(game, translate('fun.game_imagine.image_failed'), game.referenceError || new Error('No image'));
+    return failGame(game, translate('game.imagine.image_failed'), game.referenceError || new Error('No image'));
   }
   // people left while it waited on the image, back to the lobby for what's left of its time (at least a minute), a
   // whole new lobby could go past the 15 minutes a slash command's token can edit its response for
@@ -570,7 +570,7 @@ async function startRound(game: Game): Promise<void> {
     game.deadline = Math.max(game.deadline, Date.now() + 60 * 1000);
     game.timer.start(game.deadline - Date.now(), async () => {
       const { translate } = await getTranslator(game.context);
-      await endGame(game, {description: translate('fun.game_imagine.lobby_expired')});
+      await endGame(game, {description: translate('game.imagine.lobby_expired')});
     });
     await refreshGame(game);
     return;
@@ -588,7 +588,7 @@ async function startRound(game: Game): Promise<void> {
 function createRoundComponents(game: Game, translator: Translator): Components {
   const components = new Components({timeout: ROUND_TIME + COMPONENTS_TIMEOUT_PADDING});
   components.createButton({
-    label: translator.translate('fun.game_imagine.write_prompt'),
+    label: translator.translate('game.imagine.write_prompt'),
     run: async (ctx: ComponentContext) => {
       if (game.phase !== GamePhases.ROUND) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -596,11 +596,11 @@ function createRoundComponents(game: Game, translator: Translator): Components {
       const playerTranslator = await getTranslator(ctx);
       const player = game.players.get(ctx.userId);
       if (!player) {
-        const key = (ctx.userId === game.hostId) ? 'fun.game_imagine.host_is_judging' : 'fun.game_imagine.not_joined';
+        const key = (ctx.userId === game.hostId) ? 'game.imagine.host_is_judging' : 'game.imagine.not_joined';
         return respondEphemeral(ctx, playerTranslator.translate(key));
       }
       if (player.submission) {
-        return respondEphemeral(ctx, playerTranslator.translate('fun.game_imagine.already_submitted'));
+        return respondEphemeral(ctx, playerTranslator.translate('game.imagine.already_submitted'));
       }
       return ctx.respond(createPromptModal(game, player, ctx, playerTranslator, false));
     },
@@ -620,14 +620,14 @@ function createPromptModal(
   const { translate } = translator;
   const modal = new InteractionModal({
     timeout: Math.max(game.deadline - Date.now(), 0) + COMPONENTS_TIMEOUT_PADDING,
-    title: translate('fun.game_imagine.modal_title'),
+    title: translate('game.imagine.modal_title'),
     run: (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
       return submitPrompt(game, player, ctx, modalContext, String(args.prompt || '').trim(), inPlace);
     },
   });
   modal.createLabel({
-    description: translate('fun.game_imagine.modal_prompt_description'),
-    label: translate('fun.game_imagine.modal_prompt'),
+    description: translate('game.imagine.modal_prompt_description'),
+    label: translate('game.imagine.modal_prompt'),
   }).createInputText({
     customId: 'prompt',
     maxLength: MAX_PROMPT_LENGTH,
@@ -675,7 +675,7 @@ async function submitPrompt(
   const { translate } = translator;
   const type = (inPlace) ? InteractionCallbackTypes.UPDATE_MESSAGE : InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE;
   if (game.phase !== GamePhases.ROUND || player.submission) {
-    const key = (player.submission) ? 'fun.game_imagine.already_submitted' : 'fun.game_imagine.round_over';
+    const key = (player.submission) ? 'game.imagine.already_submitted' : 'game.imagine.round_over';
     return modalContext.respond(type, await renderPlayerMessage(ctx, {description: translate(key)}, !inPlace));
   }
 
@@ -695,7 +695,7 @@ async function submitPrompt(
       return;
     }
     const { createRunErrorPayload, warning }: typeof import('../../../commands/errors') = require('../../../commands/errors');
-    const payload = await createRunErrorPayload(game.context, warning(translate('fun.game_imagine.generation_failed')), error, translator);
+    const payload = await createRunErrorPayload(game.context, warning(translate('game.imagine.generation_failed')), error, translator);
     return modalContext.editResponse(await renderPlayerMessage(ctx, {
       ...payload,
       color: EmbedColors.ERROR,
@@ -708,12 +708,12 @@ async function submitPrompt(
     return;
   }
   if (game.phase !== GamePhases.ROUND || player.submission) {
-    return modalContext.editResponse(await renderPlayerMessage(ctx, {description: translate('fun.game_imagine.round_over')}, false));
+    return modalContext.editResponse(await renderPlayerMessage(ctx, {description: translate('game.imagine.round_over')}, false));
   }
   player.draft = image;
   return modalContext.editResponse(await renderPlayerMessage(ctx, {
     components: createPreviewComponents(game, player, draftId, translator, true),
-    description: displayDetails([translate('fun.game_imagine.preview'), formatPrompt(prompt)]),
+    description: displayDetails([translate('game.imagine.preview'), formatPrompt(prompt)]),
     files: [imageFile(image, 'preview')],
   }, false));
 }
@@ -731,22 +731,22 @@ function createPreviewComponents(
 
   if (canUse) {
     components.createButton({
-      label: translate('fun.game_imagine.use_image'),
+      label: translate('game.imagine.use_image'),
       style: MessageComponentButtonStyles.SUCCESS,
       run: async (ctx: ComponentContext) => {
-        let key: TranslationKey = 'fun.game_imagine.submitted_wait';
+        let key: TranslationKey = 'game.imagine.submitted_wait';
         if (game.phase !== GamePhases.ROUND) {
-          key = 'fun.game_imagine.round_over';
+          key = 'game.imagine.round_over';
         } else if (player.submission) {
-          key = 'fun.game_imagine.already_submitted';
+          key = 'game.imagine.already_submitted';
         } else if (player.draftId !== draftId || !player.draft) {
-          key = 'fun.game_imagine.outdated_preview';
+          key = 'game.imagine.outdated_preview';
         } else {
           player.submission = player.draft;
           player.draft = null;
         }
         await editOrReply(ctx, await renderPlayerMessage(ctx, {description: translate(key)}, false));
-        if (key === 'fun.game_imagine.submitted_wait') {
+        if (key === 'game.imagine.submitted_wait') {
           await onSubmitted(game);
         }
       },
@@ -754,11 +754,11 @@ function createPreviewComponents(
   }
 
   components.createButton({
-    label: translate('fun.game_imagine.try_again'),
+    label: translate('game.imagine.try_again'),
     style: (canUse) ? MessageComponentButtonStyles.SECONDARY : MessageComponentButtonStyles.PRIMARY,
     run: async (ctx: ComponentContext) => {
       if (game.phase !== GamePhases.ROUND || player.submission) {
-        const key = (player.submission) ? 'fun.game_imagine.already_submitted' : 'fun.game_imagine.round_over';
+        const key = (player.submission) ? 'game.imagine.already_submitted' : 'game.imagine.round_over';
         return editOrReply(ctx, await renderPlayerMessage(ctx, {description: translate(key)}, false));
       }
       return ctx.respond(createPromptModal(game, player, ctx, await getTranslator(ctx), true));
@@ -814,7 +814,7 @@ async function startVoting(game: Game): Promise<void> {
     }
   } catch(error) {
     const { translate } = translator;
-    return failGame(game, translate('fun.game_imagine.vote_failed'), error);
+    return failGame(game, translate('game.imagine.vote_failed'), error);
   }
 }
 
@@ -823,7 +823,7 @@ function createEntryLines(game: Game, translator: Translator, votes: Array<numbe
   return game.entries.map((player, index) => {
     const line = displayDetailsLine([
       `**${index + 1}.** <@${player.userId}>`,
-      (votes) ? displayDetail(translator.translate('fun.game_imagine.votes'), votes[index]) : null,
+      (votes) ? displayDetail(translator.translate('game.imagine.votes'), votes[index]) : null,
     ]);
     return `${line}\n${formatPrompt(player.submission!.prompt)}`;
   });
@@ -843,11 +843,11 @@ function createVotePayload(game: Game, translator: Translator): DisplayPayload {
         }
         const { translate } = await getTranslator(ctx);
         if (entry.userId === ctx.userId) {
-          return respondEphemeral(ctx, translate('fun.game_imagine.cannot_vote_self'));
+          return respondEphemeral(ctx, translate('game.imagine.cannot_vote_self'));
         }
         // anyone watching can vote too, it only ends early once everyone in the game has
         game.votes.set(ctx.userId, index);
-        await respondEphemeral(ctx, translate('fun.game_imagine.voted', {number: index + 1}));
+        await respondEphemeral(ctx, translate('game.imagine.voted', {number: index + 1}));
         const voters = new Set([game.hostId, ...game.players.keys()]);
         if (Array.from(voters).every((userId) => game.votes.has(userId))) {
           await finishGame(game);
@@ -859,15 +859,15 @@ function createVotePayload(game: Game, translator: Translator): DisplayPayload {
   return {
     components,
     description: displayDetails([
-      translate('fun.game_imagine.vote_original'),
+      translate('game.imagine.vote_original'),
       '',
       ...createEntryLines(game, translator, null),
     ]),
     files: [imageFile(game.reference!, 'secret'), ...game.entries.map((player, index) => imageFile(player.submission!, String(index + 1)))],
-    note: translate('fun.game_imagine.vote_ends', {time: displayTimestamp(game.deadline)}),
+    note: translate('game.imagine.vote_ends', {time: displayTimestamp(game.deadline)}),
     // the original sits beside the text, the gallery under it is only the recreations, in their numbered order
     thumbnail: `attachment://secret.${game.reference!.extension}`,
-    title: translate('fun.game_imagine.vote_title'),
+    title: translate('game.imagine.vote_title'),
   };
 }
 
@@ -914,24 +914,24 @@ function createResultsPayload(game: Game, translator: Translator, withImages: bo
 
   let outcome: string;
   if (!game.entries.length) {
-    outcome = translate('fun.game_imagine.no_submissions');
+    outcome = translate('game.imagine.no_submissions');
   } else if (game.entries.length === 1) {
-    outcome = translate('fun.game_imagine.only_submission', {user: `<@${game.entries[0].userId}>`});
+    outcome = translate('game.imagine.only_submission', {user: `<@${game.entries[0].userId}>`});
   } else if (!most) {
-    outcome = translate('fun.game_imagine.no_votes');
+    outcome = translate('game.imagine.no_votes');
   } else {
     const winners = game.entries.filter((player, index) => votes[index] === most).map((player) => `<@${player.userId}>`);
-    const label = (winners.length === 1) ? translate('fun.game_imagine.winner') : translate('fun.game_imagine.tie');
-    outcome = displayDetailsLine([displayDetail(label, winners.join(', ')), displayDetail(translate('fun.game_imagine.votes'), most)]);
+    const label = (winners.length === 1) ? translate('game.imagine.winner') : translate('game.imagine.tie');
+    outcome = displayDetailsLine([displayDetail(label, winners.join(', ')), displayDetail(translate('game.imagine.votes'), most)]);
   }
 
   const reference = game.reference!;
   const lines = [
     outcome,
-    displayDetail(translate('fun.game_imagine.prompt_was'), Markup.escape.all(reference.prompt.replace(/\s+/g, ' '))),
+    displayDetail(translate('game.imagine.prompt_was'), Markup.escape.all(reference.prompt.replace(/\s+/g, ' '))),
   ];
   if (!withImages) {
-    return {description: displayDetails([...lines, translate('fun.game_imagine.results_below')]), title: translate('fun.game_imagine.title')};
+    return {description: displayDetails([...lines, translate('game.imagine.results_below')]), title: translate('game.imagine.title')};
   }
 
   const showVotes = 2 <= game.entries.length;
@@ -939,6 +939,6 @@ function createResultsPayload(game: Game, translator: Translator, withImages: bo
     description: displayDetails([...lines, '', ...createEntryLines(game, translator, (showVotes) ? votes : null)]),
     files: [imageFile(reference, 'secret'), ...game.entries.map((player, index) => imageFile(player.submission!, String(index + 1)))],
     thumbnail: (game.entries.length) ? `attachment://secret.${reference.extension}` : null,
-    title: translate('fun.game_imagine.results'),
+    title: translate('game.imagine.results'),
   };
 }

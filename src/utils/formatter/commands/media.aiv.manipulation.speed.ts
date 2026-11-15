@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAIVManipulationSpeed } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.aiv.tools.speed';
@@ -33,6 +34,14 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // mediascript caps SPEED at 100 (`MAX_MEDIASCRIPT_SPEED`) and takes 0 as "leave it", the endpoint doesn't
+  if (args.speed !== undefined && args.speed !== null && !(0 < args.speed && args.speed <= 100)) {
+    return null;
+  }
+  return Mediascript.line('speed', chain.key, {speed: args.speed, pitch: args.pitch});
 }
 
 export async function createMessage(

@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationGlitch } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.glitch';
@@ -36,6 +37,15 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
     keepTransparency: !args.notransparency,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('glitch', chain.key, {
+    amount: args.amount,
+    iterations: args.iterations,
+    keep_transparency: !args.notransparency,
+    seed: args.seed,
   });
 }
 

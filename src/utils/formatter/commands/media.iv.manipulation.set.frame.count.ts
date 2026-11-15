@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationSetFrameCount } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.tools.set.framecount';
@@ -33,6 +34,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('setframecount', chain.key, {count: args.count});
 }
 
 export async function createMessage(

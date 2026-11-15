@@ -5,6 +5,7 @@ import { mediaIVManipulationMeme } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.meme';
@@ -43,6 +44,15 @@ export function createJob(
     bottom,
     top,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // their own font file or a saved font's name is looked up on the request, mediascript only has the bundled ones
+  if (args.fontUrl || (args.font && !Object.values<string>(MediaMemeFonts).includes(args.font))) {
+    return null;
+  }
+  // the same `top | bottom` (or half the words each) split as `splitText`
+  return Mediascript.line('meme', chain.key, {text: args.text, font: args.font});
 }
 
 export async function createMessage(

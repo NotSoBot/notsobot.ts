@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationSpin } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.spin';
@@ -34,6 +35,14 @@ export function createJob(
   return mediaIVManipulationSpin(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+    clockwise: !args.counterclockwise,
+    circle: !args.nocircle,
+    crop: !args.nocrop,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('spin', chain.key, {
     clockwise: !args.counterclockwise,
     circle: !args.nocircle,
     crop: !args.nocrop,

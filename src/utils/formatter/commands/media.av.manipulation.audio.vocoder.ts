@@ -3,9 +3,11 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationAudioVocoder } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.vocoder';
+export const IS_PIPEABLE = true;
 
 // the commands page's before/after preview (see `owner.upload.commands`)
 export const PREVIEW: RestOptions.CommandPreview = {
@@ -33,6 +35,14 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  if (!args.urls || args.urls.length !== 2) {
+    return null;
+  }
+  // the piped media is the voice, the second one the sound it sings with
+  return Mediascript.line('vocoder', chain.key, chain.load(args.urls[1]), {bands: args.bands});
 }
 
 export async function createMessage(

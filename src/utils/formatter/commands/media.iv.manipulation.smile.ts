@@ -4,6 +4,7 @@ import { mediaIVManipulationFaceFeaturesExpressionMood } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaFaceSmileLevels } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.smile';
@@ -36,6 +37,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('smile', chain.key, {level: args.level});
 }
 
 export async function createMessage(

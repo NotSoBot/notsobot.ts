@@ -4,6 +4,7 @@ import { mediaAVManipulationAudioBitcrush } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaAudioBitcrushModes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.bitcrush';
@@ -37,6 +38,15 @@ export function createJob(
   return mediaAVManipulationAudioBitcrush(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audiobitcrush', chain.key, {
+    samples: args.samples,
+    bits: args.bits,
+    mix: args.mix,
+    mode: args.mode,
   });
 }
 

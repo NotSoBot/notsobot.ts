@@ -4,6 +4,7 @@ import { mediaIVManipulationFaceAnime } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaFaceAnimeEyes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.i.manipulation.face.anime';
@@ -36,6 +37,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('faceanime', chain.key, {eyes: args.eyes, face: args.face});
 }
 
 export async function createMessage(

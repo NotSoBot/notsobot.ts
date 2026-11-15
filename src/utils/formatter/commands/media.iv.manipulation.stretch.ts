@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationStretch } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.stretch';
@@ -35,6 +36,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('stretch', chain.key, {width: args.width, height: args.height, crop: args.crop});
 }
 
 export async function createMessage(

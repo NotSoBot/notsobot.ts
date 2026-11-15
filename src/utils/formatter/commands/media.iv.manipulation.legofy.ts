@@ -4,6 +4,7 @@ import { mediaIVManipulationLegofy } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaLegofyPalettes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.legofy';
@@ -35,6 +36,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('legofy', chain.key, {size: args.size, palette: args.palette, dither: args.dither});
 }
 
 export async function createMessage(

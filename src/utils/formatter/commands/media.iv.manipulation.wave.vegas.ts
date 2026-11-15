@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationWaveVegas } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.wave.vegas';
@@ -38,6 +39,19 @@ export function createJob(
   return mediaIVManipulationWaveVegas(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('vegaswave', chain.key, {
+    x_speed: args.xSpeed,
+    x_frequency: args.xFrequency,
+    x_intensity: args.xIntensity,
+    x_phase: args.xPhase,
+    y_speed: args.ySpeed,
+    y_frequency: args.yFrequency,
+    y_intensity: args.yIntensity,
+    y_phase: args.yPhase,
   });
 }
 

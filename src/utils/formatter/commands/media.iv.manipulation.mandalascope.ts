@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationMandalaScope } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.mandalascope';
@@ -36,6 +37,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('mandalascope', chain.key, {amount: args.amount, scale: args.scale, rotation: args.rotation, translation: args.translation, zoom: args.zoom});
 }
 
 export async function createMessage(

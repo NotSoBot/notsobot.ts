@@ -4,11 +4,10 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { FunGameGroupCommand } from '../fun/game';
-
 import { OwnerBlockGroupCommand } from './block';
 import { OwnerEmojisCommand } from './emojis';
 import { OwnerEvalCommand } from './eval';
+import { OwnerGameGroupCommand } from './game';
 import { OwnerGuildFeaturesGroupCommand } from './guild-features';
 import { OwnerRefreshCommand } from './refresh';
 import { OwnerSayCommand } from './say';
@@ -41,8 +40,8 @@ export default class OwnerGroupCommand extends BaseSlashCommand {
         new OwnerBlockGroupCommand(),
         new OwnerEmojisCommand(),
         new OwnerEvalCommand(),
-        // owner only while it's tested, `/fun game` once it's public
-        new FunGameGroupCommand(),
+        // the games being tested, `/game` once they're public
+        new OwnerGameGroupCommand(),
         new OwnerGuildFeaturesGroupCommand(),
         new OwnerRefreshCommand(),
         new OwnerSayCommand(),

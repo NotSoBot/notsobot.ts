@@ -8,6 +8,7 @@ import { DefaultParameters, jobReply } from '../../../utils';
 
 import * as ToolsColor from './tools.color';
 import { UserError } from '../../errors';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.tools.color.remove';
@@ -58,6 +59,21 @@ export async function createJob(
     similarity: threshold / 100,
     url: args.url,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  let color: string | undefined;
+  if (args.color && args.color.trim()) {
+    const value = ToolsColor.parseColor(args.color);
+    if (value === null) {
+      // its own job says it's an unknown color
+      return null;
+    }
+    color = intToHex(value, true);
+  }
+
+  const threshold = Math.min(Math.max(args.threshold ?? DEFAULT_THRESHOLD, MIN_THRESHOLD), MAX_THRESHOLD);
+  return Mediascript.line('colorremove', chain.key, {color, similarity: threshold / 100});
 }
 
 export async function createMessage(

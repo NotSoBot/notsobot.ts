@@ -4,6 +4,7 @@ import { mediaIVManipulationBackgroundRemove } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaBackgroundRemovalModels, MediaBackgroundRemovalModelsToText } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.tools.background.remove';
@@ -37,6 +38,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('backgroundremove', chain.key, {model: args.model, trim: args.trim});
 }
 
 export async function createMessage(

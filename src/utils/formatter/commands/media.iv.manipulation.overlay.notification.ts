@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationOverlayNotification } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.notification';
@@ -34,6 +35,15 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // mediascript splits `title | message`, so only the title can't have a `|` (or the message when there's no title)
+  if ((args.title) ? args.title.includes('|') : args.text.includes('|')) {
+    return null;
+  }
+  const text = (args.title) ? `${args.title} | ${args.text}` : args.text;
+  return Mediascript.line('notification', chain.key, {text});
 }
 
 export async function createMessage(

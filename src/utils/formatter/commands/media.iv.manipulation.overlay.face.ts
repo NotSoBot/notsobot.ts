@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationOverlayFace } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.face';
@@ -33,6 +34,18 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  if (args.urls.length < 2) {
+    return null;
+  }
+  // the route takes 0.01 to 1000, mediascript only 0.1 to 10
+  if (args.scale !== undefined && args.scale !== null && (args.scale < 0.1 || 10 < args.scale)) {
+    return null;
+  }
+  const face = chain.load(args.urls[1]);
+  return Mediascript.line('overlayface', chain.key, {face_media: face, face_scale: args.scale});
 }
 
 export async function createMessage(

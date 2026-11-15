@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationFaceSwapChad } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.face.swap.chad';
@@ -34,6 +35,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...rest,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('faceswappreset', chain.key, {name: 'chad', max_faces: args.faces});
 }
 
 export async function createMessage(

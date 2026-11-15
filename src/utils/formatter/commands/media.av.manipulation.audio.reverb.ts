@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationAudioReverb } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.reverb';
@@ -34,6 +35,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audioreverb', chain.key, {decay: args.decay, delay: args.delay, volume: args.volume});
 }
 
 export async function createMessage(

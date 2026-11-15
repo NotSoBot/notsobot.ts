@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationPixelate } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.pixelate';
@@ -35,6 +36,10 @@ export function createJob(
     ...args,
     pixelWidth: args.width,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('pixelate', chain.key, {pixel_width: args.width, no_lines: args.noLines});
 }
 
 export async function createMessage(

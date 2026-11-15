@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationDeepfry } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.deepfry';
@@ -35,6 +36,10 @@ export function createJob(
     ...args,
     keepTransparency: !args.notransparency,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('deepfry', chain.key, {scale: args.scale, keep_transparency: !args.notransparency});
 }
 
 export async function createMessage(

@@ -4,6 +4,7 @@ import { mediaIVManipulationPixelSort } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaPixelSortFunctions, MediaPixelSortIntervals } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.pixel.sort';
@@ -45,6 +46,20 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...rest,
     sortBy: sort,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('pixelsort', chain.key, {
+    angle: args.angle,
+    interval: args.interval,
+    sort_by: args.sort,
+    lower: args.lower,
+    upper: args.upper,
+    length: args.length,
+    randomness: args.randomness,
+    reverse: args.reverse,
+    seed: args.seed,
   });
 }
 

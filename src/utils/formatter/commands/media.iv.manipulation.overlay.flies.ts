@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationOverlayFlies } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.flies';
@@ -22,6 +23,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 
 export interface CommandArgs {
   amount?: number,
+  degrees?: number,
   flyImage?: string,
   speed?: number,
   url: string,
@@ -34,6 +36,16 @@ export function createJob(
   return mediaIVManipulationOverlayFlies(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  const fly = (args.flyImage) ? chain.load(args.flyImage) : undefined;
+  return Mediascript.line('flies', chain.key, {
+    amount: args.amount,
+    degrees: args.degrees,
+    speed: args.speed,
+    fly_media: fly,
   });
 }
 

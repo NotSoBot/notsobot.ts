@@ -11,7 +11,6 @@ import * as FunB1 from './fun.b1';
 import * as FunBadMeme from './fun.badmeme';
 import * as FunEmoji from './fun.emoji';
 import * as FunEmojify from './fun.emojify';
-import * as FunGameImagine from './fun.game.imagine';
 import * as FunRegional from './fun.regional';
 import * as FunReverseText from './fun.reversetext';
 import * as FunTextwall from './fun.textwall';
@@ -19,6 +18,9 @@ import * as FunTTS from './fun.tts';
 import * as FunXD from './fun.xd';
 import * as FunQuote from './fun.quote';
 import * as FunZalgo from './fun.zalgo';
+
+import * as GameFlag from './game.flag';
+import * as GameImagine from './game.imagine';
 
 import * as InfoActivity from './info.activity';
 import * as InfoApplications from './info.applications';
@@ -773,7 +775,6 @@ export {
   FunBadMeme,
   FunEmoji,
   FunEmojify,
-  FunGameImagine,
   FunRegional,
   FunReverseText,
   FunTextwall,
@@ -781,6 +782,9 @@ export {
   FunXD,
   FunQuote,
   FunZalgo,
+
+  GameFlag,
+  GameImagine,
 
   InfoActivity,
   InfoApplications,

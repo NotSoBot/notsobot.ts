@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationAudioTremolo } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.tremolo';
@@ -33,6 +34,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audiotremolo', chain.key, {frequency: args.frequency, depth: args.depth});
 }
 
 export async function createMessage(

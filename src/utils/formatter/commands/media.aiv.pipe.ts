@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 import { RequestFile, Response } from 'detritus-rest';
 
+import { utilitiesMediascript } from '../../../api';
 import { JobError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import {
@@ -21,6 +22,7 @@ import {
 } from '../../../utils';
 import { getTranslator } from '../../i18n';
 import { UserError } from '../../errors';
+import { MediascriptChain } from '../mediascript';
 
 
 export const COMMAND_ID = 'media.aiv.pipe';
@@ -40,6 +42,11 @@ export interface PipingCommandExecution extends Parameters.PipingCommand {
     args: Record<string, any>,
     signal?: AbortSignal,
   ) => Promise<RestResponsesRaw.FileResponse>,
+  // the step as mediascript lines on `chain.key`, null when its args can't be written as any
+  createMediascript?: (
+    args: Record<string, any>,
+    chain: MediascriptChain,
+  ) => Array<string> | null | string,
 }
 
 
@@ -81,6 +88,31 @@ async function withDeadline<T>(
   }
 }
 
+// null when any step has no mediascript version (or args it can't take), those pipes run a job per step
+export function createMediascriptChain(
+  pipers: Array<PipingCommandExecution>,
+  url: string,
+): MediascriptChain | null {
+  const chain = new MediascriptChain(url);
+  for (let { commandArgs, createMediascript } of pipers) {
+    if (!createMediascript) {
+      return null;
+    }
+    let lines: Array<string> | null | string;
+    try {
+      lines = createMediascript(commandArgs, chain);
+    } catch(error) {
+      // a value a line can't hold (NaN from a bad number), the job per step gives the route's own error for it
+      return null;
+    }
+    if (lines === null) {
+      return null;
+    }
+    chain.lines.push(...((Array.isArray(lines)) ? lines : [lines]));
+  }
+  return chain;
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
@@ -101,8 +133,11 @@ export async function createMessage(
         if (formatter.IS_PIPEABLE && (typeof(formatter.createResponse) === 'function' || typeof(formatter.createJob) === 'function')) {
           pipers.push({
             command,
-            commandArgs,
+            // the prefixed command's parsed args, the shape its `run` turns into the formatter's when that does more
+            // than pass them on (`veg`'s `payload`)
+            commandArgs: (typeof(formatter.fromCommandArgs) === 'function') ? formatter.fromCommandArgs(commandArgs) : commandArgs,
             createJob: formatter.createJob,
+            createMediascript: formatter.createMediascript,
             createResponse: formatter.createResponse,
           });
           found = true;
@@ -120,6 +155,29 @@ export async function createMessage(
   // the whole pipe shares one deadline, same limits as tagscript (scaled by the user's and server's premium)
   const maxTime = await TagFormatter.getMaxTime(context, TagFormatter.TagLimitDefaults);
   const signal = AbortSignal.timeout(maxTime);
+
+  // every step has a mediascript version: one job, the media stays on the worker between steps
+  const chain = createMediascriptChain(pipers, args.url);
+  if (chain) {
+    const description = `piped: ${pipers.map((x) => x.command.name).join(' -> ')}`;
+    try {
+      const job = await withDeadline(signal, utilitiesMediascript(context, {code: chain.code, safe}).then((x) => {
+        return jobWaitForResult(context, x, undefined, signal);
+      }));
+      if (job.result.error) {
+        throw new JobError(job);
+      }
+      if (!job.result.response) {
+        throw new Error('Job Failed for some reason');
+      }
+      return mediaReply(context, job.result.response, {description});
+    } catch(error) {
+      if (error instanceof PipeTimeoutError) {
+        throw new Error(translate('media.pipe.took_too_long_script', {max: (maxTime / 1000).toLocaleString()}));
+      }
+      throw error;
+    }
+  }
 
   let file: RequestFile | undefined;
   let fileResponse: RestResponsesRaw.FileResponse | undefined;

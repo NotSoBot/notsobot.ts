@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationOverlayYouTube } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.youtube';
@@ -36,6 +37,14 @@ export function createJob(
     // the channel is whoever made it unless they named one
     channel: args.channel || context.user.globalName || context.user.username,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // without one the channel is the user's name, which the mediascript doesn't know
+  if (!args.channel) {
+    return null;
+  }
+  return Mediascript.line('youtube', chain.key, {channel: args.channel, text: args.text});
 }
 
 export async function createMessage(

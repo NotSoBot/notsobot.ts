@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationOldTV } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.old.tv';
@@ -35,6 +36,10 @@ export function createJob(
     grayscale: args.grayscale,
     url: args.url,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('oldtv', chain.key, {animated: (args.still) ? false : undefined, grayscale: args.grayscale});
 }
 
 export async function createMessage(

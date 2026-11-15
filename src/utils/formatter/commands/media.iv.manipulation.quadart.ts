@@ -4,6 +4,7 @@ import { mediaIVManipulationQuadart } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaQuadartTypes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.quadart';
@@ -33,6 +34,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('quadart', chain.key, {type: args.type});
 }
 
 export async function createMessage(

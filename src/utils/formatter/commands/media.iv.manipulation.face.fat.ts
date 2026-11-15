@@ -4,6 +4,7 @@ import { mediaIVManipulationFaceFat } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaFaceFatSizes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.i.manipulation.face.fat';
@@ -36,6 +37,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('facefat', chain.key, {size: args.size, face: args.face});
 }
 
 export async function createMessage(

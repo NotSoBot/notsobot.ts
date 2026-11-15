@@ -5,6 +5,7 @@ import { mediaIVManipulationCaption } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.caption';
@@ -43,6 +44,17 @@ export function createJob(
     bottom,
     top,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // piped, the prefixed command's `-font` is still `{font, fontUrl}` (its `run` splits it)
+  const { font, fontUrl }: {font?: string, fontUrl?: string} = (args.font && typeof(args.font) === 'object') ? args.font : args;
+  // their own font file or a saved font's name, mediascript only knows the bundled fonts. no font is their Default Font
+  if (fontUrl || (font && !(Object.values(MediaMemeFonts) as Array<string>).includes(font))) {
+    return null;
+  }
+  // mediascript splits `top | bottom` on the first `|` like `splitText`
+  return Mediascript.line('caption', chain.key, {font, text: args.text});
 }
 
 export async function createMessage(

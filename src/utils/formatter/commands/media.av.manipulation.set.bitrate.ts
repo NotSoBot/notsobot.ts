@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationSetBitRate } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.tools.set.bitrate';
@@ -34,6 +35,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('bitrate', chain.key, {video: args.video, audio: args.audio});
 }
 
 export async function createMessage(

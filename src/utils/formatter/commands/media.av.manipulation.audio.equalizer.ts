@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationAudioEqualizer } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.equalizer';
@@ -37,6 +38,18 @@ export function createJob(
   return mediaAVManipulationAudioEqualizer(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audioequalizer', chain.key, {
+    sub_bass: args.subBass,
+    bass: args.bass,
+    low_mids: args.lowMids,
+    mids: args.mids,
+    high_mids: args.highMids,
+    treble: args.treble,
+    air: args.air,
   });
 }
 

@@ -5,6 +5,7 @@ import { mediaIVManipulationPix2Pix } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaPix2PixModels } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.edges2emoji';
@@ -34,6 +35,10 @@ export function createJob(
     ...args,
     model: MediaPix2PixModels.EMOJI,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('pix2pix', chain.key, {model: MediaPix2PixModels.EMOJI});
 }
 
 export async function createMessage(

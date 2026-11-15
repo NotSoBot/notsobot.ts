@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationRotate3d } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.tools.rotate.3d';
@@ -20,7 +21,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 };
 
 export interface CommandArgs {
-  cropMode?: string,
+  crop?: string,
   order?: string,
   pan?: number,
   roll?: number,
@@ -36,6 +37,17 @@ export function createJob(
   return mediaIVManipulationRotate3d(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('rotate3d', chain.key, {
+    pan: args.pan,
+    tilt: args.tilt,
+    roll: args.roll,
+    zoom: args.zoom,
+    crop: args.crop,
+    order: args.order,
   });
 }
 

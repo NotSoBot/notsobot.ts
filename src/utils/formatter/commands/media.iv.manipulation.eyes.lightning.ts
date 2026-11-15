@@ -4,6 +4,7 @@ import { mediaIVManipulationEyes } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaEyeTypes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.eyes.lightning';
@@ -35,6 +36,10 @@ export function createJob(
     type: args.color || MediaEyeTypes.LIGHTNING_PINK,
     url: args.url,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('eyes', chain.key, {type: args.color || MediaEyeTypes.LIGHTNING_PINK});
 }
 
 export async function createMessage(

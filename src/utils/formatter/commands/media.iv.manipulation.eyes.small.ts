@@ -4,6 +4,7 @@ import { mediaIVManipulationEyes } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaEyeTypes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.eyes.small';
@@ -34,6 +35,10 @@ export function createJob(
     ...args,
     type: MediaEyeTypes.SMALL,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('eyes', chain.key, {type: MediaEyeTypes.SMALL, flipped: args.flipped});
 }
 
 export async function createMessage(

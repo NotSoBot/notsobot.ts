@@ -4,6 +4,7 @@ import { mediaAVToolsAudioToImage } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaAudioToImageModes, MediaImageToAudioScales } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.tools.audio.to.image';
@@ -36,6 +37,16 @@ export function createJob(
   return mediaAVToolsAudioToImage(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audiotoimage', chain.key, {
+    mode: args.mode,
+    low: args.low,
+    high: args.high,
+    scale: args.scale,
+    invert: args.invert,
   });
 }
 

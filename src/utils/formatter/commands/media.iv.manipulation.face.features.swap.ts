@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationFaceFeaturesSwap } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.face.features.swap';
@@ -35,6 +36,18 @@ export function createJob(
   return mediaIVManipulationFaceFeaturesSwap(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // the route takes exactly two medias, anything else gets its error from the job-per-step pipe
+  if (!args.urls || args.urls.length !== 2) {
+    return null;
+  }
+  return Mediascript.line('facefeaturesswap', chain.key, chain.load(args.urls[1]), {
+    regions: args.regions,
+    mode: args.mode,
+    multiplier: args.multiplier,
   });
 }
 

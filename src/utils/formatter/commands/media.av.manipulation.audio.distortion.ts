@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationAudioDistortion } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.distortion';
@@ -37,6 +38,10 @@ export function createJob(
     lowPass: args.lowpass,
     url: args.url,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audiodistortion', chain.key, {drive: args.drive, mix: args.mix, low_pass: args.lowpass});
 }
 
 export async function createMessage(

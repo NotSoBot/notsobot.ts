@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationDemotivate } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.demotivate';
@@ -34,6 +35,20 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // mediascript gets `title | text` and splits it on the first `|`, trimming both
+  const { text, title } = args;
+  if (title === undefined) {
+    // piped it's the prefixed command's raw `title | text` (its `run` splits it), split the same way
+    return Mediascript.line('demotivate', chain.key, {text});
+  }
+  // a title with a `|` in it or either with spaces around it would come out different
+  if (title.includes('|') || title !== title.trim() || (text && text !== text.trim())) {
+    return null;
+  }
+  return Mediascript.line('demotivate', chain.key, {text: (text) ? `${title} | ${text}` : title});
 }
 
 export async function createMessage(

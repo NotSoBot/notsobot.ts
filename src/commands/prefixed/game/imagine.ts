@@ -15,13 +15,13 @@ export default class GameImagineCommand extends BaseCommand {
 
       aliases: ['imaginegame'],
       metadata: {
-        // owner only while it's tested, `FUN` (and no `onBefore`) once it's public
+        // owner only while it's tested, `GAMES` (and no `onBefore`) once it's public
         category: CommandCategories.OWNER,
         description: 'Recreate a secret AI image with your own prompt, then vote on who came closest. The secret prompt is random, the lobby\'s Set Prompt button lets you write it and judge instead',
         examples: [
           COMMAND_NAME,
         ],
-        id: Formatter.Commands.FunGameImagine.COMMAND_ID,
+        id: Formatter.Commands.GameImagine.COMMAND_ID,
         usage: '',
       },
     });
@@ -31,7 +31,7 @@ export default class GameImagineCommand extends BaseCommand {
     return context.user.isClientOwner;
   }
 
-  run(context: Command.Context, args: Formatter.Commands.FunGameImagine.CommandArgs) {
-    return Formatter.Commands.FunGameImagine.createMessage(context, args);
+  run(context: Command.Context, args: Formatter.Commands.GameImagine.CommandArgs) {
+    return Formatter.Commands.GameImagine.createMessage(context, args);
   }
 }

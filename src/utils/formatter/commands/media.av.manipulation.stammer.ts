@@ -4,6 +4,7 @@ import { mediaAVManipulationStammer } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaStammerColorModes, MediaStammerMatcherModes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.aiv.tools.stammer';
@@ -39,6 +40,14 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // urls[0] is the piped media, urls[1] the other one
+  if (!args.urls || args.urls.length !== 2) {
+    return null;
+  }
+  return Mediascript.line('stammer', chain.key, chain.load(args.urls[1]), {matcher_mode: args.matcherMode, color_mode: args.colorMode});
 }
 
 export async function createMessage(

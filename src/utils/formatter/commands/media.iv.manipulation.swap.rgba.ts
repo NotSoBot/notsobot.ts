@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationSwapRGBA } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.swap.rgba';
@@ -32,6 +33,14 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // the route needs channels, mediascript would leave the media as is without them
+  if (!args.channels) {
+    return null;
+  }
+  return Mediascript.line('swaprgba', chain.key, {channels: args.channels});
 }
 
 export async function createMessage(

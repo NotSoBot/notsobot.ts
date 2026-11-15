@@ -4,6 +4,7 @@ import { mediaIVManipulationCartoon } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaCartoonMethods } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.cartoon';
@@ -39,6 +40,17 @@ export function createJob(
   return mediaIVManipulationCartoon(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('cartoon', chain.key, {
+    amount: args.amount,
+    brightness: args.brightness,
+    levels: args.levels,
+    method: args.method,
+    pattern: args.pattern,
+    saturation: args.saturation,
   });
 }
 

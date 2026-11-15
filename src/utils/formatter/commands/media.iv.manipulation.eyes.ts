@@ -8,6 +8,7 @@ import type { RestOptions } from '../../../api/types';
 import { MediaEyeTypes, StatusEmojis } from '../../../constants';
 import { CommandRunCancelledError, DefaultParameters, displayReply, jobReply } from '../../../utils';
 import { TranslationKey, Translator, getTranslator } from '../../i18n';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.eyes';
@@ -54,6 +55,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('eyes', chain.key, {type: args.type, flipped: args.flipped});
 }
 
 export async function createMessage(

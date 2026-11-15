@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationFaceCutout } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.face.cutout';
@@ -36,6 +37,15 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // the route takes one or two medias (the second covers the face), more gets its error from the job-per-step pipe
+  if (!args.urls || 2 < args.urls.length) {
+    return null;
+  }
+  const cover = (args.urls.length === 2) ? chain.load(args.urls[1]) : undefined;
+  return Mediascript.line('facecutout', chain.key, {cover, color: args.color, size: args.size, face: args.face});
 }
 
 export async function createMessage(

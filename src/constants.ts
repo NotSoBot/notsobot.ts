@@ -398,6 +398,7 @@ export enum CommandCategories {
   CONVERSION = 'CONVERSION',
   EFFECTS = 'EFFECTS',
   FUN = 'FUN',
+  GAMES = 'GAMES',
   INFO = 'INFO',
   MODERATION = 'MODERATION',
   MUSIC = 'MUSIC',
@@ -415,6 +416,7 @@ export const CommandCategoryNames: Record<CommandCategories, string> = Object.fr
   [CommandCategories.CONVERSION]: 'Downloads & Media Tools',
   [CommandCategories.EFFECTS]: 'Image & Video Effects',
   [CommandCategories.FUN]: 'Fun',
+  [CommandCategories.GAMES]: 'Games',
   [CommandCategories.INFO]: 'Info',
   [CommandCategories.MODERATION]: 'Moderation',
   [CommandCategories.MUSIC]: 'Music',
@@ -444,6 +446,7 @@ export const SLASH_COMMAND_CATEGORY_FALLBACKS: ReadonlyArray<[string, CommandCat
   ['moderation.', CommandCategories.MODERATION],
   ['reminder.', CommandCategories.UTILITY],
   ['music.', CommandCategories.MUSIC],
+  ['game.', CommandCategories.GAMES],
   ['owner.', CommandCategories.OWNER],
   ['help', CommandCategories.UTILITY],
 ] as Array<[string, CommandCategories]>);
@@ -1385,6 +1388,13 @@ export enum MusicStatsPeriods {
 export enum MusicStatsSorts {
   PLAYS = 'plays',
   TIME = 'time',
+}
+
+// `/game flag`'s pools, each one has the flags of the ones before it too
+export enum GameFlagDifficulties {
+  EASY = 'easy',
+  MEDIUM = 'medium',
+  HARD = 'hard',
 }
 
 // the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `music effect clear` takes them all off. By name, so

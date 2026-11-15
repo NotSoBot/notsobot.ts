@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAVManipulationAudioPingPong } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.pingpong';
@@ -35,6 +36,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     url: args.url,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audiopingpong', chain.key, {length: args.length, keep_length: args.keeplength});
 }
 
 export async function createMessage(

@@ -12,6 +12,7 @@ import {
   MIMETYPES_SAFE_EMBED,
 } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.aiv.tools.convert';
@@ -98,6 +99,13 @@ export async function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // mediascript's `convert` needs a mimetype and has no size, and it converts some media differently than the
+  // endpoint (`pick_conversion`/`convert_from_file`: video thumbnails, stills shown for a few seconds, re-encoding
+  // the same type)
+  return null;
 }
 
 export async function createMessage(

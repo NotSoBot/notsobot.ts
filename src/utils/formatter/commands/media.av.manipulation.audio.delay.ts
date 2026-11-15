@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaAVManipulationAudioDelay } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.delay';
@@ -35,6 +36,10 @@ export function createJob(
     snip: !args.nosnip,
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('audiodelay', chain.key, {delay: args.delay, snip: !args.nosnip});
 }
 
 export async function createMessage(

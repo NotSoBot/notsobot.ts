@@ -4,6 +4,7 @@ import { mediaIVToolsImageToAudio } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaImageToAudioModes, MediaImageToAudioScales } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.tools.image.to.audio';
@@ -37,6 +38,21 @@ export function createJob(
   return mediaIVToolsImageToAudio(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // the route still checks LOW < HIGH for `raw` (which ignores them), mediascript doesn't
+  if (args.mode === MediaImageToAudioModes.RAW && Mediascript.hasAny(args, 'low', 'high')) {
+    return null;
+  }
+  return Mediascript.line('imagetoaudio', chain.key, {
+    mode: args.mode,
+    duration: args.duration,
+    low: args.low,
+    high: args.high,
+    scale: args.scale,
+    invert: args.invert,
   });
 }
 

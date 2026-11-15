@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaAIVManipulationOverlay } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.aiv.tools.overlay';
@@ -39,6 +40,28 @@ export function createJob(
   return mediaAIVManipulationOverlay(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+// the endpoint's defaults, mediascript's `overlay` keeps its own (top left, its own size) for scripts
+export const DEFAULT_X = '(mw / 2) - (ow / 2)';
+export const DEFAULT_Y = '(mh / 2) - (oh / 2)';
+export const DEFAULT_RESIZE = 'fit(mw, mh)';
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  if (!args.urls || args.urls.length !== 2) {
+    return null;
+  }
+  const overlay = chain.load(args.urls[1]);
+  return Mediascript.line('overlay', chain.key, overlay, {
+    x: args.x || DEFAULT_X,
+    y: args.y || DEFAULT_Y,
+    color: args.color,
+    similarity: args.similarity,
+    blend: args.blend,
+    loop: (args.noloop) ? false : undefined,
+    opacity: args.opacity,
+    resize: args.resize || DEFAULT_RESIZE,
   });
 }
 

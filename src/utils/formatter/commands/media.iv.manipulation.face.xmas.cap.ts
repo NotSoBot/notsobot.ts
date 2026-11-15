@@ -4,6 +4,7 @@ import { mediaIVManipulationFaceXmasCap } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaFaceXmasCapColors } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.face.xmas.cap';
@@ -35,6 +36,10 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('facexmascap', chain.key, {color: args.color});
 }
 
 export async function createMessage(

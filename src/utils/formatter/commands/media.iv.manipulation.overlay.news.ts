@@ -4,6 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationOverlayNews } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.news';
@@ -35,6 +36,15 @@ export function createJob(
     safe: DefaultParameters.safe(context),
     ...args,
   });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  // mediascript splits `headline | ticker`, the route would show a `|` in the headline as is
+  if (args.text.includes('|')) {
+    return null;
+  }
+  const text = (args.ticker) ? `${args.text} | ${args.ticker}` : args.text;
+  return Mediascript.line('news', chain.key, {label: args.label, text});
 }
 
 export async function createMessage(

@@ -4,6 +4,7 @@ import { mediaAVManipulationAudioMultiPitch } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaAudioMultiPitchEngines } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.multipitch';
@@ -41,6 +42,15 @@ export function createJob(
     ...args,
     // `0, 7, 12` and `0 7 12` work too, the api splits on commas or spaces
     semitones: args.semitones?.trim() || undefined,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('multipitch', chain.key, {
+    semitones: args.semitones?.trim() || undefined,
+    normalize: args.normalize,
+    engine: args.engine,
+    formants: args.formants,
   });
 }
 

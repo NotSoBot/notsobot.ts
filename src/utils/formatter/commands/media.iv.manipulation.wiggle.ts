@@ -4,6 +4,7 @@ import { mediaIVManipulationWiggle } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { MediaWiggleDirections } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.wiggle';
@@ -38,6 +39,16 @@ export function createJob(
   return mediaIVManipulationWiggle(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('wiggle', chain.key, {
+    direction: args.direction,
+    amount: args.amount,
+    wavelengths: args.wavelengths,
+    speed: args.speed,
+    loop: args.loop,
   });
 }
 

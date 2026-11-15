@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { mediaIVManipulationWatercolor } from '../../../api';
 import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
+import * as Mediascript from '../mediascript';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.watercolor';
@@ -34,6 +35,15 @@ export function createJob(
   return mediaIVManipulationWatercolor(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+  });
+}
+
+export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
+  return Mediascript.line('watercolor', chain.key, {
+    contrast: args.contrast,
+    edge: args.edge,
+    mixing: args.mixing,
+    smoothing: args.smoothing,
   });
 }
 
