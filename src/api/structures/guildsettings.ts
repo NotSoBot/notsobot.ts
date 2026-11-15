@@ -296,7 +296,7 @@ export class GuildSettingsLogger extends BaseStructure {
     return (this.disabledEvents & flag) === flag;
   }
 
-  // sending through the webhook is `GuildLoggingListener.execute`, so `refresh -listeners` reloads it
+  // sending through the webhook is `GuildLoggingListener.execute`, so `.refresh` reloads it
   async delete(shard: ShardClient) {
     return deleteGuildLogger({client: shard}, this.guildId, {
       channelId: this.channelId,

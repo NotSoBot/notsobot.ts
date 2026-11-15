@@ -219,7 +219,7 @@ const EXPECTED_COMMAND_ERROR_MESSAGES: ReadonlyArray<string> = [
 
 // what `onRunError` doesn't see: COMMAND_ERROR is a hook throwing (`onFinally`, `onRunError` itself, `onBefore`, etc..)
 // and COMMAND_FAIL is everything outside the run (parsing args, `onBeforeRun`, `onSuccess`)
-// its subscriptions, `connectCommandHooks` keeps them so `.refresh` can swap them for the reloaded ones
+// its subscriptions, `CommandHooksListener` (listeners/commandhooks.ts) keeps them so `.refresh` can swap them for the reloaded ones
 export function connectCommandErrorReporting(client: CommandClient | InteractionCommandClient): Array<EventSubscription> {
   return [
     client.subscribe(ClientEvents.COMMAND_ERROR, ({context, error}: {context: SentryCommandContext, error: any}) => {

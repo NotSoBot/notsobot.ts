@@ -4050,6 +4050,32 @@ export async function mediaAVManipulationWaveform(
 }
 
 
+export async function mediaAVToolsAudioToImage(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsAudioToImage,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    high: options.high,
+    invert: options.invert,
+    low: options.low,
+    max_file_size: maxFileSize,
+    mode: options.mode,
+    safe: options.safe,
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_TOOLS_AUDIO_TO_IMAGE,
+    },
+  });
+}
+
+
 export async function mediaAVToolsAutoSubtitle(
   context: RequestContext,
   options: RestOptions.MediaAVToolsAutoSubtitle,

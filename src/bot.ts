@@ -15,10 +15,9 @@ import { ImportedCommandsError } from 'detritus-client/lib/errors';
 
 import ApiEventsClient from './apievents';
 import { NotSoCommandClient } from './commandclient';
-import { connectCommandHooks } from './commandhooks';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
-import { connectAllListeners } from './listeners';
+import { CommandHooksListener, connectAllListeners } from './listeners';
 import { log } from './log';
 import { incrementCounter } from './metrics';
 import {
@@ -300,8 +299,8 @@ const cluster = new ClusterClient('', {
           {duration: 5000, limit: 5, type: 'channel'},
         ],
       });
-      // in commandhooks.ts so `.refresh` reloads them
-      connectCommandHooks(notSoCommandBot);
+      // its event hooks (listeners/commandhooks.ts) before it runs, the listeners connected before it existed
+      CommandHooksListener.reconnect(cluster);
 
       await addCommandsIn(notSoCommandBot, './commands/prefixed', shardsText);
       await notSoCommandBot.run();
@@ -310,7 +309,7 @@ const cluster = new ClusterClient('', {
 
     {
       const notSoInteractionBot = new NotSoInteractionClient(cluster, {ratelimiter});
-      connectCommandHooks(notSoInteractionBot);
+      CommandHooksListener.reconnect(cluster);
       await addCommandsIn(notSoInteractionBot, './commands/interactions', shardsText);
       for (let x of notSoInteractionBot.getOversizedCommands()) {
         log.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);

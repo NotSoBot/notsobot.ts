@@ -82,7 +82,7 @@ export const MAX_QUEUE_LENGTH = 200;
 
 export const MAX_EMBED_SIZE = 6000;
 
-// a listener so `refresh -listeners` reloads the logging, the refresh keeps the old object's fields so `storage` (the
+// a listener so `.refresh` reloads the logging, the refresh keeps the old object's fields so `storage` (the
 // queued logs) survives it
 class GuildLoggingListener extends Listener {
   // <guildId, GuildLogStorage>

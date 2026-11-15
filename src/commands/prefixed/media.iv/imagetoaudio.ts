@@ -25,7 +25,7 @@ export default class ImageToAudioCommand extends BaseImageCommand {
         {name: 'high', aliases: ['h'], type: Number, metadata: {description: 'the frequency at the top of the image, 20 to 20000 hz (default: 12000)'}},
         {name: 'invert', aliases: ['i'], type: Boolean, metadata: {description: 'dark pixels are loud instead of bright ones'}},
         {name: 'low', aliases: ['l'], type: Number, metadata: {description: 'the frequency at the bottom of the image, 20 to 20000 hz (default: 100)'}},
-        {name: 'mode', aliases: ['m'], type: Parameters.oneOf({choices: MediaImageToAudioModes, descriptions: MediaImageToAudioModesToText}), metadata: {description: 'spectrogram draws the image into the sound, raw plays its pixel bytes (default: Spectrogram)'}},
+        {name: 'mode', aliases: ['m'], type: Parameters.oneOf({choices: MediaImageToAudioModes, descriptions: MediaImageToAudioModesToText}), metadata: {description: 'spectrogram draws the image into the sound, raw plays its pixel bytes (default: Spectrogram, a picture `.convert` made from audio plays that audio back)'}},
         {name: 'scale', aliases: ['s'], type: Parameters.oneOf({choices: MediaImageToAudioScales, descriptions: MediaImageToAudioScalesToText}), metadata: {description: 'logarithmic gives every octave the same height (default: Linear)'}},
       ],
       metadata: {

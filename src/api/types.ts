@@ -15,6 +15,7 @@ import {
   MediaAudioBitcrushModes,
   MediaAudioMultiPitchEngines,
   MediaEyeTypes,
+  MediaAudioToImageModes,
   MediaImageToAudioModes,
   MediaImageToAudioScales,
   MediaMemeFonts,
@@ -936,6 +937,14 @@ export namespace RestOptions {
   export interface MediaAVManipulationWaveform extends MediaBaseOptions {
     color?: string,
     split?: boolean,
+  }
+
+  export interface MediaAVToolsAudioToImage extends MediaBaseOptions {
+    high?: number,
+    invert?: boolean,
+    low?: number,
+    mode?: MediaAudioToImageModes,
+    scale?: MediaImageToAudioScales,
   }
 
   export interface MediaAVToolsAutoSubtitle extends MediaBaseOptions {

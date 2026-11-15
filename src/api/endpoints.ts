@@ -186,6 +186,8 @@ export const Api = Object.freeze({
   MEDIA_AV_MANIPULATION_WAVEFORM:
     '/media/av/manipulation/waveform',
 
+  MEDIA_AV_TOOLS_AUDIO_TO_IMAGE:
+    '/media/av/tools/audio-to-image',
   MEDIA_AV_TOOLS_AUTO_SUBTITLE:
     '/media/av/tools/autosubtitle',
   MEDIA_AV_TOOLS_EXTRACT_AUDIO:

@@ -32,7 +32,7 @@ const PROCESS_START_TIME = Math.round(Date.now() / 1000 - process.uptime());
 const DISCORD_EPOCH = 1420070400000n;
 const INTERACTION_CALLBACK_ROUTE = '/interactions/:interactionId/:token/callback';
 
-// module scope so a `.refresh -listeners` (which reloads this file and `../metrics`) hooks the clients up again
+// module scope so a `.refresh` (which reloads this file and `../metrics`) hooks the clients up again
 let hookedCommandClients = new WeakSet<object>();
 
 

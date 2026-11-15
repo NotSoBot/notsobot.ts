@@ -1889,6 +1889,19 @@ export enum MediaSlideDirections {
 }
 
 
+// what `audiotoimage` draws (the api's `MediaAudioToImageModes`, by value)
+export enum MediaAudioToImageModes {
+  RAW = 'raw',
+  SPECTROGRAM = 'spectrogram',
+  SSTV = 'sstv',
+}
+
+export const MediaAudioToImageModesToText: Record<MediaAudioToImageModes, string> = Object.freeze({
+  [MediaAudioToImageModes.RAW]: 'Raw Bytes',
+  [MediaAudioToImageModes.SPECTROGRAM]: 'Spectrogram',
+  [MediaAudioToImageModes.SSTV]: 'SSTV',
+});
+
 // how `imagetoaudio` turns the image into sound (the api's `MediaImageToAudioModes`, by value)
 export enum MediaImageToAudioModes {
   RAW = 'raw',

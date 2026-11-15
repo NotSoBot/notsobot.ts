@@ -12,10 +12,10 @@ import { displayReply } from '../../../utils';
 const LIB_DIRECTORY = path.resolve(__dirname, '..', '..', '..');
 
 
+// listeners and stores are always reloaded (a store keeps its cached data, only its methods are swapped). the voice
+// nodes' client only with `refreshVoice`, it hands live sessions over
 async function refreshCommands(
   cluster: ClusterClient,
-  refreshListeners: boolean,
-  refreshStores: boolean,
   refreshVoice: boolean,
   LIB_PATH: string,
   extras: Record<string, any>,
@@ -34,7 +34,7 @@ async function refreshCommands(
   // the voice nodes' client is only reloaded with `-voice`, otherwise it's skipped like the api events module (it holds
   // the node connections and the guilds playing on them). with it, it hands its node sessions and guilds to the reloaded
   // one (`detach`, then `adopt` below), the players keep playing and we stay in their channels. its listener is swapped
-  // with it even without `-listeners`, it would keep calling the old one. a client from before handovers existed can't
+  // with it, it would keep calling the old one. a client from before handovers existed can't
   // hand over, it stays skipped (one restart)
   const VOICE_NODE_PATH = '/voicenode.';
   const voiceNodeKey = Object.keys(require.cache).find((key) => {
@@ -75,13 +75,6 @@ async function refreshCommands(
       continue;
     }
     const isVoiceNodeListener = !!voiceNodeHandover && key.includes(LISTENERS_PATH) && key.includes(VOICE_NODE_PATH);
-    if (key.includes(LISTENERS_PATH)) {
-      if (!refreshListeners && !isVoiceNodeListener) {
-        continue;
-      }
-    } else if (!refreshStores) {
-      continue;
-    }
 
     const oldCache = require.cache[key];
     const oldModule = oldCache && oldCache.exports;
@@ -130,7 +123,7 @@ async function refreshCommands(
 
   // listener files added since this process started were never loaded, so the hot-swap above skips them: load and
   // connect them too (everything has to stay inline, this function is sent to the other clusters as source code)
-  if (refreshListeners) {
+  {
     const fs = require('fs');
     const path = require('path');
     const loaded = Object.keys(require.cache).find((key) => key.includes(LIB_PATH) && key.includes(LISTENERS_PATH));
@@ -207,13 +200,6 @@ async function refreshCommands(
         }
       } catch(error) {
         errors.push(`${file}: ${(error as any).message}`);
-      }
-      // its event hooks (command results, error reporting, deleting replies) from the reloaded file, which drops the
-      // old ones first. a process started before the hooks moved there has its old ones from bot.ts left too (one restart)
-      try {
-        require(path.join(LIB_PATH, 'commandhooks.js')).connectCommandHooks(client);
-      } catch(error) {
-        errors.push(`commandhooks.js: ${(error as any).message}`);
       }
     }
   }
@@ -323,9 +309,7 @@ export interface RefreshFailure {
 }
 
 export interface CommandArgs {
-  listeners: boolean,
-  stores: boolean,
-  voice: boolean,
+  voice?: boolean,
 }
 
 
@@ -339,7 +323,7 @@ export async function createMessage(
     return displayReply(context, {description: 'no cluster manager found'});
   }
   await displayReply(context, {description: 'ok, refreshing...'});
-  const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, !!args.voice, LIB_DIRECTORY);
+  const shardIds = await context.manager.broadcastEval(refreshCommands, !!args.voice, LIB_DIRECTORY);
     /*
   {
     redisChannels: Object.values(RedisChannels),

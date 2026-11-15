@@ -11,6 +11,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaAVExtractGroupCommand } from './extract';
 import { MediaAVToolsSetGroupCommand } from './set';
 
+import { MediaAVToolsAudioToImageCommand } from './audio-to-image';
 import { MediaAVToolsAutoSubtitleCommand } from './auto-subtitle';
 import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
 import { MediaAVAudioChannelsInvertCommand } from './channels-invert';
@@ -42,6 +43,7 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
       options: [
         new MediaAVExtractGroupCommand(),
         new MediaAVToolsSetGroupCommand(),
+        new MediaAVToolsAudioToImageCommand(),
         new MediaAVToolsAutoSubtitleCommand(),
         new MediaAVAudioChannelsCombineCommand(),
         new MediaAVAudioChannelsInvertCommand(),

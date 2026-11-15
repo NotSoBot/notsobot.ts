@@ -91,6 +91,7 @@ import * as MediaAVManipulationSetBitRate from './media.av.manipulation.set.bitr
 import * as MediaAVManipulationStammer from './media.av.manipulation.stammer';
 import * as MediaAVManipulationWaveform from './media.av.manipulation.waveform';
 
+import * as MediaAVToolsAudioToImage from './media.av.tools.audio.to.image';
 import * as MediaAVToolsAutoSubtitle from './media.av.tools.autosubtitle';
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
@@ -852,6 +853,7 @@ export {
   MediaAVManipulationStammer,
   MediaAVManipulationWaveform,
 
+  MediaAVToolsAudioToImage,
   MediaAVToolsAutoSubtitle,
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,

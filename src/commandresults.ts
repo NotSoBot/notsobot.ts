@@ -49,7 +49,7 @@ export function getCommandResult(context: {metadata?: Record<string, any>}): Com
 }
 
 // the clients emit these before the command's `onFinally`, blocked and argument errors are set by the hooks instead
-// its subscriptions, `connectCommandHooks` keeps them so `.refresh` can swap them for the reloaded ones
+// its subscriptions, `CommandHooksListener` (listeners/commandhooks.ts) keeps them so `.refresh` can swap them for the reloaded ones
 export function connectCommandResults(client: CommandClient | InteractionCommandClient): Array<EventSubscription> {
   const subscriptions: Array<EventSubscription> = [];
   for (let [event, result] of RESULT_EVENTS) {

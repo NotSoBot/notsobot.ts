@@ -1697,6 +1697,14 @@ export async function mediaAVManipulationWaveform(
 }
 
 
+export async function mediaAVToolsAudioToImage(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsAudioToImage,
+) {
+  return raw.mediaAVToolsAudioToImage(context, options);
+}
+
+
 export async function mediaAVToolsAutoSubtitle(
   context: RequestContext,
   options: RestOptions.MediaAVToolsAutoSubtitle,

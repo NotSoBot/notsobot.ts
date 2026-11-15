@@ -15,21 +15,17 @@ export default class RefreshCommand extends BaseCommand {
 
       aliases: ['reload'],
       args: [
-        {name: 'listeners', type: Boolean},
-        {name: 'stores', type: Boolean},
         {name: 'voice', type: Boolean},
       ],
       metadata: {
-        description: 'Reload the bot\'s commands',
+        description: 'Reload the bot\'s commands, listeners and stores (stores keep their cached data), and with -voice the voice node client',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} -stores`,
-          `${COMMAND_NAME} -listeners`,
           `${COMMAND_NAME} -voice`,
         ],
         category: CommandCategories.OWNER,
         id: Formatter.Commands.OwnerRefresh.COMMAND_ID,
-        usage: '(-listeners) (-stores) (-voice)',
+        usage: '(-voice)',
       },
       responseOptional: true,
     });
