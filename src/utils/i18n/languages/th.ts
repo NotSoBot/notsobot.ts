@@ -2751,7 +2751,7 @@ export const Thai: Translations = Object.freeze({
   'commands.media_iv.overlay.trans.description': 'ซ้อนธงคนข้ามเพศลงบนรูปภาพหรือวิดีโอ',
   'commands.media_iv.overlay.trans.name': 'ทรานส์',
   'commands.media_iv.overlay.uk.description': 'ซ้อนธงสหราชอาณาจักรลงบนรูปภาพหรือวิดีโอ',
-  'commands.media_iv.overlay.uk.name': 'อังกฤษ',
+  'commands.media_iv.overlay.uk.name': 'สหราชอาณาจักร',
   'commands.media_iv.overlay.usa.description': 'ซ้อนธงสหรัฐฯ ลงบนรูปภาพหรือวิดีโอ',
   'commands.media_iv.overlay.usa.name': 'อเมริกา',
   'commands.media_iv.overlay.ussr.description': 'ซ้อนธงสหภาพโซเวียตลงบนรูปภาพหรือวิดีโอ',

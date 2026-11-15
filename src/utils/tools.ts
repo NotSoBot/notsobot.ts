@@ -3529,10 +3529,12 @@ export async function mediaReplyFromOptions(
   }
 
   // the default display's audio (attached for discord's player) can't be an edit of a response that's already
-  // components v2 (the thinking text), it replaces it instead and loses the "used /command" header with it
+  // components v2 (the thinking text), it replaces it instead and loses the "used /command" header with it. only when
+  // it really is components v2: a slow direct api call (like tts) is still discord's deferred "thinking", where the
+  // followup becomes the response itself and deleting the response afterwards deleted the result
   const replacesResponse = (
     !options.context && context instanceof Interaction.InteractionContext && context.responded &&
-    displaySettings === UserSettingsResponseDisplayTypes.DEFAULT
+    !!context.responseComponentsV2 && displaySettings === UserSettingsResponseDisplayTypes.DEFAULT
   );
   const message = {
     content: [
