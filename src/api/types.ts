@@ -3099,6 +3099,34 @@ export namespace RestResponsesRaw {
     user: CreditBalance | null,
   }
 
+  export interface LimitCount {
+    count: number,
+    limit: number,
+  }
+
+  // what the caller gets where it's used (the api's `limits_summary`), `source` is whose premium applies
+  export interface FetchPremiumLimits {
+    code_seconds: number,
+    download_quality: string,
+    file_days: number,
+    // null is their Discord upload limit, up to `file_size_discord_max`
+    file_size: null | number,
+    file_size_discord_max: number,
+    // `available` is whether they can save any (premium for their own, a premium slot for a server's)
+    fonts: (LimitCount & {available: boolean}) | null,
+    frames: number,
+    media_seconds: number,
+    server_fonts: (LimitCount & {available: boolean}) | null,
+    server_tier: null | string,
+    server_voices: LimitCount | null,
+    source: 'server' | 'user' | null,
+    still_size: number,
+    tag_seconds: number,
+    // `premium`, `premium_plus` or `premium_max`, null without any
+    tier: null | string,
+    voices: LimitCount | null,
+  }
+
   export interface PostPremiumCreditsGive {
     amount: number,
     // the giver's bought credits left
@@ -3185,6 +3213,8 @@ export namespace RestResponsesRaw {
 
   export interface FetchUserVoices {
     count: number,
+    // how many they (or a server) can have, missing from an api before it was sent for a user's
+    limit?: number,
     voices: Array<Voice>,
   }
 

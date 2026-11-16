@@ -1161,6 +1161,8 @@ export const Api = Object.freeze({
     '/premium/credits',
   PREMIUM_CREDITS_GIVE:
     '/premium/credits/give',
+  PREMIUM_LIMITS:
+    '/premium/limits',
 
   PREMIUM_SERVERS:
     '/premium/servers',

@@ -129,8 +129,8 @@ export async function voiceCloneAccessProblem(
   };
 }
 
-// the user's own voices, or with `server` the server's it's used in and how many it can have (the api's, it depends on
-// the server's premium), null for the user's
+// the user's own voices, or with `server` the server's it's used in, and how many fit (the api's, it depends on their
+// premium or the server's slots, null from an api that didn't send a user's)
 export async function fetchVoices(
   context: Command.Context | Interaction.InteractionContext,
   server?: boolean,
@@ -139,7 +139,8 @@ export async function fetchVoices(
     const { limit, voices } = await fetchServerVoices(context);
     return {limit, voices};
   }
-  return {limit: null, voices: (await fetchUserVoices(context, context.userId)).voices};
+  const { limit, voices } = await fetchUserVoices(context, context.userId);
+  return {limit: limit ?? null, voices};
 }
 
 export async function createMessage(
@@ -165,7 +166,12 @@ export async function createMessage(
 
   const payload: DisplayPayload = {fields: []};
   payload.color = EmbedColors.DEFAULT;
-  payload.footer = (args.server) ? translate('voice_server.voices', {count: voices.length, max: limit ?? 0}) : translate('voice_list.cloned_voices');
+  if (args.server) {
+    payload.footer = translate('voice_server.voices', {count: voices.length, max: limit ?? 0});
+  } else {
+    // an api from before user lists had a `limit` just gets the title
+    payload.footer = (limit === null) ? translate('voice_list.cloned_voices') : translate('voice_list.cloned_voices_count', {count: voices.length, max: limit});
+  }
 
   const description: Array<string> = [];
   for (let i = 0; i < voices.length; i++) {

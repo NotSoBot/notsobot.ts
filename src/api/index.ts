@@ -379,6 +379,14 @@ export async function fetchPremiumCredits(
 }
 
 
+// what the caller gets where it's used (their premium or the server's slot), with their voices and fonts and the server's
+export async function fetchPremiumLimits(
+  context: RequestContext,
+) {
+  return raw.fetchPremiumLimits(context);
+}
+
+
 // gives the server the command was used in some of the caller's bought credits
 export async function postPremiumCreditsGive(
   context: RequestContext,

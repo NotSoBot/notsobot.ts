@@ -2462,6 +2462,18 @@ export async function fetchPremiumCredits(
 }
 
 
+export async function fetchPremiumLimits(
+  context: RequestContext,
+): Promise<RestResponsesRaw.FetchPremiumLimits> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.PREMIUM_LIMITS,
+    },
+  });
+}
+
+
 export async function postPremiumCreditsGive(
   context: RequestContext,
   amount: number,
