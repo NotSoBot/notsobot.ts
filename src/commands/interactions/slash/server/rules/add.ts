@@ -22,6 +22,9 @@ export interface CommandArgs {
 }
 
 export class ServerRulesAddCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Block or allow everything, a category, or a command for Channels/Roles/Users or Server-Wide';
   descriptionLocalizations = I18n.localizations('commands.rules.add.description');
   metadata = {

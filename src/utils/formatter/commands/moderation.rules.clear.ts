@@ -22,7 +22,7 @@ export async function createMessage(
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('rules.list.empty')}`});
   }
   // removing rules that cover everything needs administrator, like adding them
-  if (!isGuildAdmin(context.member) && !context.user.isClientOwner && settings.rules.some((rule) => rule.coversEverything || rule.adminBypass === false)) {
+  if (!isGuildAdmin(context.member) && settings.rules.some((rule) => rule.coversEverything || rule.adminBypass === false)) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('rules.needs_admin')}`});
   }
 

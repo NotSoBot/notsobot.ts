@@ -9,6 +9,9 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'admin-bypass';
 
 export class ServerRulesAdminBypassCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Set if the server owner and admins skip the rules';
   descriptionLocalizations = I18n.localizations('commands.rules.admin_bypass.description');
   metadata = {

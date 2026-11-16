@@ -18,6 +18,9 @@ export interface CommandArgs {
 }
 
 export default class AutowarnAutomodCommand extends BaseCommand {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

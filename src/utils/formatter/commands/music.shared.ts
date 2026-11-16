@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { Markup, PermissionTools } from 'detritus-client/lib/utils';
 
 import { editGuildMusicSound, fetchGuildMusic } from '../../../api';
 import { RequestContext } from '../../../api/raw';
@@ -33,10 +33,29 @@ export function canManageMusic(member?: null | Structures.Member): boolean {
   if (!member) {
     return false;
   }
-  if (member.isOwner || member.can(Permissions.MANAGE_GUILD)) {
+  if (member.isOwner || member.isClientOwner || member.can(Permissions.MANAGE_GUILD)) {
     return true;
   }
   return isMusicDj(member);
+}
+
+// controlling the music (skip, pause, resume, seek, loop, leave, others' tracks, the buttons): djs (`canManageMusic`),
+// or manage channels in the voice channel we're in (overwrites count). Only djs change the server's music settings
+export function canControlMusic(member?: null | Structures.Member): boolean {
+  if (!member) {
+    return false;
+  }
+  return canManageMusic(member) || managesMusicChannel(member);
+}
+
+// manage channels in our voice channel, the voice node's or one we're still in without it knowing
+function managesMusicChannel(member: Structures.Member): boolean {
+  const me = member.guild && member.guild.me;
+  const channelId = VoiceNode.guilds.get(member.guildId)?.channelId || (me && me.voiceState && me.voiceState.channelId);
+  if (!channelId) {
+    return false;
+  }
+  return PermissionTools.checkPermissions(member.permissionsIn(channelId), Permissions.MANAGE_CHANNELS);
 }
 
 // has the server's dj role (manage server aside)
@@ -130,16 +149,36 @@ export function clearMusicVotes(kind: MusicVoteKinds, guildId: string) {
   musicVotes.delete(`${kind}.${guildId}`);
 }
 
-// with the server's vote on (`vote`, its `vote_skip`, `vote_pause` or `vote_resume`), only whoever queued `item` (what's playing),
-// manage server or the dj role do it right away, or anyone when half of who's listening is just them (two people
-// at most). Off, anyone can
+// the server's settings a vote looks at: dj mode, and the vote setting for each kind
+export type MusicVoteSettings = Pick<RestResponsesRaw.FetchGuildMusic, 'dj_only' | 'vote_pause' | 'vote_resume' | 'vote_skip'>;
+
+// whether `kind` is a vote at all: always with dj mode on (everyone but djs votes), otherwise the server's `vote_skip`,
+// `vote_pause` or `vote_resume`
+function isMusicVoteOn(kind: MusicVoteKinds, music: MusicVoteSettings): boolean {
+  if (music.dj_only) {
+    return true;
+  }
+  switch (kind) {
+    case MusicVoteKinds.PAUSE: return music.vote_pause;
+    case MusicVoteKinds.RESUME: return music.vote_resume;
+    case MusicVoteKinds.SKIP: return music.vote_skip;
+  }
+}
+
+// skipping, pausing or resuming `item` (what's playing) right away: djs and manage channels in our voice channel
+// (`canControlMusic`) always, anyone when the server's vote for it is off, whoever queued `item` too unless dj mode is on
+// (then everyone but djs votes, their own track too), or anyone when half of who's listening is just them (two people at most)
 export function canControlMusicItem(
   member: Structures.Member,
   channel: Structures.Channel,
   item: RestResponsesRaw.GuildMusicQueueItem,
-  vote: boolean,
+  kind: MusicVoteKinds,
+  music: MusicVoteSettings,
 ): boolean {
-  if (!vote || item.user_id === member.id || canManageMusic(member)) {
+  if (canControlMusic(member)) {
+    return true;
+  }
+  if (!isMusicVoteOn(kind, music) || (!music.dj_only && item.user_id === member.id)) {
     return true;
   }
   return Math.ceil(musicListeners(member, channel).size / 2) <= 1;
@@ -153,12 +192,12 @@ export function musicVote(
   member: Structures.Member,
   channel: Structures.Channel,
   item: RestResponsesRaw.GuildMusicQueueItem,
-  vote: boolean,
+  music: MusicVoteSettings,
 ): {done: boolean, needed: number, votes: number} {
   const key = `${kind}.${member.guildId}`;
   const listeners = musicListeners(member, channel);
   const needed = Math.ceil(listeners.size / 2);
-  if (canControlMusicItem(member, channel, item, vote)) {
+  if (canControlMusicItem(member, channel, item, kind, music)) {
     musicVotes.delete(key);
     return {done: true, needed, votes: needed};
   }
@@ -177,15 +216,16 @@ export function musicVote(
   return {done: false, needed, votes};
 }
 
-// dj mode (the server's `dj_only`, on by default): controlling the music (skip, pause, resume, seek, loop, leave,
-// moving tracks) needs manage server or the dj role, no votes. The reply when they can't, null when they can. Not
+// dj mode (the server's `dj_only`, on by default): controlling the music (seek, loop, leave, moving tracks) needs a dj
+// or manage channels in our voice channel (`canControlMusic`). Skipping, pausing and resuming are votes for everyone
+// else instead (`musicVote`). The reply when they can't, null when they can. Not
 // knowing the setting (the api not answering) refuses, like `music leave`
 export function musicDjRefusal(
   translate: Translator['translate'],
   member: null | Structures.Member | undefined,
   music: null | Pick<RestResponsesRaw.FetchGuildMusic, 'dj_only'>,
 ): null | string {
-  if (canManageMusic(member) || (music && !music.dj_only)) {
+  if (canControlMusic(member) || (music && !music.dj_only)) {
     return null;
   }
   return `${StatusEmojis.WARNING} ${translate('music_dj.locked')}`;
@@ -197,7 +237,7 @@ export function canManageOthersMusic(
   member: null | Structures.Member | undefined,
   music: null | Pick<RestResponsesRaw.FetchGuildMusic, 'dj_only'>,
 ): boolean {
-  return canManageMusic(member) || (!!music && !music.dj_only);
+  return canControlMusic(member) || (!!music && !music.dj_only);
 }
 
 // `musicDjRefusal`, fetching the setting only when it matters (a dj doesn't wait on the api)
@@ -207,7 +247,7 @@ export async function fetchMusicDjRefusal(
   guildId: string,
   member: null | Structures.Member | undefined,
 ): Promise<null | string> {
-  if (canManageMusic(member)) {
+  if (canControlMusic(member)) {
     return null;
   }
   return musicDjRefusal(translate, member, await fetchGuildMusic(context, guildId).catch(() => null));

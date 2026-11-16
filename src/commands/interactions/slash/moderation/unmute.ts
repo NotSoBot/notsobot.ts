@@ -15,6 +15,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'unmute';
 
 export class ModerationUnmuteCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Remove the timeout from multiple members';
   descriptionLocalizations = I18n.localizations('commands.moderation.unmute.description');
   metadata = {

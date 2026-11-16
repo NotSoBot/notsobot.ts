@@ -6027,3 +6027,12 @@ export async function voiceCloneEdit(
 ) {
   return raw.voiceCloneEdit(context, voiceId, options);
 }
+
+
+export async function voiceCloneTransfer(
+  context: RequestContext,
+  voiceId: string,
+  options: RestOptions.VoiceCloneTransfer,
+) {
+  return raw.voiceCloneTransfer(context, voiceId, options);
+}

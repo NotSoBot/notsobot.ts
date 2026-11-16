@@ -813,6 +813,7 @@ import * as VoiceClone from './voice.clone';
 import * as VoiceCloneAdd from './voice.clone.add';
 import * as VoiceDelete from './voice.delete';
 import * as VoiceList from './voice.list';
+import * as VoiceMove from './voice.move';
 import * as VoiceRename from './voice.rename';
 import * as VoiceServer from './voice.server';
 
@@ -1633,6 +1634,7 @@ export {
   VoiceCloneAdd,
   VoiceDelete,
   VoiceList,
+  VoiceMove,
   VoiceRename,
   VoiceServer,
 };

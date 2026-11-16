@@ -19,7 +19,7 @@ export interface CommandArgs {
   voice?: string | null,
 }
 
-// cloned voices are premium only, anyone else just has the built-in ones
+// their cloned voices (anyone can clone now), a failed fetch just leaves the built-in ones
 async function fetchVoicesSafe(context: Command.Context | Interaction.InteractionContext): Promise<Array<{id: string, name: string}>> {
   try {
     return (await fetchUserVoices(context, context.userId)).voices;

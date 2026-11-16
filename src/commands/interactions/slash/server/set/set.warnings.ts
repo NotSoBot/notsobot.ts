@@ -8,6 +8,9 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class ServerSetWarningsCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   blockedCommandShouldStillExecute = false;
   description = 'See or change how long warnings stay active and when they get deleted';
   descriptionLocalizations = I18n.localizations('commands.settings_server.set.set_warnings.description');

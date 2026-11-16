@@ -6,7 +6,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class MusicEffectRemoveCommand extends BaseInteractionCommandOption {
-  description = 'Take an effect off the music (in the bot\'s channel with Manage Server or the DJ role)';
+  description = 'Take an effect off the music (in the bot\'s channel, a DJ with DJ mode on)';
   metadata = {
     id: Formatter.Commands.MusicEffect.COMMAND_ID,
   };

@@ -98,7 +98,7 @@ export async function createMessage(
   if (channel.id !== context.channelId) {
     const command = `${Markup.codestring(COMMAND_NAME)} -> ${channel.mention}`;
     const required = [Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY, Permissions.PIN_MESSAGES];
-    const failedUser = required.filter((permission) => !channel.can(permission, context.member!));
+    const failedUser = (context.user.isClientOwner) ? [] : required.filter((permission) => !channel.can(permission, context.member!));
     if (failedUser.length) {
       return replyWarning(context, translate('errors.prefix_user_missing_permissions', {
         command,

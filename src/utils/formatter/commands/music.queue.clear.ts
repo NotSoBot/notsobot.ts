@@ -5,7 +5,7 @@ import { StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
-import { canManageMusic, canManageOthersMusic, musicItemsAtPositions } from './music.shared';
+import { canControlMusic, canManageOthersMusic, musicItemsAtPositions } from './music.shared';
 
 
 export const COMMAND_ID = 'music.queue.clear';
@@ -46,7 +46,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   }
 
   let userId = (args.from) ? args.from.id : undefined;
-  if (userId !== context.userId && !canManageMusic(context.member)) {
+  if (userId !== context.userId && !canControlMusic(context.member)) {
     // dj mode off, anyone clears anyone's
     const music = await fetchGuildMusic(context, context.guildId);
     if (!canManageOthersMusic(context.member, music)) {

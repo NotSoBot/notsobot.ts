@@ -15,6 +15,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'warn';
 
 export class ModerationWarnCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Warn multiple members with a reason, kept on their record here';
   descriptionLocalizations = I18n.localizations('commands.moderation.warn.description');
   metadata = {

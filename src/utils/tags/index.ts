@@ -131,7 +131,6 @@ import VoiceNode from '../../voicenode';
 import {
   MusicVoteKinds,
   clearMusicVotes,
-  musicDjRefusal,
   musicItemPosition,
   musicSoundSettingRefusal,
   musicVote,
@@ -1153,7 +1152,7 @@ const TTS_VOICE_BUILT_IN = createEnumSetting(
   TTSVoicesToText,
 );
 
-// cloned voices are premium only, anyone else just has the built-in ones
+// their cloned voices (anyone can clone now), a failed fetch just leaves the built-in ones
 async function fetchTTSVoicesSafe(context: Command.Context | Interaction.InteractionContext): Promise<Array<{id: string, name: string}>> {
   try {
     return (await fetchUserVoices(context, context.userId)).voices;
@@ -1389,7 +1388,7 @@ function pickTagSearchResult<T>(results: Array<T>, page: number): T | undefined 
 
 // the member who asked NotSoAI needs Manage Server, the same as `/server set`
 function canManageServer(context: Command.Context | Interaction.InteractionContext): boolean {
-  return !!context.member && context.member.can(Permissions.MANAGE_GUILD);
+  return context.user.isClientOwner || (!!context.member && context.member.can(Permissions.MANAGE_GUILD));
 }
 
 async function setServerSetting(
@@ -8188,11 +8187,8 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
+    // dj mode makes it a vote for everyone but djs (`musicVote`)
     const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
-    const refusal = musicDjRefusal(translate, member, music);
-    if (refusal) {
-      throw musicRefusalError(refusal);
-    }
     if (!music.current) {
       throw new TagError('Nothing is playing in this server');
     }
@@ -8204,8 +8200,7 @@ const ScriptTags = Object.freeze({
     }
 
     const kind = (action === 'pause') ? MusicVoteKinds.PAUSE : (action === 'resume') ? MusicVoteKinds.RESUME : MusicVoteKinds.SKIP;
-    const voting = (action === 'pause') ? music.vote_pause : (action === 'resume') ? music.vote_resume : music.vote_skip;
-    const vote = musicVote(kind, member, channel, music.current, voting);
+    const vote = musicVote(kind, member, channel, music.current, music);
     if (!vote.done) {
       tag.text += `voted ${vote.votes}/${vote.needed}`;
       return true;

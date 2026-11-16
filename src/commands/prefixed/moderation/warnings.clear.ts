@@ -10,6 +10,9 @@ import { BaseCommand } from '../basecommand';
 export const COMMAND_NAME = 'warnings clear';
 
 export default class WarningsClearCommand extends BaseCommand {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

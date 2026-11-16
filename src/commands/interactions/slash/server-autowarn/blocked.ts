@@ -18,6 +18,9 @@ export interface CommandArgs {
 }
 
 export class ServerAutowarnBlockedCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Warn members that use a command the server\'s rules block for them';
   descriptionLocalizations = I18n.localizations('commands.autowarn.blocked.description');
   metadata = {

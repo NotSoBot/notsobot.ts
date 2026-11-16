@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseMediasCommand } from '../basecommand';
 
@@ -18,6 +18,7 @@ export default class OverlayCommand extends BaseMediasCommand {
         {name: 'color', aliases: ['c']},
         {name: 'noloop', aliases: ['nl'], type: Boolean},
         {name: 'opacity', aliases: ['o'], type: Number, metadata: {description: '0 to 100'}},
+        {name: 'position', aliases: ['p'], type: Parameters.overlayPosition, metadata: {description: 'topleft, center, bottomright... or a grid cell like 3x3:2'}},
         {name: 'resize', aliases: ['r']},
         {name: 'similarity', aliases: ['s'], type: 'float', metadata: {description: '0.01 to 1'}},
         {name: 'x'},
@@ -28,10 +29,12 @@ export default class OverlayCommand extends BaseMediasCommand {
         description: 'Overlay one media on top of another',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
+          `${COMMAND_NAME} @cakedan @notsobot -position topright`,
+          `${COMMAND_NAME} @cakedan @notsobot -position 3x3:2`,
           `${COMMAND_NAME} @cakedan @notsobot -resize fit(mw, mh) -x (mw/2)-(ow/2) -y (mh/2)-(oh/2)`,
         ],
         id: Formatter.Commands.MediaAIVManipulationOverlay.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-blend <float>) (-color <string:FFMPEGColors|HEX|RGBA?>) (-noloop) (-opacity <number>) (-resize <expression>) (-similarity <float>) (-x <expression>) (-y <expression>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-blend <float>) (-color <string:FFMPEGColors|HEX|RGBA?>) (-noloop) (-opacity <number>) (-position <name|COLUMNSxROWS:CELL>) (-resize <expression>) (-similarity <float>) (-x <expression>) (-y <expression>)',
       },
       minAmount: 2,
       priority: -1,

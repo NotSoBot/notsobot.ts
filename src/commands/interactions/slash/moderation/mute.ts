@@ -16,6 +16,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'mute';
 
 export class ModerationMuteCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Time out multiple members with a reason';
   descriptionLocalizations = I18n.localizations('commands.moderation.mute.description');
   metadata = {

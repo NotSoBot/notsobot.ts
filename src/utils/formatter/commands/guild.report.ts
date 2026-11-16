@@ -157,7 +157,7 @@ export async function getDisabledPayload(
   const lines = [
     `${StatusEmojis.WARNING} ${translate('guild_report.disabled', {command: Markup.codestring(`${prefix}bot report`)})}`,
   ];
-  if (context.member && context.member.can(Permissions.MANAGE_GUILD)) {
+  if (context.user.isClientOwner || (context.member && context.member.can(Permissions.MANAGE_GUILD))) {
     lines.push(translate('guild_report.disabled_setup', {command: Markup.codestring(setup)}));
   }
   return {description: lines.join('\n'), ephemeral: true};
@@ -646,7 +646,7 @@ export async function onGuildReportComponent(context: ComponentContext, action: 
   if ((status === undefined && action !== REPORT_ACTION_RESPOND) || !context.guildId) {
     return context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
   }
-  if (!context.member || !context.member.can(Permissions.MODERATE_MEMBERS)) {
+  if (!context.user.isClientOwner && (!context.member || !context.member.can(Permissions.MODERATE_MEMBERS))) {
     return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
       color: EmbedColors.ERROR,
       description: `${StatusEmojis.WARNING} ${translate('guild_report_log.no_permission')}`,

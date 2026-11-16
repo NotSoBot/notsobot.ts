@@ -19,6 +19,9 @@ export interface CommandArgs {
 }
 
 export class ServerRulesRemoveCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Remove the rules for everything, a category, or a command (or a rule\'s ID)';
   descriptionLocalizations = I18n.localizations('commands.rules.remove.description');
   metadata = {

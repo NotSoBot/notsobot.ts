@@ -61,7 +61,7 @@ export function checkGuildRuleAdmin(
   coverage: GuildRuleCoverage,
   adminBypass?: boolean | null,
 ): string | null {
-  if (guildRuleNeedsAdmin(coverage, adminBypass) && !isGuildAdmin(context.member) && !context.user.isClientOwner) {
+  if (guildRuleNeedsAdmin(coverage, adminBypass) && !isGuildAdmin(context.member)) {
     return `${StatusEmojis.WARNING} ${translate('rules.needs_admin')}`;
   }
   return null;

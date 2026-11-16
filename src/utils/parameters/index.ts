@@ -458,6 +458,61 @@ export function parsedMentionsText(
 }
 
 
+// a cell of a `columns`x`rows` grid, 1-based in reading order (left to right, then top to bottom)
+export interface OverlayPosition {
+  cell: number,
+  columns: number,
+  rows: number,
+}
+
+export const OVERLAY_POSITION_MAX_GRID = 10;
+
+// the named spots are the cells of a 3x3 grid
+export const OverlayPositionNames: Record<string, number> = Object.freeze({
+  topleft: 1,
+  top: 2,
+  topright: 3,
+  left: 4,
+  center: 5,
+  right: 6,
+  bottomleft: 7,
+  bottom: 8,
+  bottomright: 9,
+});
+
+// `topright`, `top-right`, `top right` or `COLUMNSxROWS:CELL` (`3x3:2`, `4x2:7`)
+export function overlayPosition(
+  value: string,
+  context?: Command.Context | Interaction.InteractionContext,
+): OverlayPosition | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const translate = getCachedTranslator(context).translate;
+  const text = value.toLowerCase().replace(/[\s_-]+/g, '').replace(/centre|middle/, 'center');
+  if (text in OverlayPositionNames) {
+    return {cell: OverlayPositionNames[text], columns: 3, rows: 3};
+  }
+  const match = text.match(/^(\d+)x(\d+):(\d+)$/);
+  if (!match) {
+    const choices = [...Object.keys(OverlayPositionNames), 'COLUMNSxROWS:CELL'].map((x) => Markup.codestring(x)).join(', ');
+    throw new UserError(translate('params.must_be_one_of', {choices: `(${choices})`}));
+  }
+  const columns = parseInt(match[1]);
+  const rows = parseInt(match[2]);
+  const cell = parseInt(match[3]);
+  for (let size of [columns, rows]) {
+    if (size < 1 || OVERLAY_POSITION_MAX_GRID < size) {
+      throw new UserError(translate('params.value_between', {max: OVERLAY_POSITION_MAX_GRID, min: 1}));
+    }
+  }
+  if (cell < 1 || columns * rows < cell) {
+    throw new UserError(translate('params.value_between', {max: columns * rows, min: 1}));
+  }
+  return {cell, columns, rows};
+}
+
+
 export function percentage(value: number | string): number {
   if (typeof(value) === 'string') {
     value = value.replace(/%/g, '');

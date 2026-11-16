@@ -4,13 +4,13 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import { createVoiceClone } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
-import { replyError } from '../../../commands/errors';
 import { getTranslator } from '../../i18n';
 import { DiscordEmojis, StatusEmojis } from '../../../constants';
 
+import { replyError } from '../../../commands/errors';
 import { displayReply } from '../../../utils';
 
-import { serverVoicesProblem, voiceCloneAccessProblem } from './voice.list';
+import { VoiceClonePlatformTypes, VoiceClonePlatforms, serverVoicesProblem, voiceCloneAccessProblem } from './voice.list';
 
 
 export const MAX_TIME_TO_RESPOND = 2 * 60 * 1000;
@@ -20,8 +20,10 @@ export const COMMAND_ID = 'voice.clone';
 
 export interface CommandArgs {
   name?: string,
-  // the server it's used in gets the voice instead (needs Manage Server, and a member's premium plus on the server or
-  // NotSoCredits given to it)
+  // ZONOS3 (our own servers, free) when left out, fish.audio needs plus or NotSoCredits and its tts spends them
+  platform?: null | VoiceClonePlatforms,
+  // the server it's used in gets the voice instead (needs Manage Server). Anyone can clone a few with ZONOS3 (free), the
+  // api's limits grow with premium
   server?: boolean,
   url: string,
 }
@@ -38,13 +40,14 @@ export async function createMessage(
       return displayReply(context, {description: translate(problem)});
     }
   }
-  // plus or NotSoCredits, checked before they confirm instead of after
-  const accessProblem = await voiceCloneAccessProblem(context, !!args.server);
+  const platformType = VoiceClonePlatformTypes[args.platform || VoiceClonePlatforms.ZONOS3];
+  // fish.audio needs plus or NotSoCredits, checked before they confirm instead of after
+  const accessProblem = await voiceCloneAccessProblem(context, !!args.server, platformType);
   if (accessProblem) {
     return replyError(context, accessProblem);
   }
 
-  // the user has to confirm they own the voice (or have its owner's permission) before the audio goes to elevenlabs
+  // the user has to confirm they own the voice (or have its owner's permission) before the audio is cloned
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: async () => {
@@ -69,7 +72,7 @@ export async function createMessage(
 
       let description: string;
       try {
-        const voice = await createVoiceClone(context, args);
+        const voice = await createVoiceClone(context, {...args, type: platformType});
         description = translate('voice_clone.cloned_voice_successfully', {name: Markup.codestring(voice.name)});
       } catch(error) {
         // max clones reached or an unsupported file, show why instead of leaving the buttons up

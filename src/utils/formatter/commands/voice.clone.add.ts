@@ -33,12 +33,6 @@ export async function createMessage(
       return displayReply(context, {description: translate(problem)});
     }
   }
-  // plus or NotSoCredits, checked before they confirm instead of after
-  const accessProblem = await voiceCloneAccessProblem(context, !!args.server);
-  if (accessProblem) {
-    return replyError(context, accessProblem);
-  }
-
   const { limit, voices } = await fetchVoices(context, args.server);
   if (!voices.length) {
     if (args.server) {
@@ -50,6 +44,12 @@ export async function createMessage(
   const result = findVoice(voices, args.voice);
   if (!result) {
     return displayReply(context, {description: translate('voice_clone_add.no_cloned_voices_found_matching_that')});
+  }
+
+  // a fish.audio or ElevenLabs voice needs plus or NotSoCredits, checked before they confirm instead of after
+  const accessProblem = await voiceCloneAccessProblem(context, !!args.server, result.platform_type);
+  if (accessProblem) {
+    return replyError(context, accessProblem);
   }
 
   const voiceText = Markup.codestring(result.name);

@@ -3,5 +3,6 @@
 export const COMMAND_ID_CREATE = 'voice.server.create';
 export const COMMAND_ID_DELETE = 'voice.server.delete';
 export const COMMAND_ID_LIST = 'voice.server.list';
+export const COMMAND_ID_MOVE = 'voice.server.move';
 export const COMMAND_ID_RENAME = 'voice.server.rename';
 export const COMMAND_ID_SAMPLE = 'voice.server.sample';

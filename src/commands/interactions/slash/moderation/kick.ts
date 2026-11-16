@@ -18,6 +18,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'kick';
 
 export class ModerationKickCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Kick multiple members, add a reason, and clean their messages';
   descriptionLocalizations = I18n.localizations('commands.moderation.kick.description');
   metadata = {

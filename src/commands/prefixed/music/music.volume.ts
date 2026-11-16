@@ -17,7 +17,7 @@ export default class MusicVolumeCommand extends BaseCommand {
       disableDm: true,
       label: 'volume',
       metadata: {
-        description: `Set the music's volume for everyone on a premium server (0 to ${MAX_MUSIC_VOLUME}%), changing it (back to 100 too) needs you in the bot's channel with Manage Server or the DJ role. Nothing given shows it`,
+        description: `Set the music's volume for everyone on a premium server (0 to ${MAX_MUSIC_VOLUME}%), changing it (back to 100 too) needs you in the bot's channel, with DJ mode on as a DJ (Manage Server, the DJ role or Manage Channel there). Nothing given shows it`,
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} 50`,

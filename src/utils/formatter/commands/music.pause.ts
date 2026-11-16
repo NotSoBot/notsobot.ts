@@ -6,7 +6,7 @@ import { displayDetails, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { MusicVoteKinds, clearMusicVotes, musicDjRefusal, musicItemTitle, musicListeningTime, musicPlaybackText, musicPlayerSpeed, musicVote } from './music.shared';
+import { MusicVoteKinds, clearMusicVotes, musicItemTitle, musicListeningTime, musicPlaybackText, musicPlayerSpeed, musicVote } from './music.shared';
 
 
 export const COMMAND_ID = 'music.pause';
@@ -29,13 +29,8 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   }
 
   const music = await fetchGuildMusic(context, guildId);
-  // dj mode: only djs control it, no votes
-  const refusal = musicDjRefusal(translate, member, music);
-  if (refusal) {
-    return displayReply(context, {description: refusal});
-  }
   if (music.current) {
-    const vote = musicVote(MusicVoteKinds.PAUSE, member, channel, music.current, music.vote_pause);
+    const vote = musicVote(MusicVoteKinds.PAUSE, member, channel, music.current, music);
     if (!vote.done) {
       return displayReply(context, {
         description: displayDetails([

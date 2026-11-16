@@ -9,6 +9,9 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'clear';
 
 export class ServerRulesClearCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Remove every rule in this Server';
   descriptionLocalizations = I18n.localizations('commands.rules.clear.description');
   metadata = {

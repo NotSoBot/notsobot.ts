@@ -24,6 +24,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'prune';
 
 export class ModerationPruneCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Delete recent messages in bulk';
   descriptionLocalizations = I18n.localizations('commands.moderation.prune.description');
   metadata = {

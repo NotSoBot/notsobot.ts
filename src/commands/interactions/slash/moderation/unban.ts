@@ -15,6 +15,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'unban';
 
 export class ModerationUnbanCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Unban multiple users and add a reason';
   descriptionLocalizations = I18n.localizations('commands.moderation.unban.description');
   metadata = {

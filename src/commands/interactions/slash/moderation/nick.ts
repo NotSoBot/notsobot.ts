@@ -15,6 +15,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'nick';
 
 export class ModerationNickCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Change or reset a member\'s nickname';
   descriptionLocalizations = I18n.localizations('commands.moderation.nick.description');
   metadata = {

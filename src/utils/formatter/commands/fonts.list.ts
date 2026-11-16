@@ -38,7 +38,7 @@ export async function fetchScopedFonts(
       return null;
     }
     // the api trusts the bot with this, anyone in the server could list them but only managers change them
-    if (!context.member || !context.member.canManageGuild) {
+    if (!context.user.isClientOwner && (!context.member || !context.member.canManageGuild)) {
       await displayReply(context, {description: translate('fonts.server_needs_manage'), ephemeral: true});
       return null;
     }

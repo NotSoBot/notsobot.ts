@@ -18,6 +18,9 @@ export interface CommandArgs {
 }
 
 export class ServerAutowarnAutomodCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Warn members that set off the server\'s discord AutoMod rules (I need Manage Server)';
   descriptionLocalizations = I18n.localizations('commands.autowarn.automod.description');
   metadata = {

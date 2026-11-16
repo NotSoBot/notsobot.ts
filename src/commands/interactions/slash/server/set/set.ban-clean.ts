@@ -8,6 +8,9 @@ import { CLEAN_CHOICES } from '../../moderation/ban';
 
 
 export class ServerSetBanCleanCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   blockedCommandShouldStillExecute = false;
   description = 'See or change how far back bans delete messages when the moderator doesn\'t pick';
   descriptionLocalizations = I18n.localizations('commands.settings_server.set.set_ban_clean.description');

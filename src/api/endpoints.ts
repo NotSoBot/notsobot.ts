@@ -1413,6 +1413,8 @@ export const Api = Object.freeze({
     '/voices/:voiceId/add',
   VOICE_CLONE:
     '/voices/clone',
+  VOICE_TRANSFER:
+    '/voices/:voiceId/transfer',
   VOICES_SERVER:
     '/voices/server',
 });

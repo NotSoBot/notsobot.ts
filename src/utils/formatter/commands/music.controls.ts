@@ -17,7 +17,7 @@ import { Translator, getCachedTranslator } from '../../i18n';
 
 import {
   MusicVoteKinds,
-  canManageMusic,
+  canControlMusic,
   canManageOthersMusic,
   clearMusicVotes,
   canControlMusicItem,
@@ -311,9 +311,13 @@ export async function onMusicControl(
   const channel = member && member.voiceState && member.voiceState.channel;
   const playback = [MusicControls.PAUSE, MusicControls.RESUME, MusicControls.SKIP] as Array<string>;
 
-  // dj mode: only djs use the playback buttons (and play next), the setting's only fetched for everyone else
-  const djControls = [...playback, MusicControls.RESTART, MusicControls.PLAY_NEXT, MusicControls.PLAY_NOW] as Array<string>;
-  if (djControls.includes(control) && !canManageMusic(member)) {
+  // dj mode: only djs restart and play next/now, the setting's only fetched for everyone else. Pause, resume and skip
+  // are votes for everyone else (`musicVote`), held or disconnected music isn't (no one's listening to vote)
+  const djControls = [MusicControls.RESTART, MusicControls.PLAY_NEXT, MusicControls.PLAY_NOW] as Array<string>;
+  if ((!guild && playback.includes(control)) || (control === MusicControls.RESUME && guild && guild.disconnected)) {
+    djControls.push(control);
+  }
+  if (djControls.includes(control) && !canControlMusic(member)) {
     const refusal = musicDjRefusal(translate, member, await fetchGuildMusic(context, guildId).catch(() => null));
     if (refusal) {
       return reply(refusal);
@@ -409,7 +413,7 @@ export async function onMusicControl(
       if (!music || !music.current) {
         return followUp(translate('music.nothing_playing'));
       }
-      const vote = musicVote(MusicVoteKinds.SKIP, member!, channel!, music.current, music.vote_skip);
+      const vote = musicVote(MusicVoteKinds.SKIP, member!, channel!, music.current, music);
       if (!vote.done) {
         return followUp(translate('music_skip.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}));
       }
@@ -429,7 +433,7 @@ export async function onMusicControl(
       // a vote like `music pause`, it only says how many voted until enough did
       const music = await fetchGuildMusic(context, guildId).catch(() => null);
       if (music && music.current) {
-        const vote = musicVote(MusicVoteKinds.PAUSE, member!, channel!, music.current, music.vote_pause);
+        const vote = musicVote(MusicVoteKinds.PAUSE, member!, channel!, music.current, music);
         if (!vote.done) {
           return followUp(translate('music_pause.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}));
         }
@@ -449,7 +453,7 @@ export async function onMusicControl(
         // a vote like `music resume` while it's paused, it only says how many voted until enough did
         const music = (guild!.paused) ? await fetchGuildMusic(context, guildId).catch(() => null) : null;
         if (music && music.current) {
-          const vote = musicVote(MusicVoteKinds.RESUME, member!, channel!, music.current, music.vote_resume);
+          const vote = musicVote(MusicVoteKinds.RESUME, member!, channel!, music.current, music);
           if (!vote.done) {
             return followUp(translate('music_resume.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}));
           }
@@ -507,7 +511,7 @@ async function playMusicNow(
   if (!music.current || (!guild && !held)) {
     return reply(translate('music.nothing_playing'));
   }
-  if (guild && !canControlMusicItem(member!, channel!, music.current, music.vote_skip)) {
+  if (guild && !canControlMusicItem(member!, channel!, music.current, MusicVoteKinds.SKIP, music)) {
     return reply(translate('music_controls.play_now_vote', {title: `**${musicItemTitle(music.current)}**`}));
   }
 

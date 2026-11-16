@@ -16,7 +16,7 @@ export default class MusicEffectClearCommand extends BaseCommand {
       aliases: ['music effects clear', 'music fx clear'],
       disableDm: true,
       metadata: {
-        description: 'Take every effect off the music (in the bot\'s channel with Manage Server or the DJ role)',
+        description: 'Take every effect off the music (in the bot\'s channel, a DJ with DJ mode on)',
         examples: [
           COMMAND_NAME,
         ],

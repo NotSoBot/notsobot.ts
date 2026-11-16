@@ -22,6 +22,9 @@ export function nickMassFilterOptions(key: string) {
 }
 
 export class BaseNickMassCommandOption extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
       permissions: [Permissions.CHANGE_NICKNAMES, Permissions.MANAGE_GUILD],
@@ -31,7 +34,7 @@ export class BaseNickMassCommandOption extends BaseInteractionCommandOption {
   }
 
   onBefore(context: Interaction.InteractionContext) {
-    return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= Formatter.Commands.ModerationNickMass.MAX_MEMBERS : false);
+    return (context.guild) ? context.guild.memberCount <= Formatter.Commands.ModerationNickMass.MAX_MEMBERS : false;
   }
 
   async onCancel(context: Interaction.InteractionContext) {

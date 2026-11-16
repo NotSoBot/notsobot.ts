@@ -6,7 +6,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class MusicDjModeCommand extends BaseInteractionCommandOption {
-  description = 'Only Manage Server or the DJ role control the music (on by default)';
+  description = 'Only DJs control the music, everyone else votes to skip, pause or resume (on by default)';
   metadata = {
     id: Formatter.Commands.MusicDj.COMMAND_ID,
   };

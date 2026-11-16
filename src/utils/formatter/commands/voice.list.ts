@@ -42,7 +42,7 @@ export function serverVoicesProblem(
   if (manage) {
     if (context.guildId) {
       const member = context.member;
-      if (!member || !(member.isOwner || member.can(Permissions.MANAGE_GUILD))) {
+      if (!member || !(member.isOwner || member.isClientOwner || member.can(Permissions.MANAGE_GUILD))) {
         return 'voice_server.manage_required';
       }
     } else if (!context.channel || context.channel.ownerId !== context.userId) {
@@ -52,14 +52,55 @@ export function serverVoicesProblem(
   return null;
 }
 
-// why the user (with `server`, the server it's used in) can't clone voices or add audio to them, null when they can.
-// The api's check, asked before the ownership confirmation so it doesn't fail after it: NotSoPremium Plus (a member's
-// plus slot for a server, or the staff-given `VOICE_CLONE_ACCESS`), or bought NotSoCredits (given to the server). From
-// `/premium/credits`, where a user's `weekly` is only there with plus and a server's voices' only with a plus slot
+// the api's `VoiceCloneTypes` that bill us (ElevenLabs 0, fish.audio 1): their voices need NotSoCredits to be changed and
+// spend them when they speak. ZONOS3 (2, our own servers, what every new voice is made with) is free for everyone
+export const PAID_VOICE_PLATFORM_TYPES: ReadonlyArray<number> = [0, 1];
+
+// the platforms a voice can be cloned on or moved to (`-platform`/`platform`), ElevenLabs can't make new voices anymore
+export enum VoiceClonePlatforms {
+  FISH_AUDIO = 'FISH_AUDIO',
+  ZONOS3 = 'ZONOS3',
+}
+
+export const VoiceClonePlatformsToText: Record<VoiceClonePlatforms, string> = Object.freeze({
+  [VoiceClonePlatforms.FISH_AUDIO]: 'fish.audio',
+  [VoiceClonePlatforms.ZONOS3]: 'ZONOS3',
+});
+
+// the api's `VoiceCloneTypes` for each
+export const VoiceClonePlatformTypes: Record<VoiceClonePlatforms, number> = Object.freeze({
+  [VoiceClonePlatforms.FISH_AUDIO]: 1,
+  [VoiceClonePlatforms.ZONOS3]: 2,
+});
+
+// the slash commands' `platform` choices, ZONOS3 is what's used when it's left out
+export const VOICE_CLONE_PLATFORM_CHOICES = [
+  {name: 'ZONOS3 (free)', value: VoiceClonePlatforms.ZONOS3},
+  {name: 'fish.audio (uses NotSoCredits)', value: VoiceClonePlatforms.FISH_AUDIO},
+];
+
+export function voicePlatformText(platformType: number): string {
+  switch (platformType) {
+    case 0: return 'ElevenLabs';
+    case VoiceClonePlatformTypes.FISH_AUDIO: return VoiceClonePlatformsToText.FISH_AUDIO;
+    case VoiceClonePlatformTypes.ZONOS3: return VoiceClonePlatformsToText.ZONOS3;
+  }
+  return String(platformType);
+}
+
+// why the user (with `server`, the server it's used in) can't clone on, move to or add audio to a voice on a paid
+// platform, null when they can or it isn't one. The api's check, asked before the ownership confirmation so it doesn't fail after it: NotSoPremium
+// Plus (a member's plus slot for a server, or the staff-given `VOICE_CLONE_ACCESS`), or bought NotSoCredits (given to the
+// server). From `/premium/credits`, where a user's `weekly` is only there with plus and a server's voices' only with a
+// plus slot
 export async function voiceCloneAccessProblem(
   context: Command.Context | Interaction.InteractionContext,
   server: boolean,
+  platformType: number,
 ): Promise<ErrorPayload | null> {
+  if (!PAID_VOICE_PLATFORM_TYPES.includes(platformType)) {
+    return null;
+  }
   const credits = await fetchPremiumCredits(context);
   const { translate } = await getTranslator(context);
   const skuId = DiscordSkuIds.USER_NOTSOPREMIUM_PLUS;
@@ -137,21 +178,24 @@ export async function createMessage(
 }
 
 
+// `platform_type` so a paid platform's voice can be checked for credits (`voiceCloneAccessProblem`)
+export type FoundVoice = {id: string, name: string, platform_type: number};
+
 export function findVoice(
   voices: Array<RestResponsesRaw.Voice>,
   voice: string,
   exact: boolean = false,
-): {id: string, name: string} | null {
+): FoundVoice | null {
   if (exact) {
     // for anything destructive, fuzzy matching could pick a different voice (`bob` deleting `rob`)
     const query = voice.trim().toLowerCase();
     const found = voices.find((x) => x.id === query) || voices.find((x) => x.name.toLowerCase() === query);
-    return (found) ? {id: found.id, name: found.name} : null;
+    return (found) ? {id: found.id, name: found.name, platform_type: found.platform_type} : null;
   }
 
   const search = new MiniSearch({
     fields: ['id', 'name'],
-    storeFields: ['id', 'name'],
+    storeFields: ['id', 'name', 'platform_type'],
     searchOptions: {
       boost: {name: 2},
       fuzzy: true,
@@ -163,7 +207,7 @@ export function findVoice(
 
   const results = search.search(voice);
   if (results.length) {
-    return results[0] as unknown as {id: string, name: string};
+    return results[0] as unknown as FoundVoice;
   }
   return null;
 }

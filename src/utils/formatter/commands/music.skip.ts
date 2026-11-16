@@ -6,13 +6,13 @@ import { displayDetails, displayDetailsLine, displayReply } from '../../../utils
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { MusicVoteKinds, musicDjRefusal, musicItemDetails, musicItemTitle, musicVote } from './music.shared';
+import { MusicVoteKinds, musicItemDetails, musicItemTitle, musicVote } from './music.shared';
 
 
 export const COMMAND_ID = 'music.skip';
 
 // skipping needs you in our channel, with the server's vote skip on it's a vote unless you queued it (or manage the music,
-// or it's only you)
+// or it's only you). Dj mode makes it a vote for everyone but djs, their own tracks too
 export async function createMessage(context: Command.Context | Interaction.InteractionContext) {
   const { translate } = await getTranslator(context);
 
@@ -30,17 +30,12 @@ export async function createMessage(context: Command.Context | Interaction.Inter
 
   // what's playing before it's skipped and what's next, for the reply
   const music = await fetchGuildMusic(context, guildId);
-  // dj mode: only djs control it, no votes
-  const refusal = musicDjRefusal(translate, member, music);
-  if (refusal) {
-    return displayReply(context, {description: refusal});
-  }
   if (!music.current) {
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
   const title = `**${musicItemTitle(music.current)}**`;
 
-  const vote = musicVote(MusicVoteKinds.SKIP, member, channel, music.current, music.vote_skip);
+  const vote = musicVote(MusicVoteKinds.SKIP, member, channel, music.current, music);
   if (!vote.done) {
     return displayReply(context, {
       description: displayDetails([

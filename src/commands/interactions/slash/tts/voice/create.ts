@@ -16,6 +16,7 @@ export class TTSVoiceCreateCommand extends BaseInteractionAudioOrVideoCommandOpt
     super({
       options: [
         {name: 'name', description: 'Name for the voice', maxLength: 128},
+        {name: 'platform', description: 'Where it\'s cloned, ZONOS3 (free) by default', choices: Formatter.Commands.VoiceList.VOICE_CLONE_PLATFORM_CHOICES},
       ],
     });
   }

@@ -10,6 +10,9 @@ import { BaseCommand } from '../basecommand';
 export const COMMAND_NAME = 'nick mass';
 
 export default class NickMassCommand extends BaseCommand {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -40,7 +43,7 @@ export default class NickMassCommand extends BaseCommand {
   }
 
   onBefore(context: Command.Context) {
-    return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= Formatter.Commands.ModerationNickMass.MAX_MEMBERS : false);
+    return (context.guild) ? context.guild.memberCount <= Formatter.Commands.ModerationNickMass.MAX_MEMBERS : false;
   }
 
   async onCancel(context: Command.Context): Promise<any> {

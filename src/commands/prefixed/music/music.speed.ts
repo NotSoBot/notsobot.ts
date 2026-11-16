@@ -17,7 +17,7 @@ export default class MusicSpeedCommand extends BaseCommand {
       disableDm: true,
       label: 'speed',
       metadata: {
-        description: `Speed the music up or slow it down for everyone on a premium server (${MIN_MUSIC_SPEED / 100}x to ${MAX_MUSIC_SPEED / 100}x), the pitch stays the same. Changing it (back to 1x too) needs you in the bot's channel with Manage Server or the DJ role. Nothing given shows it`,
+        description: `Speed the music up or slow it down for everyone on a premium server (${MIN_MUSIC_SPEED / 100}x to ${MAX_MUSIC_SPEED / 100}x), the pitch stays the same. Changing it (back to 1x too) needs you in the bot's channel, with DJ mode on as a DJ (Manage Server, the DJ role or Manage Channel there). Nothing given shows it`,
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} 1.25`,

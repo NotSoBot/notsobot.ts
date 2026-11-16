@@ -13,6 +13,9 @@ export interface CommandArgs {
 }
 
 export class ServerAutowarnExemptCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'See or change who every auto-warn rule skips';
   descriptionLocalizations = I18n.localizations('commands.autowarn.exempt.description');
   metadata = {

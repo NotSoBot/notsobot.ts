@@ -22,7 +22,7 @@ export interface CommandArgs {
 }
 
 // dj mode, a server setting (on by default): controlling the music (skip, pause, resume, seek, loop, leave, moving
-// others' tracks, the buttons) needs manage server or the dj role (`canManageMusic`), no votes. Anyone can still queue.
+// others' tracks, the buttons) needs a dj or manage channels in our voice channel (`canControlMusic`), no votes. Anyone can still queue.
 // Changing it needs a dj too
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { translate } = await getTranslator(context);
@@ -72,7 +72,7 @@ export async function createRoleMessage(context: Command.Context | Interaction.I
   const savedId = (settings && settings.settings) ? settings.settings.musicDjRoleId : null;
   const saved = (savedId) ? guild.roles.get(savedId) : undefined;
   const member = context.member;
-  const canPick = !!member && (member.isOwner || member.can(Permissions.MANAGE_GUILD));
+  const canPick = !!member && (member.isOwner || member.isClientOwner || member.can(Permissions.MANAGE_GUILD));
 
   // saved for this cluster right away, the api sends everyone the settings again too
   const save = async (roleId: null | string) => {
@@ -110,7 +110,7 @@ export async function createRoleMessage(context: Command.Context | Interaction.I
     await save(named.id);
     return displayReply(context, {description: translate('music_dj.role_set', role(named.id))});
   }
-  if (!member || !(member.isOwner || member.can(Permissions.MANAGE_ROLES))) {
+  if (!member || !(member.isOwner || member.isClientOwner || member.can(Permissions.MANAGE_ROLES))) {
     return warn(translate('music_dj.role_no_permission'));
   }
   const me = guild.me;

@@ -19,7 +19,7 @@ export default class MusicDjCommand extends BaseCommand {
       disableDm: true,
       label: 'value',
       metadata: {
-        description: 'DJ mode (on by default): only Manage Server or the DJ role can skip, pause, seek, loop or make the bot leave, anyone can still add songs. Leave empty to see it, changing it needs Manage Server or the DJ role',
+        description: 'DJ mode (on by default): only Manage Server, the DJ role or Manage Channel on the bot\'s voice channel can seek, loop or make the bot leave, everyone else votes to skip, pause or resume, anyone can still add songs. Leave empty to see it, changing it needs Manage Server or the DJ role',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} off`,

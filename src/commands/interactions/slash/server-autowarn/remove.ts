@@ -16,6 +16,9 @@ export interface CommandArgs {
 }
 
 export class ServerAutowarnRemoveCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Remove an auto-warn rule, the server-wide one or a channel\'s';
   descriptionLocalizations = I18n.localizations('commands.autowarn.remove.description');
   metadata = {

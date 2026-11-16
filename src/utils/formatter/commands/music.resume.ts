@@ -28,16 +28,14 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   };
   const member = context.member;
   const channel = member && member.voiceState && member.voiceState.channel;
-  if (context.guildId) {
-    // dj mode: only djs control it
-    const refusal = await fetchMusicDjRefusal(context, translate, context.guildId, context.member);
-    if (refusal) {
-      return displayReply(context, {description: refusal});
-    }
-  }
 
   // held (paused too long, or `music leave` kept the queue): we left, it carries on in their channel like `music play`
   if (context.guildId && !VoiceNode.guilds.has(context.guildId)) {
+    // dj mode: only djs bring it back, there's no one listening to vote
+    const refusal = await fetchMusicDjRefusal(context, translate, context.guildId, member);
+    if (refusal) {
+      return displayReply(context, {description: refusal});
+    }
     const music = await fetchGuildMusic(context, context.guildId).catch(() => null);
     if (!music || !music.current || music.held_position === null) {
       return displayReply(context, {description: translate('music.nothing_playing')});
@@ -57,6 +55,10 @@ export async function createMessage(context: Command.Context | Interaction.Inter
 
   // someone disconnected us, the held track carries on in their channel
   if (context.guildId && VoiceNode.isDisconnected(context.guildId)) {
+    const refusal = await fetchMusicDjRefusal(context, translate, context.guildId, member);
+    if (refusal) {
+      return displayReply(context, {description: refusal});
+    }
     if (!channel) {
       return displayReply(context, {description: translate('music_play.go_join_a_voice_channel')});
     }
@@ -72,7 +74,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   }
 
   // playing: from our channel, with the server's vote resume on someone else's paused track is a vote (`musicVote`)
-  // unless you manage the music (or it's only two of you listening), so one person can't undo a pause everyone voted for
+  // unless you manage the music (or it's only two of you listening), with dj mode on it's a vote for everyone but djs, so one person can't undo a pause everyone voted for
   const guild = (context.guildId) ? VoiceNode.guilds.get(context.guildId) : undefined;
   // the vote's fetch, kept for the reply
   let fetched: null | RestResponsesRaw.FetchGuildMusic = null;
@@ -85,7 +87,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     if ((starting) ? !!(guild.resumeAt && guild.resumeAt.paused) : guild.paused) {
       const music = fetched = await fetchGuildMusic(context, context.guildId!);
       if (music.current) {
-        const vote = musicVote(MusicVoteKinds.RESUME, member, channel, music.current, music.vote_resume);
+        const vote = musicVote(MusicVoteKinds.RESUME, member, channel, music.current, music);
         if (!vote.done) {
           return displayReply(context, {
             description: displayDetails([

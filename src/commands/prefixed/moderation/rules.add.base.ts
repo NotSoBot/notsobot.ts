@@ -72,6 +72,9 @@ export function getMissingTargets(translate: I18n.Translator['translate'], args:
 
 // `rules block` and `rules allow`
 export class RulesAddBaseCommand extends BaseCommand {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   allow: boolean = false;
 
   constructor(client: CommandClient, options: {aliases: Array<string>, allow: boolean, description: string, name: string}) {

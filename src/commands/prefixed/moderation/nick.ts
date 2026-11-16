@@ -18,6 +18,9 @@ export interface CommandArgs {
 export const COMMAND_NAME = 'nick';
 
 export default class NickCommand extends BaseCommand {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

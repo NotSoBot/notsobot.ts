@@ -28,6 +28,9 @@ export const CLEAN_CHOICES = [
 
 
 export class ModerationBanCommand extends BaseInteractionCommandOption {
+  // NotSoBot's owners don't skip the member permissions here, it can wreck a server
+  permissionsIgnoreClientOwner = false;
+
   description = 'Ban multiple users, add a reason, and clean their messages';
   descriptionLocalizations = I18n.localizations('commands.moderation.ban.description');
   metadata = {

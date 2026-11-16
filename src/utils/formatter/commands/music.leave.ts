@@ -7,7 +7,7 @@ import { displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { canManageMusic, musicDjRefusal } from './music.shared';
+import { canControlMusic, musicDjRefusal } from './music.shared';
 
 
 export const COMMAND_ID = 'music.leave';
@@ -42,7 +42,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: refusal});
   }
   // dj mode off: anyone in our channel (when we're in one) makes it leave, whoever's music it is and 24/7 too
-  if (!canManageMusic(context.member)) {
+  if (!canControlMusic(context.member)) {
     const voiceState = context.member && context.member.voiceState;
     if (channelId && (!voiceState || voiceState.channelId !== channelId)) {
       return displayReply(context, {description: translate('music_controls.join_my_channel', {channel})});

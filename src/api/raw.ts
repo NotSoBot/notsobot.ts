@@ -421,6 +421,7 @@ export async function createVoiceClone(
   const body = {
     name: options.name,
     server: options.server || undefined,
+    type: options.type,
     url: options.url,
   };
   return request(context, {
@@ -15702,6 +15703,26 @@ export async function voiceCloneEdit(
     route: {
       method: HTTPMethods.PATCH,
       path: Api.VOICE,
+      params,
+    },
+  });
+}
+
+
+export async function voiceCloneTransfer(
+  context: RequestContext,
+  voiceId: string,
+  options: RestOptions.VoiceCloneTransfer,
+): Promise<RestResponsesRaw.VoiceCloneTransfer> {
+  const body = {
+    platform_type: options.platformType,
+  };
+  const params = {voiceId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.VOICE_TRANSFER,
       params,
     },
   });

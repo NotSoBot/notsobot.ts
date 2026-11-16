@@ -119,6 +119,8 @@ export namespace RestOptions {
     name?: string,
     // the server it's used in gets the voice instead
     server?: boolean,
+    // `VoiceCloneTypes`, ZONOS3 (free) when left out, fish.audio needs NotSoCredits
+    type?: number,
     url?: string,
   }
 
@@ -2263,6 +2265,11 @@ export namespace RestOptions {
 
   export interface VoiceCloneEdit {
     name: string,
+  }
+
+  // `VoiceCloneTypes` to clone it again on, from its stored clips, moving to fish.audio needs NotSoCredits
+  export interface VoiceCloneTransfer {
+    platformType: number,
   }
 }
 
@@ -4503,6 +4510,7 @@ export namespace RestResponsesRaw {
 
   export type VoiceCloneAdd = Voice;
   export type VoiceCloneEdit = Voice;
+  export type VoiceCloneTransfer = Voice;
 
 
 
