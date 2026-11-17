@@ -4733,6 +4733,7 @@ export const Lithuanian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Nepavyko rasti narių: {notFound}',
   'moderation_kick.unable_to_find_member': 'Nepavyko rasti narių: {notFound}',
   'moderation_kick.couldn_t_kick_errored': 'Nepavyko išmesti (užklausa nepavyko)',
+  'moderation_kick.still_banned': 'Vis dar užblokuotas (užblokuotas žinutėms ištrinti, bet atblokuoti nepavyko)',
   'moderation_nick.audit_reason': 'Slapyvardį pakeitė {user}',
   'moderation_nick.bot_cannot_edit': 'Negaliu pakeisti {user} slapyvardžio, jo aukščiausia rolė tokia pati arba aukštesnė už mano',
   'moderation_nick.changed': '{user} slapyvardis pakeistas į {nick}',

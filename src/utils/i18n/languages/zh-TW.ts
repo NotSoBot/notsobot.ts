@@ -4733,6 +4733,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '找不到 {notFound} 位成員',
   'moderation_kick.unable_to_find_member': '找不到 {notFound} 位成員',
   'moderation_kick.couldn_t_kick_errored': '無法踢出（請求失敗）',
+  'moderation_kick.still_banned': '仍被封鎖（為刪除其訊息而封鎖，但解除封鎖失敗）',
   'moderation_nick.audit_reason': '由 {user} 變更暱稱',
   'moderation_nick.bot_cannot_edit': '我無法變更 {user} 的暱稱，對方的最高身分組與我相同或在我之上',
   'moderation_nick.changed': '已將 {user} 的暱稱改為 {nick}',

@@ -378,6 +378,28 @@ const REGEX_SCRIPT_SYMBOL = /[{}\\]/g;
 export const NEWLINE_SENTINEL = '\uFDD0';
 export const REGEX_NEWLINE_SENTINEL = /\uFDD0/g;
 
+// for whatever leaves the tag (storage, NotSoAI, reminders, created tags, translate, requests): the placeholder used to
+// get saved or sent as is, only the final text turned it back into a newline
+export function withRealNewlines<T>(value: T): T {
+  if (typeof(value) === 'string') {
+    return value.replace(REGEX_NEWLINE_SENTINEL, '\n') as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map(withRealNewlines) as T;
+  }
+  if (value && typeof(value) === 'object') {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype === Object.prototype || prototype === null) {
+      const copy: Record<string, any> = (prototype === null) ? Object.create(null) : {};
+      for (const key in value) {
+        copy[key] = withRealNewlines((value as any)[key]);
+      }
+      return copy as T;
+    }
+  }
+  return value;
+}
+
 // an invite code, or an invite link (discord.gg/x, discord.com/invite/x)
 const REGEX_INVITE_CODE = /^(?:(?:https?:\/\/)?(?:www\.)?discord(?:app)?\.(?:gg|com\/invite)\/)?([a-z0-9-]{2,64})\/?$/i;
 
@@ -3839,7 +3861,7 @@ const ScriptTags = Object.freeze({
                 // tag storage goes through our api, so it counts like any other request
                 increaseNetworkRequests(tag);
                 const blobsResponse = await withDeadline(context, tag, () => putTagBlobs(context, tagId, {
-                  blobs: formattedBlobs,
+                  blobs: withRealNewlines(formattedBlobs),
                   channelId: context.channelId!,
                   guildId: context.guildId,
                   userId: context.userId,
@@ -4059,7 +4081,7 @@ const ScriptTags = Object.freeze({
                   channelId: context.channelId!,
                   guildId: context.guildId,
                   userId: context.userId,
-                  variables: formattedVariables,
+                  variables: withRealNewlines(formattedVariables),
                 }));
                 // store it in tagresult i guess
               }
@@ -4278,7 +4300,7 @@ const ScriptTags = Object.freeze({
       personality,
       prompt: [
         `${PrivateVariables.AI_EXECUTIONS} count: ${tag.variables[PrivateVariables.AI_EXECUTIONS]}`,
-        prompt,
+        withRealNewlines(prompt),
       ].join('\n').slice(0, 12000),
       urls: Object.values(urls).filter((x) => x.url),
     }));
@@ -4318,7 +4340,7 @@ const ScriptTags = Object.freeze({
     checkAIKnowledgeChange(context, tag);
     increaseNetworkRequests(tag);
 
-    const response = await withDeadline(context, tag, () => createGuildLLMKnowledge(context, context.guildId!, {content}));
+    const response = await withDeadline(context, tag, () => createGuildLLMKnowledge(context, context.guildId!, {content: withRealNewlines(content)}));
     tag.text += String(response.created);
 
     return true;
@@ -4367,7 +4389,7 @@ const ScriptTags = Object.freeze({
     checkAIKnowledgeChange(context, tag);
     increaseNetworkRequests(tag);
 
-    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => editGuildLLMKnowledge(context, context.guildId!, position, {content})));
+    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => editGuildLLMKnowledge(context, context.guildId!, position, {content: withRealNewlines(content)})));
     tag.text += String(true);
 
     return true;
@@ -4391,7 +4413,7 @@ const ScriptTags = Object.freeze({
     checkAIMemoryChanges(tag);
     increaseNetworkRequests(tag);
 
-    const response = await withDeadline(context, tag, () => createUserLLMMemory(context, context.userId, {content, server}));
+    const response = await withDeadline(context, tag, () => createUserLLMMemory(context, context.userId, {content: withRealNewlines(content), server}));
     if (response.created) {
       recordAIMemoryChange(tag, 'added');
     }
@@ -4464,7 +4486,7 @@ const ScriptTags = Object.freeze({
     checkAIMemoryChanges(tag);
     increaseNetworkRequests(tag);
 
-    await withAIMemoryNotFound(position, () => withDeadline(context, tag, () => editUserLLMMemory(context, context.userId, position, {content})));
+    await withAIMemoryNotFound(position, () => withDeadline(context, tag, () => editUserLLMMemory(context, context.userId, position, {content: withRealNewlines(content)})));
     recordAIMemoryChange(tag, 'changed');
     tag.text += String(true);
 
@@ -4545,7 +4567,7 @@ const ScriptTags = Object.freeze({
     // todo: add a tag id to this
     const reminder = await withDeadline(context, tag, () => createReminder(context, {
       channelId: context.channelId,
-      content: (text || '').slice(0, 512),
+      content: withRealNewlines(text || '').slice(0, 512),
       guildId: context.guildId,
       messageId: (context instanceof Command.Context) ? context.messageId : null,
       timestampEnd: (result.end) ? result.end.getTime() : undefined,
@@ -4680,7 +4702,7 @@ const ScriptTags = Object.freeze({
     }
 
     // the api publishes the update so the reminder gets rescheduled
-    const edited = await withDeadline(context, tag, () => editReminder(context, reminder.id, options));
+    const edited = await withDeadline(context, tag, () => editReminder(context, reminder.id, withRealNewlines(options)));
     tag.text += JSON.stringify(serializeReminderForTag(edited));
 
     return true;
@@ -6928,7 +6950,7 @@ const ScriptTags = Object.freeze({
       dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
         name: key,
-        value: storageValue,
+        value: withRealNewlines(storageValue),
       }));
     }
 
@@ -7019,7 +7041,7 @@ const ScriptTags = Object.freeze({
       dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.GLOBAL, storageId, {
         name: key,
-        value: storageValue,
+        value: withRealNewlines(storageValue),
       }));
     }
 
@@ -7058,7 +7080,7 @@ const ScriptTags = Object.freeze({
       dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
         name: key,
-        value: storageValue,
+        value: withRealNewlines(storageValue),
       }));
     }
 
@@ -7097,7 +7119,7 @@ const ScriptTags = Object.freeze({
       dropTagStorageCache(tag, tagId);
       const response = await withDeadline(context, tag, () => putTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
         name: key,
-        value: storageValue,
+        value: withRealNewlines(storageValue),
       }));
     }
 
@@ -9483,7 +9505,7 @@ const ScriptTags = Object.freeze({
 
       if (text) {
         try {
-          const { translated_text: translatedText } = await withDeadline(context, tag, () => googleTranslate(context, {text, to: language}));
+          const { translated_text: translatedText } = await withDeadline(context, tag, () => googleTranslate(context, {text: withRealNewlines(text), to: language}));
           tag.text += translatedText.trim();
         } catch(error) {
 
@@ -9559,6 +9581,9 @@ const ScriptTags = Object.freeze({
             variables[storedKey] = tag.variables[storedKey];
           }
         }
+        // a copy, `{settings}` in someone else's tag used to change ours (the AI personality, components usable by
+        // everyone on our message). Results stay shared, they hold this run's limits (one report, one created tag)
+        variables[PrivateVariables.SETTINGS] = Object.assign({}, tag.variables[PrivateVariables.SETTINGS]);
       }
       variables[PrivateVariables.ARGS_STRING] = tagArguments;
       variables[PrivateVariables.ARGS] = Parameters.stringArguments(tagArguments);
@@ -9586,6 +9611,9 @@ const ScriptTags = Object.freeze({
           Object.assign(tag.variables, argParsed.variables);
         } else {
           for (let storedKey of Object.values(PrivateVariables)) {
+            if (storedKey === PrivateVariables.SETTINGS) {
+              continue;
+            }
             if (storedKey in argParsed.variables) {
               (tag.variables as any)[storedKey] = argParsed.variables[storedKey];
             } else {
@@ -9675,7 +9703,7 @@ const ScriptTags = Object.freeze({
       throw new TagError(`A tag named \`${name}\` already exists in this server, pick another name`);
     }
 
-    const created = await withDeadline(context, tag, () => putTag(context, {content, name, serverId}));
+    const created = await withDeadline(context, tag, () => putTag(context, {content: withRealNewlines(content), name, serverId}));
     results[TagFunctions.TAG_CREATE] = created.id;
     tag.text += created.name;
 
@@ -9731,7 +9759,7 @@ const ScriptTags = Object.freeze({
       throw new TagError(`\`${found.name}\` is an alias of \`${found.reference_tag.name}\`, edit that tag instead`);
     }
     // PUT /tags upserts by name in the tag's own server
-    const edited = await withDeadline(context, tag, () => putTag(context, {content, name: found.name, serverId: found.server_id!}));
+    const edited = await withDeadline(context, tag, () => putTag(context, {content: withRealNewlines(content), name: found.name, serverId: found.server_id!}));
     tag.text += edited.name;
 
     return true;

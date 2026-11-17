@@ -50,12 +50,12 @@ export class ServerLoggersAddCommand extends BaseInteractionCommandOption {
   }
 
   async onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    return !(await Formatter.Commands.ServerLoggersAdd.getLoggerAddWarning(context, args));
+    return Formatter.Commands.ServerLoggersAdd.canAddLogger(context, args);
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    const warning = await Formatter.Commands.ServerLoggersAdd.getLoggerAddWarning(context, args);
+    const warning = await Formatter.Commands.ServerLoggersAdd.takeLoggerAddWarning(context, args);
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${warning || translate('errors.unknown_lol')}`, ephemeral: true});
   }
 

@@ -4733,6 +4733,7 @@ export const Vietnamese: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Không tìm thấy {notFound} thành viên',
   'moderation_kick.unable_to_find_member': 'Không tìm thấy {notFound} thành viên',
   'moderation_kick.couldn_t_kick_errored': 'Không thể đuổi (yêu cầu thất bại)',
+  'moderation_kick.still_banned': 'Vẫn bị cấm (đã cấm để xóa tin nhắn, nhưng gỡ cấm thất bại)',
   'moderation_nick.audit_reason': 'Đổi biệt danh bởi {user}',
   'moderation_nick.bot_cannot_edit': 'Mình không thể đổi biệt danh của {user}, vai trò cao nhất của họ bằng hoặc cao hơn của mình',
   'moderation_nick.changed': 'Đã đổi biệt danh của {user} thành {nick}',

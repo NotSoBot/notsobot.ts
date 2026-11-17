@@ -4731,6 +4731,7 @@ export const English = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Unable to find {notFound} Members',
   'moderation_kick.unable_to_find_member': 'Unable to find {notFound} Member',
   'moderation_kick.couldn_t_kick_errored': 'Couldn\'t kick (the request failed)',
+  'moderation_kick.still_banned': 'Still banned (banned to delete their messages, but the unban failed)',
   'moderation_nick.audit_reason': 'Nickname change by {user}',
   'moderation_nick.bot_cannot_edit': 'I can\'t change {user}\'s nickname, their top role is the same as or above mine',
   'moderation_nick.changed': 'Changed {user}\'s nickname to {nick}',

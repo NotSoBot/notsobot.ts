@@ -27,6 +27,8 @@ const CONNECT_TIMEOUT = 10 * 1000;
 const JOIN_TIMEOUT = 15 * 1000;
 // how long a node gets to answer our close when this file is reloaded, then the socket's just dropped
 const CLOSE_TIMEOUT = 3 * 1000;
+// a node that accepts the connection but never answers a rest request used to hang the command until its interaction expired
+const REQUEST_TIMEOUT = 10 * 1000;
 // how long a node keeps our players playing after our websocket closes (we restarted), in seconds
 const RESUME_TIMEOUT = 120;
 const RECONNECT_DELAY = 2000;
@@ -526,6 +528,7 @@ export class NodeConnection {
       body: (body) ? JSON.stringify(body) : undefined,
       headers: {authorization: this.info.password, 'content-type': 'application/json'},
       method,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT),
     });
     const data: any = await response.json().catch(() => null);
     if (!response.ok) {

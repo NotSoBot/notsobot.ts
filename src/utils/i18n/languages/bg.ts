@@ -4733,6 +4733,7 @@ export const Bulgarian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Не намерих {notFound} членове',
   'moderation_kick.unable_to_find_member': 'Не намерих {notFound} член',
   'moderation_kick.couldn_t_kick_errored': 'Не можах да изгоня (заявката се провали)',
+  'moderation_kick.still_banned': 'Все още е баннат (баннат, за да се изтрият съобщенията му, но премахването на бана не успя)',
   'moderation_nick.audit_reason': 'Промяна на ник от {user}',
   'moderation_nick.bot_cannot_edit': 'Не мога да променя ника на {user}, най-високата му роля е същата или над моята',
   'moderation_nick.changed': 'Никът на {user} е променен на {nick}',

@@ -11,7 +11,7 @@ import {
   SocketGatewayCloseCodes,
   SocketStates,
 } from 'detritus-client/lib/constants';
-import { ImportedCommandsError } from 'detritus-client/lib/errors';
+import { ApplicationCommandsSyncError, ImportedCommandsError } from 'detritus-client/lib/errors';
 
 import ApiEventsClient from './apievents';
 import { NotSoCommandClient } from './commandclient';
@@ -147,7 +147,8 @@ const cluster = new ClusterClient('', {
   },
   gateway: {
     identifyProperties: {
-      $browser: 'Discord iOS',
+      // `$browser` is deprecated since client-socket beta.23 (it sends the keys without `$` now)
+      browser: 'Discord iOS',
     },
     intents: 'ALL',
     presence: {
@@ -325,6 +326,15 @@ const cluster = new ClusterClient('', {
       log.info(`${shardsText} - Interaction Command Client Loaded`);
     }
   } catch(error) {
+    // since detritus-client beta.134 every scope is synced before one error comes out with each scope's, the wrapper
+    // alone only says "some scopes" (no field errors)
+    if (error instanceof ApplicationCommandsSyncError) {
+      for (let [scope, scopeError] of Object.entries(error.errors)) {
+        log.error(`application commands sync failed for ${scope}`, scopeError);
+        captureError(scopeError, {tags: {scope, source: 'cluster.startup.commands'}});
+      }
+      return;
+    }
     log.error(error);
     // `addCommandsIn` already reported a failed import with its files
     if (!(error instanceof ImportedCommandsError)) {

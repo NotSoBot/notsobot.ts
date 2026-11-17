@@ -4733,6 +4733,7 @@ export const Danish: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Kunne ikke finde {notFound} medlemmer',
   'moderation_kick.unable_to_find_member': 'Kunne ikke finde {notFound} medlem',
   'moderation_kick.couldn_t_kick_errored': 'Kunne ikke smide ud (forespørgslen fejlede)',
+  'moderation_kick.still_banned': 'Stadig bannet (bannet for at slette beskeder, men unban mislykkedes)',
   'moderation_nick.audit_reason': 'Kaldenavn ændret af {user}',
   'moderation_nick.bot_cannot_edit': 'Jeg kan ikke ændre {user}s kaldenavn, deres højeste rolle er den samme som eller over min',
   'moderation_nick.changed': '{user}s kaldenavn er ændret til {nick}',

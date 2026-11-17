@@ -4733,6 +4733,7 @@ export const Hebrew: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'לא נמצאו {notFound} חברים',
   'moderation_kick.unable_to_find_member': 'לא נמצא {notFound} חבר',
   'moderation_kick.couldn_t_kick_errored': 'לא הצלחתי להעיף (הבקשה נכשלה)',
+  'moderation_kick.still_banned': 'עדיין חסום (נחסם כדי למחוק את ההודעות שלו, אבל ביטול החסימה נכשל)',
   'moderation_nick.audit_reason': 'שינוי כינוי על ידי {user}',
   'moderation_nick.bot_cannot_edit': 'אני לא יכול לשנות את הכינוי של {user}, התפקיד הגבוה ביותר שלו זהה או מעל שלי',
   'moderation_nick.changed': 'הכינוי של {user} שונה ל-{nick}',

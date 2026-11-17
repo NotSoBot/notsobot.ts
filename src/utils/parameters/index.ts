@@ -2073,7 +2073,7 @@ export function mediaUrlsFromContent(
 
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     const urls: Array<string> = [];
-    for (let part of stringArguments(value || '')) {
+    for (let part of stringArguments(value || '', true)) {
       if (maxAmount <= urls.length) {
         break;
       }
@@ -2143,7 +2143,7 @@ export function mediaUrls(
     const lastUrls = new Map<number, string | null | undefined>();
     if (urls.length < maxAmount && value) {
       // split the string then parse the parts
-      for (let part of stringArguments(value)) {
+      for (let part of stringArguments(value, true)) {
         if (maxAmount <= urls.length) {
           break;
         }
@@ -2915,7 +2915,9 @@ const Quotes = {
   START: Object.keys(QuotesAll),
 };
 
-export function stringArguments(value: string): Array<string> {
+// `anyWhitespace`: newlines/tabs split too (media urls pasted one per line), tags keep splitting on spaces only, their
+// `{args}` would change otherwise
+export function stringArguments(value: string, anyWhitespace: boolean = false): Array<string> {
   const results: Array<string> = [];
   while (value.length) {
     let result = value.slice(0, 1);
@@ -2933,7 +2935,7 @@ export function stringArguments(value: string): Array<string> {
       }
     }
     // check for the next space, if not then we consume the whole thing
-    let index = value.indexOf(' ');
+    let index = (anyWhitespace) ? value.search(/\s/) : value.indexOf(' ');
     if (index === -1) {
       result += value.slice(0, value.length);
       value = '';

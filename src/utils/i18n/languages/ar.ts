@@ -4733,6 +4733,7 @@ export const Arabic: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'تعذّر العثور على {notFound} أعضاء',
   'moderation_kick.unable_to_find_member': 'تعذّر العثور على {notFound} عضو',
   'moderation_kick.couldn_t_kick_errored': 'تعذّر الطرد (فشل الطلب)',
+  'moderation_kick.still_banned': 'لا يزال محظورًا (تم حظره لحذف رسائله لكن فشل إلغاء الحظر)',
   'moderation_nick.audit_reason': 'تغيير اللقب بواسطة {user}',
   'moderation_nick.bot_cannot_edit': 'لا يمكنني تغيير لقب {user}، أعلى رتبة لديه مساوية لرتبتي أو أعلى منها',
   'moderation_nick.changed': 'تم تغيير لقب {user} إلى {nick}',

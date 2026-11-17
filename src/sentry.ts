@@ -7,7 +7,7 @@ import { Command, CommandClient, Interaction, InteractionCommandClient } from 'd
 import { EventSubscription } from 'detritus-utils';
 import { ClientEvents } from 'detritus-client/lib/constants';
 
-import { JobError } from './api/errors';
+import { JobError, isDiscordEdgeRatelimitError } from './api/errors';
 import { CommandRunCancelledError, UserError } from './utils/errors';
 import { isTagError } from './utils/tags/exceptions';
 
@@ -204,6 +204,11 @@ export function captureCommandError(context: SentryCommandContext, error: any, s
   }
   // a failed job with an error code is a translated error, like the media being too big
   if (error instanceof JobError && error.apiError) {
+    return;
+  }
+  // every command fails while it lasts, one grouped event a minute is enough to know
+  if (isDiscordEdgeRatelimitError(error)) {
+    captureError(error, {fingerprint: ['discord-edge-ratelimited'], level: 'warning', tags: {source}, throttle: 60 * 1000});
     return;
   }
   captureError(error, {context, tags: {source}});

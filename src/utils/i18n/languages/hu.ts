@@ -4733,6 +4733,7 @@ export const Hungarian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '{notFound} tag nem található',
   'moderation_kick.unable_to_find_member': '{notFound} tag nem található',
   'moderation_kick.couldn_t_kick_errored': 'Nem sikerült kirúgni (a kérés sikertelen volt)',
+  'moderation_kick.still_banned': 'Még mindig ki van tiltva (az üzenetei törléséhez lett kitiltva, de a tiltás feloldása nem sikerült)',
   'moderation_nick.audit_reason': 'Becenév módosítva {user} által',
   'moderation_nick.bot_cannot_edit': 'Nem tudom módosítani {user} becenevét, a legmagasabb rangja azonos vagy magasabb az enyémnél',
   'moderation_nick.changed': '{user} beceneve módosítva erre: {nick}',

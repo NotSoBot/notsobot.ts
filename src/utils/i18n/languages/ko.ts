@@ -4733,6 +4733,7 @@ export const Korean: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '멤버 {notFound}명을 찾을 수 없음',
   'moderation_kick.unable_to_find_member': '멤버 {notFound}명을 찾을 수 없음',
   'moderation_kick.couldn_t_kick_errored': '추방할 수 없어요 (요청이 실패했어요)',
+  'moderation_kick.still_banned': '여전히 차단됨 (메시지 삭제를 위해 차단했지만 차단 해제에 실패했습니다)',
   'moderation_nick.audit_reason': '{user}의 닉네임 변경',
   'moderation_nick.bot_cannot_edit': '{user}의 닉네임을 변경할 수 없어요, 최상위 역할이 저와 같거나 더 높아요',
   'moderation_nick.changed': '{user}의 닉네임을 {nick}(으)로 변경했어요',

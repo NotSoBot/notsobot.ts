@@ -3,7 +3,7 @@ import moment from 'moment';
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { createReminder } from '../../../api';
+import { createReminder, editReminder } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { ONE_DAY } from '../../../constants';
 import { ReminderInterval } from '../../../listeners';
@@ -62,11 +62,26 @@ export async function createMessage(
     }
   }
 
-  return displayReply(context, {
+  const reply = await displayReply(context, {
     allowedMentions: {
       repliedUser: true,
       users: [context.userId],
     },
     description: text,
   });
+
+  // a slash reminder has no command message, our response is the message it's about: its list entry links there and it
+  // replies to it when it goes off (it used to be `null`, a `.../null` link). Ephemeral responses can't be linked or
+  // replied to, those stay without one
+  if (context instanceof Interaction.InteractionContext) {
+    try {
+      const response = await context.fetchResponse();
+      if (!response.hasFlagEphemeral && response.channelId === reminder.channel_id) {
+        await editReminder(context, reminder.id, {messageId: response.id});
+      }
+    } catch(error) {
+      // the reminder still works, just without the link
+    }
+  }
+  return reply;
 }

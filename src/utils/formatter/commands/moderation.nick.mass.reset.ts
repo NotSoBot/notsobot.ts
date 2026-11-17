@@ -78,6 +78,10 @@ export async function createMessage(
       translate('nickmass.reset_no_nickname', {count: membersThatWillBeSkipped.toLocaleString(language)}),
     ].join('\n');
 
+    // `started`: this prompt was continued, a second click (or its expiry) mustn't run or cover it again. `running`: this
+    // run is going, Stop on an old progress message used to stop a later run in the server (they share `isExecuting`)
+    let started = false;
+    let running = false;
     const components = new Components({timeout: 5 * (60 * 1000)});
     components.createButton({
       label: translate('common.continue'),
@@ -87,6 +91,9 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
+        if (started) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
         // checked again here, two prompts could both be continued and rename everyone twice at the same time
         if (isExecuting.nick) {
           return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(ctx, {translate}, {
@@ -94,6 +101,8 @@ export async function createMessage(
           }));
         }
         isExecuting.nick = true;
+        started = running = true;
+        components.onTimeout = undefined;
 
         const amounts = {
           changed: 0,
@@ -148,6 +157,10 @@ export async function createMessage(
               if (ctx.userId !== context.userId) {
                 return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
               }
+              if (!running) {
+                return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+              }
+              running = false;
               isExecuting.nick = false;
 
               payload.color = EmbedColors.ERROR;
@@ -180,6 +193,7 @@ export async function createMessage(
             await displayReply(context, {...payload, components}, {replyTo: ctx});
           } catch(error) {
             isExecuting.nick = false;
+            running = false;
             throw error;
           }
         }
@@ -219,10 +233,12 @@ export async function createMessage(
               };
               // otherwise the server stays "in progress" until a restart
               isExecuting.nick = false;
+              running = false;
               throw error;
             }
           }
         }
+        running = false;
 
         if (!isExecuting.nick) {
           payload.color = EmbedColors.ERROR;

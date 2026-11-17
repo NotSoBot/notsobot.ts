@@ -4733,6 +4733,7 @@ export const Ukrainian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Не вдалося знайти учасників: {notFound}',
   'moderation_kick.unable_to_find_member': 'Не вдалося знайти учасників: {notFound}',
   'moderation_kick.couldn_t_kick_errored': 'Не вдалося вигнати (запит не вдався)',
+  'moderation_kick.still_banned': 'Досі заблокований (заблокований для видалення повідомлень, але розблокувати не вдалося)',
   'moderation_nick.audit_reason': 'Зміна ніка користувачем {user}',
   'moderation_nick.bot_cannot_edit': 'Я не можу змінити нік {user}, його найвища роль така сама або вища за мою',
   'moderation_nick.changed': 'Нік {user} змінено на {nick}',

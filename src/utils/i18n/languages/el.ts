@@ -4733,6 +4733,7 @@ export const Greek: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Δεν βρέθηκαν {notFound} μέλη',
   'moderation_kick.unable_to_find_member': 'Δεν βρέθηκε {notFound} μέλος',
   'moderation_kick.couldn_t_kick_errored': 'Η αποβολή απέτυχε (το αίτημα απέτυχε)',
+  'moderation_kick.still_banned': 'Παραμένει αποκλεισμένος (αποκλείστηκε για διαγραφή μηνυμάτων, αλλά η άρση αποκλεισμού απέτυχε)',
   'moderation_nick.audit_reason': 'Αλλαγή ψευδωνύμου από {user}',
   'moderation_nick.bot_cannot_edit': 'Δεν μπορώ να αλλάξω το ψευδώνυμο του {user}, ο υψηλότερος ρόλος του είναι ίδιος ή πάνω από τον δικό μου',
   'moderation_nick.changed': 'Το ψευδώνυμο του {user} άλλαξε σε {nick}',

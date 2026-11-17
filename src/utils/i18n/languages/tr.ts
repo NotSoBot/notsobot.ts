@@ -4733,6 +4733,7 @@ export const Turkish: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '{notFound} Üye Bulunamadı',
   'moderation_kick.unable_to_find_member': '{notFound} Üye Bulunamadı',
   'moderation_kick.couldn_t_kick_errored': 'Atılamadı (istek başarısız oldu)',
+  'moderation_kick.still_banned': 'Hâlâ yasaklı (mesajlarını silmek için yasaklandı ama yasak kaldırılamadı)',
   'moderation_nick.audit_reason': '{user} tarafından takma ad değişikliği',
   'moderation_nick.bot_cannot_edit': '{user} kullanıcısının takma adını değiştiremem, en yüksek rolü benimkiyle aynı veya daha yüksek',
   'moderation_nick.changed': '{user} kullanıcısının takma adı {nick} olarak değiştirildi',

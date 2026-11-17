@@ -4733,6 +4733,7 @@ export const Spanish: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'No se encontraron {notFound} miembros',
   'moderation_kick.unable_to_find_member': 'No se encontró {notFound} miembro',
   'moderation_kick.couldn_t_kick_errored': 'No se pudo expulsar (la solicitud falló)',
+  'moderation_kick.still_banned': 'Sigue baneado (se baneó para borrar sus mensajes, pero el desbaneo falló)',
   'moderation_nick.audit_reason': 'Cambio de apodo por {user}',
   'moderation_nick.bot_cannot_edit': 'No puedo cambiar el apodo de {user}, su rol más alto es igual o superior al mío',
   'moderation_nick.changed': 'Se cambió el apodo de {user} a {nick}',

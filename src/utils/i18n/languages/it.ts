@@ -4733,6 +4733,7 @@ export const Italian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Impossibile trovare {notFound} membri',
   'moderation_kick.unable_to_find_member': 'Impossibile trovare {notFound} membro',
   'moderation_kick.couldn_t_kick_errored': 'Impossibile espellere (la richiesta non è andata a buon fine)',
+  'moderation_kick.still_banned': 'Ancora bannato (bannato per eliminare i suoi messaggi, ma la rimozione del ban non è riuscita)',
   'moderation_nick.audit_reason': 'Cambio nickname da parte di {user}',
   'moderation_nick.bot_cannot_edit': 'Non posso cambiare il nickname di {user}, il suo ruolo più alto è uguale o superiore al mio',
   'moderation_nick.changed': 'Nickname di {user} cambiato in {nick}',

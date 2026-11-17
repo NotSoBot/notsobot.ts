@@ -234,7 +234,19 @@ async function refreshCommands(
         return text;
       };
 
-      let message = await describe(error);
+      let message: string;
+      const scopeErrors = error && (error as any).errors;
+      if (scopeErrors && typeof(scopeErrors) === 'object' && !Array.isArray(scopeErrors)) {
+        // detritus-client beta.134 syncs every scope then throws one error holding each scope's (by guild id, or
+        // global), its own message only says "some scopes"
+        const texts: Array<string> = [];
+        for (let scope in scopeErrors) {
+          texts.push(`${scope}: ${await describe(scopeErrors[scope])}`);
+        }
+        message = texts.join(' | ') || await describe(error);
+      } else {
+        message = await describe(error);
+      }
       // say which commands are too big instead of just their index
       const oversized = interactionCommandClient.getOversizedCommands();
       if (oversized.length) {

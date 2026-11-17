@@ -4733,6 +4733,7 @@ export const Indonesian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Tidak dapat menemukan {notFound} Anggota',
   'moderation_kick.unable_to_find_member': 'Tidak dapat menemukan {notFound} Anggota',
   'moderation_kick.couldn_t_kick_errored': 'Tidak bisa kick (request-nya gagal)',
+  'moderation_kick.still_banned': 'Masih diban (diban untuk menghapus pesannya, tetapi unban gagal)',
   'moderation_nick.audit_reason': 'Perubahan nickname oleh {user}',
   'moderation_nick.bot_cannot_edit': 'Aku tidak bisa mengubah nickname {user}, role tertinggi mereka sama dengan atau di atas punyaku',
   'moderation_nick.changed': 'Nickname {user} diubah menjadi {nick}',

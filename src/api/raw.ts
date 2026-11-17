@@ -1,6 +1,7 @@
 import { Command, Interaction, ShardClient, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { RequestTypes } from 'detritus-client-rest';
+import { RestEvents } from 'detritus-client-rest/lib/constants';
 import { RequestFile, Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 import { Timers } from 'detritus-utils';
@@ -125,6 +126,7 @@ export async function request(
 
   const route = (options.route && options.route.path) || 'unknown';
   const canRetry = isRetryable(options);
+  preventApiWriteRetries(client);
   for (let attempt = 1; ; attempt++) {
     const started = Date.now();
     try {
@@ -156,11 +158,44 @@ const CONNECTION_DROP_RETRY_DELAY = 500;
 function isRetryable(options: RequestOptions): boolean {
   const method = ((options.route && options.route.method) || options.method || '').toUpperCase();
   const path = (options.route && options.route.path) || '';
-  if (method !== HTTPMethods.GET && method !== HTTPMethods.HEAD && !path.startsWith('/media/')) {
+  if (!isRetryableMethodPath(method, path)) {
     return false;
   }
   const values = [options.body, ...(options.files || []).map((file) => file.value)];
   return !values.some((value) => value instanceof Readable);
+}
+
+function isRetryableMethodPath(method: string, path: string): boolean {
+  return method === HTTPMethods.GET || method === HTTPMethods.HEAD || path.startsWith('/media/');
+}
+
+// detritus-client-rest sends any request that got a 502 again (up to 5 times, 2s apart), a 502 from cloudflare usually
+// means our api took too long, not that it didn't run, so a reminder/tag/credit spend could happen twice. Since
+// client-rest beta.39 it also resends GET/PUT/DELETE on a 500/503/504 or a dropped connection, which made a failing read
+// take 10s+ (and our own connection-drop retry around it doubled that). For our api only: writes aren't resent at all,
+// reads and media renders only on a 502 (beta.38's behaviour), drops are `request`'s own single retry. Neither is an
+// option, both are set on the `RestRequest` its `request` event hands out before sending
+const API_HOST = new URL(Api.URL).host;
+const API_PATH_PREFIX = Api.PATH;
+const restClientsWithLimitedRetries = new WeakSet<object>();
+function preventApiWriteRetries(client: ShardClient) {
+  const raw = client.rest.raw;
+  if (restClientsWithLimitedRetries.has(raw)) {
+    return;
+  }
+  restClientsWithLimitedRetries.add(raw);
+  raw.on(RestEvents.REQUEST, ({ request, restRequest }: {request: any, restRequest: any}) => {
+    const url: URL = request.parsedUrl;
+    if (url.host !== API_HOST) {
+      return;
+    }
+    const path = (url.pathname.startsWith(API_PATH_PREFIX)) ? url.pathname.slice(API_PATH_PREFIX.length) : url.pathname;
+    if (!isRetryableMethodPath(String(request.method).toUpperCase(), path)) {
+      restRequest.maxRetries = 0;
+    }
+    // beta.39's `shouldRetryStatus` still allows a 502 for anything, the other statuses and drops need `isIdempotent`
+    Object.defineProperty(restRequest, 'isIdempotent', {configurable: true, value: false});
+  });
 }
 
 

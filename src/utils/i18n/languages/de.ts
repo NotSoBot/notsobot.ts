@@ -4733,6 +4733,7 @@ export const German: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '{notFound} Mitglieder nicht gefunden',
   'moderation_kick.unable_to_find_member': '{notFound} Mitglied nicht gefunden',
   'moderation_kick.couldn_t_kick_errored': 'Konnte nicht kicken (Anfrage fehlgeschlagen)',
+  'moderation_kick.still_banned': 'Weiterhin gebannt (zum Löschen der Nachrichten gebannt, aber das Entbannen ist fehlgeschlagen)',
   'moderation_nick.audit_reason': 'Nickname-Änderung durch {user}',
   'moderation_nick.bot_cannot_edit': 'Ich kann den Nickname von {user} nicht ändern, ihre höchste Rolle ist gleich oder über meiner',
   'moderation_nick.changed': 'Nickname von {user} zu {nick} geändert',

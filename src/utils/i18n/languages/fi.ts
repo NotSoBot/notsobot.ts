@@ -4733,6 +4733,7 @@ export const Finnish: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '{notFound} jäsentä ei löytynyt',
   'moderation_kick.unable_to_find_member': '{notFound} jäsentä ei löytynyt',
   'moderation_kick.couldn_t_kick_errored': 'Ei voitu potkia (pyyntö epäonnistui)',
+  'moderation_kick.still_banned': 'Edelleen bannattu (bannattiin viestien poistamiseksi, mutta bannin poisto epäonnistui)',
   'moderation_nick.audit_reason': 'Nimimerkin vaihto, tekijä {user}',
   'moderation_nick.bot_cannot_edit': 'En voi vaihtaa käyttäjän {user} nimimerkkiä, hänen korkein roolinsa on sama tai korkeampi kuin minun',
   'moderation_nick.changed': 'Käyttäjän {user} nimimerkki vaihdettu: {nick}',

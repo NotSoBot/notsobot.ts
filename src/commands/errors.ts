@@ -5,7 +5,7 @@ import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
-import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, isConnectionDropError, readErrorBody } from '../api/errors';
+import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, isConnectionDropError, isDiscordEdgeRatelimitError, readErrorBody } from '../api/errors';
 import { ApiErrorCodes, DiscordSkuIds, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
 import { I18n, displayReply, formatMemory, getPremiumSkuFromTier, getPremiumSkuName, getPremiumUpsellSku, linkPremiumSkuName } from '../utils';
 
@@ -523,6 +523,8 @@ export async function createRunErrorPayload(
       description = [translate('errors.api_restarting')];
     } else if (isConnectionDropError(error)) {
       description = [translate('errors.connection_lost')];
+    } else if (isDiscordEdgeRatelimitError(error)) {
+      description = [translate('api_errors.discord_ratelimited')];
     } else {
       description = [message];
     }

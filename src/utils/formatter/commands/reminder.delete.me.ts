@@ -6,6 +6,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { deleteReminder, fetchReminderPositional } from '../../../api';
 import { Translator, getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
+import { reminderJumpLink } from './reminder.list.me';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   DisplayPayload,
@@ -57,9 +58,9 @@ export function describeReminder(
     content = Markup.codestring(reminder.content);
   }
 
-  const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id);
+  const jumpLink = reminderJumpLink(reminder);
   const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
-  description.push(`${Markup.bold(String(reminder.position))}: ${Markup.url(title, jumpLink)} ${timestamp}`);
+  description.push(`${Markup.bold(String(reminder.position))}: ${((jumpLink) ? Markup.url(title, jumpLink) : title)} ${timestamp}`);
   if (content) {
     description.push(`-> ${content}`);
   }

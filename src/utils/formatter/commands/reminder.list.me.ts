@@ -16,6 +16,17 @@ import {
 
 export const COMMAND_ID = 'reminder.list.user';
 
+// a slash reminder has no message of its own (it used to link to `.../null`), it links to its channel instead
+export function reminderJumpLink(reminder: RestResponsesRaw.Reminder): null | string {
+  if (!reminder.channel_id) {
+    return null;
+  }
+  const path = (reminder.message_id) ?
+    Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id) :
+    Endpoints.Routes.CHANNEL(reminder.guild_id, reminder.channel_id);
+  return Endpoints.Routes.URL + path;
+}
+
 export const RESULTS_PER_PAGE = 8;
 
 export interface CommandArgs {
@@ -69,9 +80,9 @@ export async function createMessage(
             content = Markup.codestring(reminder.content);
           }
   
-          const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id);
+          const jumpLink = reminderJumpLink(reminder);
           const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
-          description.push(`${Markup.bold(String(reminder.position))}: ${timestamp} (${Markup.url(title, jumpLink)})`);
+          description.push(`${Markup.bold(String(reminder.position))}: ${timestamp} (${((jumpLink) ? Markup.url(title, jumpLink) : title)})`);
           if (content) {
             description.push(`-> ${content}`);
           }

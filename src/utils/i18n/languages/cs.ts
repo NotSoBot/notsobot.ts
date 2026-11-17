@@ -4733,6 +4733,7 @@ export const Czech: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Nenalezeno členů: {notFound}',
   'moderation_kick.unable_to_find_member': 'Nenalezen {notFound} člen',
   'moderation_kick.couldn_t_kick_errored': 'Nešlo vyhodit (požadavek selhal)',
+  'moderation_kick.still_banned': 'Stále zabanován (zabanován kvůli smazání zpráv, ale zrušení banu selhalo)',
   'moderation_nick.audit_reason': 'Změna přezdívky od {user}',
   'moderation_nick.bot_cannot_edit': 'Nemůžu změnit přezdívku {user}, jejich nejvyšší role je stejná nebo vyšší než moje',
   'moderation_nick.changed': 'Přezdívka {user} změněna na {nick}',

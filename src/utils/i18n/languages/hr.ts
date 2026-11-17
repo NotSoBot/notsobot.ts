@@ -4733,6 +4733,7 @@ export const Croatian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Nije pronađeno članova: {notFound}',
   'moderation_kick.unable_to_find_member': 'Nije pronađeno članova: {notFound}',
   'moderation_kick.couldn_t_kick_errored': 'Izbacivanje nije uspjelo (zahtjev nije uspio)',
+  'moderation_kick.still_banned': 'Još uvijek zabranjen (zabranjen radi brisanja poruka, ali uklanjanje zabrane nije uspjelo)',
   'moderation_nick.audit_reason': 'Promjena nadimka od {user}',
   'moderation_nick.bot_cannot_edit': 'Ne mogu promijeniti nadimak korisnika {user}, njihova najviša uloga je ista ili iznad moje',
   'moderation_nick.changed': 'Nadimak korisnika {user} promijenjen u {nick}',

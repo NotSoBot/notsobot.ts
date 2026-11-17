@@ -4733,6 +4733,7 @@ export const Thai: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'ไม่พบสมาชิก {notFound} คน',
   'moderation_kick.unable_to_find_member': 'ไม่พบสมาชิก {notFound} คน',
   'moderation_kick.couldn_t_kick_errored': 'เตะไม่ได้ (คำขอล้มเหลว)',
+  'moderation_kick.still_banned': 'ยังถูกแบนอยู่ (แบนเพื่อลบข้อความ แต่การยกเลิกแบนล้มเหลว)',
   'moderation_nick.audit_reason': 'เปลี่ยนชื่อเล่นโดย {user}',
   'moderation_nick.bot_cannot_edit': 'ฉันเปลี่ยนชื่อเล่นของ {user} ไม่ได้ ยศสูงสุดของเขาเท่ากับหรือสูงกว่าของฉัน',
   'moderation_nick.changed': 'เปลี่ยนชื่อเล่นของ {user} เป็น {nick} แล้ว',

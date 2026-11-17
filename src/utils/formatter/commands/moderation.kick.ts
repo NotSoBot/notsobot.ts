@@ -1,6 +1,7 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { ComponentContext, Markup } from 'detritus-client/lib/utils';
+import { Timers } from 'detritus-utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { DateMomentLogFormat, EmbedColors, GuildModerationDmFlags, PermissionsText, StatusEmojis } from '../../../constants';
@@ -21,6 +22,9 @@ export interface CommandArgs {
 }
 
 export const COMMAND_ID = 'moderation.kick';
+
+// how long to wait before each retry of a cleaning kick's unban
+const UNBAN_RETRY_DELAYS = [1000, 3000];
 
 export async function createMessage(
   context: ComponentContext | Command.Context | Interaction.InteractionContext,
@@ -116,6 +120,7 @@ export async function createMessage(
   }
 
   const failed: Array<{error: any, member: Structures.Member}> = [];
+  const stillBanned: Array<{error: any, member: Structures.Member}> = [];
   if (deleteMessageSeconds) {
     // there's no bulk kick, but the ban half of a cleaning kick can go through the bulk ban
     const errors = await banUsers(context, context.guildId!, canEdit.map((member) => member.id), {deleteMessageSeconds, reason});
@@ -126,15 +131,19 @@ export async function createMessage(
       if (errors.some(({ userId }) => userId === member.id)) {
         continue;
       }
-      try {
+      // retried with a wait (a 429 or a hiccup right after the ban), otherwise a kick would leave them banned
+      for (let attempt = 0; ; attempt++) {
         try {
           await member.removeBan({reason});
+          break;
         } catch(error) {
-          // retry once, otherwise a kick would leave them banned
-          await member.removeBan({reason});
+          if (UNBAN_RETRY_DELAYS.length <= attempt) {
+            // they're banned, not just not kicked, said apart so the moderator knows to unban them
+            stillBanned.push({error, member});
+            break;
+          }
+          await Timers.sleep(UNBAN_RETRY_DELAYS[attempt]);
         }
-      } catch(error) {
-        failed.push({error, member});
       }
     }
   } else {
@@ -147,7 +156,7 @@ export async function createMessage(
       }
     }
   }
-  for (let { member } of failed) {
+  for (let { member } of [...failed, ...stillBanned]) {
     canEdit.splice(canEdit.indexOf(member), 1);
     // they weren't kicked, so the dm saying they were shouldn't stay around
     const message = dms.get(member.id);
@@ -209,6 +218,14 @@ export async function createMessage(
       description.push('');
     }
 
+    if (stillBanned.length) {
+      description.push(translate('moderation_kick.still_banned'));
+      for (let { error, member } of stillBanned) {
+        description.push(`-> ${member.mention} ${Markup.spoiler(`(${member})`)} ${Markup.codestring(String((error && error.message) || error).slice(0, 100))}`);
+      }
+      description.push('');
+    }
+
     if (us.length) {
       const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
       description.push(translate('moderation_kick.cannot_kick_yourself_or_myself'));
@@ -229,7 +246,7 @@ export async function createMessage(
 
   {
     const kicked = canEdit.length;
-    const unableToKick = cannotEdit.length + clientCannotEdit.length + us.length + failed.length;
+    const unableToKick = cannotEdit.length + clientCannotEdit.length + us.length + failed.length + stillBanned.length;
     const notFound = payload.notFound.length;
 
     const description: Array<string> = [];

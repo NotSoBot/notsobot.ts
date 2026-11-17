@@ -4733,6 +4733,7 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Não foi possível encontrar {notFound} membros',
   'moderation_kick.unable_to_find_member': 'Não foi possível encontrar {notFound} membro',
   'moderation_kick.couldn_t_kick_errored': 'Não foi possível expulsar (o pedido falhou)',
+  'moderation_kick.still_banned': 'Ainda banido (banido para eliminar as mensagens, mas o desbanimento falhou)',
   'moderation_nick.audit_reason': 'Alteração de apelido por {user}',
   'moderation_nick.bot_cannot_edit': 'Não consigo alterar o apelido de {user}, o cargo mais alto dele é igual ou acima do meu',
   'moderation_nick.changed': 'Apelido de {user} alterado para {nick}',

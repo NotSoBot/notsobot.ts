@@ -4733,6 +4733,7 @@ export const Japanese: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '{notFound}人のメンバーが見つかりませんでした',
   'moderation_kick.unable_to_find_member': '{notFound}人のメンバーが見つかりませんでした',
   'moderation_kick.couldn_t_kick_errored': 'キックできませんでした (リクエストが失敗しました)',
+  'moderation_kick.still_banned': 'BANされたままです (メッセージ削除のためにBANしましたが、BAN解除に失敗しました)',
   'moderation_nick.audit_reason': '{user} によるニックネーム変更',
   'moderation_nick.bot_cannot_edit': '{user} のニックネームを変更できません。最上位ロールが私と同じかそれより上です',
   'moderation_nick.changed': '{user} のニックネームを {nick} に変更しました',

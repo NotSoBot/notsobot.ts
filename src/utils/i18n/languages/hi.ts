@@ -4733,6 +4733,7 @@ export const Hindi: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '{notFound} मेंबर नहीं मिले',
   'moderation_kick.unable_to_find_member': '{notFound} मेंबर नहीं मिला',
   'moderation_kick.couldn_t_kick_errored': 'किक नहीं कर सके (रिक्वेस्ट फ़ेल हो गई)',
+  'moderation_kick.still_banned': 'अभी भी बैन है (मैसेज हटाने के लिए बैन किया गया, लेकिन अनबैन विफल रहा)',
   'moderation_nick.audit_reason': '{user} द्वारा निकनेम बदला गया',
   'moderation_nick.bot_cannot_edit': 'मैं {user} का निकनेम नहीं बदल सकता, उनका सबसे ऊँचा रोल मेरे बराबर या मुझसे ऊपर है',
   'moderation_nick.changed': '{user} का निकनेम {nick} कर दिया गया',

@@ -4733,6 +4733,7 @@ export const French: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Impossible de trouver {notFound} membres',
   'moderation_kick.unable_to_find_member': 'Impossible de trouver {notFound} membre',
   'moderation_kick.couldn_t_kick_errored': 'Expulsion impossible (la requête a échoué)',
+  'moderation_kick.still_banned': 'Toujours banni (banni pour supprimer ses messages, mais le débannissement a échoué)',
   'moderation_nick.audit_reason': 'Changement de pseudo par {user}',
   'moderation_nick.bot_cannot_edit': 'Je ne peux pas changer le pseudo de {user}, son rôle le plus élevé est égal ou supérieur au mien',
   'moderation_nick.changed': 'Pseudo de {user} changé en {nick}',

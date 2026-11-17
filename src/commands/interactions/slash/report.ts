@@ -1,11 +1,14 @@
 import { Interaction } from 'detritus-client';
 import {
   ApplicationIntegrationTypes,
+  InteractionCallbackTypes,
   InteractionContextTypes,
   MessageComponentInputTextStyles,
   MessageComponentTypes,
+  MessageFlags,
 } from 'detritus-client/lib/constants';
 import { InteractionModal, InteractionModalArgs, InteractionModalContext } from 'detritus-client/lib/utils';
+import { Timers } from 'detritus-utils';
 
 import { MAX_GUILD_REPORT_REASON_LENGTH, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, displayReply, renderDisplay } from '../../../utils';
@@ -16,6 +19,7 @@ import { onModalError } from './bot/report';
 
 
 export const COMMAND_NAME = 'report';
+const REPORT_CHECK_WAIT = 1500;
 
 function addReasonInput(modal: InteractionModal, translate: I18n.Translator['translate']): void {
   modal.createLabel({
@@ -38,6 +42,8 @@ export async function createGuildReportReasonModal(
   const modal = new InteractionModal({
     title: translate('guild_report.modal_title'),
     run: async (modalContext: InteractionModalContext, modalArgs: InteractionModalArgs) => {
+      // creating the report waits on our api (and the logger's message), a submit has 3 seconds to be answered
+      await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
       const payload = await Formatter.Commands.GuildReport.createPayload(context, {...args, reason: modalArgs.reason});
       return modalContext.editOrRespond(await renderDisplay(context, payload));
     },
@@ -57,7 +63,12 @@ export async function replyIfCannotReport(context: Interaction.InteractionContex
     await displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('report.cannot_report_yourself')}`, ephemeral: true});
     return true;
   }
-  const disabled = await Formatter.Commands.GuildReport.getDisabledPayload(context);
+  // the modal has to be the first response (within 3 seconds), a slow settings fetch shows it anyway, sending the
+  // report still refuses a server without a reports logger
+  const disabled = await Promise.race([
+    Formatter.Commands.GuildReport.getDisabledPayload(context),
+    Timers.sleep(REPORT_CHECK_WAIT).then(() => null),
+  ]);
   if (disabled) {
     await displayReply(context, disabled);
     return true;
@@ -94,6 +105,8 @@ export default class GuildReportCommand extends BaseSlashCommand {
     const modal = new InteractionModal({
       title: translate('guild_report.modal_title'),
       run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+        // creating the report waits on our api (and the logger's message), a submit has 3 seconds to be answered
+        await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
         const userId = (Array.isArray(args.user) && args.user.length) ? args.user[0] : null;
         const payload = await Formatter.Commands.GuildReport.createPayload(context, {
           reason: args.reason,

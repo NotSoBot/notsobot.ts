@@ -4733,6 +4733,7 @@ export const Dutch: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Kon {notFound} leden niet vinden',
   'moderation_kick.unable_to_find_member': 'Kon {notFound} lid niet vinden',
   'moderation_kick.couldn_t_kick_errored': 'Kon niet kicken (het verzoek is mislukt)',
+  'moderation_kick.still_banned': 'Nog steeds verbannen (verbannen om berichten te verwijderen, maar het opheffen van de ban is mislukt)',
   'moderation_nick.audit_reason': 'Bijnaam gewijzigd door {user}',
   'moderation_nick.bot_cannot_edit': 'Ik kan de bijnaam van {user} niet wijzigen, hun hoogste rol is gelijk aan of hoger dan die van mij',
   'moderation_nick.changed': 'Bijnaam van {user} gewijzigd naar {nick}',

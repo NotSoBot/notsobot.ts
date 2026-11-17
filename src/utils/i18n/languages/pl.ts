@@ -4733,6 +4733,7 @@ export const Polish: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Nie znaleziono członków: {notFound}',
   'moderation_kick.unable_to_find_member': 'Nie znaleziono członków: {notFound}',
   'moderation_kick.couldn_t_kick_errored': 'Nie udało się wyrzucić (żądanie się nie powiodło)',
+  'moderation_kick.still_banned': 'Nadal zbanowany (zbanowany w celu usunięcia wiadomości, ale odbanowanie się nie powiodło)',
   'moderation_nick.audit_reason': 'Zmiana nicku przez {user}',
   'moderation_nick.bot_cannot_edit': 'Nie mogę zmienić nicku {user}, ich najwyższa rola jest taka sama lub wyższa niż moja',
   'moderation_nick.changed': 'Zmieniono nick {user} na {nick}',

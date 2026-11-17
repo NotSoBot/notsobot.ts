@@ -94,6 +94,32 @@ export async function getLoggerAddWarning(
   return null;
 }
 
+// onBefore's warning for its onCancel, it used to be worked out twice (the translator and settings fetched again)
+const loggerAddWarnings = new WeakMap<object, string>();
+
+export async function canAddLogger(
+  context: Command.Context | Interaction.InteractionContext,
+  options: LoggerAddOptions,
+): Promise<boolean> {
+  const warning = await getLoggerAddWarning(context, options);
+  if (warning) {
+    loggerAddWarnings.set(context, warning);
+  }
+  return !warning;
+}
+
+export async function takeLoggerAddWarning(
+  context: Command.Context | Interaction.InteractionContext,
+  options: LoggerAddOptions,
+): Promise<string | null> {
+  const warning = loggerAddWarnings.get(context);
+  if (warning) {
+    loggerAddWarnings.delete(context);
+    return warning;
+  }
+  return getLoggerAddWarning(context, options);
+}
+
 // a channel made for a reports logger says who reported who, so it's only for the moderators (roles that can time out
 // members, admins see it anyway) and whoever added it, instead of whatever the server or category lets everyone see
 function createReportsChannelOverwrites(

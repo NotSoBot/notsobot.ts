@@ -4733,6 +4733,7 @@ export const Swedish: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Hittade inte {notFound} medlemmar',
   'moderation_kick.unable_to_find_member': 'Hittade inte {notFound} medlem',
   'moderation_kick.couldn_t_kick_errored': 'Kunde inte sparka (förfrågan misslyckades)',
+  'moderation_kick.still_banned': 'Fortfarande bannad (bannad för att radera meddelanden, men unban misslyckades)',
   'moderation_nick.audit_reason': 'Smeknamn ändrat av {user}',
   'moderation_nick.bot_cannot_edit': 'Jag kan inte ändra smeknamnet för {user}, deras högsta roll är samma som eller över min',
   'moderation_nick.changed': 'Smeknamnet för {user} ändrat till {nick}',

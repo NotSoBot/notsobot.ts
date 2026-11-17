@@ -4733,6 +4733,7 @@ export const Romanian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'N-am găsit {notFound} membri',
   'moderation_kick.unable_to_find_member': 'N-am găsit {notFound} membru',
   'moderation_kick.couldn_t_kick_errored': 'N-am putut da afară (cererea a eșuat)',
+  'moderation_kick.still_banned': 'Încă banat (banat pentru a-i șterge mesajele, dar debanarea a eșuat)',
   'moderation_nick.audit_reason': 'Schimbare de poreclă de către {user}',
   'moderation_nick.bot_cannot_edit': 'Nu pot schimba porecla lui {user}, rolul lor cel mai înalt este egal sau peste al meu',
   'moderation_nick.changed': 'Porecla lui {user} a fost schimbată în {nick}',

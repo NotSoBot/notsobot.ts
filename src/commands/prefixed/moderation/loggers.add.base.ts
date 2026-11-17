@@ -38,8 +38,7 @@ export class LoggersAddBaseCommand extends BaseCommand {
     if (args.channel === null || args.in === null) {
       return false;
     }
-    const warning = await Formatter.Commands.ServerLoggersAdd.getLoggerAddWarning(context, {channel: args.channel, in: args.in, type: this.loggerType});
-    return !warning;
+    return Formatter.Commands.ServerLoggersAdd.canAddLogger(context, {channel: args.channel, in: args.in, type: this.loggerType});
   }
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.ServerLoggersAdd.CommandArgsBefore) {
@@ -53,7 +52,7 @@ export class LoggersAddBaseCommand extends BaseCommand {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_categories')}`});
     }
 
-    const warning = await Formatter.Commands.ServerLoggersAdd.getLoggerAddWarning(context, {channel: args.channel, in: args.in, type: this.loggerType});
+    const warning = await Formatter.Commands.ServerLoggersAdd.takeLoggerAddWarning(context, {channel: args.channel, in: args.in, type: this.loggerType});
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${warning || translate('errors.unknown_lol')}`});
   }
 

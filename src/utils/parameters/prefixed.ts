@@ -299,6 +299,29 @@ export interface GuildMetadata extends GuildMetadataStored {
   channels: GuildChannelsStored,
 }
 
+async function canViewGuildMetadata(
+  context: Command.Context | Interaction.InteractionContext,
+  guildId: string,
+): Promise<boolean> {
+  if (guildId === context.guildId || context.user.isClientOwner) {
+    return true;
+  }
+  const guild = context.guilds.get(guildId) || (GuildMetadataStore.get(guildId) || {}).guild;
+  if (guild && (guild.features.has('DISCOVERABLE') || guild.members.has(context.userId))) {
+    return true;
+  }
+  if (!isSnowflake(guildId)) {
+    return false;
+  }
+  // the member cache is partial (and other clusters' servers aren't here), Discord knows
+  try {
+    await context.rest.fetchGuildMember(guildId, context.userId);
+    return true;
+  } catch(error) {
+    return false;
+  }
+}
+
 export async function guildMetadata(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
@@ -315,6 +338,11 @@ export async function guildMetadata(
     voiceStateCount: 0,
   };
   if (!guildId) {
+    return payload;
+  }
+  // any server id used to show its owner, counts and channels to anyone, now it's only the current server, ones you're
+  // in or discoverable ones (any other looks like an unknown server)
+  if (!(await canViewGuildMetadata(context, guildId))) {
     return payload;
   }
 

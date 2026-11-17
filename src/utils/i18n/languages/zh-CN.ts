@@ -4733,6 +4733,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': '找不到 {notFound} 名成员',
   'moderation_kick.unable_to_find_member': '找不到 {notFound} 名成员',
   'moderation_kick.couldn_t_kick_errored': '无法踢出（请求失败）',
+  'moderation_kick.still_banned': '仍被封禁（为删除其消息而封禁，但解除封禁失败）',
   'moderation_nick.audit_reason': '由 {user} 更改昵称',
   'moderation_nick.bot_cannot_edit': '我无法更改 {user} 的昵称，对方的最高身份组与我相同或在我之上',
   'moderation_nick.changed': '已将 {user} 的昵称改为 {nick}',

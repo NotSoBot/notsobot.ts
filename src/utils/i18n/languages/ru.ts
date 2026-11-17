@@ -4733,6 +4733,7 @@ export const Russian: Translations = Object.freeze({
   'moderation_kick.unable_to_find_members': 'Не удалось найти участников: {notFound}',
   'moderation_kick.unable_to_find_member': 'Не удалось найти участников: {notFound}',
   'moderation_kick.couldn_t_kick_errored': 'Не удалось выгнать (запрос не удался)',
+  'moderation_kick.still_banned': 'Всё ещё забанен (забанен для удаления сообщений, но разбан не удался)',
   'moderation_nick.audit_reason': 'Изменение ника пользователем {user}',
   'moderation_nick.bot_cannot_edit': 'Я не могу изменить ник {user}, его высшая роль равна моей или выше',
   'moderation_nick.changed': 'Ник {user} изменён на {nick}',

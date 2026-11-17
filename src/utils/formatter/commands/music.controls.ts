@@ -9,7 +9,7 @@ import {
 } from '../../../api';
 import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
-import { DEFAULT_MUSIC_SPEED, DiscordEmojis, MessageComponentCustomIds } from '../../../constants';
+import { DEFAULT_MUSIC_SPEED, DiscordEmojis, MessageComponentCustomIds, StatusEmojis } from '../../../constants';
 import PaginatorsStore from '../../../stores/paginators';
 import { DisplayPayload, Paginator, displayDetails, displayDetailsLine, displayReply, formatTime, renderEphemeralDisplay } from '../../../utils';
 import VoiceNode from '../../../voicenode';
@@ -431,7 +431,11 @@ export async function onMusicControl(
         break;
       }
       // a vote like `music pause`, it only says how many voted until enough did
-      const music = await fetchGuildMusic(context, guildId).catch(() => null);
+      const music = await fetchGuildMusic(context, guildId).catch(() => undefined);
+      if (music === undefined && !canControlMusic(member)) {
+        // not knowing the vote setting used to skip the vote, anyone could pause
+        return followUp(`${StatusEmojis.WARNING} ${translate('settings_server_set_warnings.error_fetching')}`);
+      }
       if (music && music.current) {
         const vote = musicVote(MusicVoteKinds.PAUSE, member!, channel!, music.current, music);
         if (!vote.done) {
@@ -451,7 +455,11 @@ export async function onMusicControl(
         paused = (done) ? false : undefined;
       } else {
         // a vote like `music resume` while it's paused, it only says how many voted until enough did
-        const music = (guild!.paused) ? await fetchGuildMusic(context, guildId).catch(() => null) : null;
+        const music = (guild!.paused) ? await fetchGuildMusic(context, guildId).catch(() => undefined) : null;
+        if (music === undefined && !canControlMusic(member)) {
+          // not knowing the vote setting used to skip the vote, anyone could resume
+          return followUp(`${StatusEmojis.WARNING} ${translate('settings_server_set_warnings.error_fetching')}`);
+        }
         if (music && music.current) {
           const vote = musicVote(MusicVoteKinds.RESUME, member!, channel!, music.current, music);
           if (!vote.done) {

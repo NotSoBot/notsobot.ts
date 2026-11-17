@@ -6,6 +6,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { fetchReminders } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
+import { reminderJumpLink } from './reminder.list.me';
 import { EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
@@ -84,7 +85,7 @@ export async function createMessage(
             content = Markup.codestring(reminder.content);
           }
 
-          const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id);
+          const jumpLink = reminderJumpLink(reminder);
           const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
           {
             let text = `${Markup.bold(String(i + 1 + ((pageNumber - 1) * RESULTS_PER_PAGE)))}: ${timestamp}`;
@@ -99,7 +100,7 @@ export async function createMessage(
               }
               text = translate('reminder_list_server.by_id', {noun: noun, position: reminder.position, text: text});
             }
-            description.push(`${text} (${Markup.url(title, jumpLink)})`);
+            description.push(`${text} (${((jumpLink) ? Markup.url(title, jumpLink) : title)})`);
           }
           if (content) {
             description.push(`-> ${content}`);
