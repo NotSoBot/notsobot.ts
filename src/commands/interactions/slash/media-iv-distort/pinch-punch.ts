@@ -19,11 +19,11 @@ export class MediaIVPinchPunchCommand extends BaseInteractionImageOrVideoCommand
   constructor() {
     super({
       options: [
-        {name: 'intensity', description: 'Positive punches out, negative pinches in (-1..1) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.intensity'), type: Number},
-        {name: 'x', description: 'Center across, 0.5 is the middle (-1..2) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.x'), type: Number},
-        {name: 'y', description: 'Center down, 0.5 is the middle (-1..2) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.y'), type: Number},
-        {name: 'x-scale', description: 'Width of the area, of half the width (0.01..4) (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.x_scale'), label: 'xScale', type: Number},
-        {name: 'y-scale', description: 'Height of the area, of half the height (0.01..4) (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.y_scale'), label: 'yScale', type: Number},
+        {name: 'intensity', description: 'Positive punches out, negative pinches in (-1..1) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.intensity'), type: 'number'},
+        {name: 'x', description: 'Center across, 0.5 is the middle (-1..2) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.x'), type: 'number'},
+        {name: 'y', description: 'Center down, 0.5 is the middle (-1..2) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.y'), type: 'number'},
+        {name: 'x-scale', description: 'Width of the area, of half the width (0.01..4) (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.x_scale'), label: 'xScale', type: 'number'},
+        {name: 'y-scale', description: 'Height of the area, of half the height (0.01..4) (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.pinch_punch.y_scale'), label: 'yScale', type: 'number'},
       ],
     });
   }

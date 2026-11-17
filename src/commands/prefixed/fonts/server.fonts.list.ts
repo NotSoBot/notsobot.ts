@@ -24,6 +24,8 @@ export default class ServerFontsListCommand extends BaseCommand {
         id: Formatter.Commands.ServerFontsList.COMMAND_ID,
         usage: '',
       },
+      // below `server fonts remove` and `server fonts rename`, which load after it and would otherwise be read as `server fonts`
+      priority: -1,
     });
   }
 

@@ -19,8 +19,8 @@ export class MediaIVStretchCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'width', description: 'Width multiplier, 0.01 to 3 (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.width'), type: 'float'},
-        {name: 'height', description: 'Height multiplier, 0.01 to 3 (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.height'), type: 'float'},
+        {name: 'width', description: 'Width multiplier, 0.01 to 3 (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.width'), type: 'number'},
+        {name: 'height', description: 'Height multiplier, 0.01 to 3 (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.height'), type: 'number'},
         {name: 'crop', description: 'Crop excess width/height', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.crop'), type: Boolean},
       ],
     });

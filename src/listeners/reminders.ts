@@ -198,7 +198,9 @@ class ReminderInterval extends Listener {
   ): Promise<Collections.BaseCollection<string, RestResponsesRaw.Reminder>> {
     const reminders = new Collections.BaseCollection<string, RestResponsesRaw.Reminder>();
 
-    let after: string | undefined;
+    // without `after` the api answers with the newest page (id descending), with it the ids above it ascending. starting
+    // from 0 keeps every page in the same order, the newest page's last id used to fetch that same page again
+    let after: string = '0';
     const limit = 1000;
     while (true) {
       const response = await fetchReminders({client: shard}, {

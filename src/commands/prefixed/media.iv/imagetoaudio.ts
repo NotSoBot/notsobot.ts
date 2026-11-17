@@ -21,7 +21,7 @@ export default class ImageToAudioCommand extends BaseImageCommand {
 
       aliases: ['i2a', 'img2audio', 'sonify'],
       args: [
-        {name: 'duration', aliases: ['d', 'length'], type: Number, metadata: {description: 'seconds, 0.5 to 30 (default: 5, an animation its own length, raw as long as its bytes last)'}},
+        {name: 'duration', aliases: ['d', 'length'], type: 'float', metadata: {description: 'seconds, 0.5 to 30 (default: 5, an animation its own length, raw as long as its bytes last)'}},
         {name: 'high', aliases: ['h'], type: Number, metadata: {description: 'the frequency at the top of the image, 20 to 20000 hz (default: 12000)'}},
         {name: 'invert', aliases: ['i'], type: Boolean, metadata: {description: 'dark pixels are loud instead of bright ones'}},
         {name: 'low', aliases: ['l'], type: Number, metadata: {description: 'the frequency at the bottom of the image, 20 to 20000 hz (default: 100)'}},
@@ -38,7 +38,7 @@ export default class ImageToAudioCommand extends BaseImageCommand {
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/photo.jpg -mode raw`,
         ],
         id: Formatter.Commands.MediaIVToolsImageToAudio.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-duration <number>) (-high <number>) (-invert) (-low <number>) (-mode <MediaImageToAudioModes>) (-scale <MediaImageToAudioScales>)',
+        usage: '?<emoji,user:id|mention|name,url> (-duration <float>) (-high <number>) (-invert) (-low <number>) (-mode <MediaImageToAudioModes>) (-scale <MediaImageToAudioScales>)',
       },
     });
   }

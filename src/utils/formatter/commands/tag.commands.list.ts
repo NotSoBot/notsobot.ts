@@ -1,4 +1,4 @@
-import { Command, Interaction, Structures } from 'detritus-client';
+import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchGuildTagsCommands, fetchUserTagsCommands } from '../../../api';
@@ -6,13 +6,9 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
-  DefaultParameters,
   DisplayPayload,
   Paginator,
-  Parameters,
   chunkArray,
-  createTimestampMomentFromGuild,
-  createUserString,
   displayReply,
 } from '../../../utils';
 
@@ -30,7 +26,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
 
   const showMeOnly = context.inDm || args.showMeOnly;
 
@@ -74,13 +70,6 @@ export async function createMessage(
             for (let x = 0; x < section.length; x++) {
               const tag = section[x];
               description.push(`**${(i + x + 1) + ((pageNumber - 1) * RESULTS_PER_PAGE)}**. ${Markup.escape.all(tag.name)}`);
-
-              /*
-              {
-                const timestamp = createTimestampMomentFromGuild(tag.edited || tag.created, context.guildId);
-                description.push(`**->** ${(tag.edited) ? 'Edited' : 'Created'} ${timestamp.fromNow()}`);
-              }
-              */
             }
 
             payload.fields!.push({inline: true, name: '\u200b', value: description.join('\n')});

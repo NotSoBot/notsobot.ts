@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogleImages } from '../../../api';
@@ -23,7 +24,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
 
   const safe = DefaultParameters.safe(context);
   const results = await searchGoogleImages(context, {...args, safe});
@@ -121,7 +122,7 @@ export async function createMessage(
             }
             description.push(details.join(' · '));
             if (video.uploadedAt) {
-              let text = translate('search_google_images.uploaded', {uploadedAtText: video.uploadedAtText});
+              let text = translate('search_google_images.uploaded', {uploadedAtText: Markup.timestamp(video.uploadedAt, MarkupTimestampStyles.RELATIVE)});
               if (video.channel) {
                 text = translate('search_google_images.by', {channel: Markup.escape.all(video.channel), text: text});
               }

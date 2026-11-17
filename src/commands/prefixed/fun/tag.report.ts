@@ -32,7 +32,8 @@ export default class TagReportCommand extends BaseCommand {
         id: Formatter.Commands.Report.COMMAND_ID_TAG,
         usage: '<tagname> <reason>',
       },
-      priority: -1,
+      // ahead of `tag` (-1), which loads first and would otherwise show a tag called "report"
+      priority: 0,
       type: [
         {name: 'tag', default: null, type: Parameters.NotSoTag},
         {name: 'content', type: Parameters.string({maxLength: Formatter.Commands.Report.MAX_CONTENT_LENGTH}), consume: true},

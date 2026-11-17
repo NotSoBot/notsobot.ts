@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply, getCommandIdFromInvoker } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -42,11 +42,16 @@ export default class CommandsUsageCommand extends BaseCommand {
         usage: '<command-name> (-channel <channel:id|mention|name>) (-user <user:id|mention|name>)',
       },
       permissions: [Permissions.MANAGE_GUILD],
-      //type: Parameters.prefixedCommand,
+      // the command name (or id) only filters when it's given, it used to be read and never sent
+      type: Parameters.prefixedCommand,
     });
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.ModerationCommandsUsage.CommandArgsBefore) {
+    // a name was given but no command has it (nothing given leaves it as '')
+    if (args.command === null) {
+      return false;
+    }
     if (args.channel !== undefined && !args.channel) {
       return false;
     }
@@ -59,6 +64,9 @@ export default class CommandsUsageCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationCommandsUsage.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     let errors: Array<string> = [];
+    if (args.command === null) {
+      errors.push('command');
+    }
     if (args.channel !== undefined && !args.channel) {
       errors.push('channel');
     }
@@ -71,7 +79,11 @@ export default class CommandsUsageCommand extends BaseCommand {
     return super.onCancelRun(context, args);
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ModerationCommandsUsage.CommandArgs) {
-    return Formatter.Commands.ModerationCommandsUsage.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.ModerationCommandsUsage.CommandArgsBefore) {
+    return Formatter.Commands.ModerationCommandsUsage.createMessage(context, {
+      channel: args.channel || undefined,
+      commandId: (args.command) ? getCommandIdFromInvoker(args.command) : undefined,
+      user: args.user || undefined,
+    });
   }
 }

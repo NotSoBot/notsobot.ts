@@ -23,7 +23,7 @@ export default class WordcloudCommand extends BaseCommand {
         {name: 'image', type: Parameters.mediaUrl({audio: false, video: false, onlyContent: true}), metadata: {description: 'the words fill its shape and take its colors'}},
         {name: 'shape', type: Parameters.oneOf({choices: MediaWordcloudShapes})},
         {name: 'theme', type: Parameters.oneOf({choices: MediaWordcloudThemes})},
-        {name: 'max', default: 500, type: Parameters.number({max: 1000, min: 0}), metadata: {description: '0 to 1000'}},
+        {name: 'max', default: 500, type: Parameters.number({max: 1000, min: 1}), metadata: {description: '1 to 1000'}},
       ],
       default: DefaultParameters.channel,
       label: 'channel',

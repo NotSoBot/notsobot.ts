@@ -13,6 +13,7 @@ import { MediaAVToolsSetGroupCommand } from './set';
 
 import { MediaAVToolsAudioToImageCommand } from './audio-to-image';
 import { MediaAVToolsAutoSubtitleCommand } from './auto-subtitle';
+import { MediaAVToolsAutoSubtitleTranslateCommand } from './auto-subtitle-translate';
 import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
 import { MediaAVAudioChannelsInvertCommand } from './channels-invert';
 import { MediaAVAudioDelayCommand } from './delay';
@@ -45,6 +46,7 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
         new MediaAVToolsSetGroupCommand(),
         new MediaAVToolsAudioToImageCommand(),
         new MediaAVToolsAutoSubtitleCommand(),
+        new MediaAVToolsAutoSubtitleTranslateCommand(),
         new MediaAVAudioChannelsCombineCommand(),
         new MediaAVAudioChannelsInvertCommand(),
         new MediaAVAudioDelayCommand(),

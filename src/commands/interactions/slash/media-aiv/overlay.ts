@@ -19,13 +19,13 @@ export class MediaAIVOverlayCommand extends BaseInteractionMediasCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'blend', description: 'Similarity Blend Amount', ...I18n.optionLocalizations('commands.media_aiv.overlay.blend')},
+        {name: 'blend', description: 'Similarity Blend Amount', ...I18n.optionLocalizations('commands.media_aiv.overlay.blend'), type: 'number'},
         {name: 'color', description: 'Color to make transparent', ...I18n.optionLocalizations('commands.media_aiv.overlay.color')},
         {name: 'noloop', description: 'Do not loop the shortest media to match the longest media timestamp', ...I18n.optionLocalizations('commands.media_aiv.overlay.noloop'), type: Boolean},
         {name: 'opacity', description: 'Opacity of the overlay', ...I18n.optionLocalizations('commands.media_aiv.overlay.opacity'), type: Number},
         {name: 'position', description: 'Grid spot: topleft, center, bottomright... or a cell like 3x3:2', ...I18n.optionLocalizations('commands.media_aiv.overlay.position'), value: Parameters.overlayPosition},
         {name: 'resize', description: 'Resize Equation (ex: "fit(mw, mh)")', ...I18n.optionLocalizations('commands.media_aiv.overlay.resize')},
-        {name: 'similarity', description: 'Color similarity percentage to make transparent', ...I18n.optionLocalizations('commands.media_aiv.overlay.similarity')},
+        {name: 'similarity', description: 'Color similarity percentage to make transparent', ...I18n.optionLocalizations('commands.media_aiv.overlay.similarity'), type: 'number'},
         {name: 'x', description: 'X Position Equation (ex: "(mw/2)-(ow/2)")', ...I18n.optionLocalizations('commands.media_aiv.overlay.x')},
         {name: 'y', description: 'Y Position Equation (ex: "(mh/2)-(oh/2)")', ...I18n.optionLocalizations('commands.media_aiv.overlay.y')},
       ],

@@ -44,8 +44,17 @@ import { AutoEmbedLink, findAutoEmbedLink, getAutoEmbedLink } from './utils/auto
 // detritus' fill() puts an empty collection in the cache before fetching, so commands that run while it's fetching
 // (or after it failed, it was never removed) saw no slash command permission overrides at all
 const applicationCommandPermissionFills = new Map<string, Promise<void>>();
+// guild id -> when its fill failed (no `applications.commands` scope answers 403 every time), not retried for a bit, every
+// non-admin prefixed command in it used to ask again
+const APPLICATION_COMMAND_PERMISSIONS_RETRY_AFTER = 5 * 60 * 1000;
+const applicationCommandPermissionFailures = new Collections.BaseCollection<string, number>({
+  expire: APPLICATION_COMMAND_PERMISSIONS_RETRY_AFTER,
+});
 
 async function fillApplicationCommandPermissions(context: Command.Context, guildId: string): Promise<void> {
+  if (applicationCommandPermissionFailures.has(guildId)) {
+    return;
+  }
   let promise = applicationCommandPermissionFills.get(guildId);
   if (!promise) {
     promise = (async () => {
@@ -53,6 +62,7 @@ async function fillApplicationCommandPermissions(context: Command.Context, guild
         await context.client.applicationCommandPermissions.fill(guildId);
       } catch(error) {
         context.client.applicationCommandPermissions.delete(guildId);
+        applicationCommandPermissionFailures.set(guildId, Date.now());
         throw error;
       } finally {
         applicationCommandPermissionFills.delete(guildId);

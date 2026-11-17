@@ -1,10 +1,9 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
-import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import ServerExecutionsStore from '../../../stores/serverexecutions';
+import { displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 

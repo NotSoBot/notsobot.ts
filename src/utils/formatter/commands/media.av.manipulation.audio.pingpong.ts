@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
 import { mediaAVManipulationAudioPingPong } from '../../../api';
 import type { RestOptions } from '../../../api/types';
@@ -28,11 +29,12 @@ export interface CommandArgs {
 
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaAVManipulationAudioPingPong(context, {
     keepLength: args.keeplength,
     length: args.length,
+    file: args.file,
     safe: DefaultParameters.safe(context),
     url: args.url,
   });

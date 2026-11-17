@@ -1,14 +1,14 @@
 import { Command, Interaction } from 'detritus-client';
+import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchUrban, searchUrbanRandom } from '../../../api';
 import { getCachedTranslator, getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constants';
+import { EmbedBrands, EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
   Paginator,
-  createTimestampMomentFromGuild,
   displayReply,
 } from '../../../utils';
 
@@ -23,7 +23,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { translate } = await getTranslator(context);
   const results = await ((args.query) ? searchUrban(context, {query: args.query}) : searchUrbanRandom(context));
   if (results.length) {
     const pageLimit = results.length;
@@ -56,9 +56,9 @@ export function createPayload(
   context: Command.Context | Interaction.InteractionContext,
   result: RestResponsesRaw.SearchUrbanDictionaryResult,
 ): DisplayPayload {
-  const { language, translate, translateMaybe } = getCachedTranslator(context);
+  const { language, translate } = getCachedTranslator(context);
 
-  const created = createTimestampMomentFromGuild(result.written_on, context.guildId);
+  const created = Date.parse(result.written_on);
 
   const payload: DisplayPayload = {fields: []};
   payload.color = EmbedColors.DEFAULT;
@@ -77,8 +77,8 @@ export function createPayload(
   }
 
   payload.description = [
-    translate('search_urban.created_by', {author: Markup.escape.all(result.author), created: created.locale(language).fromNow()}),
-    `-> ${Markup.spoiler(`(${created.format(DateMomentLogFormat)})`)}`,
+    translate('search_urban.created_by', {author: Markup.escape.all(result.author), created: Markup.timestamp(created, MarkupTimestampStyles.RELATIVE)}),
+    `-> ${Markup.spoiler(`(${Markup.timestamp(created, MarkupTimestampStyles.BOTH_SHORT)})`)}`,
     translate('search_urban.likes_dislikes', {thumbs_down: result.thumbs_down.toLocaleString(language), thumbs_up: result.thumbs_up.toLocaleString(language)}),
     '',
     definition,

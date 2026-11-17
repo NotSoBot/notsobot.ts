@@ -1,7 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
-import { Endpoints } from 'detritus-client-rest';
 
 import { fetchCommandsUsage } from '../../../api';
 import { getTranslator } from '../../i18n';
@@ -10,11 +9,8 @@ import { EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
   Paginator,
-  Parameters,
   chunkArray,
-  createTimestampMomentFromGuild,
   createUserString,
-  getReminderMessage,
 } from '../../../utils';
 
 
@@ -26,11 +22,14 @@ export const RESULTS_PER_PAGE = 10;
 
 export interface CommandArgsBefore {
   channel?: null | Structures.Channel,
+  command?: '' | null | Command.Command,
   user?: null | Structures.Member | Structures.User,
 }
 
 export interface CommandArgs {
   channel?: Structures.Channel,
+  // a command's id (`getCommandIdFromInvoker`), its prefixed and slash uses share it
+  commandId?: string,
   user?: Structures.Member | Structures.User,
 }
 
@@ -38,7 +37,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
 
   let channelId: string | undefined;
   if (context.guildId) {
@@ -47,28 +46,18 @@ export async function createMessage(
     channelId = context.channelId;
   }
 
-  let finished = false;
-  let before: number | undefined;
-
-  let results: Array<RestResponsesRaw.CommandUsage> = [];
-  let total = {count: 0, since: 0};
-
-  while (!finished && results.length <= MAX_RESULTS) {
-    const response = await fetchCommandsUsage(context, {
-      before,
-      channelId,
-      guildId: context.guildId || undefined,
-      limit: 10000,
-      userId: (args.user) ? args.user.id : undefined,
-    });
-    total = response.total;
-    if (response.results.length) {
-      before = response.results[response.results.length - 1]!.timestamp;
-      results = [...results, ...response.results];
-    } else {
-      finished = true;
-    }
-  }
+  // one request, the api takes up to `MAX_RESULTS`. Paging by `before` lost the other uses in the same second at every
+  // page boundary (timestamps are whole seconds), and the total came from the last page's `before`, so it was only what
+  // was older than everything shown
+  const response = await fetchCommandsUsage(context, {
+    channelId,
+    commandId: args.commandId,
+    guildId: context.guildId || undefined,
+    limit: MAX_RESULTS,
+    userId: (args.user) ? args.user.id : undefined,
+  });
+  const results: Array<RestResponsesRaw.CommandUsage> = response.results;
+  const total = response.total;
 
   const pages = chunkArray<RestResponsesRaw.CommandUsage>(results, RESULTS_PER_PAGE);
   const pageLimit = pages.length;

@@ -379,11 +379,18 @@ export function canWriteServerTags(context: Interaction.InteractionContext): boo
 }
 
 export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommandOption {
+  // replacing the group's `onBefore` skipped its early ephemeral defer (the user's response setting) and metadata gates
   onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
-    return canWriteServerTags(context);
+    if (!canWriteServerTags(context)) {
+      return false;
+    }
+    return BaseInteractionCommand.prototype.onBefore.call(this as any, context);
   }
 
   async onCancel(context: Interaction.InteractionContext) {
+    if (context.metadata && context.metadata.reason) {
+      return BaseInteractionCommand.prototype.onCancel.call(this as any, context);
+    }
     const { translate } = await I18n.getTranslator(context);
     return replyWarning(context, translate('tag.server_not_installed'));
   }

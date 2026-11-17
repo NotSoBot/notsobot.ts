@@ -2,7 +2,6 @@ import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes, MarkupTimestampStyles, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
 import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
-import { Timers } from 'detritus-utils';
 
 import { deleteReminder, fetchReminderPositional } from '../../../api';
 import { Translator, getTranslator } from '../../i18n';
@@ -10,10 +9,7 @@ import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   DisplayPayload,
-  Parameters,
-  createTimestampMomentFromGuild,
   displayReply,
-  getReminderMessage,
 } from '../../../utils';
 
 
@@ -27,7 +23,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { translate } = await getTranslator(context);
 
   let reminder: RestResponsesRaw.Reminder;
   try {

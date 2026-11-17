@@ -1,5 +1,6 @@
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import {
+  DiscordAbortCodes,
   InteractionCallbackTypes,
   MarkupTimestampStyles,
   MessageComponentButtonStyles,
@@ -478,23 +479,41 @@ export async function deleteMessages(
 ): Promise<number> {
   const bulkToDelete = bulk.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
   const manualToDelete = manual.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
-  const deletedTotal = bulkToDelete.length + manualToDelete.length;
+  const toDeleteTotal = bulkToDelete.length + manualToDelete.length;
 
   // audit log reasons are in the server's language since the whole server sees them
   const { translate } = I18n.getCachedGuildTranslator(context);
-  const reason = translate('prune.audit_reason', {count: deletedTotal.toLocaleString(), user: formatUserForAuditLog(context.user)});
+  const reason = translate('prune.audit_reason', {count: toDeleteTotal.toLocaleString(), user: formatUserForAuditLog(context.user)});
 
+  let deletedTotal = 0;
   for (let i = 0; i < bulkToDelete.length; i += 100) {
-    const messageIds = bulkToDelete.slice(i, i + 100);
+    // the confirmation can sit for a minute, anything that crossed the 2 week mark since would fail the whole bulk request
+    const messageIds = bulkToDelete.slice(i, i + 100).filter((messageId) => {
+      if (shouldBulkDelete(Snowflake.timestamp(messageId))) {
+        return true;
+      }
+      manualToDelete.push(messageId);
+      return false;
+    });
     if (messageIds.length === 1) {
-      await context.rest.deleteMessage(channelId, messageIds[0], {reason});
-    } else {
+      manualToDelete.push(messageIds[0]);
+    } else if (messageIds.length) {
+      // unknown (already deleted) ids are ignored here
       await context.rest.bulkDeleteMessages(channelId, messageIds, {reason});
+      deletedTotal += messageIds.length;
     }
   }
 
   for (let messageId of manualToDelete) {
-    await context.rest.deleteMessage(channelId, messageId, {reason});
+    try {
+      await context.rest.deleteMessage(channelId, messageId, {reason});
+      deletedTotal++;
+    } catch(error) {
+      // fetched messages aren't cached, so one deleted while waiting on the confirmation only shows up here
+      if (!error || error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE) {
+        throw error;
+      }
+    }
   }
 
   return deletedTotal;

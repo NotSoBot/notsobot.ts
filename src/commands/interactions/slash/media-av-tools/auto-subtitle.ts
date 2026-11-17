@@ -23,6 +23,14 @@ export class MediaAVToolsAutoSubtitleCommand extends BaseInteractionAudioOrVideo
         {name: 'highlight', description: 'Highlight the word being said (Default: False)', ...I18n.optionLocalizations('commands.media_av_tools.auto_subtitle.highlight'), type: Boolean},
         {name: 'yellow', description: 'DVD yellow text instead of white (Default: False)', ...I18n.optionLocalizations('commands.media_av_tools.auto_subtitle.yellow'), type: Boolean},
         {
+          // left out the subtitles stay in the language spoken
+          name: 'translate',
+          description: 'Language to translate the subtitles to',
+          ...I18n.optionLocalizations('commands.media_av_tools.auto_subtitle.translate'),
+          value: Parameters.locale,
+          onAutoComplete: Parameters.AutoComplete.googleLocales,
+        },
+        {
           name: 'font',
           description: 'Font Choice',
           ...I18n.optionLocalizations('commands.media_iv_text.caption.font'),

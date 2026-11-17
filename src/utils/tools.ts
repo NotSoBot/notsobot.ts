@@ -464,6 +464,16 @@ function isURLTrusted(value: string): boolean {
 }
 
 
+// a still of a video from discord's media proxy. attachment urls are signed (`?ex=..&is=..&hm=..&`), so `?format=png`
+// can't just be added on the end, it became a `?format` parameter the proxy ignores and the video came back
+function proxyUrlAsPng(proxyUrl: string): string {
+  if (proxyUrl.endsWith('?') || proxyUrl.endsWith('&')) {
+    return proxyUrl + 'format=png';
+  }
+  return proxyUrl + ((proxyUrl.includes('?')) ? '&' : '?') + 'format=png';
+}
+
+
 export interface FindMediaUrlOptions {
   audio?: boolean,
   image?: boolean,
@@ -525,7 +535,7 @@ export function findMediaUrlInAttachment(
         return null;
       }
       if (findImage && !findVideo) {
-        return attachment.proxyUrl + '?format=png';
+        return proxyUrlAsPng(attachment.proxyUrl);
       }
     }
     return (attachment.url && isURLTrusted(attachment.url)) ? attachment.url : attachment.proxyUrl;
@@ -732,7 +742,7 @@ export function findMediaUrlInEmbed(
         return video.proxyUrl;
       }
       if (findImage) {
-        return video.proxyUrl + '?format=png';
+        return proxyUrlAsPng(video.proxyUrl);
       }
     }
   }
@@ -1133,6 +1143,11 @@ export async function findMemberByChunk(
   username: string,
   discriminator?: null | string,
 ): Promise<Structures.Member | Structures.User | null> {
+  // a lone `@` (or `#`) has no name to look for, every name starts with an empty one so it matched whoever came first
+  if (!username && !discriminator) {
+    return null;
+  }
+
   const voiceChannel = context.voiceChannel;
   if (voiceChannel) {
     const members = voiceChannel.members;
@@ -1271,6 +1286,11 @@ export async function findMembersByChunk(
   username: string,
   discriminator?: null | string,
 ): Promise<Array<Structures.Member | Structures.User>> {
+  // nothing to look for, an empty name matches everyone
+  if (!username && !discriminator) {
+    return [];
+  }
+
   const guild = context.guild;
   if (guild) {
     if (!guild.isReady && !await requestAllGuildMembers(guild)) {
@@ -3256,7 +3276,8 @@ export async function mediaReplyFromOptions(
     filename = options.filename;
   } else {
     if ((isFromInteraction || isFromPrefix) && context.command) {
-      filename = context.command.name.replace(' ', '-');
+      // every space, a string `replace` only did the first (`media iv x` became `media-iv x`)
+      filename = context.command.name.replace(/ /g, '-');
     } else {
       filename = 'edited-media';
     }

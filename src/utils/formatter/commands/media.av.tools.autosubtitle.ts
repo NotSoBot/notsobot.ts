@@ -3,7 +3,7 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaAVToolsAutoSubtitle } from '../../../api';
 import type { RestOptions } from '../../../api/types';
-import { MediaMemeFonts } from '../../../constants';
+import { GoogleLocales, MediaMemeFonts } from '../../../constants';
 import { DefaultParameters, Parameters, jobReply } from '../../../utils';
 import * as Mediascript from '../mediascript';
 
@@ -28,6 +28,8 @@ export interface CommandArgs {
   // a font file of their own (a link or an attachment's), instead of `font`
   fontUrl?: string,
   highlight?: boolean,
+  // the subtitles translated to this language (no highlight then, a translation has no word timings)
+  translate?: GoogleLocales | null,
   url: string,
   yellow?: boolean,
 }
@@ -51,6 +53,7 @@ export function createJob(
     fontUrl: args.fontUrl,
     highlight: args.highlight,
     safe: DefaultParameters.safe(context),
+    translate: args.translate || undefined,
     url: args.url,
     yellow: args.yellow,
   });
@@ -62,7 +65,9 @@ export function createMediascript(args: CommandArgs, chain: Mediascript.Mediascr
   if (args.fontUrl || (args.font && !(Object.values(MediaMemeFonts) as Array<string>).includes(args.font))) {
     return null;
   }
-  return Mediascript.line('autosubtitle', chain.key, {highlight: args.highlight, yellow: args.yellow, font: args.font});
+  return Mediascript.line('autosubtitle', chain.key, {
+    highlight: args.highlight, yellow: args.yellow, font: args.font, translate: args.translate || undefined,
+  });
 }
 
 export async function createMessage(

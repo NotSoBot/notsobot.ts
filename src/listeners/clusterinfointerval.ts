@@ -11,18 +11,25 @@ import { RedisPayloads } from '../types';
 
 
 const MAX_TIME_BETWEEN = 1500;
+// the api asks (`INFO_DISCORD_REQUEST`) once its copy is 15 seconds old, a burst of page loads can ask several times
+// before our upload lands. each upload scans every cached channel/presence/overwrite of every shard, so even a forced
+// one waits this long since the last and isn't sent while another is still going
+const MIN_TIME_BETWEEN_FORCED = 5000;
 
 class ClusterInfoInterval extends Listener {
   lastUpload = 0;
+  uploading = false;
 
   async maybeUploadInformation(cluster: ClusterClient, force: boolean = false): Promise<void> {
     const lastUpload = this.lastUpload;
-    if (!force && Date.now() - lastUpload <= MAX_TIME_BETWEEN) {
+    const sinceLast = Date.now() - lastUpload;
+    if ((force && this.uploading) || sinceLast <= ((force) ? MIN_TIME_BETWEEN_FORCED : MAX_TIME_BETWEEN)) {
       return;
     }
 
     const shard = cluster.shards.first();
     if (shard) {
+      this.uploading = true;
       try {
         const usage = process.memoryUsage();
 
@@ -61,6 +68,8 @@ class ClusterInfoInterval extends Listener {
         });
       } catch(error) {
         this.lastUpload = lastUpload;
+      } finally {
+        this.uploading = false;
       }
     }
   }

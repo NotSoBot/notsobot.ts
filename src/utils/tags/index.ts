@@ -1749,11 +1749,17 @@ export async function parse(
   let depth = 0;
   let scriptBuffer = '';
   let position = 0;
+  let steps = 0;
   while (position < value.length) {
     if (maxTextLength < tag.text.length) {
       throw new TagError(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
     }
     checkDeadline(context, tag);
+    // a huge argument full of brackets that never close a function (`{eval:{repeat:5000000|{bracketleft}}}`, and again for
+    // every level it's nested in) is scanned without a single function call, so the yield in those never happened
+    if (++steps % PARSE_STEPS_PER_YIELD_CHECK === 0 && await yieldEventLoopIfBlocking()) {
+      checkDeadline(context, tag);
+    }
 
     if (tag.variables[PrivateVariables.ITERATIONS_REMAINING] <= 0) {
       tag.text += value.slice(position);
@@ -2035,7 +2041,12 @@ export function toPlainDecimal(value: string): string | null {
   }
   const [ , sign, integer, fraction ] = text.match(PLAIN_DECIMAL_REGEX)!;
   const integerPart = integer.replace(/^0+/, '') || '0';
-  const fractionPart = (fraction || '').replace(/0+$/, '');
+  // trimmed by hand, `/0+$/` retries from every zero and was quadratic (`0.` + 100k zeros + `1` took 4.5s)
+  let fractionEnd = (fraction || '').length;
+  while (fractionEnd && fraction[fractionEnd - 1] === '0') {
+    fractionEnd--;
+  }
+  const fractionPart = (fraction || '').slice(0, fractionEnd);
   const isZero = integerPart === '0' && !fractionPart;
   return ((sign === '-' && !isZero) ? '-' : '') + integerPart + ((fractionPart) ? `.${fractionPart}` : '');
 }
@@ -2777,6 +2788,17 @@ export function increaseComponentExecutions(tag: TagResult, amount: number = 1) 
 // how many function calls run between giving the event loop back, a tag is one long chain of already-resolved
 // promises otherwise and blocks every other guild on the process until it finishes
 const FUNCTION_CALLS_PER_YIELD = 200;
+// and whenever this long went by without giving it back, 200 calls of slow functions (big {replace}s, huge {range}s)
+// blocked it for seconds. shared by every tag on the process, it's the event loop's time either way
+const FUNCTION_CALLS_MAX_BLOCK_MS = 50;
+let functionCallsLastYield = Date.now();
+// how many brackets/escapes the parse loop goes through between checking if it should give the event loop back
+const PARSE_STEPS_PER_YIELD_CHECK = 4096;
+
+// {range} with more digits than this stays as text, see there
+const MAX_RANGE_DIGITS = 4096;
+// {oneof} only fuzzy searches this many (unique) choices, the exact match pass still looks at all of them
+const MAX_ONE_OF_FUZZY_CHOICES = 10000;
 
 export async function increaseFunctionCalls(
   context: Command.Context | Interaction.InteractionContext,
@@ -2789,9 +2811,25 @@ export async function increaseFunctionCalls(
   }
   checkDeadline(context, tag);
   if (calls % FUNCTION_CALLS_PER_YIELD === 0) {
-    await new Promise((resolve) => setImmediate(resolve));
+    await yieldEventLoop();
+    checkDeadline(context, tag);
+  } else if (await yieldEventLoopIfBlocking()) {
     checkDeadline(context, tag);
   }
+}
+
+async function yieldEventLoop(): Promise<void> {
+  await new Promise((resolve) => setImmediate(resolve));
+  functionCallsLastYield = Date.now();
+}
+
+// whether it gave the event loop back
+async function yieldEventLoopIfBlocking(): Promise<boolean> {
+  if (FUNCTION_CALLS_MAX_BLOCK_MS <= Date.now() - functionCallsLastYield) {
+    await yieldEventLoop();
+    return true;
+  }
+  return false;
 }
 
 
@@ -3360,8 +3398,11 @@ export function split(value: string, amount: number = 0): Array<string> {
         depth++;
       }; break;
       case TagSymbols.BRACKET_RIGHT: {
-        // end of the script
-        depth--;
+        // end of the script. a stray `}` (from a variable or json) can't go below 0, `a}|{b|c}` split at the `|`
+        // inside of `{b|c}` once the next `{` only brought it back to 0
+        if (0 < depth) {
+          depth--;
+        }
       }; break;
     }
   }
@@ -3589,7 +3630,8 @@ const ScriptTags = Object.freeze({
 
           }
 
-          if (typeof(response) === 'object') {
+          // the code can write `null`, which is an object too
+          if (response && typeof(response) === 'object') {
             if (typeof(response.variables) === 'object') {
               const variables = response.variables;
               for (let key in variables) {
@@ -5437,15 +5479,18 @@ const ScriptTags = Object.freeze({
       filename = `${filename}.${tag.files.length + 1}`;
     }
 
-    const data = arg;
+    // {newline}s are only turned back into newlines in the final text, the file would have the placeholder character
+    const data = arg.replace(REGEX_NEWLINE_SENTINEL, '\n');
     try {
       const maxFileSize = context.maxAttachmentSize;
-      if (maxFileSize < data.length) {
+      // bytes like every other file is measured, not utf-16 units (9m cjk characters passed a 25mb limit)
+      const size = Buffer.byteLength(data);
+      if (maxFileSize < size) {
         throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
 
-      assertTotalFileSize(context, tag, data.length);
-      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+      assertTotalFileSize(context, tag, size);
+      tag.variables[PrivateVariables.FILE_SIZE] += size;
 
       tag.files.push({buffer: data, filename: `${filename}.${extension}`, spoiler: false, url: ''});
     } catch(error) {
@@ -5804,9 +5849,13 @@ const ScriptTags = Object.freeze({
         const textCache = tag.text;
     
         tag.text = '';
-        await ScriptTags[fallbackFunction](context, arg, tag);
-        url = tag.text;
-        tag.text = textCache;
+        try {
+          await ScriptTags[fallbackFunction](context, arg, tag);
+          url = tag.text;
+        } finally {
+          // a fallback that throws (inside of {iferror}) left everything printed before it gone
+          tag.text = textCache;
+        }
       }
     }
 
@@ -5835,9 +5884,13 @@ const ScriptTags = Object.freeze({
         const textCache = tag.text;
     
         tag.text = '';
-        await ScriptTags[fallbackFunction](context, arg, tag);
-        url = tag.text;
-        tag.text = textCache;
+        try {
+          await ScriptTags[fallbackFunction](context, arg, tag);
+          url = tag.text;
+        } finally {
+          // a fallback that throws (inside of {iferror}) left everything printed before it gone
+          tag.text = textCache;
+        }
       }
     }
 
@@ -7273,9 +7326,13 @@ const ScriptTags = Object.freeze({
         const textCache = tag.text;
 
         tag.text = '';
-        await ScriptTags[fallbackFunction](context, mediaString, tag);
-        url = tag.text;
-        tag.text = textCache;
+        try {
+          await ScriptTags[fallbackFunction](context, mediaString, tag);
+          url = tag.text;
+        } finally {
+          // a fallback that throws (inside of {iferror}) left everything printed before it gone
+          tag.text = textCache;
+        }
       }
     }
 
@@ -7348,9 +7405,13 @@ const ScriptTags = Object.freeze({
         const textCache = tag.text;
 
         tag.text = '';
-        await ScriptTags[fallbackFunction](context, mediaString, tag);
-        url = tag.text;
-        tag.text = textCache;
+        try {
+          await ScriptTags[fallbackFunction](context, mediaString, tag);
+          url = tag.text;
+        } finally {
+          // a fallback that throws (inside of {iferror}) left everything printed before it gone
+          tag.text = textCache;
+        }
       }
     }
 
@@ -8364,8 +8425,10 @@ const ScriptTags = Object.freeze({
 
     const options: RestOptions.UtilitiesProxyRequest = {method: '', url: ''};
     try {
-      let object = JSON.parse(arg);
-      if (typeof(object) !== 'object') {
+      // {newline} like {embedjson}, the body got the placeholder character instead
+      let object = JSON.parse(arg.replace(REGEX_NEWLINE_SENTINEL, '\\n'));
+      // `null` too, `'method' in null` threw and came out as a parse error
+      if (!object || typeof(object) !== 'object') {
         throw new TagRequestError('Request options are invalid.');
       }
 
@@ -8516,6 +8579,11 @@ const ScriptTags = Object.freeze({
       const firstSplitter = arg.indexOf(TagSymbols.SPLITTER_ARGUMENT);
       firstValue = arg.slice(0, firstSplitter).split('.').shift()!;
       secondValue = arg.slice(firstSplitter + 1).split('.').shift()!;
+    }
+
+    // a million digit number (`{range:{repeat:1000000|9}}`) took a quarter second of blocking bigint maths per call
+    if (MAX_RANGE_DIGITS < firstValue.length || MAX_RANGE_DIGITS < secondValue.length) {
+      return false;
     }
 
     // `isNaN` lets through numbers `BigInt` can't read (`1e3`, `Infinity`) and it throws a SyntaxError on them
@@ -9068,8 +9136,9 @@ const ScriptTags = Object.freeze({
         prefix: true,
       },
     });
-    // minisearch throws on duplicate ids, and repeated choices are valid tagscript
-    search.addAll([...new Set(choices)].map((id) => ({id})));
+    // minisearch throws on duplicate ids, and repeated choices are valid tagscript. indexing is synchronous, 200k
+    // choices (an argument built with {repeat}) blocked the bot for a third of a second per call
+    search.addAll([...new Set(choices)].slice(0, MAX_ONE_OF_FUZZY_CHOICES).map((id) => ({id})));
 
     const results = search.search(value);
     if (results.length) {
@@ -9807,9 +9876,13 @@ const ScriptTags = Object.freeze({
         const textCache = tag.text;
 
         tag.text = '';
-        await ScriptTags[fallbackFunction](context, arg, tag);
-        url = tag.text;
-        tag.text = textCache;
+        try {
+          await ScriptTags[fallbackFunction](context, arg, tag);
+          url = tag.text;
+        } finally {
+          // a fallback that throws (inside of {iferror}) left everything printed before it gone
+          tag.text = textCache;
+        }
       }
     }
 

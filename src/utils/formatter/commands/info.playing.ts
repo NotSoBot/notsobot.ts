@@ -71,12 +71,12 @@ export async function createMessage(
   const presences = guild.presences.filter((presence) => {
     return presence.activities.some((activity) => activityFilter(activity, args.text));
   });
-  if (presences.length) {
-    const members = (presences
-      .map((presence) => guild.members.get(presence.user.id))
-      .filter((member) => member) as Array<Structures.Member>)
-      .sort((x, y) => x.joinedAtUnix - y.joinedAtUnix);
-
+  const members = (presences
+    .map((presence) => guild.members.get(presence.user.id))
+    .filter((member) => member) as Array<Structures.Member>)
+    .sort((x, y) => x.joinedAtUnix - y.joinedAtUnix);
+  // presences can match without their members being cached, an empty paginator would throw on `members[0]`
+  if (members.length) {
     const pageLimit = members.length;
     const paginator = new Paginator(context, {
       pageLimit,

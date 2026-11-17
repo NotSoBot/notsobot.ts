@@ -23,6 +23,8 @@ export default class TagCommandsListMeCommand extends BaseCommand {
         id: Formatter.Commands.TagCommandsListMe.COMMAND_ID,
         usage: '?<user:id|mention|name>',
       },
+      // ahead of `tag commands`, which loads first and would otherwise read `me` as a user
+      priority: 1,
     });
   }
 

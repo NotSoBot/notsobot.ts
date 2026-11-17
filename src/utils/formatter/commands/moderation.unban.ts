@@ -47,32 +47,6 @@ export async function createMessage(
     }
   }
 
-  if (unsure.length) {
-    /*
-    const bans = await context.rest.fetchGuildBans(context.guildId!);
-    for (let member of unsure) {
-      if (bans.has(member.id)) {
-        canEdit.push(member);
-      } else {
-        cannotEdit.push(member);
-      }
-    }
-    */
-    for (let member of unsure) {
-      try {
-        const ban = await context.rest.fetchGuildBan(context.guildId!, member.id);
-        canEdit.push(member);
-      } catch(error) {
-        if (error.response && error.response.statusCode === 404) {
-          cannotEdit.push(member);
-        } else {
-          // don't let the target vanish from the result on non-404 errors
-          failed.push({error, memberOrUser: member});
-        }
-      }
-    }
-  }
-
   let reason: string | undefined;
   {
     // in the server's language since the whole server sees it, and the reason goes last since it can be multiple lines
@@ -88,20 +62,22 @@ export async function createMessage(
     reason = description.join('\n').slice(0, 512);
   }
 
-  // unban through rest by guild id so an uncached guild still unbans, and one failure doesn't stop the rest
-  for (let member of canEdit) {
+  // unban through rest by guild id so an uncached guild still unbans, and one failure doesn't stop the rest. Removing a
+  // ban that doesn't exist 404s (unknown ban), so there's no need to fetch the ban first
+  for (let member of unsure) {
     try {
       await context.rest.removeGuildBan(context.guildId!, member.id, {reason});
+      canEdit.push(member);
     } catch(error) {
-      failed.push({error, memberOrUser: member});
+      if (error.response && error.response.statusCode === 404) {
+        cannotEdit.push(member);
+      } else {
+        // don't let the target vanish from the result on non-404 errors
+        failed.push({error, memberOrUser: member});
+      }
     }
   }
-  for (let { memberOrUser } of failed) {
-    const index = canEdit.indexOf(memberOrUser);
-    if (index !== -1) {
-      canEdit.splice(index, 1);
-    }
-  }
+
   // they're not banned anymore, so a timed ban on them shouldn't do anything later
   if (context.guildId && canEdit.length) {
     try {

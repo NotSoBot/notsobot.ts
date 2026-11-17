@@ -760,19 +760,20 @@ export async function tagsToShow(context: Interaction.InteractionAutoCompleteCon
     return tags(context);
   }
 
-  const choices = await linkedTagDirectoryChoices(context);
-  try {
-    const serverId = context.guildId || context.channelId!;
-    const { tags } = await fetchTagsServer(context, serverId, {
+  // both at once, autocomplete only has 3 seconds to answer
+  const serverId = context.guildId || context.channelId!;
+  const [ choices, serverTags ] = await Promise.all([
+    linkedTagDirectoryChoices(context),
+    fetchTagsServer(context, serverId, {
       name: context.value,
       limit: 25,
       sortBy: TagSearchSortByFilters.LAST_USED,
-    });
-    for (const tag of tags) {
+    }).catch(() => null), // keep the linked tags
+  ]);
+  if (serverTags) {
+    for (const tag of serverTags.tags) {
       choices.push({name: tag.name, value: tag.name});
     }
-  } catch(error) {
-    // keep the linked tags
   }
   return context.respond({choices: choices.slice(0, 25)});
 }
@@ -986,21 +987,20 @@ ttsVoiceSearch.addAll(Object.entries(TTSVoicesToText).filter((x) => {
 
 // the user's own cloned voices and the server's (marked as the server's), the server's are left out in dms
 async function fetchUsableVoices(context: Interaction.InteractionAutoCompleteContext): Promise<Array<{id: string, name: string}>> {
+  // both at once, autocomplete only has 3 seconds to answer
+  const hasServer = !!(context.guildId || (context.channel && context.channel.ownerId));
+  const [ userResponse, serverResponse ] = await Promise.all([
+    fetchUserVoices(context, context.userId).catch(() => null),
+    (hasServer) ? fetchServerVoices(context).catch(() => null) : null,
+  ]);
+
   const voices: Array<{id: string, name: string}> = [];
-  try {
-    const response = await fetchUserVoices(context, context.userId);
-    voices.push(...response.voices);
-  } catch(error) {
-
+  if (userResponse) {
+    voices.push(...userResponse.voices);
   }
-  if (context.guildId || (context.channel && context.channel.ownerId)) {
-    try {
-      const response = await fetchServerVoices(context);
-      const { translate } = getTranslatorForLanguage(languageFromLocale(context.locale) || Languages.ENGLISH);
-      voices.push(...response.voices.map((voice) => ({id: voice.id, name: translate('voice_server.label', {name: voice.name})})));
-    } catch(error) {
-
-    }
+  if (serverResponse) {
+    const { translate } = getTranslatorForLanguage(languageFromLocale(context.locale) || Languages.ENGLISH);
+    voices.push(...serverResponse.voices.map((voice) => ({id: voice.id, name: translate('voice_server.label', {name: voice.name})})));
   }
   return voices;
 }
@@ -1127,7 +1127,14 @@ export async function serverVoices(context: Interaction.InteractionAutoCompleteC
 const XYT_TEMPLATES_EXPIRE = 10 * 60 * 1000;
 // when the api couldn't be asked, before it's asked again
 const XYT_TEMPLATES_RETRY = 60 * 1000;
-const XYT_TEMPLATE_KINDS: Record<string, string> = {effect: 'Effect', filter: 'Filter', overlay: 'Overlay'};
+// the library's kinds (`fetch_xyt_templates.py`), its text bubbles and animated texts are both `bubble`
+const XYT_TEMPLATE_KINDS: Record<string, string> = {
+  bubble: 'Text',
+  effect: 'Effect',
+  filter: 'Filter',
+  overlay: 'Overlay',
+  sticker: 'Sticker',
+};
 
 interface XytTemplateChoices {
   // every template by title, the ones VivaVideo never named (their id is their title) last

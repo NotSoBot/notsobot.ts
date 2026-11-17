@@ -43,6 +43,8 @@ import { Listener } from './listener';
 
 
 export interface GuildLogStorage {
+  // sending what was queued, whatever comes in meanwhile goes out with the round it starts at the end
+  flushing?: boolean,
   queues: Collections.BaseCollection<GuildLoggerTypes, Array<GuildLoggingEventItem>>,
   settingsRetries: number,
   shard: ShardClient,
@@ -103,7 +105,12 @@ class GuildLoggingListener extends Listener {
     if (MAX_QUEUE_LENGTH < queue.length) {
       queue.splice(0, queue.length - MAX_QUEUE_LENGTH);
     }
-    this.startTimeout(guildId);
+    // a round already waiting (or a settings retry) takes it along, restarting the timer on every event meant a server
+    // with an event every second never sent anything (only dropped the oldest past `MAX_QUEUE_LENGTH`). a round being
+    // sent right now starts the next one itself, a second timer would run alongside it on the same queues
+    if (!storage.flushing && !storage.timeout.hasStarted) {
+      this.startTimeout(guildId);
+    }
   }
 
   getOrCreate(guildId: string, shard: ShardClient): GuildLogStorage {
@@ -160,8 +167,20 @@ class GuildLoggingListener extends Listener {
       return;
     }
 
-    const { queues, shard, timeout } = storage;
+    const { timeout } = storage;
     timeout.start(delay, async () => {
+      storage.flushing = true;
+      try {
+        await this.flush(guildId, storage);
+      } finally {
+        storage.flushing = false;
+      }
+    });
+  }
+
+  async flush(guildId: string, storage: GuildLogStorage): Promise<void> {
+    const { queues, shard } = storage;
+    {
       // only what's queued before the audit log fetch goes out this round. something that comes in while it waits (like a
       // cleaning kick's unban right after its ban) waits for the next round's fetch instead of going out without its audit
       const ready = new Set<GuildLoggingEventItem>();
@@ -232,7 +251,7 @@ class GuildLoggingListener extends Listener {
         log.error(`Guild Logging failed for ${guildId}`, error);
       }
       this.storage.delete(guildId);
-    });
+    }
   }
 
   async populateAuditLogs(guildId: string, storage: GuildLogStorage): Promise<void> {
@@ -419,6 +438,13 @@ class GuildLoggingListener extends Listener {
         }
       }
     }
+  }
+
+  // if the server has a logger of this type, checked before downloading images for an event (avatars, role icons): it
+  // used to download them for every change, almost no server logs them. `tryAdd` loads the same settings anyway
+  async hasLogger(shard: ShardClient, guildId: string, type: GuildLoggerTypes): Promise<boolean> {
+    const settings = await GuildSettingsStore.getOrFetch({client: shard}, guildId);
+    return !!settings && !settings.isBlocked && settings.loggers.some((logger) => logger.type === type);
   }
 
   // the bot's own logs from its commands (warnings), a logging problem shouldn't fail the command so nothing waits on it
@@ -637,12 +663,17 @@ class GuildLoggingListener extends Listener {
         const { differences, guildId, member, old, shard } = payload;
         // if differences is not null and its not just {joinedAt}
         if (old && (differences && keys.some((key) => key in differences))) {
+          const happened = Date.now();
+          // as it is now, the settings can take a moment to load
+          const current = member.clone();
+          if (!(await this.hasLogger(shard, guildId, GuildLoggerTypes.MEMBERS))) {
+            return;
+          }
           const cached: {
             avatars?: {current?: {filename: string, value: Buffer}, old?: {filename: string, value: Buffer}},
             member: Structures.Member,
             old: Structures.Member,
-          } = {member: member.clone(), old};
-          const happened = Date.now();
+          } = {member: current, old};
 
           if (old.avatar !== member.avatar) {
             cached.avatars = await fetchImageFiles(shard, member.id, happened, {
@@ -708,12 +739,17 @@ class GuildLoggingListener extends Listener {
       const subscription = cluster.subscribe(name, async (payload) => {
         const { differences, guildId, old, role, shard } = payload;
         if (old && (differences && keys.some((key) => key in differences))) {
+          const happened = Date.now();
+          // as it is now, the settings can take a moment to load
+          const current = role.clone();
+          if (!(await this.hasLogger(shard, guildId, GuildLoggerTypes.ROLES))) {
+            return;
+          }
           const cached: {
             icons?: {current?: {filename: string, value: Buffer}, old?: {filename: string, value: Buffer}},
             old: Structures.Role,
             role: Structures.Role,
-          } = {old, role: role.clone()};
-          const happened = Date.now();
+          } = {old, role: current};
 
           if (old.icon !== role.icon) {
             cached.icons = await fetchImageFiles(shard, role.id, happened, {
@@ -815,13 +851,26 @@ class GuildLoggingListener extends Listener {
             return;
           }
 
+          const happened = Date.now();
+          // as it is now, the settings can take a moment to load
+          const current = user.clone();
+          // only the servers that log user updates, nothing's downloaded when none of them do
+          const guildIds: Array<string> = [];
+          for (let [guildId] of user.guilds) {
+            if (await this.hasLogger(shard, guildId, GuildLoggerTypes.USERS)) {
+              guildIds.push(guildId);
+            }
+          }
+          if (!guildIds.length) {
+            return;
+          }
+
           const cached: {
             avatars?: {current?: {filename: string, value: Buffer}, old?: {filename: string, value: Buffer}},
             avatarDecorations?: {current?: UserAvatarDecorationStored, old?: UserAvatarDecorationStored},
             old: Structures.User,
             user: Structures.User,
-          } = {old, user: user.clone()};
-          const happened = Date.now();
+          } = {old, user: current};
 
           if (old.avatar !== user.avatar) {
             cached.avatars = await fetchImageFiles(shard, user.id, happened, {
@@ -852,7 +901,7 @@ class GuildLoggingListener extends Listener {
             }
           }
 
-          for (let [guildId, guild] of user.guilds) {
+          for (let guildId of guildIds) {
             await this.tryAdd(shard, {
               cached,
               guildId,

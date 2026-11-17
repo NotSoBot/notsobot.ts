@@ -25,7 +25,11 @@ export async function createMessage(
 ) {
   const { translate } = await getTranslator(context);
   const guildId = context.guildId!;
-  const settings = (await GuildSettingsStore.getOrFetch(context, guildId))!;
+  const settings = await GuildSettingsStore.getOrFetch(context, guildId);
+  if (!settings) {
+    // the api couldn't be reached, `settings.rules` used to throw
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('settings_server_set_warnings.error_fetching')}`});
+  }
 
   let rules = settings.rules.toArray();
   if (args.ruleIds && args.ruleIds.length) {
@@ -52,7 +56,8 @@ export async function createMessage(
   }
 
   for (let rule of rules) {
-    const error = checkGuildRuleAdmin(context, translate, rule);
+    // a rule admins have to follow needed administrator to add, so it needs it to remove too (like `rules clear`)
+    const error = checkGuildRuleAdmin(context, translate, rule, rule.adminBypass);
     if (error) {
       return displayReply(context, {description: `${error}\n-# ${describeGuildRule(translate, rule)}`});
     }

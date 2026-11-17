@@ -32,7 +32,7 @@ export class MediaIVLUTCommand extends BaseInteractionImageOrVideoCommandOption 
       options: [
         {name: 'cube', description: 'LUT file (.cube)', ...I18n.optionLocalizations('commands.media_iv_5.fun.lut.cube'), type: ApplicationCommandOptionTypes.ATTACHMENT},
         {name: 'cube-url', description: 'LUT URL, instead of the file', ...I18n.optionLocalizations('commands.media_iv_5.fun.lut.cube_url'), label: 'cubeUrl'},
-        {name: 'strength', description: 'How much of the grade shows over the original (0..1, Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.lut.strength'), type: Number},
+        {name: 'strength', description: 'How much of the grade shows over the original (0..1, Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.lut.strength'), type: 'number'},
         {
           name: 'interpolation',
           description: 'How colors between the LUT\'s points are worked out (Default: Tetrahedral)',

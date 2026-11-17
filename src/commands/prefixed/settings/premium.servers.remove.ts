@@ -24,6 +24,8 @@ export default class PremiumServersRemoveCommand extends BaseCommand {
         id: Formatter.Commands.PremiumServersRemove.COMMAND_ID,
         usage: '?<server:number|id>',
       },
+      // ahead of `premium servers`, which loads first and would otherwise take `premium servers remove ...`
+      priority: 1,
     });
   }
 

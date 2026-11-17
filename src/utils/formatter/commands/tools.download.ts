@@ -107,6 +107,9 @@ const POST_STATS: Array<RestResponsesRaw.FetchMediaPostStat> = ['likes', 'upvote
 
 // a post's text isn't ours, keep it from restyling the reply (`# heading`, `-# subtext`, lists), one line at a time
 // since the escapes join lines. it can't ping anyone, replies don't allow mentions
+// a quoted post's text is context for the media, kept short under the post's own
+const MAX_QUOTED_POST_TEXT = 300;
+
 function quotePostText(text: string, spoiler: boolean): string {
   return text.split('\n').map((line) => {
     line = (line.trim()) ? Markup.escape.subtext(Markup.escape.header(Markup.escape.list(line.trimEnd()))) : '';
@@ -199,6 +202,24 @@ export function formatPost(
   }
   if (post.text) {
     above.push(quotePostText(post.text, !!options.spoiler));
+  }
+  // the media is the quoted post's, whose it is goes right above it:
+  // -# Quoting [Name (@handle)](<quoted post>)
+  // > its text
+  const quoted = post.quoted;
+  if (quoted) {
+    const quotedName = (quoted.author_name) ? Markup.escape.all(quoted.author_name) : null;
+    const quotedHandle = (quoted.author_username) ? Markup.escape.all(`@${quoted.author_username}`) : null;
+    const who = (quotedName && quotedHandle) ? `${quotedName} (${quotedHandle})` : (quotedName || quotedHandle);
+    if (who) {
+      above.push(`-# ${translate('tools_download.quoting', {name: (quoted.url) ? Markup.url(who, `<${quoted.url}>`) : who})}`);
+    }
+    if (quoted.text) {
+      // by code point, an emoji cut in half would show as garbage
+      const characters = Array.from(quoted.text);
+      const text = (MAX_QUOTED_POST_TEXT < characters.length) ? `${characters.slice(0, MAX_QUOTED_POST_TEXT - 1).join('').trimEnd()}…` : quoted.text;
+      above.push(quotePostText(text, !!options.spoiler));
+    }
   }
 
   const below: Array<string> = [];

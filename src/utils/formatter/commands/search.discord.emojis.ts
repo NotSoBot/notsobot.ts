@@ -1,13 +1,12 @@
 import { ClusterClient, Command, Interaction, Structures } from 'detritus-client';
-import { Colors } from 'detritus-client/lib/constants';
+import { Colors, MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { DateMomentLogFormat, StatusEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
   DisplayPayload,
   Paginator,
-  createTimestampMomentFromGuild,
   isSnowflake,
 } from '../../../utils';
 import { UserError } from '../../errors';
@@ -28,7 +27,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   const { emojis } = args;
 
   // pack pages by character budget (and at most ELEMENTS_PER_PAGE), entries that don't fit go onto the next page instead of being dropped
@@ -39,11 +38,10 @@ export async function createMessage(
     let length = 0;
     for (let i = 0; i < emojis.length; i++) {
       const emoji = emojis[i];
-      const timestamp = createTimestampMomentFromGuild(emoji.createdAtUnix as number, context.guildId);
       const part = translate('search_discord_emojis.created', {
         emoji: Markup.url(emoji.format, `<${emoji.url}?g=${emoji.guildId}>`),
         number: i + 1,
-        timestamp: timestamp.locale(language).fromNow(),
+        timestamp: Markup.timestamp(emoji.createdAtUnix as number, MarkupTimestampStyles.RELATIVE),
       }) + '\n';
 
       if (count && (ELEMENTS_PER_PAGE <= count || MAX_PAGE_LENGTH < length + part.length + 1)) {
@@ -97,7 +95,7 @@ export async function createMessage(
 
 
 export async function emojisSearch(value: string, context: Command.Context | Interaction.InteractionContext) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { translate } = await getTranslator(context);
   value = value.toLowerCase();
   if (!value) {
     throw new UserError(`${StatusEmojis.WARNING} ${translate('search_discord_emojis.please_enter_some_kind_of_emoji_name')}`);

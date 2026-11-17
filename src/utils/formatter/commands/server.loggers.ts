@@ -1,6 +1,6 @@
-import moment from 'moment';
-
 import { Collections, Command, Interaction } from 'detritus-client';
+import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import { EmbedColors, GuildLoggerTypes } from '../../../constants';
@@ -37,7 +37,7 @@ export async function createLoggersEmbed(
   loggers: Collections.BaseCollection<string, GuildSettingsLogger>,
   options: {note?: string, only?: GuildLoggerTypes | null, title?: string} = {},
 ) {
-  const { language, translate } = await I18n.getTranslator(context);
+  const { translate } = await I18n.getTranslator(context);
 
   let sorted = loggers.toArray();
   if (options.only !== null && options.only !== undefined) {
@@ -85,7 +85,7 @@ export async function createLoggersEmbed(
           const description: Array<string> = page.map((logger, i) => {
             const type = getLoggerTypeText(translate, logger.type);
             const lines = [
-              translate('moderation.entry_added', {index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1, type, when: moment(logger.added).locale(language).fromNow()}),
+              translate('moderation.entry_added', {index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1, type, when: Markup.timestamp(Date.parse(logger.added), MarkupTimestampStyles.RELATIVE)}),
               `-> ${translate('loggers.by_in', {channel: `<#${logger.channelId}>`, user: `<@${logger.userId}>`})}`,
             ];
             if (logger.ignoredIds.length) {

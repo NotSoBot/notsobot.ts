@@ -23,6 +23,8 @@ export default class FontsListCommand extends BaseCommand {
         id: Formatter.Commands.FontsList.COMMAND_ID,
         usage: '',
       },
+      // below `fonts remove` and `fonts rename`, which load after it and would otherwise be read as `fonts`
+      priority: -1,
     });
   }
 

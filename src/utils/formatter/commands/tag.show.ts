@@ -888,7 +888,7 @@ export async function maybeCheckNSFW(
           description.push(`${field.name}: ${field.value}`);
         }
       }
-      if (embed.footer && embed.footer.text.length) {
+      if (embed.footer && embed.footer.text) {
         description.push(embed.footer.text);
       }
       const text = description.filter(Boolean).join('\n').trim();

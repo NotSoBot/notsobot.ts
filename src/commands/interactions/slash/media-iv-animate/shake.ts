@@ -19,9 +19,9 @@ export class MediaIVShakeCommand extends BaseInteractionImageOrVideoCommandOptio
   constructor() {
     super({
       options: [
-        {name: 'horizontal', description: 'Horizontal Magnitude', ...I18n.optionLocalizations('commands.media_iv_2.fun.shake.horizontal'), type: Number},
+        {name: 'horizontal', description: 'Horizontal Magnitude', ...I18n.optionLocalizations('commands.media_iv_2.fun.shake.horizontal'), type: 'number'},
         {name: 'randomize', description: 'Randomize the Shake Magnitude', ...I18n.optionLocalizations('commands.media_iv_2.fun.shake.randomize'), type: Boolean},
-        {name: 'vertical', description: 'Vertical Magnitude', ...I18n.optionLocalizations('commands.media_iv_2.fun.shake.vertical'), type: Number},
+        {name: 'vertical', description: 'Vertical Magnitude', ...I18n.optionLocalizations('commands.media_iv_2.fun.shake.vertical'), type: 'number'},
       ],
     });
   }

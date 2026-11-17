@@ -4,7 +4,7 @@ import { ApplicationCommandOptionTypes, Permissions } from 'detritus-client/lib/
 import { StatusEmojis } from '../../../../../constants';
 import { Formatter, I18n, displayReply } from '../../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
@@ -33,11 +33,18 @@ export class BaseNickMassCommandOption extends BaseInteractionCommandOption {
     });
   }
 
-  onBefore(context: Interaction.InteractionContext) {
-    return (context.guild) ? context.guild.memberCount <= Formatter.Commands.ModerationNickMass.MAX_MEMBERS : false;
+  onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
+    if (!context.guild || Formatter.Commands.ModerationNickMass.MAX_MEMBERS < context.guild.memberCount) {
+      return false;
+    }
+    // replacing the group's `onBefore` skipped its early ephemeral defer (the user's response setting) and metadata gates
+    return BaseInteractionCommand.prototype.onBefore.call(this as any, context);
   }
 
   async onCancel(context: Interaction.InteractionContext) {
+    if (context.metadata && context.metadata.reason) {
+      return BaseInteractionCommand.prototype.onCancel.call(this as any, context);
+    }
     const { language, translate } = await I18n.getTranslator(context);
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.too_many_members', {max: Formatter.Commands.ModerationNickMass.MAX_MEMBERS.toLocaleString(language)})}`, ephemeral: true});
   }

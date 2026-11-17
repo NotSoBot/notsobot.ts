@@ -27,6 +27,8 @@ export default class WarningsCommand extends BaseCommand {
         usage: '?<user:id|mention|name>',
       },
       permissions: [Permissions.MODERATE_MEMBERS],
+      // below `warnings remove`, which loads after it and would otherwise be read as `warnings` with the user "remove ..."
+      priority: -1,
       type: Parameters.memberOrUser(),
     });
   }

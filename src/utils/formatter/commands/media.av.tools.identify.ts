@@ -1,18 +1,15 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAVToolsIdentify } from '../../../api';
-import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constants';
+import { EmbedBrands, EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
   Paginator,
-  createTimestampMomentFromGuild,
-  createUserString,
   displayDetail,
   displayDetails,
   displayDetailsLine,
   displayLinks,
   displayReply,
-  fetchMemberOrUserById,
   formatTime,
 } from '../../../utils';
 import { getTranslator } from '../../i18n';

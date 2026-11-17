@@ -1,13 +1,13 @@
+import moment from 'moment';
+
 import { Command, Interaction } from 'detritus-client';
-import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { createReminder } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { RestResponsesRaw } from '../../../api/types';
 import { ONE_DAY } from '../../../constants';
 import { ReminderInterval } from '../../../listeners';
-import { Parameters, createTimestampMomentFromContext, displayReply, getReminderMessage } from '../../../utils';
+import { Parameters, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'reminder.create';
@@ -20,7 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { result } = args;
@@ -40,7 +40,6 @@ export async function createMessage(
   }
 
   const date = new Date(reminder.timestamp_start);
-  const timestamp = createTimestampMomentFromContext(reminder.timestamp_start, context);
 
   let text: string;
   if (isFromInteraction) {
@@ -49,26 +48,18 @@ export async function createMessage(
     text = translate('reminder_create.ok_reminding_2', {user: context.user.mention});
   }
 
-  //text = `${text} ${Markup.timestamp(date, MarkupTimestampStyles.RELATIVE)}`;
-  text = `${text} ${timestamp.fromNow()}`;
+  // plain text on purpose, a discord relative timestamp would change to "x ago" and hide how long the reminder was set for
+  text = `${text} ${moment(date).locale(language).fromNow()}`;
   if (ONE_DAY <= (date.getTime() - Date.now())) {
     text = `${text} (${Markup.timestamp(date)})`;
   }
 
-  /*
-  // old, use above
-  text = `${text} ${result.contentTimestamp || timestamp.fromNow()}`;
-  if (result.contentTimestamp.toLowerCase().includes('tomorrow') || ONE_DAY <= (date.getTime() - Date.now())) {
-    text = `${text} (${Markup.timestamp(date)})`;
-  }
-  */
-
-  if (!reminder.content) {
-    //text = `${text}: ${getReminderMessage(reminder.id)}`;
-  } else if (128 < reminder.content.length) {
-    text = `${text}: ${Markup.codestring(reminder.content.slice(0, 126))}...`;
-  } else {
-    text = `${text}: ${Markup.codestring(reminder.content)}`;
+  if (reminder.content) {
+    if (128 < reminder.content.length) {
+      text = `${text}: ${Markup.codestring(reminder.content.slice(0, 126))}...`;
+    } else {
+      text = `${text}: ${Markup.codestring(reminder.content)}`;
+    }
   }
 
   return displayReply(context, {

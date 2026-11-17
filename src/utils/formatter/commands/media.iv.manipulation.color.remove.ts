@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 import { Markup, intToHex } from 'detritus-client/lib/utils';
 
 import { mediaIVManipulationColorRemove } from '../../../api';
@@ -40,7 +41,7 @@ export interface CommandArgs {
 
 export async function createJob(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
   let color: string | undefined;
   if (args.color && args.color.trim()) {
@@ -55,6 +56,7 @@ export async function createJob(
   const threshold = Math.min(Math.max(args.threshold ?? DEFAULT_THRESHOLD, MIN_THRESHOLD), MAX_THRESHOLD);
   return mediaIVManipulationColorRemove(context, {
     color,
+    file: args.file,
     safe: DefaultParameters.safe(context),
     similarity: threshold / 100,
     url: args.url,

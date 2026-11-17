@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
 import { mediaAIVManipulationOverlay } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
@@ -20,13 +21,14 @@ export interface CommandArgs {
 
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
   // `overlay` with its opacity ramped up, covering the first media by default instead of fitting inside it
   return mediaAIVManipulationOverlay(context, {
     fade: true,
     fadeDuration: args.duration,
     fadeStart: args.start,
+    file: args.file,
     noloop: args.noloop,
     resize: args.resize || 'cover',
     safe: DefaultParameters.safe(context),

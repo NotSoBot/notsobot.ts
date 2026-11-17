@@ -31,7 +31,7 @@ export class MediaIVEyesCutoutCommand extends BaseInteractionMediasCommandOption
           ...I18n.optionLocalizations('commands.media_iv_4.eyes.cutout.size'),
           maxValue: 3,
           minValue: 1,
-          type: Number,
+          type: 'number',
         },
         FACE_OPTION,
       ],

@@ -1,15 +1,13 @@
 import { ClusterClient, Command, Interaction, Structures } from 'detritus-client';
-import { Colors } from 'detritus-client/lib/constants';
+import { Colors, MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
-import { DateMomentLogFormat } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
   DisplayPayload,
   Paginator,
   Parameters,
-  createTimestampMomentFromGuild,
 } from '../../../utils';
 
 
@@ -47,6 +45,14 @@ export async function getSharedGuilds(value: string, context: Command.Context | 
       const chunks = await context.manager.broadcastEval((cluster: ClusterClient, userId: string) => {
         return cluster.shards.map((shard) => {
           return shard.guilds.filter((guild) => guild.members.has(userId)).map((guild) => {
+            // counted instead of sorting every member of every shared server, this runs on each cluster's event loop
+            const member = guild.members.get(userId)!;
+            let joinPosition = 1;
+            for (let [, other] of guild.members) {
+              if (other.joinedAtUnix < member.joinedAtUnix) {
+                joinPosition++;
+              }
+            }
             return {
               guild: {
                 description: guild.description,
@@ -63,8 +69,8 @@ export async function getSharedGuilds(value: string, context: Command.Context | 
                 roles: guild.roles,
                 vanity_url_code: guild.vanityUrlCode,
               },
-              joinPosition: guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix).findIndex((m) => m.id === userId) + 1,
-              member: guild.members.get(userId),
+              joinPosition,
+              member,
               owner: guild.owner,
             };
           });
@@ -95,7 +101,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   const { results, user } = args.payload;
 
   const pageLimit = results.length || 1;
@@ -110,7 +116,7 @@ export async function createMessage(
 
       const resultNumber = page - 1;
       if (resultNumber in results) {
-        const { guild, joinPosition, member, owner } = results[resultNumber];
+        const { guild, joinPosition, owner } = results[resultNumber];
 
         if (guild.description) {
           display.description = `**${Markup.escape.all(guild.name)}**\n${guild.description}`;
@@ -125,11 +131,8 @@ export async function createMessage(
         {
           const description: Array<string> = [];
           description.push(translate('owner_seenon.acronym', {acronym: guild.acronym}));
-          {
-            const timestamp = createTimestampMomentFromGuild(guild.createdAtUnix, context.guildId);
-            description.push(translate('owner_seenon.created', {timestamp: timestamp.locale(language).fromNow()}));
-            description.push(`**->** ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`);
-          }
+          description.push(translate('owner_seenon.created', {timestamp: Markup.timestamp(guild.createdAtUnix, MarkupTimestampStyles.RELATIVE)}));
+          description.push(`**->** ${Markup.spoiler(`(${Markup.timestamp(guild.createdAtUnix, MarkupTimestampStyles.BOTH_SHORT)})`)}`);
           description.push(translate('owner_seenon.id', {guild: guild.id}));
           description.push(translate('owner_seenon.join_position', {joinPosition: joinPosition.toLocaleString(language), memberCount: guild.memberCount.toLocaleString(language)}));
           description.push(translate('owner_seenon.locale', {preferredLocale: guild.preferredLocaleText || guild.preferredLocale}));

@@ -1,17 +1,9 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsExport } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { RestResponsesRaw } from '../../../api/types';
-import { EmbedColors, StatusEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import {
-  DefaultParameters,
-  Paginator,
-  Parameters,
-  chunkArray,
-  createTimestampMomentFromGuild,
-  createUserString,
   displayReply,
 } from '../../../utils';
 
@@ -30,7 +22,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   if (args.user && args.user.bot) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_export.bots_do_not_have_tags')}`});
   }

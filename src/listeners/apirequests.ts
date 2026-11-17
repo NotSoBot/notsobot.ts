@@ -1,4 +1,4 @@
-import { ClusterClient, Structures } from 'detritus-client';
+import { ClusterClient, Collections, Structures } from 'detritus-client';
 import { EventSubscription } from 'detritus-utils';
 
 import { Listener } from './listener';
@@ -26,8 +26,8 @@ const SNOWFLAKE = /^[0-9]{1,20}$/;
 const FULL_LOAD_MAX_MEMBERS = 25000;
 const FULL_LOAD_COOLDOWN = 10 * 60 * 1000;
 const MEMBER_REQUEST_TIMEOUT = 10000;
-// guild id -> when it was last loaded in full
-const fullLoads = new Map<string, number>();
+// guild id -> when it was last loaded in full, dropped once the cooldown is over (it kept every server ever asked about)
+const fullLoads = new Collections.BaseCollection<string, number>({expire: FULL_LOAD_COOLDOWN});
 
 
 class ApiRequestError extends Error {

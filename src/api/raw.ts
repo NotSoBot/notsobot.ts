@@ -4122,6 +4122,7 @@ export async function mediaAVToolsAutoSubtitle(
     highlight: options.highlight,
     max_file_size: maxFileSize,
     safe: options.safe,
+    translate: options.translate,
     url: options.url,
     yellow: options.yellow,
   };
@@ -4186,6 +4187,7 @@ export async function mediaAVToolsTranscribe(
   const query = {
     file: options.fileFormat,
     highlight: options.highlight,
+    translate: options.translate,
     url: options.url,
   };
   return request(context, {

@@ -16,7 +16,11 @@ export async function createMessage(
 ) {
   const { translate } = await getTranslator(context);
   const guildId = context.guildId!;
-  const settings = (await GuildSettingsStore.getOrFetch(context, guildId))!;
+  const settings = await GuildSettingsStore.getOrFetch(context, guildId);
+  if (!settings) {
+    // the api couldn't be reached, `settings.rules` used to throw
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('settings_server_set_warnings.error_fetching')}`});
+  }
 
   if (!settings.rules.length) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('rules.list.empty')}`});

@@ -10,11 +10,8 @@ import { EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
   Paginator,
-  Parameters,
   chunkArray,
-  createTimestampMomentFromGuild,
   createUserString,
-  getReminderMessage,
 } from '../../../utils';
 
 
@@ -30,7 +27,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
 
   if (context.inDm) {
     args.user = context.user;

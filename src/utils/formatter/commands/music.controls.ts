@@ -554,9 +554,10 @@ async function showMusicControlsMessage(
   // paginator keeps handling its own buttons
   const paginator = findMessagePaginator(message);
   if (paginator) {
-    const page = (itemId) ? await createMusicPage(context, translator, guildId, {itemId, page: paginator.page}) : null;
-    if (page) {
-      paginator.page = page.page;
+    // its `onPage` looks for the track while building the page, it used to be built here too just to find the page number
+    // (twice the queue fetch and player lookup per click)
+    if (itemId) {
+      musicPaginatorItemIds.set(paginator, itemId);
     }
     return paginator.renderPage(context);
   }
@@ -570,6 +571,16 @@ async function showMusicControlsMessage(
   // nothing's playing or queued anymore (skipped the last one), the message says so
   const invokerId = await findCommandInvokerId(context, message);
   return displayReply(context, {description: musicNothingPlayingText(translator.translate, guildId)}, {invokerId: invokerId || undefined});
+}
+
+
+// the track a control wants `music info`'s pages to show next, wherever it moved to (taken by its `onPage`)
+const musicPaginatorItemIds = new WeakMap<Paginator, string>();
+
+export function takeMusicPaginatorItemId(paginator: Paginator): string | undefined {
+  const itemId = musicPaginatorItemIds.get(paginator);
+  musicPaginatorItemIds.delete(paginator);
+  return itemId;
 }
 
 

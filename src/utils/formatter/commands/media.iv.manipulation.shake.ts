@@ -22,6 +22,7 @@ export const PREVIEW: RestOptions.CommandPreview = {
 
 export interface CommandArgs {
   horizontal?: number,
+  randomize?: boolean,
   url: string,
   vertical?: number,
 }
@@ -37,7 +38,7 @@ export function createJob(
 }
 
 export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
-  return Mediascript.line('shake', chain.key, {horizontal: args.horizontal, vertical: args.vertical});
+  return Mediascript.line('shake', chain.key, {horizontal: args.horizontal, vertical: args.vertical, randomize: args.randomize});
 }
 
 export async function createMessage(

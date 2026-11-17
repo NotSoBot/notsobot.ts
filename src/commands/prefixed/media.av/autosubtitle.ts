@@ -18,6 +18,8 @@ export default class AutoSubtitleCommand extends BaseAudioOrVideoCommand {
         // a bundled font or a font file's link, an attached font file works too
         {name: 'font', aliases: ['f'], type: Parameters.mediaFontOrUrl},
         {name: 'highlight', aliases: ['h'], type: Boolean, metadata: {description: 'highlight the word being said'}},
+        // no default, left out the subtitles stay in the language spoken
+        {name: 'translate', aliases: ['to', 't'], type: Parameters.locale, metadata: {description: 'language to translate the subtitles to'}},
         {name: 'yellow', aliases: ['y'], type: Boolean, metadata: {description: 'dvd yellow text instead of white'}},
       ],
       metadata: {
@@ -26,9 +28,10 @@ export default class AutoSubtitleCommand extends BaseAudioOrVideoCommand {
         examples: [
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/voice.mp3 -highlight -font impact`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 -translate spanish`,
         ],
         id: Formatter.Commands.MediaAVToolsAutoSubtitle.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-font <choice or font url>) (-highlight) (-yellow)',
+        usage: '?<emoji,user:id|mention|name,url> (-font <choice or font url>) (-highlight) (-translate <language>) (-yellow)',
       },
     });
   }

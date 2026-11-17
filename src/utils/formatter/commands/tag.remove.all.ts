@@ -1,24 +1,17 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { ChannelTypes, InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
-import { ComponentContext, Components, Markup, Snowflake } from 'detritus-client/lib/utils';
-import { Timers } from 'detritus-utils';
+import { InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags } from 'detritus-client/lib/constants';
+import { ComponentContext, Components } from 'detritus-client/lib/utils';
 
 import { deleteTagsServer, fetchTagsExport } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { RestResponsesRaw } from '../../../api/types';
-import { EmbedColors, StatusEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import {
-  DefaultParameters,
-  Paginator,
-  Parameters,
-  chunkArray,
-  createTimestampMomentFromGuild,
   createUserString,
   displayReply,
   renderEphemeralDisplay,
 } from '../../../utils';
 
-import { FetchTagsServerSearch, fetchTagsServerSearch } from './tag.list.server';
+import { fetchTagsServerSearch } from './tag.list.server';
 
 
 export const MAX_TIME_TO_RESPOND = 2 * 60 * 1000;
@@ -37,7 +30,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   if (args.user && args.user.bot) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_remove_all.bots_do_not_have_tags')}`});
   }

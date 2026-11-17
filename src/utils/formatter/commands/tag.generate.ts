@@ -603,14 +603,14 @@ export async function getAIPersonality(
   let userPersonality: string | undefined;
 
   {
-    const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+    // both at once, and no server's settings to fetch in dms (it used to ask the api for guild `undefined`)
+    const [ settings, guildSettings ] = await Promise.all([
+      UserSettingsStore.getOrFetch(context, context.userId),
+      (context.guildId) ? GuildSettingsStore.getOrFetch(context, context.guildId) : null,
+    ]);
     if (settings && settings.ml_llm_personality) {
       userPersonality = settings.ml_llm_personality;
     }
-  }
-
-  {
-    const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
     if (guildSettings && guildSettings.settings.mlLLMPersonality) {
       serverPersonality = guildSettings.settings.mlLLMPersonality;
     }

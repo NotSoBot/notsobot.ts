@@ -1,11 +1,8 @@
-import moment from 'moment';
-
 import { Collections, ShardClient, Structures } from 'detritus-client';
 
 import { deleteGuildLogger } from '../../api';
 import {
   BAN_CLEAN_DEFAULT,
-  GuildLoggerFlags,
   GuildLoggerTypes,
   GuildRuleActions,
   GuildRuleTargetTypes,
@@ -227,10 +224,6 @@ export class GuildSettingsRule extends BaseStructure {
     this.merge(data);
   }
 
-  get addedAtText(): string {
-    return moment(this.added).fromNow();
-  }
-
   get allows(): boolean {
     return !!this.value.allow;
   }
@@ -284,10 +277,6 @@ export class GuildSettingsLogger extends BaseStructure {
     this.merge(data);
   }
 
-  get addedAtText(): string {
-    return moment(this.added).fromNow();
-  }
-
   get key(): string {
     return `${this.type}.${this.channelId}`;
   }
@@ -324,10 +313,6 @@ export class GuildSettingsPrefix extends BaseStructure {
   constructor(data: Structures.BaseStructureData) {
     super();
     this.merge(data);
-  }
-
-  get addedAtText(): string {
-    return moment(this.added).fromNow();
   }
 }
 

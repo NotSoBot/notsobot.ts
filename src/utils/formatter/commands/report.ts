@@ -57,14 +57,17 @@ export async function createMessage(
     return displayReply(context, {ephemeral: true, ...update}, (ctx) ? {replyTo: ctx} : undefined);
   };
 
+  // a double click would send the report twice, the buttons are only gone once the first one's answered
+  let answered = false;
   const components = new Components({timeout: CONFIRM_TIMEOUT});
   components.createButton({
     label: translate('report.confirm_send'),
     style: MessageComponentButtonStyles.DANGER,
     run: async (ctx: ComponentContext) => {
-      if (ctx.userId !== context.userId) {
+      if (ctx.userId !== context.userId || answered) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
+      answered = true;
       let update: DisplayPayload;
       try {
         update = sentPayload(translate, await createReport(context, resolved.options));
@@ -78,13 +81,18 @@ export async function createMessage(
     label: translate('report.confirm_cancel'),
     style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
-      if (ctx.userId !== context.userId) {
+      if (ctx.userId !== context.userId || answered) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
+      answered = true;
       await finish(ctx, {description: translate('report.confirm_cancelled')});
     },
   });
   components.onTimeout = async () => {
+    // already sent or cancelled, that answer stays
+    if (answered) {
+      return;
+    }
     try {
       // edits the response for both prefixed commands and interactions
       await finish(null, {description: translate('report.confirm_expired')});

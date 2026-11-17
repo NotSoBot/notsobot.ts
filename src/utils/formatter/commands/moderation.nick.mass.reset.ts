@@ -237,7 +237,7 @@ export async function createMessage(
                 description.push(translate('nickmass.reset_reset', {count: amounts.changed.toLocaleString(language)}));
               }
               if (amounts.skipped) {
-                description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                description.push(translate('nickmass.reset_skipped', {count: amounts.skipped.toLocaleString(language)}));
               }
               if (amounts.failed) {
                 description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));

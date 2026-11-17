@@ -25,6 +25,9 @@ export default class GuildCommand extends BaseCommand {
         id: Formatter.Commands.InfoGuild.COMMAND_ID,
         usage: '?<guild:id>',
       },
+      // below `server fonts ...` and `server voice ...`, otherwise its `server` alias takes them (commands with the same
+      // priority are checked in file order)
+      priority: -1,
       type: Parameters.guildMetadata,
     });
   }

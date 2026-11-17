@@ -960,6 +960,8 @@ export namespace RestOptions {
     fontUrl?: string,
     // the cue's words with the one being said in the other color
     highlight?: boolean,
+    // a google locale, the subtitles translated to it (the api leaves `highlight` out then)
+    translate?: string,
     yellow?: boolean,
   }
 
@@ -974,6 +976,8 @@ export namespace RestOptions {
     fileFormat?: TranscribeFileFormats,
     // the ass highlights the word being said, the lrc times each word
     highlight?: boolean,
+    // a google locale, the file's lines translated to it (the api leaves `highlight` out then)
+    translate?: string,
   }
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {
@@ -2331,6 +2335,16 @@ export namespace RestResponsesRaw {
     timestamp: null | number,
     // only on sites whose posts have one apart from their text (a video's or a reddit post's)
     title?: null | string,
+    url: null | string,
+    // the post the media is from when it isn't this one's own (an X quote tweet of a picture, the post itself only text)
+    quoted?: null | FetchMediaPostQuoted,
+  }
+
+  export interface FetchMediaPostQuoted {
+    author_name: null | string,
+    author_url: null | string,
+    author_username: null | string,
+    text: null | string,
     url: null | string,
   }
 

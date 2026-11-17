@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationEyes } from '../../../api';
 import type { RestOptions } from '../../../api/types';
@@ -29,9 +30,10 @@ export interface CommandArgs {
 
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVManipulationEyes(context, {
+    file: args.file,
     safe: DefaultParameters.safe(context),
     type: args.color || MediaEyeTypes.LIGHTNING_PINK,
     url: args.url,

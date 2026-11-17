@@ -4,7 +4,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { StatusEmojis } from '../../../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
-import { BaseInteractionCommandOption, canWriteServerTags } from '../../../basecommand';
+import { BaseInteractionCommand, BaseInteractionCommandOption, canWriteServerTags } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'add';
@@ -50,13 +50,15 @@ export class TagCommandsAddCommand extends BaseInteractionCommandOption {
       context.metadata.content = reason;
       return false;
     }
-    return true;
+    // replacing the group's `onBefore` skipped its early ephemeral defer (the user's response setting) and metadata gates
+    return BaseInteractionCommand.prototype.onBefore.call(this as any, context);
   }
 
   onCancel(context: Interaction.InteractionContext) {
     if (context.metadata && context.metadata.content) {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${context.metadata.content}`, ephemeral: true});
     }
+    return BaseInteractionCommand.prototype.onCancel.call(this as any, context);
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagCommandsAdd.CommandArgsBefore) {

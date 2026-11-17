@@ -6,12 +6,9 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
-  DefaultParameters,
   DisplayPayload,
   Paginator,
-  Parameters,
   chunkArray,
-  createTimestampMomentFromGuild,
   createUserString,
   displayReply,
 } from '../../../utils';
@@ -34,7 +31,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   if (args.user.bot) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_list_user.bots_do_not_have_tags')}`});
   }
@@ -115,13 +112,6 @@ export async function createMessage(
             for (let x = 0; x < section.length; x++) {
               const tag = section[x];
               description.push(`**${(i + x + 1) + ((pageNumber - 1) * RESULTS_PER_PAGE)}**. ${Markup.escape.all(tag.name)}`);
-
-              /*
-              {
-                const timestamp = createTimestampMomentFromGuild(tag.edited || tag.created, context.guildId);
-                description.push(`**->** ${(tag.edited) ? 'Edited' : 'Created'} ${timestamp.fromNow()}`);
-              }
-              */
             }
 
             payload.fields!.push({inline: true, name: '\u200b', value: description.join('\n')});

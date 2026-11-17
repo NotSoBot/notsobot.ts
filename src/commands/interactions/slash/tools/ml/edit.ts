@@ -42,7 +42,7 @@ export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
         },
         {name: 'seed', type: Number, description: 'Initial Noise', ...I18n.optionLocalizations('commands.tools.ml.edit.seed')},
         {name: 'steps', type: Number, description: 'Number of Samples to take (1 to 16)', ...I18n.optionLocalizations('commands.tools.ml.edit.steps')},
-        {name: 'strength', description: 'Strength of Prompt (0.01 to 1)', ...I18n.optionLocalizations('commands.tools.ml.edit.strength')},
+        {name: 'strength', description: 'Strength of Prompt (0.01 to 1)', ...I18n.optionLocalizations('commands.tools.ml.edit.strength'), type: 'number'},
       ],
       maxAmount: 3,
       minAmount: 1,

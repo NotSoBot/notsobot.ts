@@ -145,8 +145,8 @@ export function parseComponentFromData(
             // this should not happen, only should return NaN
           }
         } else if (typeof(data.accent_color) === 'number') {
-          // is int, we want this
-          container.accent_color = Math.max(0x000000, Math.min(0xFFFFFF, data.accent_color));
+          // is int, we want this. discord rejects the whole message for a decimal one
+          container.accent_color = Math.max(0x000000, Math.min(0xFFFFFF, Math.floor(data.accent_color)));
         } else if (typeof(data.accent_color) === 'object' && Array.isArray(data.accent_color) && data.accent_color.length === 3) {
           // is rgb
           try {
@@ -267,11 +267,15 @@ export function parseComponentFromData(
       if ('placeholder' in data && typeof(data.placeholder) === 'string') {
         selectMenu.placeholder = data.placeholder.slice(0, 150);
       }
+      // whole numbers, and the min can't be above the max, discord rejected the whole message for either
       if ('max_values' in data && typeof(data.max_values) === 'number') {
-        selectMenu.max_values = Math.max(Math.min(data.max_values, 25), 1);
+        selectMenu.max_values = Math.max(Math.min(Math.floor(data.max_values), 25), 1);
       }
       if ('min_values' in data && typeof(data.min_values) === 'number') {
-        selectMenu.min_values = Math.max(Math.min(data.min_values, 25), 1);
+        selectMenu.min_values = Math.max(Math.min(Math.floor(data.min_values), 25), 1);
+        if (selectMenu.max_values !== undefined && selectMenu.max_values < selectMenu.min_values) {
+          selectMenu.min_values = selectMenu.max_values;
+        }
       }
       if ('run' in data && typeof(data.run) === 'string') {
         selectMenu.run = data.run;

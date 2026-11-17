@@ -152,7 +152,12 @@ export function matchesGuildWarningAutoExempt(
     return true;
   }
   const permissions = BigInt(exempt.permissions || '0');
-  return !!permissions && (member.permissions & permissions) !== 0n;
+  if (!permissions) {
+    return false;
+  }
+  // `permissions` is the raw role bitfield, administrator has every permission without its roles listing them
+  const total = member.permissions;
+  return (total & permissions) !== 0n || (total & Permissions.ADMINISTRATOR) === Permissions.ADMINISTRATOR;
 }
 
 // if auto-warn skips them for this rule, the server's exemption or the rule's own

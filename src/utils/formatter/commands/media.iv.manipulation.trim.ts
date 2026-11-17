@@ -21,6 +21,8 @@ export const PREVIEW: RestOptions.CommandPreview = {
 };
 
 export interface CommandArgs {
+  margin?: number,
+  threshold?: number,
   url: string,
 }
 
@@ -35,7 +37,11 @@ export function createJob(
 }
 
 export function createMediascript(args: CommandArgs, chain: Mediascript.MediascriptChain) {
-  return Mediascript.line('trim', chain.key);
+  // mediascript's `trim` has no MARGIN (always 16), the pipe runs a job per step for it
+  if (Mediascript.hasAny(args, 'margin')) {
+    return null;
+  }
+  return Mediascript.line('trim', chain.key, {threshold: args.threshold});
 }
 
 export async function createMessage(

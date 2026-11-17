@@ -11,7 +11,8 @@ import * as ModerationNick from './moderation.nick';
 
 export const COMMAND_ID = 'moderation.nick.mass';
 
-export const ERROR_CODES_IGNORE = [400, 403];
+// 404 is a member that left during the run (these take minutes), it shouldn't stop everyone after them
+export const ERROR_CODES_IGNORE = [400, 403, 404];
 export const MAX_MEMBERS = 5000;
 export const MAX_NICKNAME_LENGTH = 32;
 export const MAX_TIME_TO_RESPOND = 60 * 1000;

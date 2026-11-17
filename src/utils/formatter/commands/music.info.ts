@@ -3,7 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Paginator, displayReply } from '../../../utils';
 import { TranslationKey, getTranslator } from '../../i18n';
 
-import { MusicPageOptions, createMusicPage } from './music.controls';
+import { MusicPageOptions, createMusicPage, takeMusicPaginatorItemId } from './music.controls';
 import { musicNothingPlayingText } from './music.shared';
 
 
@@ -39,7 +39,9 @@ export async function createMusicPaginator(
     pageLimit: first.pageLimit,
     onPage: async (pageNumber) => {
       // the start page was just fetched
-      let page = (first && first.page === pageNumber) ? first : await createMusicPage(context, translator, guildId, {...pageOptions, page: pageNumber});
+      // a control asked for its track's page (it moved, or the queue went on), `pageNumber` when it's gone
+      const itemId = takeMusicPaginatorItemId(paginator);
+      let page = (first && first.page === pageNumber && !itemId) ? first : await createMusicPage(context, translator, guildId, {...pageOptions, itemId, page: pageNumber});
       first = null;
       if (!page) {
         return {display: {description: musicNothingPlayingText(translator.translate, guildId)}};

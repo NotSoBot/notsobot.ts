@@ -26,7 +26,8 @@ export default class RemindDeleteServerCommand extends BaseCommand {
 		    id: Formatter.Commands.ReminderDeleteServer.COMMAND_ID,
 		    usage: '<user:id|mention|name> <position,number>',
 	    },
-	    priority: -1,
+	    // ahead of `remind delete` (-1), which loads first and would otherwise read `server ...` as its position
+	    priority: 0,
 	    type: [
         {name: 'user', type: Parameters.memberOrUser()},
         {name: 'position', type: Number, consume: true},

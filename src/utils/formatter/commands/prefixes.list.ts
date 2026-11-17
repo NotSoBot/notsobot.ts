@@ -1,6 +1,5 @@
-import moment from 'moment';
-
 import { Collections, Command, Interaction } from 'detritus-client';
+import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettingsPrefix } from '../../../api/structures/guildsettings';
@@ -17,12 +16,12 @@ export function formatPrefixes(
   prefixes: Collections.BaseCollection<string, GuildSettingsPrefix>,
   payload: DisplayPayload = {},
 ): DisplayPayload {
-  const { language, translate, translateMaybe } = getCachedTranslator(context);
+  const { translate } = getCachedTranslator(context);
   if (prefixes.length) {
     let i = 1;
     const description = prefixes.map((prefix) => {
       return [
-        translate('prefixes_list.added', {addedAtText: moment(prefix.added).locale(language).fromNow(), i: i++, prefix: Markup.escape.all(prefix.prefix)}),
+        translate('prefixes_list.added', {addedAtText: Markup.timestamp(Date.parse(prefix.added), MarkupTimestampStyles.RELATIVE), i: i++, prefix: Markup.escape.all(prefix.prefix)}),
         translate('prefixes_list.by', {userId: prefix.userId}),
       ].join('\n');
     });
@@ -49,7 +48,7 @@ export function formatPrefixes(
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { translate } = await getTranslator(context);
 
   const guildId = context.guildId!;
 

@@ -45,7 +45,8 @@ export class ServerSetTimezoneCommand extends BaseInteractionCommandOption {
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    return args.timezone !== null;
+    // a timezone was given but didn't match any we support, `clear` doesn't need one
+    return !!args.clear || args.timezone !== null;
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {

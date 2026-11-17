@@ -38,10 +38,11 @@ export function createJob(
     // the endpoint takes uploads before links, so a piped file can't go after the audio it gets (mediascript's can)
     throw new UserError(getCachedTranslator(context).translate('media.pipe.cant_pipe', {command: COMMAND_ID}));
   }
-  args.urls = args.urls.reverse();
+  // a reversed copy, `reverse()` flipped the caller's args in place (a second use of them got the original order back)
   return mediaAIVManipulationAudioPutConcat(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+    urls: [...args.urls].reverse(),
   });
 }
 

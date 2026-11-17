@@ -81,7 +81,10 @@ export function oneOf<T>(options: OneOfOptions<T>): Array<SlashChoice> {
     });
   }
   if (options.defaultChoice && !options.doNotSortDefault) {
-    choices = choices.sort((x, y) => (x.value === options.defaultChoice) ? -1 : 0);
+    // both sides, a comparator that only answers for `x` isn't consistent and the sort can leave the default anywhere
+    choices = choices.sort((x, y) => {
+      return Number(y.value === options.defaultChoice) - Number(x.value === options.defaultChoice);
+    });
   }
   return choices.slice(0, 25);
 }

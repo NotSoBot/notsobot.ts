@@ -28,6 +28,8 @@ export default class MusicDjRoleCommand extends BaseCommand {
         id: Formatter.Commands.MusicDj.COMMAND_ID_ROLE,
         usage: '(<role:id|mention|name>|none)',
       },
+      // ahead of `music dj`, which loads first and would otherwise read `role ...` as its on/off value
+      priority: 1,
       // undefined when it's neither a role nor none
       type: (value: string, context: Command.Context): Value | undefined => {
         const text = value.trim();

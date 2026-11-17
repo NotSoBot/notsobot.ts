@@ -23,6 +23,8 @@ export default class TTSVoiceSampleCommand extends BaseAudioOrVideoCommand {
         id: Formatter.Commands.VoiceCloneAdd.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> <...voice:string>',
       },
+      // ahead of `tts voice create`, its `voice clone` alias would otherwise take `voice clone add`
+      priority: 1,
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({image: false})},
         {name: 'voice', consume: true},

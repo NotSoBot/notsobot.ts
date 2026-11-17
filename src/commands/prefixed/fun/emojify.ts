@@ -25,6 +25,8 @@ export default class EmojifyCommand extends BaseCommand {
         id: Formatter.Commands.FunEmojify.COMMAND_ID,
         usage: '?<background:emoji> ?<foreground:emoji> <text>',
       },
+      // below `emojify vertical`, which loads after it and would otherwise be emojified as the text "vertical ..."
+      priority: -1,
       type: Parameters.targetText,
     });
   }

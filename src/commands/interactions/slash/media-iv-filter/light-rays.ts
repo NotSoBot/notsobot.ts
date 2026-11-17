@@ -19,8 +19,8 @@ export class MediaIVLightRaysCommand extends BaseInteractionImageOrVideoCommandO
   constructor() {
     super({
       options: [
-        {name: 'sensitivity', description: 'How much of the brightness makes rays, 1 is all of it (0..1) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.light_rays.sensitivity'), type: Number},
-        {name: 'strength', description: 'How long and bright the rays are, 1 is VEGAS\' strongest (0..2) (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.light_rays.strength'), type: Number},
+        {name: 'sensitivity', description: 'How much of the brightness makes rays, 1 is all of it (0..1) (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_5.fun.light_rays.sensitivity'), type: 'number'},
+        {name: 'strength', description: 'How long and bright the rays are, 1 is VEGAS\' strongest (0..2) (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.light_rays.strength'), type: 'number'},
       ],
     });
   }

@@ -19,8 +19,8 @@ export class MediaIVTVSimulatorCommand extends BaseInteractionImageOrVideoComman
   constructor() {
     super({
       options: [
-        {name: 'line-sync', description: 'How well the TV holds the picture, 1 is clean and lower tears more (0..1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.tv_simulator.line_sync'), label: 'lineSync', type: Number},
-        {name: 'detail-zoom', description: 'Zooms into the distortion for bigger, slower waves (1..8)', ...I18n.optionLocalizations('commands.media_iv_5.fun.tv_simulator.detail_zoom'), label: 'detailZoom', type: Number},
+        {name: 'line-sync', description: 'How well the TV holds the picture, 1 is clean and lower tears more (0..1)', ...I18n.optionLocalizations('commands.media_iv_5.fun.tv_simulator.line_sync'), label: 'lineSync', type: 'number'},
+        {name: 'detail-zoom', description: 'Zooms into the distortion for bigger, slower waves (1..8)', ...I18n.optionLocalizations('commands.media_iv_5.fun.tv_simulator.detail_zoom'), label: 'detailZoom', type: 'number'},
         {name: 'vertical', description: 'Tears the picture up and down instead of sideways', ...I18n.optionLocalizations('commands.media_iv_5.fun.tv_simulator.vertical'), type: Boolean},
       ],
     });

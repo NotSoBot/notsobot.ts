@@ -32,7 +32,7 @@ export class MediaIVMimicCommand extends BaseInteractionMediasCommandOption {
           ...I18n.optionLocalizations('commands.media_iv_6.mood.mimic.multiplier'),
           maxValue: 2,
           minValue: 0,
-          type: Number,
+          type: 'number',
         },
         {
           name: 'regions',

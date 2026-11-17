@@ -44,62 +44,50 @@ export async function createMessage(
   const isMember = (args.user instanceof Structures.Member);
   const member = args.user as Structures.Member;
   const user = ((isMember) ? member.user : args.user) as Structures.User;
-  const userWithBanner = (args.user instanceof Structures.UserWithBanner) ? args.user : await context.rest.fetchUser(user.id);
-
-  let avatarDecorationServer: UserAvatarDecorationStored | null = null;
-  let avatarDecorationUser: UserAvatarDecorationStored | null = null;
-
-  if (isMember) {
-    if (member.avatarDecorationData) {
-      avatarDecorationServer = await UserAvatarDecorations.getOrFetch(
-        context.client,
-        member.avatarDecorationData.skuId,
-        member.avatarDecorationData.asset,
-      );
-    }
-    if (member.user.avatarDecorationData) {
-      avatarDecorationUser = await UserAvatarDecorations.getOrFetch(
-        context.client,
-        member.user.avatarDecorationData.skuId,
-        member.user.avatarDecorationData.asset,
-      );
-    }
-  } else {
-    if (args.user.avatarDecorationData) {
-      avatarDecorationUser = await UserAvatarDecorations.getOrFetch(
-        context.client,
-        args.user.avatarDecorationData.skuId,
-        args.user.avatarDecorationData.asset,
-      );
-    }
-  }
-
-  // what NotSoBot has on them, only read (looking someone up shouldn't make them a NotSoBot user). Unknown to us is a 404
-  let notsoUser: UserFull | null = UserStore.get(user.id) || null;
-  if (!notsoUser && !user.bot) {
-    try {
-      notsoUser = await fetchUser(context, user.id);
-    } catch(error) {
-
-    }
-  }
-
-  const files: Array<RequestTypes.File> = [];
-
   const avatarUrl = member.avatarUrlFormat(null, {size: 1024});
-  try {
-    const maxFileSize = (context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
-    const response = await utilitiesFetchMedia(context, {
-      maxFileSize,
-      url: avatarUrl,
-    }).then((x) => jobWaitForResponse(context, x));
-    files.push({
-      filename: response.file.filename,
-      value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
-    });
-  } catch(error) {
-
-  }
+  // none of these depend on each other, the avatar job alone polls for a while
+  const [ userWithBanner, avatarDecorationServer, avatarDecorationUser, notsoUser, files ] = await Promise.all([
+    (args.user instanceof Structures.UserWithBanner) ? args.user : context.rest.fetchUser(user.id),
+    (async (): Promise<UserAvatarDecorationStored | null> => {
+      if (isMember && member.avatarDecorationData) {
+        return UserAvatarDecorations.getOrFetch(context.client, member.avatarDecorationData.skuId, member.avatarDecorationData.asset);
+      }
+      return null;
+    })(),
+    (async (): Promise<UserAvatarDecorationStored | null> => {
+      if (user.avatarDecorationData) {
+        return UserAvatarDecorations.getOrFetch(context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset);
+      }
+      return null;
+    })(),
+    // what NotSoBot has on them, only read (looking someone up shouldn't make them a NotSoBot user). Unknown to us is a 404
+    (async (): Promise<UserFull | null> => {
+      const stored = UserStore.get(user.id) || null;
+      if (stored || user.bot) {
+        return stored;
+      }
+      try {
+        return await fetchUser(context, user.id);
+      } catch(error) {
+        return null;
+      }
+    })(),
+    (async (): Promise<Array<RequestTypes.File>> => {
+      try {
+        const maxFileSize = (context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
+        const response = await utilitiesFetchMedia(context, {
+          maxFileSize,
+          url: avatarUrl,
+        }).then((x) => jobWaitForResponse(context, x));
+        return [{
+          filename: response.file.filename,
+          value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
+        }];
+      } catch(error) {
+        return [];
+      }
+    })(),
+  ]);
 
   const presence = user.presence;
   let activities: Array<Structures.PresenceActivity>;

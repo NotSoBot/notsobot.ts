@@ -17,7 +17,7 @@ export default class EyesCutoutCommand extends BaseMediasCommand {
       args: [
         {name: 'color', aliases: ['c'], metadata: {description: 'color covering the face behind them, when there\'s no second media'}},
         {name: 'face', type: Parameters.number({max: 99, min: 0}), metadata: {description: 'the number drawfaces shows, the biggest face by default'}},
-        {name: 'size', aliases: ['s'], type: Parameters.number({max: 3, min: 1}), metadata: {description: '1 to 3, how much bigger they get (1.8 by default)'}},
+        {name: 'size', aliases: ['s'], type: 'float', metadata: {description: '1 to 3, how much bigger they get (1.8 by default)'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -28,7 +28,7 @@ export default class EyesCutoutCommand extends BaseMediasCommand {
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4 -color #3399ff -size 2.2`,
         ],
         id: Formatter.Commands.MediaIVManipulationFaceCutout.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-color <color>) (-face <number>) (-size <number>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-color <color>) (-face <number>) (-size <float>)',
       },
       maxAmount: 2,
       minAmount: 1,

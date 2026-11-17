@@ -1375,7 +1375,9 @@ export const mediaFontOrUrl = Object.assign(
 
 // a font file attached to the command's message, or to the message it replies to
 export async function fontFileUrl(context: Command.Context): Promise<string | undefined> {
-  for (const message of [context.message, await fetchReplyMessage(context)]) {
+  // the reply is only fetched when the message itself has no font (it used to be fetched every time)
+  for (const getMessage of [async () => context.message, () => fetchReplyMessage(context)]) {
+    const message = await getMessage();
     if (!message) {
       continue;
     }
@@ -2105,6 +2107,9 @@ export function mediaUrls(
   const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     const urls: Array<string> = [];
+    // the reply and the cached history are searched before the fetched history, which overlaps with them. a message
+    // used to be counted again there, so one image filled both of `minAmount: 2` (merging an image with itself)
+    const checkedMessageIds = new Set<string>();
     if (context.metadata && context.metadata.shouldSkipMediaCheck) {
       urls.push('https://notsobot.com');
     } else {
@@ -2124,6 +2129,7 @@ export function mediaUrls(
         if (urls.length < maxAmount) {
           const message = await fetchReplyMessage(context);
           if (message) {
+            checkedMessageIds.add(message.id);
             for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
               urls.push(url);
             }
@@ -2371,6 +2377,10 @@ export function mediaUrls(
           if ((minAmount && minAmount <= urls.length) || maxAmount <= urls.length) {
             break;
           }
+          if (checkedMessageIds.has(message.id)) {
+            continue;
+          }
+          checkedMessageIds.add(message.id);
           for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
             urls.push(url);
           }
@@ -2386,6 +2396,9 @@ export function mediaUrls(
           if ((minAmount && minAmount <= urls.length) || maxAmount <= urls.length) {
             break;
           }
+          if (checkedMessageIds.has(messageId)) {
+            continue;
+          }
           for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
             urls.push(url);
           }
@@ -2397,15 +2410,16 @@ export function mediaUrls(
       throw new UserError(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
     }
 
-    const filteredUrls: Record<string, string | null> = {};
+    // each different url once, at the same time (message links are fetched), in their order
+    const slicedUrls = urls.slice(0, maxAmount);
+    const uniqueUrls = Array.from(new Set(slicedUrls));
+    const resolvedUrls = await Promise.all(uniqueUrls.map((url) => getOrFetchRealUrl(context, url, mediaSearchOptions)));
+    const filteredUrls = new Map<string, string | null>(uniqueUrls.map((url, index) => [url, resolvedUrls[index]]));
     const parsedUrls: Array<string> = [];
-    for (let url of urls.slice(0, maxAmount)) {
-      if (!(url in filteredUrls)) {
-        const filtered = await getOrFetchRealUrl(context, url, mediaSearchOptions);
-        filteredUrls[url] = filtered;
-      }
-      if (filteredUrls[url]) {
-        parsedUrls.push(filteredUrls[url] as string);
+    for (let url of slicedUrls) {
+      const filtered = filteredUrls.get(url);
+      if (filtered) {
+        parsedUrls.push(filtered);
       }
     }
 

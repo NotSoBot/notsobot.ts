@@ -1,4 +1,4 @@
-import { Command, Interaction, Structures } from 'detritus-client';
+import { Command, Interaction } from 'detritus-client';
 import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
@@ -10,10 +10,7 @@ import { EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
   Paginator,
-  Parameters,
   chunkArray,
-  createTimestampMomentFromGuild,
-  getReminderMessage,
 } from '../../../utils';
 
 
@@ -29,7 +26,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
 
   const serverId = context.guildId || null;
   const guildId = (args.global) ? undefined : (serverId || 0);

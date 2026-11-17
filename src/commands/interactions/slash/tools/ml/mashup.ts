@@ -29,7 +29,7 @@ export class ToolsMLMashupCommand extends BaseInteractionMediasCommandOption {
         },
         {name: 'seed', type: Number, description: 'Initial Noise', ...I18n.optionLocalizations('commands.tools.ml.mashup.seed')},
         {name: 'steps', type: Number, description: 'Number of Samples to take (1 to 16)', ...I18n.optionLocalizations('commands.tools.ml.mashup.steps')},
-        {name: 'strength', description: 'Strength of Prompt (0.01 to 1)', ...I18n.optionLocalizations('commands.tools.ml.mashup.strength')},
+        {name: 'strength', description: 'Strength of Prompt (0.01 to 1)', ...I18n.optionLocalizations('commands.tools.ml.mashup.strength'), type: 'number'},
       ],
       minAmount: 2,
       ratelimits: CommandRatelimits.ML_IMAGE,

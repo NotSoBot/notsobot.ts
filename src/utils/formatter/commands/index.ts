@@ -95,6 +95,7 @@ import * as MediaAVManipulationWaveform from './media.av.manipulation.waveform';
 
 import * as MediaAVToolsAudioToImage from './media.av.tools.audio.to.image';
 import * as MediaAVToolsAutoSubtitle from './media.av.tools.autosubtitle';
+import * as MediaAVToolsAutoSubtitleTranslate from './media.av.tools.autosubtitle.translate';
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
 
@@ -916,6 +917,7 @@ export {
 
   MediaAVToolsAudioToImage,
   MediaAVToolsAutoSubtitle,
+  MediaAVToolsAutoSubtitleTranslate,
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,
 

@@ -244,6 +244,10 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
     deleteResponse(game);
     return;
   }
+  // a guess (or skip) already ended it while the response id was fetched, no timers for a finished flag
+  if (game.finished) {
+    return;
+  }
   // the timers count from when the flag is out
   game.startedAt = Date.now();
   game.deadline = game.startedAt + ROUND_TIME;

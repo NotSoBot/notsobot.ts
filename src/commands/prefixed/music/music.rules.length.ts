@@ -30,6 +30,8 @@ export default class MusicRulesLengthCommand extends BaseCommand {
         id: Formatter.Commands.MusicRules.COMMAND_ID_LENGTH,
         usage: '<timestamp|off>',
       },
+      // ahead of `music rules`, which loads first and would otherwise take `music rules length ...`
+      priority: 1,
       required: true,
       // seconds, 0 for `off`
       type: (value: string, context: Command.Context) => {

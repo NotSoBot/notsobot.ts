@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 import { Collections, Structures } from 'detritus-client';
 
 import {
@@ -256,12 +254,5 @@ export class GoogleSearchImageVideo extends BaseStructure {
     super();
     this.result = result;
     this.merge(data);
-  }
-
-  get uploadedAtText(): string {
-    if (this.uploadedAt) {
-      return moment(this.uploadedAt).fromNow();
-    }
-    return '';
   }
 }

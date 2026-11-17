@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
 import { mediaAVManipulationAudioDistortion } from '../../../api';
 import type { RestOptions } from '../../../api/types';
@@ -29,9 +30,10 @@ export interface CommandArgs {
 
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaAVManipulationAudioDistortion(context, {
+    file: args.file,
     safe: DefaultParameters.safe(context),
     drive: args.drive,
     mix: args.mix,
