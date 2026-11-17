@@ -3951,8 +3951,6 @@ export const Lithuanian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Taip pat pridėti kaip subtitrų ar dainos žodžių failą',
   'commands.tools.transcribe.highlight.name': 'paryskinti',
   'commands.tools.transcribe.highlight.description': 'Paryškinti sakomą žodį (.ass) arba nurodyti kiekvieno žodžio laiką (.lrc) (Numatyta: Ne)',
-  'commands.tools.transcribe.translate.name': 'versti',
-  'commands.tools.transcribe.translate.description': 'Išversti failą į šią kalbą (srt, jei failas nepasirinktas)',
   'commands.tools.tone.description': 'Įvertina, kiek tekstas toksiškas, įžeidus, grasinantis ar nepadorus',
   'commands.tools.tone.name': 'tonas',
   'commands.tools.tone.text.name': 'tekstas',

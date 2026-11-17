@@ -9,7 +9,6 @@ import {
   DateMomentOptions,
   EmbedBrands,
   EmbedColors,
-  GoogleLocales,
   MOMENT_FORMAT,
   TranscribeFileFormats,
 } from '../../../constants';
@@ -24,8 +23,6 @@ export interface CommandArgs {
   file?: TranscribeFileFormats,
   highlight?: boolean,
   isEphemeral?: boolean,
-  // the file's lines translated to this language (no highlight then), an srt when no `file` was picked
-  translate?: GoogleLocales | null,
   url: string,
 }
 
@@ -35,11 +32,10 @@ export async function createMessage(
 ) {
   const { language, languageName, translate, translateMaybe } = await getTranslator(context);
 
-  const fileFormat = args.file || ((args.translate) ? TranscribeFileFormats.SRT : undefined);
+  const fileFormat = args.file;
   const { duration, file: transcriptionFile, languages, text } = await mediaAVToolsTranscribe(context, {
     fileFormat,
     highlight: (fileFormat) ? args.highlight : undefined,
-    translate: (fileFormat) ? args.translate || undefined : undefined,
     url: args.url,
   });
 
@@ -84,8 +80,7 @@ export async function createMessage(
   }
 
   if (text && fileFormat && transcriptionFile) {
-    const suffix = (args.translate) ? `.${args.translate}` : '';
-    files.push({filename: `transcription${suffix}.${fileFormat}`, value: transcriptionFile});
+    files.push({filename: `transcription.${fileFormat}`, value: transcriptionFile});
   }
 
   return displayReply(context, {...payload, ephemeral: args.isEphemeral, files: (files.length) ? files : undefined});

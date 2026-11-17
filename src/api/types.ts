@@ -976,8 +976,6 @@ export namespace RestOptions {
     fileFormat?: TranscribeFileFormats,
     // the ass highlights the word being said, the lrc times each word
     highlight?: boolean,
-    // a google locale, the file's lines translated to it (the api leaves `highlight` out then)
-    translate?: string,
   }
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {

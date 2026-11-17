@@ -3951,8 +3951,6 @@ export const Dutch: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Voeg het ook toe als ondertitel- of songtekstbestand',
   'commands.tools.transcribe.highlight.name': 'markeren',
   'commands.tools.transcribe.highlight.description': 'Markeer het gezegde woord (.ass) of time elk woord (.lrc) (Standaard: Nee)',
-  'commands.tools.transcribe.translate.name': 'vertalen',
-  'commands.tools.transcribe.translate.description': 'Het bestand naar deze taal vertalen (srt als je geen bestand kiest)',
   'commands.tools.tone.description': 'Beoordeel hoe toxisch, beledigend, bedreigend of obsceen een tekst is',
   'commands.tools.tone.name': 'toon',
   'commands.tools.tone.text.name': 'tekst',

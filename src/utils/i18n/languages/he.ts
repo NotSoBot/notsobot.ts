@@ -3951,8 +3951,6 @@ export const Hebrew: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'צרף אותו גם כקובץ כתוביות או מילים',
   'commands.tools.transcribe.highlight.name': 'הדגשה',
   'commands.tools.transcribe.highlight.description': 'הדגש את המילה שנאמרת (‎.ass) או תזמן כל מילה (‎.lrc) (ברירת מחדל: לא)',
-  'commands.tools.transcribe.translate.name': 'תרגום',
-  'commands.tools.transcribe.translate.description': 'תרגום הקובץ לשפה הזו (srt אם לא נבחר קובץ)',
   'commands.tools.tone.description': 'מדרג עד כמה טקסט רעיל, מעליב, מאיים או גס',
   'commands.tools.tone.name': 'טון',
   'commands.tools.tone.text.name': 'טקסט',

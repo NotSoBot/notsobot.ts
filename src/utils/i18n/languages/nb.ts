@@ -3951,8 +3951,6 @@ export const Norwegian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Legg den også ved som en undertekst- eller sangtekstfil',
   'commands.tools.transcribe.highlight.name': 'uthev',
   'commands.tools.transcribe.highlight.description': 'Uthev ordet som blir sagt (.ass) eller tidsett hvert ord (.lrc) (Standard: Nei)',
-  'commands.tools.transcribe.translate.name': 'oversett',
-  'commands.tools.transcribe.translate.description': 'Oversett filen til dette språket (srt hvis ingen fil er valgt)',
   'commands.tools.tone.description': 'Vurder hvor giftig, fornærmende, truende eller uanstendig en tekst er',
   'commands.tools.tone.name': 'tone',
   'commands.tools.tone.text.name': 'tekst',

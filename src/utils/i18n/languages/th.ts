@@ -3951,8 +3951,6 @@ export const Thai: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'แนบเป็นไฟล์ซับไตเติลหรือเนื้อเพลงด้วย',
   'commands.tools.transcribe.highlight.name': 'ไฮไลต์',
   'commands.tools.transcribe.highlight.description': 'ไฮไลต์คำที่กำลังพูด (.ass) หรือใส่เวลาทุกคำ (.lrc) (ค่าเริ่มต้น: ไม่)',
-  'commands.tools.transcribe.translate.name': 'แปล',
-  'commands.tools.transcribe.translate.description': 'แปลไฟล์เป็นภาษานี้ (เป็น srt ถ้าไม่ได้เลือกไฟล์)',
   'commands.tools.tone.description': 'ให้คะแนนว่าข้อความเป็นพิษ ดูหมิ่น ข่มขู่ หรือลามกแค่ไหน',
   'commands.tools.tone.name': 'น้ำเสียง',
   'commands.tools.tone.text.name': 'ข้อความ',

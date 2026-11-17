@@ -3951,8 +3951,6 @@ export const PortugueseBrazil: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Anexa também como arquivo de legendas ou de letra',
   'commands.tools.transcribe.highlight.name': 'destacar',
   'commands.tools.transcribe.highlight.description': 'Destaca a palavra dita (.ass) ou marca o tempo de cada palavra (.lrc) (Padrão: Não)',
-  'commands.tools.transcribe.translate.name': 'traduzir',
-  'commands.tools.transcribe.translate.description': 'Traduzir o arquivo para este idioma (srt se nenhum arquivo for escolhido)',
   'commands.tools.tone.description': 'Avalia o quanto um texto é tóxico, ofensivo, ameaçador ou obsceno',
   'commands.tools.tone.name': 'tom',
   'commands.tools.tone.text.name': 'texto',

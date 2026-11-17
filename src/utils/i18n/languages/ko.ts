@@ -3951,8 +3951,6 @@ export const Korean: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': '자막이나 가사 파일로도 첨부해요',
   'commands.tools.transcribe.highlight.name': '강조',
   'commands.tools.transcribe.highlight.description': '말하는 단어를 강조하거나 (.ass) 단어마다 시간을 넣어요 (.lrc) (기본값: 아니요)',
-  'commands.tools.transcribe.translate.name': '번역',
-  'commands.tools.transcribe.translate.description': '파일을 이 언어로 번역 (파일을 고르지 않으면 srt)',
   'commands.tools.tone.description': '텍스트가 얼마나 유해하고 모욕적이며 위협적이거나 외설적인지 평가합니다',
   'commands.tools.tone.name': '어조',
   'commands.tools.tone.text.name': '텍스트',

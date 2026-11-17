@@ -3951,8 +3951,6 @@ export const ChineseTraditional: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': '同時附加為字幕或歌詞檔案',
   'commands.tools.transcribe.highlight.name': '醒目提示',
   'commands.tools.transcribe.highlight.description': '醒目提示正在說的詞 (.ass) 或為每個詞加上時間 (.lrc)（預設：否）',
-  'commands.tools.transcribe.translate.name': '翻譯',
-  'commands.tools.transcribe.translate.description': '將檔案翻譯成此語言（未選擇檔案時為 srt）',
   'commands.tools.tone.description': '評估文字的毒性、侮辱、威脅或猥褻程度',
   'commands.tools.tone.name': '語氣',
   'commands.tools.tone.text.name': '文字',

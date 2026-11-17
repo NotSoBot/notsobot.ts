@@ -3951,8 +3951,6 @@ export const Czech: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Přiložit i jako soubor s titulky nebo textem písně',
   'commands.tools.transcribe.highlight.name': 'zvyrazneni',
   'commands.tools.transcribe.highlight.description': 'Zvýraznit vyslovené slovo (.ass) nebo načasovat každé slovo (.lrc) (Výchozí: Ne)',
-  'commands.tools.transcribe.translate.name': 'přeložit',
-  'commands.tools.transcribe.translate.description': 'Přeložit soubor do tohoto jazyka (srt, pokud není vybrán soubor)',
   'commands.tools.tone.description': 'Ohodnotí, jak toxický, urážlivý, výhrůžný nebo obscénní je text',
   'commands.tools.tone.name': 'tón',
   'commands.tools.tone.text.name': 'text',

@@ -3951,8 +3951,6 @@ export const Russian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Также приложить как файл субтитров или текста песни',
   'commands.tools.transcribe.highlight.name': 'подсветка',
   'commands.tools.transcribe.highlight.description': 'Подсвечивать произносимое слово (.ass) или отмечать время каждого слова (.lrc) (По умолчанию: Нет)',
-  'commands.tools.transcribe.translate.name': 'перевести',
-  'commands.tools.transcribe.translate.description': 'Перевести файл на этот язык (srt, если файл не выбран)',
   'commands.tools.tone.description': 'Оценивает, насколько текст токсичный, оскорбительный, угрожающий или непристойный',
   'commands.tools.tone.name': 'тон',
   'commands.tools.tone.text.name': 'текст',

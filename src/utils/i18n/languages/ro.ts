@@ -3951,8 +3951,6 @@ export const Romanian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Atașeaz-o și ca fișier de subtitrări sau versuri',
   'commands.tools.transcribe.highlight.name': 'evidentiere',
   'commands.tools.transcribe.highlight.description': 'Evidențiază cuvântul spus (.ass) sau cronometrează fiecare cuvânt (.lrc) (Implicit: Nu)',
-  'commands.tools.transcribe.translate.name': 'traduce',
-  'commands.tools.transcribe.translate.description': 'Tradu fișierul în această limbă (srt dacă nu alegi un fișier)',
   'commands.tools.tone.description': 'Evaluează cât de toxic, insultător, amenințător sau obscen este un text',
   'commands.tools.tone.name': 'ton',
   'commands.tools.tone.text.name': 'text',

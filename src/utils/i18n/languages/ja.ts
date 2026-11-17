@@ -3951,8 +3951,6 @@ export const Japanese: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': '字幕または歌詞ファイルとしても添付',
   'commands.tools.transcribe.highlight.name': 'ハイライト',
   'commands.tools.transcribe.highlight.description': '今話している単語をハイライト (.ass) または各単語にタイミング (.lrc) (デフォルト: いいえ)',
-  'commands.tools.transcribe.translate.name': '翻訳',
-  'commands.tools.transcribe.translate.description': 'ファイルをこの言語に翻訳 (ファイル未選択ならsrt)',
   'commands.tools.tone.description': 'テキストの有害性、侮辱、脅迫、卑猥さをスコア化します',
   'commands.tools.tone.name': 'トーン',
   'commands.tools.tone.text.name': 'テキスト',

@@ -3951,8 +3951,6 @@ export const French: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Joins-la aussi en fichier de sous-titres ou de paroles',
   'commands.tools.transcribe.highlight.name': 'surligner',
   'commands.tools.transcribe.highlight.description': 'Surligne le mot dit (.ass) ou minute chaque mot (.lrc) (Par défaut : Non)',
-  'commands.tools.transcribe.translate.name': 'traduire',
-  'commands.tools.transcribe.translate.description': 'Traduire le fichier dans cette langue (srt si aucun fichier n\'est choisi)',
   'commands.tools.tone.description': 'Évalue à quel point un texte est toxique, insultant, menaçant ou obscène',
   'commands.tools.tone.name': 'ton',
   'commands.tools.tone.text.name': 'texte',

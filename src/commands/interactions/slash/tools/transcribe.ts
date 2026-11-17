@@ -33,13 +33,6 @@ export class ToolsTranscribeCommand extends BaseInteractionAudioOrVideoCommandOp
           }),
         },
         {name: 'highlight', description: 'Highlight the word being said (.ass) or time each word (.lrc) (Default: False)', ...I18n.optionLocalizations('commands.tools.transcribe.highlight'), type: Boolean},
-        {
-          name: 'translate',
-          description: 'Translate the file to this language (srt when no file is picked)',
-          ...I18n.optionLocalizations('commands.tools.transcribe.translate'),
-          value: Parameters.locale,
-          onAutoComplete: Parameters.AutoComplete.googleLocales,
-        },
       ],
     });
   }

@@ -3951,8 +3951,6 @@ export const Danish: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Vedhæft den også som en undertekst- eller sangtekstfil',
   'commands.tools.transcribe.highlight.name': 'fremhæv',
   'commands.tools.transcribe.highlight.description': 'Fremhæv ordet, der bliver sagt (.ass), eller tid hvert ord (.lrc) (Standard: Nej)',
-  'commands.tools.transcribe.translate.name': 'oversæt',
-  'commands.tools.transcribe.translate.description': 'Oversæt filen til dette sprog (srt hvis ingen fil er valgt)',
   'commands.tools.tone.description': 'Vurder hvor giftig, fornærmende, truende eller uanstændig en tekst er',
   'commands.tools.tone.name': 'tone',
   'commands.tools.tone.text.name': 'tekst',

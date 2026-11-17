@@ -3951,8 +3951,6 @@ export const Hindi: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'इसे सबटाइटल या लिरिक्स फ़ाइल के रूप में भी जोड़ें',
   'commands.tools.transcribe.highlight.name': 'हाइलाइट',
   'commands.tools.transcribe.highlight.description': 'बोले जा रहे शब्द को हाइलाइट करें (.ass) या हर शब्द का समय दें (.lrc) (डिफ़ॉल्ट: नहीं)',
-  'commands.tools.transcribe.translate.name': 'अनुवाद',
-  'commands.tools.transcribe.translate.description': 'फ़ाइल का इस भाषा में अनुवाद करें (कोई फ़ाइल न चुनें तो srt)',
   'commands.tools.tone.description': 'टेक्स्ट कितना विषाक्त, अपमानजनक, धमकी भरा या अश्लील है, इसका स्कोर दें',
   'commands.tools.tone.name': 'लहजा',
   'commands.tools.tone.text.name': 'टेक्स्ट',

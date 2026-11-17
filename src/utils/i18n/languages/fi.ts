@@ -3951,8 +3951,6 @@ export const Finnish: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Liitä se myös tekstitys- tai sanoitustiedostona',
   'commands.tools.transcribe.highlight.name': 'korostus',
   'commands.tools.transcribe.highlight.description': 'Korosta sanottavaa sanaa (.ass) tai ajoita jokainen sana (.lrc) (Oletus: Ei)',
-  'commands.tools.transcribe.translate.name': 'käännä',
-  'commands.tools.transcribe.translate.description': 'Käännä tiedosto tälle kielelle (srt, jos tiedostoa ei valita)',
   'commands.tools.tone.description': 'Arvioi, kuinka myrkyllinen, loukkaava, uhkaava tai rivo teksti on',
   'commands.tools.tone.name': 'sävy',
   'commands.tools.tone.text.name': 'teksti',

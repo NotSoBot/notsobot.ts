@@ -3951,8 +3951,6 @@ export const Greek: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Επισύναψη και ως αρχείο υποτίτλων ή στίχων',
   'commands.tools.transcribe.highlight.name': 'επισήμανση',
   'commands.tools.transcribe.highlight.description': 'Επισήμανση της λέξης που λέγεται (.ass) ή χρονισμός κάθε λέξης (.lrc) (Προεπιλογή: Όχι)',
-  'commands.tools.transcribe.translate.name': 'μετάφραση',
-  'commands.tools.transcribe.translate.description': 'Μετάφραση του αρχείου σε αυτή τη γλώσσα (srt αν δεν επιλέξεις αρχείο)',
   'commands.tools.tone.description': 'Βαθμολογεί πόσο τοξικό, προσβλητικό, απειλητικό ή χυδαίο είναι ένα κείμενο',
   'commands.tools.tone.name': 'τόνος',
   'commands.tools.tone.text.name': 'κείμενο',

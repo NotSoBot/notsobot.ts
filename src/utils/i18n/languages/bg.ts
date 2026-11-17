@@ -3951,8 +3951,6 @@ export const Bulgarian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Прикачи го и като файл със субтитри или текст на песен',
   'commands.tools.transcribe.highlight.name': 'открояване',
   'commands.tools.transcribe.highlight.description': 'Открои думата, която се казва (.ass), или засечи всяка дума (.lrc) (По подразбиране: Не)',
-  'commands.tools.transcribe.translate.name': 'преведи',
-  'commands.tools.transcribe.translate.description': 'Преведи файла на този език (srt, ако не е избран файл)',
   'commands.tools.tone.description': 'Оценява колко токсичен, обиден, заплашителен или неприличен е текст',
   'commands.tools.tone.name': 'тон',
   'commands.tools.tone.text.name': 'текст',

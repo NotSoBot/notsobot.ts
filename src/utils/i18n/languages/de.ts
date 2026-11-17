@@ -3951,8 +3951,6 @@ export const German: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Auch als Untertitel- oder Songtextdatei anhängen',
   'commands.tools.transcribe.highlight.name': 'hervorheben',
   'commands.tools.transcribe.highlight.description': 'Das gesagte Wort hervorheben (.ass) oder jedes Wort timen (.lrc) (Standard: Nein)',
-  'commands.tools.transcribe.translate.name': 'übersetzen',
-  'commands.tools.transcribe.translate.description': 'Die Datei in diese Sprache übersetzen (srt, wenn keine Datei gewählt ist)',
   'commands.tools.tone.description': 'Bewertet, wie toxisch, beleidigend, bedrohlich oder obszön ein Text ist',
   'commands.tools.tone.name': 'ton',
   'commands.tools.tone.text.name': 'text',

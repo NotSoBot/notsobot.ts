@@ -3951,8 +3951,6 @@ export const Polish: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Dołącz też jako plik napisów lub tekstu piosenki',
   'commands.tools.transcribe.highlight.name': 'podswietl',
   'commands.tools.transcribe.highlight.description': 'Podświetl wypowiadane słowo (.ass) lub nadaj czas każdemu słowu (.lrc) (Domyślnie: Nie)',
-  'commands.tools.transcribe.translate.name': 'tłumacz',
-  'commands.tools.transcribe.translate.description': 'Przetłumacz plik na ten język (srt, jeśli nie wybrano pliku)',
   'commands.tools.tone.description': 'Oceń, jak toksyczny, obraźliwy, groźny lub nieprzyzwoity jest tekst',
   'commands.tools.tone.name': 'ton',
   'commands.tools.tone.text.name': 'tekst',

@@ -3951,8 +3951,6 @@ export const Arabic: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'أرفقه أيضاً كملف ترجمة أو كلمات أغنية',
   'commands.tools.transcribe.highlight.name': 'تمييز',
   'commands.tools.transcribe.highlight.description': 'تمييز الكلمة التي تُقال (‎.ass) أو توقيت كل كلمة (‎.lrc) (الافتراضي: لا)',
-  'commands.tools.transcribe.translate.name': 'ترجمة',
-  'commands.tools.transcribe.translate.description': 'ترجمة الملف إلى هذه اللغة (يكون srt إن لم تختر ملفاً)',
   'commands.tools.tone.description': 'قياس مدى سمية النص أو إهانته أو تهديده أو فحشه',
   'commands.tools.tone.name': 'نبرة',
   'commands.tools.tone.text.name': 'النص',

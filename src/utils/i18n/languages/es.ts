@@ -3951,8 +3951,6 @@ export const Spanish: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Adjúntala también como archivo de subtítulos o de letra',
   'commands.tools.transcribe.highlight.name': 'resaltar',
   'commands.tools.transcribe.highlight.description': 'Resalta la palabra que se dice (.ass) o marca el tiempo de cada palabra (.lrc) (Predeterminado: No)',
-  'commands.tools.transcribe.translate.name': 'traducir',
-  'commands.tools.transcribe.translate.description': 'Traducir el archivo a este idioma (srt si no eliges archivo)',
   'commands.tools.tone.description': 'Evalúa qué tan tóxico, insultante, amenazante u obsceno es un texto',
   'commands.tools.tone.name': 'tono',
   'commands.tools.tone.text.name': 'texto',

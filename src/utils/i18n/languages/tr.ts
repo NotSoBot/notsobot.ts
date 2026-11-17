@@ -3951,8 +3951,6 @@ export const Turkish: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Altyazı veya şarkı sözü dosyası olarak da ekle',
   'commands.tools.transcribe.highlight.name': 'vurgula',
   'commands.tools.transcribe.highlight.description': 'Söylenen kelimeyi vurgula (.ass) veya her kelimeye zaman ver (.lrc) (Varsayılan: Hayır)',
-  'commands.tools.transcribe.translate.name': 'çevir',
-  'commands.tools.transcribe.translate.description': 'Dosyayı bu dile çevir (dosya seçilmezse srt)',
   'commands.tools.tone.description': 'Bir metnin ne kadar toksik, hakaret içeren, tehditkâr veya müstehcen olduğunu puanlar',
   'commands.tools.tone.name': 'ton',
   'commands.tools.tone.text.name': 'metin',

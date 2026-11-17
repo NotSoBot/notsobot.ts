@@ -3951,8 +3951,6 @@ export const Croatian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Priloži je i kao datoteku titlova ili stihova',
   'commands.tools.transcribe.highlight.name': 'istakni',
   'commands.tools.transcribe.highlight.description': 'Istakni izgovorenu riječ (.ass) ili označi vrijeme svake riječi (.lrc) (Zadano: Ne)',
-  'commands.tools.transcribe.translate.name': 'prevedi',
-  'commands.tools.transcribe.translate.description': 'Prevedi datoteku na ovaj jezik (srt ako nije odabrana datoteka)',
   'commands.tools.tone.description': 'Ocijeni koliko je tekst toksičan, uvredljiv, prijeteći ili opscen',
   'commands.tools.tone.name': 'ton',
   'commands.tools.tone.text.name': 'tekst',

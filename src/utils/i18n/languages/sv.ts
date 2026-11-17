@@ -3951,8 +3951,6 @@ export const Swedish: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Bifoga den även som undertext- eller låttextfil',
   'commands.tools.transcribe.highlight.name': 'markera',
   'commands.tools.transcribe.highlight.description': 'Markera ordet som sägs (.ass) eller tidsätt varje ord (.lrc) (Standard: Nej)',
-  'commands.tools.transcribe.translate.name': 'översätt',
-  'commands.tools.transcribe.translate.description': 'Översätt filen till det här språket (srt om ingen fil väljs)',
   'commands.tools.tone.description': 'Bedöm hur giftig, förolämpande, hotfull eller obscen en text är',
   'commands.tools.tone.name': 'ton',
   'commands.tools.tone.text.name': 'text',

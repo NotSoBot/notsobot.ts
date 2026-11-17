@@ -3951,8 +3951,6 @@ export const Ukrainian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Також додати як файл субтитрів або тексту пісні',
   'commands.tools.transcribe.highlight.name': 'підсвічування',
   'commands.tools.transcribe.highlight.description': 'Підсвічувати слово, що звучить (.ass), або позначати час кожного слова (.lrc) (За замовчуванням: Ні)',
-  'commands.tools.transcribe.translate.name': 'перекласти',
-  'commands.tools.transcribe.translate.description': 'Перекласти файл цією мовою (srt, якщо файл не вибрано)',
   'commands.tools.tone.description': 'Оцінює, наскільки текст токсичний, образливий, загрозливий або непристойний',
   'commands.tools.tone.name': 'тон',
   'commands.tools.tone.text.name': 'текст',

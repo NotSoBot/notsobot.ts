@@ -3951,8 +3951,6 @@ export const Vietnamese: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Đính kèm cả dưới dạng tệp phụ đề hoặc lời bài hát',
   'commands.tools.transcribe.highlight.name': 'to-sang',
   'commands.tools.transcribe.highlight.description': 'Tô sáng từ đang nói (.ass) hoặc ghi thời gian từng từ (.lrc) (Mặc định: Không)',
-  'commands.tools.transcribe.translate.name': 'dịch',
-  'commands.tools.transcribe.translate.description': 'Dịch tệp sang ngôn ngữ này (srt nếu không chọn tệp)',
   'commands.tools.tone.description': 'Chấm điểm mức độ độc hại, xúc phạm, đe dọa hoặc tục tĩu của văn bản',
   'commands.tools.tone.name': 'giọng-điệu',
   'commands.tools.tone.text.name': 'văn-bản',

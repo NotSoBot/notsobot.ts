@@ -3951,8 +3951,6 @@ export const Indonesian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Lampirkan juga sebagai file subtitle atau lirik',
   'commands.tools.transcribe.highlight.name': 'sorot',
   'commands.tools.transcribe.highlight.description': 'Sorot kata yang diucapkan (.ass) atau beri waktu tiap kata (.lrc) (Bawaan: Tidak)',
-  'commands.tools.transcribe.translate.name': 'terjemahkan',
-  'commands.tools.transcribe.translate.description': 'Terjemahkan file ke bahasa ini (srt jika tidak memilih file)',
   'commands.tools.tone.description': 'Nilai seberapa toksik, menghina, mengancam, atau cabul sebuah teks',
   'commands.tools.tone.name': 'nada',
   'commands.tools.tone.text.name': 'teks',

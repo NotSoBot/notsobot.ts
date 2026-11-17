@@ -3951,8 +3951,6 @@ export const Italian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Allegala anche come file di sottotitoli o di testo',
   'commands.tools.transcribe.highlight.name': 'evidenzia',
   'commands.tools.transcribe.highlight.description': 'Evidenzia la parola detta (.ass) o temporizza ogni parola (.lrc) (Predefinito: No)',
-  'commands.tools.transcribe.translate.name': 'traduci',
-  'commands.tools.transcribe.translate.description': 'Traduci il file in questa lingua (srt se non scegli un file)',
   'commands.tools.tone.description': 'Valuta quanto un testo è tossico, offensivo, minaccioso o osceno',
   'commands.tools.tone.name': 'tono',
   'commands.tools.tone.text.name': 'testo',

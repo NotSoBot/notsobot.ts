@@ -4222,7 +4222,6 @@ export async function mediaAVToolsTranscribe(
   const query = {
     file: options.fileFormat,
     highlight: options.highlight,
-    translate: options.translate,
     url: options.url,
   };
   return request(context, {

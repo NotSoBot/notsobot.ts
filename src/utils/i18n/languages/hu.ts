@@ -3951,8 +3951,6 @@ export const Hungarian: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': 'Csatolás felirat- vagy dalszövegfájlként is',
   'commands.tools.transcribe.highlight.name': 'kiemeles',
   'commands.tools.transcribe.highlight.description': 'Az elhangzó szó kiemelése (.ass) vagy minden szó időzítése (.lrc) (Alapértelmezett: Nem)',
-  'commands.tools.transcribe.translate.name': 'fordítás',
-  'commands.tools.transcribe.translate.description': 'A fájl lefordítása erre a nyelvre (srt, ha nincs fájl kiválasztva)',
   'commands.tools.tone.description': 'Pontozza, mennyire toxikus, sértő, fenyegető vagy obszcén egy szöveg',
   'commands.tools.tone.name': 'hangnem',
   'commands.tools.tone.text.name': 'szöveg',

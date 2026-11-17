@@ -3951,8 +3951,6 @@ export const ChineseSimplified: Translations = Object.freeze({
   'commands.tools.transcribe.file.description': '同时附加为字幕或歌词文件',
   'commands.tools.transcribe.highlight.name': '高亮',
   'commands.tools.transcribe.highlight.description': '高亮正在说的词 (.ass) 或给每个词加时间 (.lrc)（默认：否）',
-  'commands.tools.transcribe.translate.name': '翻译',
-  'commands.tools.transcribe.translate.description': '将文件翻译成此语言（未选择文件时为 srt）',
   'commands.tools.tone.description': '评估文本的毒性、侮辱、威胁或淫秽程度',
   'commands.tools.tone.name': '语气',
   'commands.tools.tone.text.name': '文本',

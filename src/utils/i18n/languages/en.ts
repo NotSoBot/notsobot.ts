@@ -3949,8 +3949,6 @@ export const English = Object.freeze({
   'commands.tools.transcribe.file.description': 'Also attach it as a subtitles or lyrics file',
   'commands.tools.transcribe.highlight.name': 'highlight',
   'commands.tools.transcribe.highlight.description': 'Highlight the word being said (.ass) or time each word (.lrc) (Default: False)',
-  'commands.tools.transcribe.translate.name': 'translate',
-  'commands.tools.transcribe.translate.description': 'Translate the file to this language (srt when no file is picked)',
   'commands.tools.tone.description': 'Score how toxic, insulting, threatening or obscene text is',
   'commands.tools.tone.name': 'tone',
   'commands.tools.tone.text.name': 'text',
