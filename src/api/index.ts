@@ -2226,6 +2226,38 @@ export async function mediaIVManipulationFaceClown(
 }
 
 
+export async function mediaIVManipulationDepth(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepth,
+) {
+  return raw.mediaIVManipulationDepth(context, options);
+}
+
+
+export async function mediaIVManipulationDepthBlur(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepthBlur,
+) {
+  return raw.mediaIVManipulationDepthBlur(context, options);
+}
+
+
+export async function mediaIVManipulationDepthParallax(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepthParallax,
+) {
+  return raw.mediaIVManipulationDepthParallax(context, options);
+}
+
+
+export async function mediaIVManipulationDepthStereo(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepthStereo,
+) {
+  return raw.mediaIVManipulationDepthStereo(context, options);
+}
+
+
 export async function mediaIVManipulationFaceCutout(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationFaceCutout,
@@ -5434,6 +5466,14 @@ export async function mediaIVManipulationWobble(
 }
 
 
+export async function mediaIVManipulationWrap(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWrap,
+) {
+  return raw.mediaIVManipulationWrap(context, options);
+}
+
+
 export async function mediaIVManipulationXyt(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationXyt,
@@ -5960,6 +6000,14 @@ export async function utilitiesMLMashup(
   options: RestOptions.UtilitiesMLMashup,
 ) {
   return raw.utilitiesMLMashup(context, options);
+}
+
+
+export async function utilitiesMLPixelart(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLPixelart,
+) {
+  return raw.utilitiesMLPixelart(context, options);
 }
 
 

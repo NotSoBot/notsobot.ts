@@ -35,7 +35,7 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
-          `${COMMAND_NAME} notsobot -model U2NETP`,
+          `${COMMAND_NAME} notsobot -model U2NET_HUMAN_SEG`,
           `${COMMAND_NAME} notsobot -trim`,
         ],
         id: Formatter.Commands.MediaIVManipulationBackgroundRemove.COMMAND_ID,

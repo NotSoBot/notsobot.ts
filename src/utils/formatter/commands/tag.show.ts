@@ -1,5 +1,10 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { InteractionCallbackTypes, MessageComponentTypes, MessageFlags } from 'detritus-client/lib/constants';
+import {
+  InteractionCallbackTypes,
+  MessageComponentInputTextStyles,
+  MessageComponentTypes,
+  MessageFlags,
+} from 'detritus-client/lib/constants';
 import {
   Components,
   ComponentActionRow,
@@ -8,6 +13,9 @@ import {
   ComponentContext,
   ComponentSection,
   ComponentSelectMenu,
+  InteractionModal,
+  InteractionModalArgs,
+  InteractionModalContext,
 } from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
@@ -43,6 +51,24 @@ export interface CommandArgs {
   tag: RestResponsesRaw.Tag,
 }
 
+// a button press (or the modal it opened) whose response is the reply, a new message after NotSoAI's earlier one
+export type TagReplyTarget = ComponentContext | InteractionModalContext;
+
+// NotSoAI's `ai`/`ai_input` components: a press sends its text as the user's next message (`continueAI` in tag.generate,
+// passed in since tag.generate imports this file). Without it they're inert, like a user tag's would be
+export interface TagMessageAIOptions {
+  onContinue: (replyTo: TagReplyTarget, prompt: string) => Promise<unknown>,
+}
+
+export interface TagMessageOptions {
+  ai?: TagMessageAIOptions,
+  // the reply is `componentContext`'s response, a new message (NotSoAI continuing), not an edit of the pressed one
+  continuation?: boolean,
+}
+
+// NotSoAI's questions get longer than a tag's buttons, someone has to read them and pick
+export const AI_COMPONENTS_TIMEOUT = 10 * 60 * 1000;
+
 // prefix commands only get a typing indicator, so a slow tag replies with "Thinking..." and its result edits that
 // reply. interactions already defer into discord's own thinking state
 export const THINKING_REPLY_AFTER = 2000;
@@ -54,6 +80,8 @@ export type ThinkingStatus = (translate: Translator['translate']) => Promise<str
 // status changes after that. the same random thinking text stays on top. interactions get nothing, they already defer
 export class ThinkingReply {
   context: Command.Context | Interaction.InteractionContext;
+  // NotSoAI continuing from a press, its thinking text goes on that press's response instead of the command's reply
+  replyTo: TagReplyTarget | undefined;
   // something else is on the reply (NotSoAI asking to confirm, see `hold`), status edits wait for it
   held: boolean = false;
   pending: Promise<void> = Promise.resolve();
@@ -64,8 +92,13 @@ export class ThinkingReply {
   thinkingText: string | null = null;
   timeout: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(context: Command.Context | Interaction.InteractionContext, status: ThinkingStatus | null = null) {
+  constructor(
+    context: Command.Context | Interaction.InteractionContext,
+    status: ThinkingStatus | null = null,
+    replyTo?: TagReplyTarget,
+  ) {
     this.context = context;
+    this.replyTo = replyTo;
     this.status = status;
     if (context instanceof Command.Context) {
       this.timeout = setTimeout(() => {
@@ -144,7 +177,7 @@ export class ThinkingReply {
       if (this.stopped) {
         return;
       }
-      await replyThinking(this.context, this.thinkingText, statusText);
+      await replyThinking(this.context, this.thinkingText, statusText, this.replyTo);
     }).catch(() => {
       // the trigger was edited/deleted or the channel can't be replied in, the command's own reply will deal with it
     });
@@ -203,7 +236,8 @@ export async function createTagMessage(
   context: Command.Context | Interaction.InteractionContext,
   parsedTag: TagFormatter.TagResult,
   title?: string,
-  componentContext?: ComponentContext,
+  componentContext?: TagReplyTarget,
+  messageOptions: TagMessageOptions = {},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
@@ -211,7 +245,8 @@ export async function createTagMessage(
   parsedTag.text = parsedTag.text.replace(TagFormatter.REGEX_NEWLINE_SENTINEL, '\n');
 
   if (parsedTag.pages.length) {
-    if (context instanceof ComponentContext) {
+    // a paginator would take over the command's reply, not the press's
+    if (context instanceof ComponentContext || messageOptions.continuation) {
       throw new UserError(translate('tag_show.tagscript_does_not_support_pages_inside_of'));
     }
 
@@ -224,7 +259,10 @@ export async function createTagMessage(
 
   const options: Command.EditOrReply = {};
   if (parsedTag.components) {
-    const components = generateComponents(context, parsedTag);
+    const components = generateComponents(context, parsedTag, {
+      ai: messageOptions.ai,
+      replyTo: (messageOptions.continuation) ? componentContext : undefined,
+    });
     if (components) {
       options.components = components;
       isComponentsV2 = components.isV2;
@@ -442,19 +480,59 @@ function getMimetypeFromExtension(extension: string): string | undefined {
 }
 
 
+export interface GenerateComponentsOptions {
+  ai?: TagMessageAIOptions,
+  // the message is this press's response (NotSoAI continuing), its components are turned off through it
+  replyTo?: TagReplyTarget,
+}
+
 export function generateComponents(
   context: Command.Context | Interaction.InteractionContext,
   parsedTag: TagFormatter.TagResult,
+  options: GenerateComponentsOptions = {},
 ): Components | null {
   const { language, translate, translateMaybe } = getCachedTranslator(context);
   if (!parsedTag.components || !parsedTag.components.components.length) {
     return null;
   }
 
+  const { replyTo } = options;
   let isExecuting = false;
+  // a one-time `ai` component was pressed, nothing on the message works after it
+  let isLocked = false;
+  const hasAI = parsedTag.components.components.some(TagFormatter.hasComponentAI);
+
+  // the message these components are on (the command's reply, or the press NotSoAI continued from) with its buttons and
+  // select menus turned off, `message` is it when we have it already
+  const disableOwnerComponents = async (message?: Structures.Message | null) => {
+    let response: Structures.Message | null = message || null;
+    if (!response) {
+      if (replyTo) {
+        response = await replyTo.fetchResponse().catch(() => null);
+      } else if (context instanceof Command.Context) {
+        response = (context.response && context.response.canEdit) ? context.response : null;
+      } else {
+        response = context.response;
+      }
+    }
+    if (!response) {
+      return;
+    }
+    const raw = disableComponentsJSON(JSON.parse(JSON.stringify(response.components)));
+    const components = {toJSON: () => raw};
+    if (replyTo) {
+      await replyTo.editOrRespond({components} as any);
+    } else if (context instanceof Command.Context) {
+      if (context.response && context.response.canEdit) {
+        await context.response.edit({components});
+      }
+    } else {
+      await editOrReply(context, {attachments: undefined, content: undefined, components, embeds: undefined} as any);
+    }
+  };
 
   const components = new Components({
-    timeout: 1 * (60 * 1000),
+    timeout: (hasAI) ? AI_COMPONENTS_TIMEOUT : 1 * (60 * 1000),
     onError: (componentContext: ComponentContext, error: Error) => {
       return componentContext.editOrRespond(translate('tag_show.tagscript_error_has_occured', {error: error}));
     },
@@ -475,6 +553,10 @@ export function generateComponents(
         return createTagMessage(context, newParsedTag);
       }
 
+      if (replyTo) {
+        return disableOwnerComponents();
+      }
+
       let response: Structures.Message | null = null;
       if (context instanceof Command.Context) {
         const contextResponse = context.response;
@@ -488,63 +570,7 @@ export function generateComponents(
       let components: any;
       if (response) {
         if (response.hasFlagComponentsV2) {
-          const raw = JSON.parse(JSON.stringify(response.components));
-          for (let component of raw) {
-            switch (component.type) {
-              case MessageComponentTypes.ACTION_ROW: {
-                for (let x of component.components) {
-                  switch (x.type) {
-                    case MessageComponentTypes.BUTTON:
-                    case MessageComponentTypes.SELECT_MENU: {
-                      x.disabled = true;
-                    }; break;
-                  }
-                }
-              }; break;
-              case MessageComponentTypes.CONTAINER: {
-                for (let x of component.components) {
-                  switch (x.type) {
-                    case MessageComponentTypes.ACTION_ROW: {
-                      for (let c of x.components) {
-                        switch (c.type) {
-                          case MessageComponentTypes.BUTTON:
-                          case MessageComponentTypes.SELECT_MENU: {
-                            c.disabled = true;
-                          }; break;
-                        }
-                      }
-                    }; break;
-                    case MessageComponentTypes.FILE: {
-                      const filename = x.file.url.split('?').shift()!.split('/').pop()!;
-                      x.file.url = `attachment://${filename}`;
-                    }; break;
-                    case MessageComponentTypes.SECTION: {
-                      if (x.accessory) {
-                        switch (x.accessory.type) {
-                          case MessageComponentTypes.BUTTON: {
-                            x.accessory.disabled = true;
-                          }; break;
-                        }
-                      }
-                    }; break;
-                  }
-                }
-              }; break;
-              case MessageComponentTypes.FILE: {
-                const filename = component.file.url.split('?').shift()!.split('/').pop()!;
-                component.file.url = `attachment://${filename}`;
-              }; break;
-              case MessageComponentTypes.SECTION: {
-                if (component.accessory) {
-                  switch (component.accessory.type) {
-                    case MessageComponentTypes.BUTTON: {
-                      component.accessory.disabled = true;
-                    }; break;
-                  }
-                }
-              }; break;
-            }
-          }
+          const raw = disableComponentsJSON(JSON.parse(JSON.stringify(response.components)));
           components = {toJSON: () => raw};
         } else {
           components = [];
@@ -574,7 +600,98 @@ export function generateComponents(
     },
   });
 
+  // NotSoAI's turn after a press: the press's response is the new reply, a one-time pick turns the message's components off
+  // first. only one at a time, a double click shouldn't spend twice
+  let isContinuing = false;
+  const continueAI = async (
+    target: TagReplyTarget,
+    pressed: Structures.Message | null | undefined,
+    once: boolean,
+    prompt: string,
+  ) => {
+    await target.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+    if (once) {
+      isLocked = true;
+      await disableOwnerComponents(pressed).catch(() => {});
+    }
+    await options.ai!.onContinue(target, prompt);
+  };
+
+  function injectAIIntoComponent(x: Record<string, any>): void {
+    const aiText: string | undefined = x.ai;
+    const aiInput: TagFormatter.ComponentAIInput | undefined = x.ai_input;
+    const once = x.once !== false;
+    delete x.ai;
+    delete x.ai_input;
+    delete x.once;
+
+    x.run = async (componentContext: ComponentContext) => {
+      // only who asked, even with `ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE`: the turn runs with the asker's context (their
+      // memory, music permissions, credits), so someone else's press would act as them
+      if (!options.ai || isLocked || isContinuing || componentContext.userId !== context.userId) {
+        await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
+        return;
+      }
+      const pressed = componentContext.interaction.message;
+
+      if (aiInput) {
+        const modal = new InteractionModal({
+          timeout: AI_COMPONENTS_TIMEOUT,
+          title: aiInput.title,
+          run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+            const input = String(args.input || '').trim();
+            if (!options.ai || isLocked || isContinuing || !input) {
+              await modalContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
+              return;
+            }
+            const prompt = (aiText) ?
+              ((aiText.includes(TagFormatter.COMPONENT_AI_INPUT)) ? aiText.split(TagFormatter.COMPONENT_AI_INPUT).join(input) : `${aiText}\n${input}`) :
+              input;
+            isContinuing = true;
+            try {
+              await continueAI(modalContext, pressed, once, prompt);
+            } finally {
+              isContinuing = false;
+            }
+          },
+        });
+        modal.createLabel({label: aiInput.label}).createInputText({
+          customId: 'input',
+          maxLength: aiInput.max_length,
+          placeholder: aiInput.placeholder,
+          required: aiInput.required,
+          style: (aiInput.paragraph) ? MessageComponentInputTextStyles.PARAGRAPH : MessageComponentInputTextStyles.SHORT,
+        });
+        await componentContext.respond(modal);
+        return;
+      }
+
+      let prompt = aiText || '';
+      const values = componentContext.data.values;
+      if (values && values.length) {
+        const picked = values.join(', ');
+        prompt = (prompt.includes(TagFormatter.COMPONENT_AI_VALUES)) ?
+          prompt.split(TagFormatter.COMPONENT_AI_VALUES).join(picked) :
+          [prompt, picked].filter(Boolean).join('\n');
+      }
+      if (!prompt) {
+        await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
+        return;
+      }
+      isContinuing = true;
+      try {
+        await continueAI(componentContext, pressed, once, prompt);
+      } finally {
+        isContinuing = false;
+      }
+    };
+  }
+
   function injectRunIntoComponent(x: Record<string, any>): void {
+    if (x.ai !== undefined || x.ai_input !== undefined) {
+      return injectAIIntoComponent(x);
+    }
+    delete x.once;
     if (x.run || !x.url) {
       const runTagScript = x.run;
       x.run = async (componentContext: ComponentContext) => {
@@ -593,7 +710,7 @@ export function generateComponents(
           await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           return;
         }
-        if (isExecuting) {
+        if (isExecuting || isLocked) {
           // ack it so a double click doesn't show 'This interaction failed'
           await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
           return;
@@ -730,6 +847,69 @@ export function generateComponents(
   }
 
   return components;
+}
+
+
+// a message's components json with every button and select menu turned off, its files pointed at the uploads it
+// already has (`attachment://`) so editing it doesn't drop them
+function disableComponentsJSON(raw: Array<any>): Array<any> {
+  for (let component of raw) {
+    switch (component.type) {
+      case MessageComponentTypes.ACTION_ROW: {
+        for (let x of component.components) {
+          switch (x.type) {
+            case MessageComponentTypes.BUTTON:
+            case MessageComponentTypes.SELECT_MENU: {
+              x.disabled = true;
+            }; break;
+          }
+        }
+      }; break;
+      case MessageComponentTypes.CONTAINER: {
+        for (let x of component.components) {
+          switch (x.type) {
+            case MessageComponentTypes.ACTION_ROW: {
+              for (let c of x.components) {
+                switch (c.type) {
+                  case MessageComponentTypes.BUTTON:
+                  case MessageComponentTypes.SELECT_MENU: {
+                    c.disabled = true;
+                  }; break;
+                }
+              }
+            }; break;
+            case MessageComponentTypes.FILE: {
+              const filename = x.file.url.split('?').shift()!.split('/').pop()!;
+              x.file.url = `attachment://${filename}`;
+            }; break;
+            case MessageComponentTypes.SECTION: {
+              if (x.accessory) {
+                switch (x.accessory.type) {
+                  case MessageComponentTypes.BUTTON: {
+                    x.accessory.disabled = true;
+                  }; break;
+                }
+              }
+            }; break;
+          }
+        }
+      }; break;
+      case MessageComponentTypes.FILE: {
+        const filename = component.file.url.split('?').shift()!.split('/').pop()!;
+        component.file.url = `attachment://${filename}`;
+      }; break;
+      case MessageComponentTypes.SECTION: {
+        if (component.accessory) {
+          switch (component.accessory.type) {
+            case MessageComponentTypes.BUTTON: {
+              component.accessory.disabled = true;
+            }; break;
+          }
+        }
+      }; break;
+    }
+  }
+  return raw;
 }
 
 

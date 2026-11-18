@@ -2,12 +2,21 @@ import { URL } from 'url';
 
 import { Command, Interaction } from 'detritus-client';
 import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, InteractionModalContext, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { ApiErrorBody, CONTENT_BLOCKED_API_ERRORS, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, isConnectionDropError, isDiscordEdgeRatelimitError, readErrorBody } from '../api/errors';
 import { ApiErrorCodes, DiscordSkuIds, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
-import { I18n, displayReply, formatMemory, getPremiumSkuFromTier, getPremiumSkuName, getPremiumUpsellSku, linkPremiumSkuName } from '../utils';
+import {
+  I18n,
+  displayReply,
+  formatMemory,
+  getPremiumSkuFromTier,
+  getPremiumSkuName,
+  getPremiumUpsellSku,
+  linkPremiumSkuName,
+  skipPrefixSlashTip,
+} from '../utils';
 
 
 // shared error formatting for prefixed and interaction commands, so both show the same messages
@@ -43,6 +52,8 @@ export interface ErrorReplyOptions {
   // nobody by default
   allowedMentions?: Command.EditOrReply['allowedMentions'],
   ephemeral?: boolean,
+  // a button press (or its modal) whose response the error goes on, like NotSoAI continuing from one of its buttons
+  replyTo?: ComponentContext | InteractionModalContext,
 }
 
 
@@ -73,6 +84,7 @@ export async function replyError(
   payload: ErrorPayload,
   options: ErrorReplyOptions = {},
 ): Promise<any> {
+  skipPrefixSlashTip(context);
   const { translate } = await I18n.getTranslator(context);
   let description = payload.description;
   const { upsell } = payload;
@@ -91,6 +103,7 @@ export async function replyError(
     title: payload.title,
   }, {
     maxInlineLength: ERROR_MAX_INLINE_LENGTH,
+    replyTo: options.replyTo,
     uploadDescription: translate('errors.uploaded'),
     uploadFilename: ERROR_FILENAME,
   });

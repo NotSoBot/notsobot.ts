@@ -8,9 +8,16 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import { utilitiesFetchMedia } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { CONTENT_BLOCKED_API_ERRORS, JobError, getApiError } from '../../../api/errors';
-import { ApiErrorCodes, AutoEmbedReactions, DiscordEmojis, DiscordReactionEmojis, DiscordSkuIds } from '../../../constants';
+import {
+  ApiErrorCodes,
+  AutoEmbedReactions,
+  DiscordEmojis,
+  DiscordReactionEmojis,
+  DiscordSkuIds,
+  UserSettingsResponseDisplayTypes,
+} from '../../../constants';
 import { DefaultParameters, jobReply, jobWaitForResponse, linkPremiumSkuName, mediaReply } from '../../../utils';
-import { MediaReplyEmbedFooter } from '../../../utils/tools';
+import { DisplayPayload, MediaReplyEmbedFooter, displayReply, getResponseDisplayForReply } from '../../../utils/tools';
 import { getAutoEmbedLink } from '../../autoembed';
 import { Translator, getTranslator } from '../../i18n';
 
@@ -38,6 +45,28 @@ export async function createMessage(
   options: CreateMessageOptions = {},
 ) {
   const autoEmbed = (context instanceof Command.Context) ? getAutoEmbedLink(context) : null;
+  try {
+    return await createMediaMessage(context, args, options, autoEmbed);
+  } catch(error) {
+    // a post with no images or videos (a text tweet, a reddit self post), `.embed` and auto-embed show its text by
+    // itself. `.download` keeps saying there's no media
+    if (options.post || autoEmbed) {
+      const textOnly = await getTextOnlyPost(error);
+      if (textOnly) {
+        return postTextReply(context, textOnly, (autoEmbed) ? autoEmbed.spoiler : !!args.spoiler);
+      }
+    }
+    throw error;
+  }
+}
+
+
+async function createMediaMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+  options: CreateMessageOptions,
+  autoEmbed: ReturnType<typeof getAutoEmbedLink>,
+) {
   const job = await utilitiesFetchMedia(context, {
     downloadQuality: args.quality,
     locale: args.locale,
@@ -98,6 +127,54 @@ async function autoEmbedReply(context: Command.Context, job: Parameters<typeof j
     spoiler,
   });
   await suppressLinkEmbed(context);
+  return reply;
+}
+
+
+interface TextOnlyPost {
+  // it linked to media that couldn't be downloaded (a link card's video), not just a post with only text
+  mediaFailed: boolean,
+  post: RestResponsesRaw.FetchMediaPost,
+}
+
+// the api's no-media error has the post's text when the site's downloader found the post (`DownloadErrorNoMedia`)
+async function getTextOnlyPost(error: any): Promise<TextOnlyPost | null> {
+  const apiError = (error instanceof JobError) ? error.apiError : await getApiError(error);
+  if (!apiError || apiError.code !== ApiErrorCodes.MEDIA_NOT_FOUND_IN_URL) {
+    return null;
+  }
+  const post = apiError.post;
+  if (!post || typeof(post) !== 'object') {
+    return null;
+  }
+  return {mediaFailed: apiError.media_failed === true, post: post as RestResponsesRaw.FetchMediaPost};
+}
+
+
+// a text post laid out like one with media, just without it: who and what above, where/when/counts under (the embed
+// display has those in its footer like `mediaReply`), and where the media would be a line saying it couldn't be had
+// when it linked to some. auto-embed shows it even when the server has the text off, the text is all there is
+async function postTextReply(
+  context: Command.Context | Interaction.InteractionContext,
+  { mediaFailed, post }: TextOnlyPost,
+  spoiler: boolean,
+) {
+  const translator = await getTranslator(context);
+  const formatted = formatPost(translator, post, {spoiler});
+  const notice = (mediaFailed) ? `-# ${translator.translate('tools_embed.media_failed')}` : undefined;
+  const display = await getResponseDisplayForReply(context);
+  const payload: DisplayPayload = (display === UserSettingsResponseDisplayTypes.LEGACY && formatted.footer) ? {
+    description: [formatted.above, notice].filter(Boolean).join('\n'),
+    footer: formatted.footer.text,
+    footerIconUrl: formatted.footer.iconUrl,
+    timestamp: formatted.footer.timestamp,
+  } : {
+    description: [formatted.above, notice, formatted.below].filter(Boolean).join('\n'),
+  };
+  const reply = await displayReply(context, payload);
+  if (context instanceof Command.Context) {
+    await suppressLinkEmbed(context);
+  }
   return reply;
 }
 

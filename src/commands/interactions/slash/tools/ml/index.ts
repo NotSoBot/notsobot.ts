@@ -6,6 +6,7 @@ import { ToolsMLEditCommand } from './edit';
 import { ToolsMLImagineCommand } from './imagine';
 import { ToolsMLInterrogateCommand } from './interrogate';
 import { ToolsMLMashupCommand } from './mashup';
+import { ToolsMLPixelartCommand } from './pixelart';
 import { ToolsMLReimagineCommand } from './reimagine';
 
 
@@ -21,6 +22,7 @@ export class ToolsMLGroupCommand extends BaseInteractionCommandOptionGroup {
         new ToolsMLImagineCommand(),
         new ToolsMLInterrogateCommand(),
         new ToolsMLMashupCommand(),
+        new ToolsMLPixelartCommand(),
         new ToolsMLReimagineCommand(),
       ],
     });

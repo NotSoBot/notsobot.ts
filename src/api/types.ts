@@ -645,6 +645,28 @@ export namespace RestOptions {
   }
 
   
+  // where NotSoAI is being asked and who by, what changes what a right answer is (which command form works, what they're
+  // allowed to change). Only NotSoAI's own command sends it, never a tag's `{ai}`
+  export interface GenerateTagSituation {
+    channel_name?: string,
+    display_name?: string,
+    // how they asked: a prefix, an @mention, replying to NotSoAI, `/ai`, or one of its `ai` buttons
+    invoked: 'button' | 'mention' | 'prefix' | 'reply' | 'slash',
+    // `server_user_app` is a server NotSoBot isn't in (only its slash commands work there), `private_channel` a dm or
+    // group dm between users through the user app
+    location: 'bot_dm' | 'group_dm' | 'private_channel' | 'server' | 'server_user_app',
+    manage_server?: boolean,
+    // can control the music without a vote (manage server, the dj role, or manage channel on our voice channel)
+    music_dj?: boolean,
+    // the server's prefixes, the first is what commands should be written with
+    prefixes?: Array<string>,
+    server_name?: string,
+    // the prefix this message used, when it was one
+    used_prefix?: string,
+    // the voice channel they're in
+    voice_channel_id?: string,
+  }
+
   export interface GenerateTag extends MediaBaseOptionsMultiple {
     // the reply can show `credits_alert`, only NotSoAI's own replies (a tag's `{ai}` has nowhere to put it)
     creditsAlert?: boolean,
@@ -658,6 +680,7 @@ export namespace RestOptions {
     personality?: null | string,
     personalityPreference?: string,
     prompt: string,
+    situation?: GenerateTagSituation,
   }
 
   export interface GoogleContentVisionBase {
@@ -1131,6 +1154,34 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationFace extends MediaBaseOptions {
     face?: number,
+  }
+
+  export interface MediaIVManipulationDepth extends MediaBaseOptions {
+    colormap?: string,
+    invert?: boolean,
+  }
+
+  export interface MediaIVManipulationDepthBlur extends MediaBaseOptions {
+    amount?: number,
+    miniature?: boolean,
+    range?: number,
+    x?: number,
+    y?: number,
+  }
+
+  export interface MediaIVManipulationDepthParallax extends MediaBaseOptions {
+    amount?: number,
+    duration?: number,
+    motion?: string,
+    x?: number,
+    y?: number,
+  }
+
+  export interface MediaIVManipulationDepthStereo extends MediaBaseOptions {
+    amount?: number,
+    type?: string,
+    x?: number,
+    y?: number,
   }
 
   export interface MediaIVManipulationFaceCutout extends MediaBaseOptionsMultiple {
@@ -1781,6 +1832,17 @@ export namespace RestOptions {
     wobbles?: number,
   }
 
+  export interface MediaIVManipulationWrap extends MediaBaseOptionsMultiple {
+    clip?: boolean,
+    light?: number,
+    opacity?: number,
+    relief?: number,
+    rotate?: number,
+    size?: number,
+    x?: number,
+    y?: number,
+  }
+
   export interface MediaIVManipulationXyt extends MediaBaseOptions {
     // a text bubble template's words (its own without them)
     text?: string,
@@ -2205,6 +2267,13 @@ export namespace RestOptions {
     seed?: number,
     steps?: number,
     strength?: number,
+  }
+
+  export interface UtilitiesMLPixelart extends MediaUploadBaseOptions {
+    // one sprite of a grid (0 to 3) made again alone and bigger, with the grid's `seed`
+    index?: number,
+    query: string,
+    seed?: number,
   }
 
   export interface UtilitiesMLTone {

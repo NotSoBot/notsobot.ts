@@ -180,6 +180,11 @@ import * as MediaIVManipulationEyesYellow from './media.iv.manipulation.eyes.yel
 import * as MediaIVManipulationFaceAlien from './media.iv.manipulation.face.alien';
 import * as MediaIVManipulationFaceAnime from './media.iv.manipulation.face.anime';
 import * as MediaIVManipulationFaceClown from './media.iv.manipulation.face.clown';
+import * as MediaIVManipulationDepth from './media.iv.manipulation.depth';
+import * as MediaIVManipulationDepthBlur from './media.iv.manipulation.depth.blur';
+import * as MediaIVManipulationDepthMiniature from './media.iv.manipulation.depth.miniature';
+import * as MediaIVManipulationDepthParallax from './media.iv.manipulation.depth.parallax';
+import * as MediaIVManipulationDepthStereo from './media.iv.manipulation.depth.stereo';
 import * as MediaIVManipulationFaceCutout from './media.iv.manipulation.face.cutout';
 import * as MediaIVManipulationFaceFat from './media.iv.manipulation.face.fat';
 import * as MediaIVManipulationFaceForehead from './media.iv.manipulation.face.forehead';
@@ -587,6 +592,7 @@ import * as MediaIVManipulationWaveAnimated from './media.iv.manipulation.wave.a
 import * as MediaIVManipulationWaveVegas from './media.iv.manipulation.wave.vegas';
 import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
 import * as MediaIVManipulationWobble from './media.iv.manipulation.wobble';
+import * as MediaIVManipulationWrap from './media.iv.manipulation.wrap';
 import * as MediaIVManipulationXyt from './media.iv.manipulation.xyt';
 import * as MediaIVManipulationZoom from './media.iv.manipulation.zoom';
 import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur';
@@ -785,6 +791,7 @@ import * as ToolsMLEdit from './tools.ml.edit';
 import * as ToolsMLImagine from './tools.ml.imagine';
 import * as ToolsMLInterrogate from './tools.ml.interrogate';
 import * as ToolsMLMashup from './tools.ml.mashup';
+import * as ToolsMLPixelart from './tools.ml.pixelart';
 import * as ToolsMLReimagine from './tools.ml.reimagine';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocr.translate';
@@ -1002,6 +1009,11 @@ export {
   MediaIVManipulationFaceAlien,
   MediaIVManipulationFaceAnime,
   MediaIVManipulationFaceClown,
+  MediaIVManipulationDepth,
+  MediaIVManipulationDepthBlur,
+  MediaIVManipulationDepthMiniature,
+  MediaIVManipulationDepthParallax,
+  MediaIVManipulationDepthStereo,
   MediaIVManipulationFaceCutout,
   MediaIVManipulationFaceFat,
   MediaIVManipulationFaceForehead,
@@ -1409,6 +1421,7 @@ export {
   MediaIVManipulationWaveVegas,
   MediaIVManipulationWiggle,
   MediaIVManipulationWobble,
+  MediaIVManipulationWrap,
   MediaIVManipulationXyt,
   MediaIVManipulationZoom,
   MediaIVManipulationZoomBlur,
@@ -1607,6 +1620,7 @@ export {
   ToolsMLImagine,
   ToolsMLInterrogate,
   ToolsMLMashup,
+  ToolsMLPixelart,
   ToolsMLReimagine,
   ToolsOCR,
   ToolsOCRTranslate,

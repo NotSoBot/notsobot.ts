@@ -320,6 +320,14 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/face/anime',
   MEDIA_IV_MANIPULATION_FACE_CLOWN:
     '/media/iv/manipulation/face/clown',
+  MEDIA_IV_MANIPULATION_DEPTH:
+    '/media/iv/manipulation/depth',
+  MEDIA_IV_MANIPULATION_DEPTH_BLUR:
+    '/media/iv/manipulation/depth/blur',
+  MEDIA_IV_MANIPULATION_DEPTH_PARALLAX:
+    '/media/iv/manipulation/depth/parallax',
+  MEDIA_IV_MANIPULATION_DEPTH_STEREO:
+    '/media/iv/manipulation/depth/stereo',
   MEDIA_IV_MANIPULATION_FACE_CUTOUT:
     '/media/iv/manipulation/face/cutout',
   MEDIA_IV_MANIPULATION_FACE_FAT:
@@ -1124,6 +1132,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/wiggle',
   MEDIA_IV_MANIPULATION_WOBBLE:
     '/media/iv/manipulation/wobble',
+  MEDIA_IV_MANIPULATION_WRAP:
+    '/media/iv/manipulation/wrap',
   MEDIA_IV_MANIPULATION_XYT:
     '/media/iv/manipulation/xyt',
   MEDIA_IV_MANIPULATION_XYT_TEMPLATES:
@@ -1392,6 +1402,8 @@ export const Api = Object.freeze({
     '/utilities/ml/interrogate',
   UTILITIES_ML_MASHUP:
     '/utilities/ml/mashup',
+  UTILITIES_ML_PIXELART:
+    '/utilities/ml/pixelart',
   UTILITIES_ML_TONE:
     '/utilities/ml/tone',
   UTILITIES_PROXY_REQUEST:

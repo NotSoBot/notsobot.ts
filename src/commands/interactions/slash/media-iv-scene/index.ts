@@ -19,6 +19,7 @@ import { MediaIVPaperCommand } from './paper';
 import { MediaIVSpheresCommand } from './spheres';
 import { MediaIVTimesquareCommand } from './times-square';
 import { MediaIVUniverseCommand } from './universe';
+import { MediaIVWrapCommand } from './wrap';
 
 
 export default class MediaIVSceneGroupCommand extends BaseSlashCommand {
@@ -51,6 +52,7 @@ export default class MediaIVSceneGroupCommand extends BaseSlashCommand {
         new MediaIVSpheresCommand(),
         new MediaIVTimesquareCommand(),
         new MediaIVUniverseCommand(),
+        new MediaIVWrapCommand(),
       ],
     });
   }

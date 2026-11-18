@@ -2695,6 +2695,7 @@ export async function generateTag(
     personality: options.personality,
     personality_preference: options.personalityPreference,
     prompt: options.prompt,
+    situation: options.situation,
     urls: options.urls,
   };
   return request(context, {
@@ -5602,6 +5603,106 @@ export async function mediaIVManipulationFaceClown(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_FACE_CLOWN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDepth(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepth,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    colormap: options.colormap,
+    invert: options.invert,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DEPTH,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDepthBlur(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepthBlur,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    amount: options.amount,
+    max_file_size: maxFileSize,
+    miniature: options.miniature,
+    range: options.range,
+    safe: options.safe,
+    url: options.url,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DEPTH_BLUR,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDepthParallax(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepthParallax,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    amount: options.amount,
+    duration: options.duration,
+    max_file_size: maxFileSize,
+    motion: options.motion,
+    safe: options.safe,
+    url: options.url,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DEPTH_PARALLAX,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDepthStereo(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDepthStereo,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    amount: options.amount,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    type: options.type,
+    url: options.url,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DEPTH_STEREO,
     },
   });
 }
@@ -14292,6 +14393,36 @@ export async function mediaIVManipulationWobble(
 }
 
 
+export async function mediaIVManipulationWrap(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWrap,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    clip: options.clip,
+    light: options.light,
+    max_file_size: maxFileSize,
+    opacity: options.opacity,
+    relief: options.relief,
+    rotate: options.rotate,
+    safe: options.safe,
+    size: options.size,
+    urls: options.urls,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_WRAP,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationXyt(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationXyt,
@@ -15564,6 +15695,31 @@ export async function utilitiesMLMashup(
     },
   });
   return response;
+}
+
+
+export async function utilitiesMLPixelart(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLPixelart,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    index: options.index,
+    max_file_size: maxFileSize,
+    query: options.query,
+    safe: true,
+    seed: options.seed,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_ML_PIXELART,
+    },
+  });
 }
 
 

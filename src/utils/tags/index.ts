@@ -167,11 +167,12 @@ import {
 } from '../tools';
 
 import { TagError, TagExitError, TagRequestError, TagTimeoutError } from './exceptions';
-import { isAllowedMediaUrl, isAttachmentUrl, isDiscordAssetUrl, parseComponentFromData } from './tools';
+import { hasComponentAI, isAllowedMediaUrl, isAttachmentUrl, isDiscordAssetUrl, parseComponentFromData } from './tools';
 
 export { TagError, TagExitError, TagRequestError, TagTimeoutError };
 export { isTagError } from './exceptions';
-export { breakInviteLinks } from './tools';
+export { COMPONENT_AI_INPUT, COMPONENT_AI_VALUES, breakInviteLinks, hasComponentAI } from './tools';
+export type { ComponentAIInput } from './tools';
 
 
 
@@ -5699,6 +5700,10 @@ const ScriptTags = Object.freeze({
     const components: TagResultComponents = tag.components || {components: []};
 
     const component = parseComponentFromData(data, undefined, undefined, tag.translate);
+    // pressing one sends their next message to NotSoAI as them, only its own reply (not a tag, or a button's run) can
+    if (hasComponentAI(component) && (!isFromAI(context, tag) || 0 < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS])) {
+      throw new TagError('Only NotSoAI\'s own reply can use `ai` and `ai_input` on components');
+    }
     components.components.push(component);
     checkTagComponentsLimit(components, tag.translate);
     await resolveComponentMediaUrls(context, [component], tag);

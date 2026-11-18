@@ -13,6 +13,7 @@ import CommandResponsesStore from './stores/commandresponses';
 import GuildSettingsStore from './stores/guildsettings';
 import PremiumServersStore, { getServerPremiumUsers } from './stores/premiumservers';
 import PremiumUsersStore from './stores/premiumusers';
+import TagCustomCommandStore from './stores/tagcustomcommands';
 import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
 
@@ -40,6 +41,10 @@ import {
 import { AutoEmbedLink, findAutoEmbedLink, getAutoEmbedLink } from './utils/autoembed';
 
 
+
+// command names/aliases that are also how a question starts, after a mention they go to the ai (`how` is wikihow's,
+// `im` image search's). their commands still run with the regular prefix, or for anyone that can't use the ai
+const MENTION_AI_WORDS = new Set(['how', 'im']);
 
 // detritus' fill() puts an empty collection in the cache before fetching, so commands that run while it's fetching
 // (or after it failed, it was never removed) saw no slash command permission overrides at all
@@ -242,12 +247,16 @@ export class NotSoCommandClient extends CommandClient {
     }
 
     if (context) {
-      let maybePassToAICommand = this.prefixes.mention.has(attributes.prefix);
+      const isMention = this.prefixes.mention.has(attributes.prefix);
+      if (isMention) {
+        command = await this.getMentionCommand(attributes, context);
+      }
+      let maybePassToAICommand = isMention;
       if (!maybePassToAICommand && !attributes.prefix) {
         const replyMessage = (context.message.messageReference && context.message.messageReference.message);
         maybePassToAICommand = !!(replyMessage && await isAIResponse(context, replyMessage));
       }
-      if (maybePassToAICommand && await this.canPassToAICommand(context)) {
+      if (!command && maybePassToAICommand && await this.canPassToAICommand(context)) {
         command = this.getAICommand();
       }
     }
@@ -281,6 +290,38 @@ export class NotSoCommandClient extends CommandClient {
       return true;
     }
     return (await PremiumUsersStore.isPremium(context, context.userId)) !== false;
+  }
+
+  // a mention is the prefix that keeps working without the message content intent (discord still sends us the content
+  // of messages that mention us), so after one a command's name (or a custom command's) runs it and anything else is a
+  // question for the ai. a few command aliases are how sentences start (`@NotSoBot how do i...`), those stay questions
+  // for anyone that can use the ai
+  async getMentionCommand(attributes: CommandAttributes, context: Command.Context): Promise<Command.Command | null> {
+    const firstWord = attributes.content.split(/\s/, 1)[0].toLowerCase();
+    if (MENTION_AI_WORDS.has(firstWord)) {
+      return null;
+    }
+    const command = await Promise.resolve(super.getCommand(attributes, context));
+    if (command) {
+      return command;
+    }
+    if (attributes.content && await this.mightHaveCustomCommand(context) && await this.hasCustomCommand(context, attributes.content)) {
+      return this.commands.find((x) => !x.name) || null;
+    }
+    return null;
+  }
+
+  // the same lookup as the custom command fallback's `onBeforeRun`, the server's custom commands then the user's own
+  async hasCustomCommand(context: Command.Context, text: string): Promise<boolean> {
+    const { findTagFromText } = Formatter.Commands.TagShowCustomCommand;
+    if (context.guildId) {
+      const tags = await TagCustomCommandStore.maybeGetOrFetchGuildCommands(context, context.guildId);
+      if (tags && findTagFromText(text, tags)) {
+        return true;
+      }
+    }
+    const tags = await TagCustomCommandStore.maybeGetOrFetchUserCommands(context, context.userId);
+    return !!(tags && findTagFromText(text, tags));
   }
 
   getAICommand(): Command.Command | null {

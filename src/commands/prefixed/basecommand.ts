@@ -13,6 +13,7 @@ import { CommandResults, getCommandResult, setCommandResult } from '../../comman
 import {
   CommandCategories,
   CommandRatelimits,
+  CommandTypes,
   DiscordReactionEmojis,
   DiscordSkuIds,
   EmbedColors,
@@ -283,12 +284,15 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         CommandResponsesStore.insertLLMResponse(context.response.id, llmResponseId, context.userId);
       }
     }
+    // `@NotSoBot cmd` counts apart from the prefix, since mentions keep working after prefix commands end
+    const isMention = !!context.prefix && context.commandClient.prefixes.mention.has(context.prefix);
     await createUserCommand(
       context,
       context.userId,
       commandId,
       {
         channelId: context.channelId,
+        commandType: (isMention) ? CommandTypes.MENTION : CommandTypes.PREFIXED,
         guildId: context.guildId,
         llmResponseId,
         messageResponseId: (context.response) ? context.response.id : undefined,

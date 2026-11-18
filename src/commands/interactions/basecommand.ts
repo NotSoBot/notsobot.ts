@@ -2,7 +2,9 @@ import { Collections, Interaction, Structures } from 'detritus-client';
 import {
   ApplicationCommandTypes,
   ApplicationCommandOptionTypes,
+  ApplicationIntegrationTypes,
   InteractionCallbackTypes,
+  InteractionContextTypes,
   MessageFlags,
 } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
@@ -359,8 +361,15 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
   error = 'Slash';
   // see `BaseInteractionCommand.ignoresEphemeralSetting`
   ignoresEphemeralSetting = false;
+  // what it was built from (with the media bases' url/attachment options and ratelimits), see `BaseSlashCommandFromOption`
+  optionData: Interaction.InteractionCommandOptionOptions;
   triggerLoadingAsEphemeral = false;
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
+
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+    super(data);
+    this.optionData = data;
+  }
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const { translate } = await I18n.getTranslator(context);
@@ -644,6 +653,65 @@ export class BaseSlashCommand extends BaseInteractionCommand {
   type = ApplicationCommandTypes.CHAT_INPUT;
 
   triggerLoadingAfter = 1000;
+}
+
+
+// detritus' hooks. an option only has its own ones (`run`, the media bases' `onBeforeRun`/`onCancelRun`) until a group
+// hands it the rest
+const OPTION_HOOK_NAMES = [
+  'onAutoComplete',
+  'onAutoCompleteError',
+  'onBefore',
+  'onBeforeRun',
+  'onCancel',
+  'onCancelRun',
+  'onDmBlocked',
+  'onError',
+  'onFinally',
+  'onLoadingTrigger',
+  'onPermissionsFail',
+  'onPermissionsFailClient',
+  'onRatelimit',
+  'onRunError',
+  'onSuccess',
+  'onValueError',
+  'run',
+] as const;
+
+// a subcommand moved out of its group to be a top-level command (`/tools translate` is `/translate`), so the option class
+// stays the one place with its options, checks and `run`. detritus fixes a built option's parent for good, so the command
+// is built again from the data the option was made with. the option's own hooks win and the rest are the slash command's,
+// like the group used to hand down. the id stays the option's, so its usage, server rules and prefix tips follow it
+export class BaseSlashCommandFromOption extends BaseSlashCommand {
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
+
+  // `data` is what the group gave all of its subcommands (like `permissions`)
+  constructor(option: BaseInteractionCommandOption, data: Interaction.InteractionCommandOptions = {}) {
+    const hooks: Record<string, Function> = {};
+    for (let name of OPTION_HOOK_NAMES) {
+      const hook = (option as any)[name];
+      if (typeof(hook) === 'function') {
+        hooks[name] = hook.bind(option);
+      }
+    }
+    const { options, permissions, permissionsClient, ratelimits } = option.optionData;
+    super({...hooks, metadata: option.metadata, options, permissions, permissionsClient, ratelimits, ...data} as Interaction.InteractionCommandOptions);
+    this.name = option.name;
+    this.nameLocalizations = option.nameLocalizations;
+    this.description = option.description;
+    this.descriptionLocalizations = option.descriptionLocalizations;
+    this.ignoresEphemeralSetting = option.ignoresEphemeralSetting;
+    this.respondsWithModal = !!(option as any).respondsWithModal;
+    this.triggerLoadingAsEphemeral = option.triggerLoadingAsEphemeral;
+  }
 }
 
 

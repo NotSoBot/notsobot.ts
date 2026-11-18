@@ -277,6 +277,8 @@ export async function editOrReply(
     return;
   }
 
+  options = await addPrefixSlashTip(context, options as Command.EditOrReply);
+
   // discord can't edit a components v2 message back into plain content, so detritus would delete the reply and send a
   // new one (an edit re-running the command over a finished media result, then replying with its thinking text). plain
   // text as a top-level text display looks the same and keeps it to an edit
@@ -2008,8 +2010,9 @@ export function replyThinking(
   context: Command.Context | Interaction.InteractionContext,
   thinkingText: string,
   statusText: null | string,
+  replyTo?: ComponentContext | InteractionModalContext,
 ) {
-  return displayReply(context, {description: (statusText) ? `${thinkingText}\n${statusText}` : thinkingText});
+  return displayReply(context, {description: (statusText) ? `${thinkingText}\n${statusText}` : thinkingText}, {replyTo});
 }
 
 
@@ -3608,6 +3611,175 @@ export function slashCommandMention(
   }) : undefined;
   const commandId = (command) ? command.ids.get(LOCAL_GUILD_ID) : undefined;
   return (commandId) ? Markup.commandMention(fullName, commandId) : Markup.codestring(`/${fullName}`);
+}
+
+
+// the slash command (or subcommand) with a prefixed command's id, prefixed and slash versions of a command share one
+export function findSlashCommandFullName(context: Command.Context, commandId: string): string | null {
+  const client = context.interactionCommandClient;
+  if (!client) {
+    return null;
+  }
+  for (let command of client.commands) {
+    if (command.type !== ApplicationCommandTypes.CHAT_INPUT) {
+      continue;
+    }
+    for (let invoker of command.invokers) {
+      if (getCommandIdFromInvoker(invoker) === commandId) {
+        return invoker.fullName;
+      }
+    }
+  }
+  return null;
+}
+
+
+// discord won't give the message content intent to bots that use it for prefix commands, so they stop working on new
+// year (a mention keeps working, discord still sends us messages that mention us). until then a prefixed command's reply
+// says how else to run it, once a day per user, and in december counts down to the day
+export const PREFIX_COMMANDS_END = Date.UTC(2027, 0, 1);
+const PREFIX_SLASH_TIP_COUNTDOWN_START = Date.UTC(2026, 11, 1);
+const PREFIX_SLASH_TIP_EVERY = 24 * 60 * 60 * 1000;
+// discord's limits for a components v2 message, the tip is skipped instead of making the reply fail
+const COMPONENTS_V2_MAX_COMPONENTS = 40;
+const COMPONENTS_V2_MAX_TEXT = 4000;
+
+// user id -> shown, per cluster (someone using us in servers on other clusters can see it once on each)
+const prefixSlashTipShown = new Collections.BaseCollection<string, true>({expire: PREFIX_SLASH_TIP_EVERY});
+// the tip text displays we added to a components v2 reply, so editing with the same components moves it instead of adding another
+const prefixSlashTipDisplays = new WeakSet<object>();
+
+// error and warning replies (`replyError`) don't get the tip, even when an earlier reply of the same run had it
+export function skipPrefixSlashTip(context: ComponentContext | Command.Context | Interaction.InteractionContext): void {
+  if (context instanceof Command.Context) {
+    context.metadata = Object.assign(context.metadata || {}, {skipPrefixSlashTip: true});
+  }
+}
+
+interface PrefixSlashTip {
+  // the media reply's own "slash commands use your nitro upload limits" warning, the tip leaves its nitro part out when
+  // the reply already says it
+  mediaNitroWarning: string | null,
+  text: string,
+  textWithoutNitro: string,
+}
+
+// decided once per run (the first reply), so every edit of the reply keeps the same line or keeps leaving it out
+function getPrefixSlashTip(context: Command.Context): Promise<PrefixSlashTip | null> {
+  const metadata = context.metadata = context.metadata || {};
+  if (!metadata.prefixSlashTip) {
+    metadata.prefixSlashTip = createPrefixSlashTip(context);
+  }
+  return metadata.prefixSlashTip;
+}
+
+async function createPrefixSlashTip(context: Command.Context): Promise<PrefixSlashTip | null> {
+  const now = Date.now();
+  const { command, prefix } = context;
+  // auto-embeds and replies to NotSoAI have no prefix, a mention is how to keep using them, custom commands have no name
+  if (PREFIX_COMMANDS_END <= now || !command || !command.name || !prefix) {
+    return null;
+  }
+  if ((context.commandClient as any).prefixes.mention.has(prefix) || prefixSlashTipShown.has(context.userId)) {
+    return null;
+  }
+  prefixSlashTipShown.set(context.userId, true);
+
+  const { translate } = await getTranslator(context);
+  const slashName = findSlashCommandFullName(context, getCommandIdFromInvoker(command));
+  // the bot's own mention never pings anyone
+  const mention = `<@${context.client.userId}> ${command.name}`;
+  const commands = (slashName) ? translate('prefix_slash_tip.or', {mention, slash: slashCommandMention(context, slashName)}) : mention;
+  let textWithoutNitro: string;
+  if (now < PREFIX_SLASH_TIP_COUNTDOWN_START) {
+    textWithoutNitro = `-# ${translate('prefix_slash_tip.retiring', {commands})}`;
+  } else {
+    const time = Markup.timestamp(PREFIX_COMMANDS_END, MarkupTimestampStyles.RELATIVE);
+    textWithoutNitro = `-# ${translate('prefix_slash_tip.ending', {commands, time})}`;
+  }
+  // a slash command's reply can upload up to the user's own limit, a mention's reply only gets the server's
+  if (slashName && userMaybeHasNitro(context)) {
+    return {
+      mediaNitroWarning: translate('media.nitro_upload_limits'),
+      text: `${textWithoutNitro} · ${translate('prefix_slash_tip.nitro')}`,
+      textWithoutNitro,
+    };
+  }
+  return {mediaNitroWarning: null, text: textWithoutNitro, textWithoutNitro};
+}
+
+// the reply's text (content, embeds, components), only to look for a string in it
+function replyIncludesText(options: Command.EditOrReply, value: string): boolean {
+  const { content, components, embed, embeds } = options;
+  const serialized = JSON.stringify({components, content, embed, embeds});
+  return serialized.includes(JSON.stringify(value).slice(1, -1));
+}
+
+function countComponentsV2(components: Array<any>): {amount: number, text: number} {
+  let amount = 0;
+  let text = 0;
+  for (let component of components) {
+    amount++;
+    if (typeof(component.content) === 'string') {
+      text += component.content.length;
+    }
+    if (component.accessory) {
+      const counted = countComponentsV2([component.accessory]);
+      amount += counted.amount;
+      text += counted.text;
+    }
+    if (Array.isArray(component.components)) {
+      const counted = countComponentsV2(component.components);
+      amount += counted.amount;
+      text += counted.text;
+    }
+  }
+  return {amount, text};
+}
+
+// the tip goes last: a text display at the end of a components v2 reply, otherwise a line under the content. an edit
+// that doesn't set the content leaves the reply's content (and its tip) as it was
+async function addPrefixSlashTip(context: Command.Context, options: Command.EditOrReply): Promise<Command.EditOrReply> {
+  if (context.metadata && context.metadata.skipPrefixSlashTip) {
+    return options;
+  }
+  const prefixSlashTip = await getPrefixSlashTip(context);
+  if (!prefixSlashTip) {
+    return options;
+  }
+  const { mediaNitroWarning } = prefixSlashTip;
+  const tip = (mediaNitroWarning && replyIncludesText(options, mediaNitroWarning)) ? prefixSlashTip.textWithoutNitro : prefixSlashTip.text;
+
+  const { components } = options;
+  if (components instanceof Components && components.isV2) {
+    const list = components.components as Array<any>;
+    for (let i = list.length - 1; 0 <= i; i--) {
+      if (prefixSlashTipDisplays.has(list[i])) {
+        list.splice(i, 1);
+      }
+    }
+    const { amount, text } = countComponentsV2(components.toJSON() as Array<any>);
+    if (COMPONENTS_V2_MAX_COMPONENTS <= amount || COMPONENTS_V2_MAX_TEXT < text + tip.length) {
+      return options;
+    }
+    components.addTextDisplay({content: tip});
+    prefixSlashTipDisplays.add(list[list.length - 1]);
+    return options;
+  }
+  // raw components v2 we'd have to rebuild
+  if (options.flags && (options.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2) {
+    return options;
+  }
+  if (typeof(options.content) === 'string') {
+    if (2000 < options.content.length + tip.length + 1) {
+      return options;
+    }
+    return {...options, content: (options.content) ? `${options.content}\n${tip}` : tip};
+  }
+  if (context.response && !context.response.deleted) {
+    return options;
+  }
+  return {...options, content: tip};
 }
 
 

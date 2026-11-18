@@ -467,6 +467,9 @@ export enum CommandTypes {
   APPLICATION_SLASH = 1,
   APPLICATION_MENU_USER = 2,
   APPLICATION_MENU_MESSAGE = 3,
+  // a prefixed command run with `@NotSoBot` as its prefix, only for usage stats (the api names it like PREFIXED and stores
+  // its response's `message_trigger_type` as PREFIXED)
+  MENTION = 4,
 }
 
 
@@ -1568,37 +1571,23 @@ export const MediaAudioVocoderSynthsToText: Record<MediaAudioVocoderSynths, stri
 
 
 export enum MediaBackgroundRemovalModels {
-  BIREFNET_COD = 'BIREFNET_COD',
-  BIREFNET_DIS = 'BIREFNET_DIS',
   BIREFNET_GENERAL = 'BIREFNET_GENERAL',
   BIREFNET_GENERAL_LITE = 'BIREFNET_GENERAL_LITE',
-  BIREFNET_HRSOD = 'BIREFNET_HRSOD',
-  BIREFNET_MASSIVE = 'BIREFNET_MASSIVE',
   BIREFNET_PORTRAIT = 'BIREFNET_PORTRAIT',
-  BRIA_RMBG = 'BRIA_RMBG',
   ISNET_ANIME = 'ISNET_ANIME',
   ISNET_GENERAL_USE = 'ISNET_GENERAL_USE',
-  SILUETA = 'SILUETA',
   U2NET = 'U2NET',
-  U2NETP = 'U2NETP',
   U2NET_CLOTH_SEG = 'U2NET_CLOTH_SEG',
   U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
 }
 
 export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalModels, string> = Object.freeze({
-  [MediaBackgroundRemovalModels.BIREFNET_COD]: 'BiRefNet COD (Hidden Object Detection)',
-  [MediaBackgroundRemovalModels.BIREFNET_DIS]: 'BiRefNet DIS (Foreground/Background Separation)',
   [MediaBackgroundRemovalModels.BIREFNET_GENERAL]: 'BiRefNet General',
   [MediaBackgroundRemovalModels.BIREFNET_GENERAL_LITE]: 'BiRefNet General Lite',
-  [MediaBackgroundRemovalModels.BIREFNET_HRSOD]: 'BiRefNet HRSOD (High Resolution)',
-  [MediaBackgroundRemovalModels.BIREFNET_MASSIVE]: 'BiRefNet Massive (Advanced Multi-Object)',
   [MediaBackgroundRemovalModels.BIREFNET_PORTRAIT]: 'BiRefNet Portrait (People Optimized)',
-  [MediaBackgroundRemovalModels.BRIA_RMBG]: 'Bria Remove Background',
   [MediaBackgroundRemovalModels.ISNET_ANIME]: 'ISNet Anime (Anime/Cartoon Optimized)',
   [MediaBackgroundRemovalModels.ISNET_GENERAL_USE]: 'ISNet General Use',
-  [MediaBackgroundRemovalModels.SILUETA]: 'U2Net Lite (Faster, Smaller Version)',
   [MediaBackgroundRemovalModels.U2NET]: 'U2Net',
-  [MediaBackgroundRemovalModels.U2NETP]: 'U2Netp (Lightweight U2Net)',
   [MediaBackgroundRemovalModels.U2NET_CLOTH_SEG]: 'U2Net Fashion (Clothing Optimized)',
   [MediaBackgroundRemovalModels.U2NET_HUMAN_SEG]: 'U2Net Human (People Optimized)',
 });
@@ -2053,6 +2042,29 @@ export const MediaVegasTimecodeTypesToText: Record<MediaVegasTimecodeTypes, stri
   [MediaVegasTimecodeTypes.TIMEFRAMES]: 'Time & Frames',
 });
 
+
+export enum MediaDepthColormaps {
+  GRAY = 'GRAY',
+  INFERNO = 'INFERNO',
+  MAGMA = 'MAGMA',
+  PLASMA = 'PLASMA',
+  TURBO = 'TURBO',
+  VIRIDIS = 'VIRIDIS',
+}
+
+export enum MediaParallaxMotions {
+  CIRCLE = 'CIRCLE',
+  SWAY = 'SWAY',
+  ZOOM = 'ZOOM',
+}
+
+export enum MediaStereoTypes {
+  ANAGLYPH = 'ANAGLYPH',
+  CROSSEYE = 'CROSSEYE',
+  MAGICEYE = 'MAGICEYE',
+  SIDEBYSIDE = 'SIDEBYSIDE',
+  WIGGLE = 'WIGGLE',
+}
 
 export enum MediaWiggleDirections {
   DOWN = 'DOWN',

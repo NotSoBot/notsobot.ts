@@ -13,10 +13,10 @@ import {
   putGeneratedTagError,
   utilitiesFetchText,
 } from '../../../api';
-import { RestResponsesRaw } from '../../../api/types';
+import { RestOptions, RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
 import { getRunErrorResult, setCommandResult } from '../../../commandresults';
-import { captureError } from '../../../sentry';
+import { captureCommandError, captureError } from '../../../sentry';
 import { UserError } from '../../errors';
 import {
   Paginator,
@@ -32,7 +32,15 @@ import {
 import { Translator, getTranslator, randomAIThinkingText } from '../../i18n';
 
 import { formatCreditsAlert } from './credits';
-import { THINKING_REPLY_AFTER, ThinkingReply, createTagMessage, tagTimeLimitText } from './tag.show';
+import { canControlMusic } from './music.shared';
+import {
+  THINKING_REPLY_AFTER,
+  TagMessageAIOptions,
+  TagReplyTarget,
+  ThinkingReply,
+  createTagMessage,
+  tagTimeLimitText,
+} from './tag.show';
 
 
 export const COMMAND_ID = 'tag.generate';
@@ -69,6 +77,47 @@ export async function createMessage(
   const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate));
   try {
     return await generateAndRunTag(context, args, thinking);
+  } finally {
+    await thinking.stop();
+  }
+}
+
+
+// NotSoAI's reply continued from one of its own `ai`/`ai_input` components
+interface AIContinuation {
+  parentId: string,
+  replyTo: TagReplyTarget,
+}
+
+// a press on one of NotSoAI's `ai` components (or the text typed into its `ai_input`): sent as the asker's next message
+// in the conversation, with its history, charged like one, and answered on the press's response (a new message). The
+// command already finished, so its errors go on that message instead of the command's error handler
+async function continueAI(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+  parentId: string,
+  replyTo: TagReplyTarget,
+  prompt: string,
+) {
+  const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate), replyTo);
+  try {
+    await generateAndRunTag(context, {
+      model: args.model,
+      personalityPreference: args.personalityPreference,
+      prompt,
+    }, thinking, {parentId, replyTo});
+  } catch(error) {
+    await thinking.stop();
+    captureCommandError(context, error, 'ai_continue');
+    // required here, commands/errors imports utils (and this file with it) back
+    const { createRunErrorPayload, replyError, warning }: typeof import('../../../commands/errors') = require('../../../commands/errors');
+    try {
+      const translator = await getTranslator(context);
+      const title = warning(translator.translate('errors.prefix_run_title'));
+      await replyError(context, await createRunErrorPayload(context, title, error, translator), {replyTo});
+    } catch(e) {
+
+    }
   } finally {
     await thinking.stop();
   }
@@ -119,6 +168,7 @@ async function generateAndRunTag(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
   thinking: ThinkingReply,
+  continuation?: AIContinuation,
 ) {
   const urls: Array<string> = [];
   const promptExtra: Array<string> = [];
@@ -127,7 +177,13 @@ async function generateAndRunTag(
   let isUntrusted = !!args.url;
   // replying to NotSoAI continues that conversation, the api sends its earlier turns (with the code it wrote)
   let parentId: null | string = null;
-  if (context instanceof Command.Context) {
+  if (continuation) {
+    // a press has no message of its own, the conversation (and its media) is already in the earlier turns
+    parentId = continuation.parentId;
+    if (UNTRUSTED_RESPONSES.get(parentId) !== false) {
+      isUntrusted = true;
+    }
+  } else if (context instanceof Command.Context) {
     // only the media from the command message itself and the first media found going up the reply chain
     const current = findMediaForAI(context.message);
     const currentText = (current && current.isText) ? await fetchTextForAI(context, current.url) : null;
@@ -281,11 +337,15 @@ async function generateAndRunTag(
     personality,
     personalityPreference: args.personalityPreference,
     prompt: [args.prompt, ...promptExtra].join('\n'),
+    situation: getAISituation(context, !!continuation),
     urls,
   });
   if (response.id) {
-    // saved with the command's response (`onFinally`), so a reply to it can continue this conversation
-    context.metadata = Object.assign({}, context.metadata, {llmResponseId: response.id});
+    // saved with the command's response (`onFinally`), so a reply to it can continue this conversation. a continuation's
+    // message is stored once it's sent, the command's own reply keeps the first response
+    if (!continuation) {
+      context.metadata = Object.assign({}, context.metadata, {llmResponseId: response.id});
+    }
     UNTRUSTED_RESPONSES.set(response.id, isUntrusted);
   }
   if (args.debug || args.debugFull) {
@@ -326,7 +386,13 @@ async function generateAndRunTag(
   let startedAt = Date.now();
   // most generated tagscript is done right away, only switch to its countdown once it's actually taking a while
   thinking.setStatus((translate) => tagTimeLimitText(context, translate, startedAt), THINKING_REPLY_AFTER);
-  const confirmAction = createAIConfirmAction(context, thinking, (waited) => startedAt += waited);
+  const replyTo = (continuation) ? continuation.replyTo : undefined;
+  const confirmAction = createAIConfirmAction(context, thinking, (waited) => startedAt += waited, replyTo);
+  // its `ai`/`ai_input` components continue this conversation from this response
+  const responseId = response.id;
+  const aiOptions: TagMessageAIOptions | undefined = (responseId) ? {
+    onContinue: (target, prompt) => continueAI(context, args, responseId, target, prompt),
+  } : undefined;
   try {
     const parsedTag = await TagFormatter.parse(context, response.text, '', {
       defaultPersonality: TAG_GENERATION_PERSONALITY_DEFAULT,
@@ -362,7 +428,18 @@ async function generateAndRunTag(
       parsedTag.text = [parsedTag.text.trimEnd(), formatCreditsAlert(response.credits_alert, language, translate)].join('\n');
     }
     await thinking.stop();
-    return await createTagMessage(context, parsedTag);
+    const result = await createTagMessage(context, parsedTag, undefined, replyTo, {
+      ai: aiOptions,
+      continuation: !!continuation,
+    });
+    // what replying to the new message continues from (the command's own reply is stored by its `onFinally`)
+    if (replyTo && responseId) {
+      const message = await replyTo.fetchResponse().catch(() => null);
+      if (message) {
+        CommandResponsesStore.insertLLMResponse(message.id, responseId, context.userId);
+      }
+    }
+    return result;
   } catch(error) {
     await thinking.stop();
     if (response.id) {
@@ -376,7 +453,9 @@ async function generateAndRunTag(
     // caught here so it can reply with the debug info, but it still counts as the run erroring. NotSoAI writing broken
     // tagscript is already kept with the generated tag above, only our own failures go to sentry. api responses were
     // reported where they were seen (and coded ones, like media blocked for being nsfw, are expected)
-    setCommandResult(context, await getRunErrorResult(error));
+    if (!continuation) {
+      setCommandResult(context, await getRunErrorResult(error));
+    }
     if (!TagFormatter.isTagError(error) && !error.response && !(error instanceof UserError)) {
       captureError(error, {
         context,
@@ -391,7 +470,7 @@ async function generateAndRunTag(
       });
     }
 
-    return editOrReply(context, {
+    return editOrReply(replyTo || context, {
       content: [
         'TagScript processing errored',
         'Model: ' + response.model,
@@ -406,6 +485,68 @@ async function generateAndRunTag(
 
 
 
+// the default prefix, what a server without its own (or a dm) uses
+const DEFAULT_PREFIXES = ['.'];
+
+// where this is and who's asking, for the api's prompt (`generate_situation_prompt`). Everything here is already in
+// memory, nothing is fetched for it
+function getAISituation(
+  context: Command.Context | Interaction.InteractionContext,
+  fromButton: boolean,
+): RestOptions.GenerateTagSituation {
+  const situation: RestOptions.GenerateTagSituation = {invoked: 'slash', location: 'bot_dm'};
+
+  if (fromButton) {
+    situation.invoked = 'button';
+  } else if (context instanceof Command.Context) {
+    const prefix = context.prefix || '';
+    if (!prefix) {
+      situation.invoked = 'reply';
+    } else if (context.commandClient.prefixes.mention.has(prefix)) {
+      situation.invoked = 'mention';
+    } else {
+      situation.invoked = 'prefix';
+      situation.used_prefix = prefix;
+    }
+  }
+
+  const { member } = context;
+  situation.display_name = ((member) ? member.name : context.user.name).slice(0, 64);
+
+  if (context.guildId) {
+    situation.location = (context.isBotPresent) ? 'server' : 'server_user_app';
+    if (context.guild) {
+      situation.server_name = context.guild.name.slice(0, 100);
+    }
+    // a server we're not in has no settings, music or knowledge to change, so it doesn't matter there
+    if (context.isBotPresent) {
+      if (member) {
+        situation.manage_server = member.canManageGuild;
+      }
+      const settings = GuildSettingsStore.get(context.guildId);
+      const prefixes = (settings && settings.prefixes.length) ? settings.prefixes.map(({prefix}) => prefix) : DEFAULT_PREFIXES;
+      situation.prefixes = prefixes.slice(0, 10);
+      if (member) {
+        situation.music_dj = canControlMusic(member);
+        const voiceState = member.voiceState;
+        if (voiceState && voiceState.channelId) {
+          situation.voice_channel_id = voiceState.channelId;
+        }
+      }
+    }
+  } else if (context instanceof Interaction.InteractionContext && context.interaction.inDmWithUsers) {
+    const { channel } = context;
+    situation.location = (channel && channel.isDmGroup) ? 'group_dm' : 'private_channel';
+    if (channel && channel.isDmGroup && channel.name) {
+      situation.channel_name = channel.name.slice(0, 100);
+    }
+  } else {
+    situation.prefixes = (context instanceof Command.Context) ? Array.from(context.commandClient.prefixes.custom) : DEFAULT_PREFIXES;
+  }
+  return situation;
+}
+
+
 // how long NotSoAI's confirmation buttons wait, no answer counts as Cancel
 export const AI_CONFIRM_TIMEOUT = 60 * 1000;
 
@@ -415,6 +556,7 @@ function createAIConfirmAction(
   context: Command.Context | Interaction.InteractionContext,
   thinking: ThinkingReply,
   onWait: (waited: number) => void,
+  replyTo?: TagReplyTarget,
 ): TagFormatter.AIConfirmAction {
   return (call, reason) => thinking.hold(async () => {
     const { translate } = await getTranslator(context);
@@ -458,7 +600,7 @@ function createAIConfirmAction(
         ].join('\n');
         // nothing to press if the reply can't be edited, the run goes on as if they cancelled. in the display setting like
         // the thinking reply it's on, so it stays an edit
-        displayReply(context, {components, description: content}).catch((error) => {
+        displayReply(context, {components, description: content}, {replyTo}).catch((error) => {
           if (!answered) {
             answered = true;
             components.clear();

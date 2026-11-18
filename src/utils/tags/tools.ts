@@ -1,3 +1,4 @@
+import { onlyEmoji } from 'emoji-aware';
 import { MessageComponentButtonStyles, MessageComponentTypes } from 'detritus-client/lib/constants';
 
 import { ZERO_WIDTH_SPACE } from '../../constants';
@@ -49,6 +50,112 @@ export function isDiscordAssetUrl(url: string): boolean {
 
 export function isAllowedMediaUrl(url: string): boolean {
   return isAttachmentUrl(url) || isDiscordAssetUrl(url);
+}
+
+
+// NotSoAI's buttons and select menus that continue its conversation (`ai`, `ai_input`, `once`), what's pressed or picked
+// is sent as the user's next message. Only NotSoAI's own reply can make them (`checkAIComponents` in the parser), the bot
+// handles them in `generateComponents()` (tag.show)
+export const MAX_COMPONENT_AI_LENGTH = 1000;
+export const MAX_COMPONENT_AI_INPUT_LENGTH = 1000;
+// `{values}` in a select menu's `ai`, `{input}` in an `ai_input` button's
+export const COMPONENT_AI_VALUES = '{values}';
+export const COMPONENT_AI_INPUT = '{input}';
+
+export interface ComponentAIInput {
+  label: string,
+  max_length: number,
+  paragraph: boolean,
+  placeholder?: string,
+  required: boolean,
+  title: string,
+}
+
+// a button's text box (a modal) for an answer that isn't one of the buttons
+function parseComponentAIInput(value: any, buttonLabel?: string): ComponentAIInput {
+  if (value === true) {
+    value = {};
+  }
+  if (!value || typeof(value) !== 'object' || Array.isArray(value)) {
+    throw new TagError('`ai_input` must be an object like `{"label": "Your answer"}` (or `true`)');
+  }
+  const input: ComponentAIInput = {
+    label: ((typeof(value.label) === 'string' && value.label.trim()) || 'Your answer').slice(0, 45),
+    max_length: MAX_COMPONENT_AI_INPUT_LENGTH,
+    paragraph: value.style === 'paragraph',
+    required: value.required !== false,
+    title: ((typeof(value.title) === 'string' && value.title.trim()) || buttonLabel || 'NotSoAI').slice(0, 45),
+  };
+  if (typeof(value.placeholder) === 'string' && value.placeholder.trim()) {
+    input.placeholder = value.placeholder.slice(0, 100);
+  }
+  if (typeof(value.max_length) === 'number' && 0 < value.max_length) {
+    input.max_length = Math.min(Math.floor(value.max_length), MAX_COMPONENT_AI_INPUT_LENGTH);
+  }
+  return input;
+}
+
+// `ai` and `once` onto a button/select menu that's already parsed, not alongside `run` (that re-runs the old reply,
+// `ai` starts a new turn)
+function parseComponentAI(data: Record<string, any>, component: Record<string, any>): void {
+  if ('ai' in data && data.ai !== undefined && data.ai !== null) {
+    if (typeof(data.ai) !== 'string' || !data.ai.trim()) {
+      throw new TagError('`ai` must be the text to send as their next message');
+    }
+    component.ai = data.ai.trim().slice(0, MAX_COMPONENT_AI_LENGTH);
+  }
+  if (component.ai === undefined && component.ai_input === undefined) {
+    return;
+  }
+  if (component.run !== undefined) {
+    throw new TagError('A component can have `run` or `ai`, not both');
+  }
+  if (component.url) {
+    throw new TagError('Link buttons can\'t have `ai` or `ai_input`');
+  }
+  // a pick is one answer, pressing one turns off the rest of the message's components
+  component.once = !('once' in data) || !!data.once;
+}
+
+// a parsed component (or any of its children) continues NotSoAI's conversation
+export function hasComponentAI(component: any): boolean {
+  if (!component || typeof(component) !== 'object') {
+    return false;
+  }
+  if (component.ai !== undefined || component.ai_input !== undefined) {
+    return true;
+  }
+  if (Array.isArray(component.components) && component.components.some(hasComponentAI)) {
+    return true;
+  }
+  return hasComponentAI(component.accessory);
+}
+
+// a unicode emoji, or a custom one by id. discord rejects the whole message for anything else (like `:cat:`)
+function parseComponentEmoji(value: any): Record<string, any> | undefined {
+  if (typeof(value) === 'string') {
+    value = {name: value};
+  }
+  if (!value || typeof(value) !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+  if (value.id !== undefined && value.id !== null) {
+    const id = String(value.id);
+    if (!/^\d{15,21}$/.test(id)) {
+      throw new TagError('A custom emoji needs its id, like `{"id": "123456789012345678", "name": "cat"}`');
+    }
+    return {
+      animated: !!value.animated,
+      id,
+      name: (typeof(value.name) === 'string' && value.name) ? value.name.replace(/[^\w]/g, '').slice(0, 32) || 'emoji' : 'emoji',
+    };
+  }
+  const name = (typeof(value.name) === 'string') ? value.name.trim() : '';
+  const emojis = (name) ? onlyEmoji(name) : null;
+  if (!emojis || emojis.length !== 1 || emojis[0] !== name) {
+    throw new TagError('A component emoji must be one unicode emoji, or a custom one with its `id`');
+  }
+  return {name};
 }
 
 
@@ -117,15 +224,22 @@ export function parseComponentFromData(
           button.style = MessageComponentButtonStyles.PRIMARY;
         }
       }
-      if ('emoji' in data && typeof(data.emoji) === 'object') {
-        // todo: do stuff here
+      if ('emoji' in data) {
+        const emoji = parseComponentEmoji(data.emoji);
+        if (emoji) {
+          button.emoji = emoji;
+        }
       }
       if ('run' in data && typeof(data.run) === 'string') {
         button.run = data.run;
       }
-      if (!button.url && !button.label) {
+      if (!button.url && !button.label && !button.emoji) {
         throw new TagError(translate('tagscript.components.buttons_must_contain_a_url_or_a_label'));
       }
+      if ('ai_input' in data && data.ai_input !== undefined && data.ai_input !== null && data.ai_input !== false) {
+        button.ai_input = parseComponentAIInput(data.ai_input, button.label);
+      }
+      parseComponentAI(data, button);
       return button;
     }; break;
     case MessageComponentTypes.CONTAINER: {
@@ -280,6 +394,10 @@ export function parseComponentFromData(
       if ('run' in data && typeof(data.run) === 'string') {
         selectMenu.run = data.run;
       }
+      if ('ai_input' in data && data.ai_input) {
+        throw new TagError('`ai_input` only works on buttons');
+      }
+      parseComponentAI(data, selectMenu);
 
       if (!data.options || !Array.isArray(data.options) || !data.options.length) {
         throw new TagError(translate('tagscript.components.select_menu_options_must_contain_at_least_1'));
@@ -301,8 +419,11 @@ export function parseComponentFromData(
         if ('description' in x && x.description && typeof(x.description) === 'string') {
           options.description = x.description.slice(0, 100);
         }
-        if ('emoji' in x && typeof(x.emoji) === 'object') {
-          // todo: add support
+        if ('emoji' in x) {
+          const emoji = parseComponentEmoji(x.emoji);
+          if (emoji) {
+            options.emoji = emoji;
+          }
         }
         if ('default' in x) {
           options.default = !!x.default;
