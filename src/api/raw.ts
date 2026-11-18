@@ -13420,6 +13420,7 @@ export async function mediaIVManipulationResize(
     safe: options.safe,
     scale: options.scale,
     size: options.size,
+    type: options.type,
     url: options.url,
   };
   return request(context, {

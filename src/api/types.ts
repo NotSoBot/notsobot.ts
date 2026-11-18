@@ -1668,6 +1668,7 @@ export namespace RestOptions {
     ratio?: boolean,
     scale?: number,
     size?: string,
+    type?: string,
   }
 
   export interface MediaIVManipulationRGBSplit extends MediaBaseOptions {

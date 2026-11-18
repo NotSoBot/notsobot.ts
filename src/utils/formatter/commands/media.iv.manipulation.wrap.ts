@@ -36,7 +36,7 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  // the first media is the surface, a still of the second one goes onto it
+  // the first media is the surface (always a still of it), the second one goes onto it (an animated one plays on it)
   return mediaIVManipulationWrap(context, {
     clip: (args.noclip) ? false : undefined,
     light: args.light,

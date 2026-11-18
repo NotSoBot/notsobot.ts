@@ -1870,6 +1870,16 @@ export enum MediaQuadartTypes {
 }
 
 
+// how resize uses a (width)x(height) size, each is the mediascript line of the same name
+export enum MediaResizeTypes {
+  CONTAIN = 'contain',
+  COVER = 'cover',
+  FIT = 'fit',
+  FORCE = 'force',
+  PAD = 'pad',
+}
+
+
 export enum MediaResizeKernels {
   NEAREST = 'NEAREST',
   BILINEAR = 'BILINEAR',

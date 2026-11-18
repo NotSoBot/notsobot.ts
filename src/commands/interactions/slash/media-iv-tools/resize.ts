@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { MediaResizeKernels } from '../../../../constants';
+import { MediaResizeKernels, MediaResizeTypes } from '../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
@@ -29,6 +29,12 @@ export class MediaIVToolsResizeCommand extends BaseInteractionImageOrVideoComman
         },
         {name: 'ratio', description: 'Keep the Image\'s Ratio the same', ...I18n.optionLocalizations('commands.media_iv_tools.resize.ratio'), type: Boolean},
         {name: 'size', description: 'number or (width)x(height)', ...I18n.optionLocalizations('commands.media_iv_tools.resize.size')},
+        {
+          name: 'type',
+          description: 'How the size is used (Default: force)',
+          ...I18n.optionLocalizations('commands.media_iv_tools.resize.type'),
+          choices: Parameters.Slash.oneOf({choices: MediaResizeTypes}),
+        },
       ],
     });
   }

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, MediaResizeKernels } from '../../../constants';
+import { CommandCategories, MediaResizeKernels, MediaResizeTypes } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
@@ -19,6 +19,7 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
         {name: 'ratio', aliases: ['r'], type: Boolean},
         {name: 'scale', aliases: ['sc'], type: 'float'},
         {name: 'size', aliases: ['sz']},
+        {name: 'type', aliases: ['t'], type: Parameters.oneOf({choices: MediaResizeTypes})},
       ],
       metadata: {
         category: CommandCategories.CONVERSION,
@@ -30,9 +31,12 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} 👌🏿 -scale 2`,
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/b1.png -size 2048`,
           `${COMMAND_NAME} notsobot -ratio -size 320x320`,
+          `${COMMAND_NAME} notsobot 512x512 -type fit`,
+          `${COMMAND_NAME} notsobot 512x256 -type cover`,
+          `${COMMAND_NAME} notsobot 1024x1024 -type pad`,
         ],
         id: Formatter.Commands.MediaIVManipulationResize.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<SizeOrScale:Size,float> (-kernel <choice>) (-ratio) (-scale <float>) (-size <number|(width)x(height)>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<SizeOrScale:Size,float> (-kernel <choice>) (-ratio) (-scale <float>) (-size <number|(width)x(height)>) (-type <choice>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false, image: true, video: true})},

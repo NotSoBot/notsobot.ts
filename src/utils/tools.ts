@@ -300,8 +300,16 @@ export async function editOrReply(
     response && !response.deleted && response.attachments.length && options.components && !options.attachments &&
     !(options.files && options.files.length)
   ) {
+    // an edit of only the rows of a plain or embed reply leaves its content and embeds as they are, they still show
+    // (or point at) every file, like the grid of a pixel art reply losing its buttons in the legacy displays
+    const onlyComponents = (
+      !response.hasFlagComponentsV2 && options.content === undefined && options.embed === undefined &&
+      options.embeds === undefined
+    );
     const json = JSON.stringify(options.components);
-    const kept = response.attachments.filter((x) => json.includes(`attachment://${x.filename}`));
+    const kept = (onlyComponents) ? response.attachments.toArray() : response.attachments.filter((x) => {
+      return json.includes(`attachment://${x.filename}`);
+    });
     if (kept.length) {
       options = {...options, attachments: kept.map((x) => ({filename: x.filename, id: x.id}))};
     }
@@ -2160,6 +2168,9 @@ export async function jobReply(
     describeEmbedFooter?: (response: RestResponsesRaw.FileResponse) => MediaReplyEmbedFooter | undefined,
     // after the result is posted (not for errors), its failures are ignored, the result is already there
     onSuccess?: () => Promise<void> | void,
+    // the response to post in place of the job's (like pixel art posting its grid and keeping the sprites for its
+    // buttons), what the other options get too
+    show?: (response: RestResponsesRaw.FileResponse) => RestResponsesRaw.FileResponse,
     spoiler?: boolean,
   } = {},
   pollingTime: number = 500,
@@ -2172,6 +2183,9 @@ export async function jobReply(
     spoiler: options.spoiler,
   });
   const replyResult = async (response: RestResponsesRaw.FileResponse) => {
+    if (options.show) {
+      response = options.show(response);
+    }
     // several files (like pixel art's sprites) are all posted together
     const reply = (response.files && 1 < response.files.length) ?
       await mediaReplyFiles(context, response.files, {...replyOptions(response), took: response.took}) :
@@ -3708,6 +3722,9 @@ export async function mediaReplyFromOptions(
       (options.hideDetails) ? '' : `-# ${footer}`,
     ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, title, value},
+    // the action rows (like pixel art's sprite buttons) and the reupload button, only when there are any so a reply
+    // without them doesn't send an empty list
+    components: (components.components.length) ? components : undefined,
   };
   if (replacesResponse) {
     return replaceInteractionResponse(context as Interaction.InteractionContext, message);
