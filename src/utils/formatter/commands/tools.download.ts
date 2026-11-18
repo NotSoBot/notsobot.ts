@@ -53,6 +53,14 @@ export async function createMessage(
     if (options.post || autoEmbed) {
       const textOnly = await getTextOnlyPost(error);
       if (textOnly) {
+        if (autoEmbed && !isAutoEmbedTextOn(context as Command.Context)) {
+          // the server only wants media: a post that's just text is left to the link's own embed, no reply and no
+          // reaction. one that linked to media we couldn't get still reacts as failed (`onRunError`)
+          if (textOnly.mediaFailed) {
+            throw error;
+          }
+          return;
+        }
         return postTextReply(context, textOnly, (autoEmbed) ? autoEmbed.spoiler : !!args.spoiler);
       }
     }
@@ -116,9 +124,7 @@ async function createMediaMessage(
 // then the link's own embed goes away since ours replaced it
 async function autoEmbedReply(context: Command.Context, job: Parameters<typeof jobWaitForResponse>[1], spoiler: boolean) {
   const response = await jobWaitForResponse(context, job);
-  const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
-  const showText = !!(settings && settings.settings && settings.settings.autoEmbedText);
-  const post: FormattedPost = (showText && response.post) ? formatPost(await getTranslator(context), response.post, {spoiler}) : {};
+  const post: FormattedPost = (isAutoEmbedTextOn(context) && response.post) ? formatPost(await getTranslator(context), response.post, {spoiler}) : {};
   const reply = await mediaReply(context, response, {
     description: post.above,
     descriptionBelow: post.below,
@@ -128,6 +134,13 @@ async function autoEmbedReply(context: Command.Context, job: Parameters<typeof j
   });
   await suppressLinkEmbed(context);
   return reply;
+}
+
+
+// the server's auto-embed text setting (post text and author with the media)
+function isAutoEmbedTextOn(context: Command.Context): boolean {
+  const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
+  return !!(settings && settings.settings && settings.settings.autoEmbedText);
 }
 
 
@@ -153,7 +166,7 @@ async function getTextOnlyPost(error: any): Promise<TextOnlyPost | null> {
 
 // a text post laid out like one with media, just without it: who and what above, where/when/counts under (the embed
 // display has those in its footer like `mediaReply`), and where the media would be a line saying it couldn't be had
-// when it linked to some. auto-embed shows it even when the server has the text off, the text is all there is
+// when it linked to some. auto-embed only shows it when the server has the text on
 async function postTextReply(
   context: Command.Context | Interaction.InteractionContext,
   { mediaFailed, post }: TextOnlyPost,

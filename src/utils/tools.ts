@@ -2172,7 +2172,10 @@ export async function jobReply(
     spoiler: options.spoiler,
   });
   const replyResult = async (response: RestResponsesRaw.FileResponse) => {
-    const reply = await mediaReply(context, response, replyOptions(response));
+    // several files (like pixel art's sprites) are all posted together
+    const reply = (response.files && 1 < response.files.length) ?
+      await mediaReplyFiles(context, response.files, {...replyOptions(response), took: response.took}) :
+      await mediaReply(context, response, replyOptions(response));
     if (options.onSuccess) {
       try {
         await options.onSuccess();
@@ -3189,6 +3192,143 @@ export async function mediaReply(
 }
 
 
+// a job's several files as one result (like pixel art's sprites): one media gallery (components v2), embeds sharing
+// a url so discord shows their images as one embed's grid (legacy, up to 4), or plain attachments (no embeds, and
+// anything an embed can't show: spoilers, videos, more than 4)
+const MEDIA_REPLY_FILES_EMBED_URL = 'https://notsobot.com';
+const MEDIA_REPLY_FILES_EMBED_MAX = 4;
+
+export async function mediaReplyFiles(
+  context: Command.Context | Interaction.InteractionContext,
+  entries: NonNullable<RestResponsesRaw.FileResponse['files']>,
+  options: {
+    actions?: MediaReplyActions,
+    description?: string,
+    descriptionBelow?: string,
+    embedFooter?: MediaReplyEmbedFooter,
+    spoiler?: boolean,
+    took?: number,
+  } = {},
+) {
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  const { language, translate } = await getTranslator(context);
+  const spoiler = !!options.spoiler || entries.some((entry) => entry.file.has_nsfw);
+
+  // the ones the api sent are attached, uploaded ones (too big, or the user's upload setting) are linked from storage
+  const files: Array<RequestTypes.File> = [];
+  const media = entries.map((entry) => {
+    const { file, storage } = entry;
+    if (storage) {
+      return {mimetype: file.metadata.mimetype, storage, url: storage.urls.cdn};
+    }
+    files.push({
+      contentType: file.metadata.mimetype,
+      filename: file.filename_safe,
+      hasSpoiler: spoiler,
+      value: (file.value) ? Buffer.from(file.value, 'base64') : Buffer.alloc(0),
+    });
+    return {mimetype: file.metadata.mimetype, storage: null, url: `attachment://${file.filename_safe}`};
+  });
+
+  // the first one's size (they're usually all the same), then all of them together
+  const { metadata } = entries[0].file;
+  let footer = (metadata.width || metadata.height) ? `${metadata.width || 0}x${metadata.height || 0}, ` : '';
+  footer += formatMemory(entries.reduce((total, entry) => total + entry.file.metadata.size, 0), 2);
+  if (options.took) {
+    const took = (context.metadata && context.metadata.started) ? Date.now() - context.metadata.started : options.took;
+    if (2000 <= took) {
+      const seconds = (took / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
+      footer = `${footer}, ${translate('media.took', {seconds})}`;
+    }
+  }
+  const invokedBy = (isFromInteraction) ? '' : `-# **${translate('media.invoked_by', {user: `<@${context.userId}>`})}**`;
+
+  const actions = options.actions;
+  const components = new Components((actions) ? {
+    timeout: actions.timeout,
+    onTimeout: async () => {
+      if (actions.onTimeout) {
+        await actions.onTimeout(async () => {
+          components.components = components.components.filter((x) => !actions.rows.includes(x as any));
+          for (let x of components.components) {
+            if (x instanceof ComponentContainer) {
+              x.components = x.components.filter((c) => !actions.rows.includes(c as any));
+            }
+          }
+          await editOrReply(context, {components});
+        });
+      }
+    },
+  } : {});
+
+  const isEmbeddable = (mimetype: string) => MIMETYPES_IMAGE_EMBEDDABLE.includes(mimetype as Mimetypes) || MIMETYPES_VIDEO_EMBEDDABLE.includes(mimetype as Mimetypes);
+  const displaySettings = await getResponseDisplay(context, context.userId);
+  if (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT && media.every((x) => isEmbeddable(x.mimetype))) {
+    const container = components.createContainer();
+    if (options.description) {
+      container.addTextDisplay({content: options.description});
+      container.addSeparator();
+    }
+    // the gallery spoilers its items, the files themselves don't need to be
+    const mediaGallery = container.createMediaGallery();
+    for (let item of media) {
+      mediaGallery.addItem({media: {url: item.url}, spoiler});
+    }
+    if (options.descriptionBelow) {
+      container.addTextDisplay({content: options.descriptionBelow});
+    }
+    container.addSeparator();
+    if (invokedBy) {
+      container.addTextDisplay({content: invokedBy});
+    }
+    container.addTextDisplay({content: `-# ${footer}`});
+    if (actions) {
+      for (let row of actions.rows) {
+        container.addActionRow(row);
+      }
+    }
+    return editOrReply(context, {components, files: files.map((file) => ({...file, hasSpoiler: undefined}))});
+  }
+
+  if (actions) {
+    for (let row of actions.rows) {
+      components.addActionRow(row);
+    }
+  }
+
+  const canEmbed = (
+    !spoiler && media.length <= MEDIA_REPLY_FILES_EMBED_MAX &&
+    media.every((x) => MIMETYPES_SAFE_EMBED.includes(x.mimetype as Mimetypes) && x.mimetype !== Mimetypes.IMAGE_X_APNG)
+  );
+  if (canEmbed && (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT || displaySettings === UserSettingsResponseDisplayTypes.LEGACY)) {
+    // discord shows embeds with the same url as one, with their images in a grid. the text is all on the first one
+    const embedFooter = options.embedFooter;
+    const embeds = media.map((item, i) => {
+      const embed = (i === 0 && !isFromInteraction) ? createUserEmbed(context.user) : new Embed();
+      embed.setUrl(MEDIA_REPLY_FILES_EMBED_URL);
+      embed.setImage(item.url);
+      if (i === 0) {
+        embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
+        const description = (embedFooter) ? options.description : [options.description, options.descriptionBelow].filter(Boolean).join('\n');
+        if (description) {
+          embed.setDescription(description);
+        }
+        embed.setFooter([(embedFooter) ? embedFooter.text : undefined, footer].filter(Boolean).join(' • '), (embedFooter && embedFooter.iconUrl) || undefined);
+        if (embedFooter && embedFooter.timestamp) {
+          embed.setTimestamp(embedFooter.timestamp);
+        }
+      }
+      return embed;
+    });
+    return editOrReply(context, {components, content: '', embeds, files});
+  }
+
+  const links = media.filter((x) => x.storage).map((x) => `> ${(spoiler) ? Markup.spoiler(x.url) : x.url}`);
+  const content = [options.description, options.descriptionBelow, ...links, invokedBy, `-# ${footer}`].filter(Boolean);
+  return editOrReply(context, {components, content: content.join('\n'), files});
+}
+
+
 // rows under a media result (like `.eyes`' picker), their callbacks stay on the reply until `timeout`
 export interface MediaReplyActions {
   // `strip` edits the reply without the rows, left to the caller since a newer render might own the reply by then
@@ -3687,8 +3827,9 @@ async function createPrefixSlashTip(context: Command.Context): Promise<PrefixSla
 
   const { translate } = await getTranslator(context);
   const slashName = findSlashCommandFullName(context, getCommandIdFromInvoker(command));
-  // the bot's own mention never pings anyone
-  const mention = `<@${context.client.userId}> ${command.name}`;
+  // written out in a codestring (a real mention can't sit inside one), typing "@name" picks the bot from autocomplete
+  const botName = (context.client.user) ? context.client.user.username : 'NotSoBot';
+  const mention = Markup.codestring(`@${botName} ${command.name}`);
   const commands = (slashName) ? translate('prefix_slash_tip.or', {mention, slash: slashCommandMention(context, slashName)}) : mention;
   let textWithoutNitro: string;
   if (now < PREFIX_SLASH_TIP_COUNTDOWN_START) {

@@ -2455,6 +2455,8 @@ export namespace RestResponsesRaw {
         width: number,
       },
     },
+    // a job that made several files (like pixel art's sprites): each of them, `file`/`file_old`/`storage` are the first's
+    files?: Array<Pick<FileResponse, 'file' | 'file_old' | 'storage'>>,
     storage: null | FileResponseStorage,
     took: number,
   }
