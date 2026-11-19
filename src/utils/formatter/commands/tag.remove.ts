@@ -3,6 +3,7 @@ import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } f
 import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 
 import { deleteTag } from '../../../api';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
@@ -84,6 +85,7 @@ export async function createMessage(
         ].join('\n');
       }
 
+      const confirmer = new Confirmer();
       const components = new Components({timeout: 5 * (60 * 1000)});
       components.createButton({
         label: translate('tag_remove.continue'),
@@ -93,10 +95,12 @@ export async function createMessage(
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
 
-          await deleteTag(context, {name: tag.name, serverId: context.guildId || context.channelId});
-          payload.color = EmbedColors.LOG_CREATION;
-          payload.title = translate('tag_remove.successfully_force_removed_tag');
-          await displayReply(context, payload, {replyTo: ctx});
+          return confirmer.run(ctx, async () => {
+            await deleteTag(context, {name: tag.name, serverId: context.guildId || context.channelId});
+            payload.color = EmbedColors.LOG_CREATION;
+            payload.title = translate('tag_remove.successfully_force_removed_tag');
+            await displayReply(context, payload, {replyTo: ctx});
+          });
         },
       });
 
@@ -108,14 +112,16 @@ export async function createMessage(
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
 
-          payload.color = EmbedColors.ERROR;
-          payload.title = translate('tag_remove.cancelled_force_removal_of_tag');
-          await displayReply(context, payload, {replyTo: ctx});
+          return confirmer.cancel(ctx, () => {
+            payload.color = EmbedColors.ERROR;
+            payload.title = translate('tag_remove.cancelled_force_removal_of_tag');
+            return displayReply(context, payload, {replyTo: ctx});
+          });
         },
       });
 
       const message = await displayReply(context, {...payload, components});
-      components.onTimeout = async () => {
+      components.onTimeout = () => confirmer.expire(async () => {
         try {
           payload.color = EmbedColors.ERROR;
           payload.footer = translate('tag_remove.request_expired_press_a_button_next_time');
@@ -124,7 +130,7 @@ export async function createMessage(
         } catch(error) {
 
         }
-      };
+      });
       return message;
     }
   }

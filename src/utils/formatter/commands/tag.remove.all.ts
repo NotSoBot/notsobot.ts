@@ -3,6 +3,7 @@ import { InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags } 
 import { ComponentContext, Components } from 'detritus-client/lib/utils';
 
 import { deleteTagsServer, fetchTagsExport } from '../../../api';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 import { StatusEmojis } from '../../../constants';
 import {
@@ -71,9 +72,10 @@ export async function createMessage(
 
   const tags = await fetchTagsServerSearch(context, serverId, fetchTagsServerSearchOptions);
   if (tags.length) {
+    const confirmer = new Confirmer();
     const components = new Components({
       timeout: MAX_TIME_TO_RESPOND,
-      onTimeout: async () => {
+      onTimeout: () => confirmer.expire(async () => {
         try {
           // edits the response for both prefixed commands and interactions
           await displayReply(context, {
@@ -82,7 +84,7 @@ export async function createMessage(
         } catch(e) {
 
         }
-      },
+      }),
     });
 
     components.createButton({
@@ -93,10 +95,12 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        const { count } = await deleteTagsServer(context, serverId, fetchTagsServerSearchOptions);
-        await displayReply(context, {
-          description: translate('tag_remove_all.ok_successfully_removed_tags', {count: count.toLocaleString(language), filterText: filterText}),
-        }, {replyTo: ctx});
+        return confirmer.run(ctx, async () => {
+          const { count } = await deleteTagsServer(context, serverId, fetchTagsServerSearchOptions);
+          await displayReply(context, {
+            description: translate('tag_remove_all.ok_successfully_removed_tags', {count: count.toLocaleString(language), filterText: filterText}),
+          }, {replyTo: ctx});
+        });
       },
     });
 
@@ -108,9 +112,9 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        await displayReply(context, {
+        return confirmer.cancel(ctx, () => displayReply(context, {
           description: translate('tag_remove_all.ok_canceled_removing_of_tags', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
-        }, {replyTo: ctx});
+        }, {replyTo: ctx}));
       },
     });
 

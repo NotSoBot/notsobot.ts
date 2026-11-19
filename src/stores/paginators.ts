@@ -90,7 +90,7 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
           const stored = this.get(message.channelId)!;
           for (let store of Object.values(stored)) {
             for (let paginator of store) {
-              if (paginator.custom.isActive) {
+              if (paginator.custom.state !== 'closed') {
                 await paginator.onMessage(message);
               }
             }

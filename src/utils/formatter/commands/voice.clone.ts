@@ -4,6 +4,7 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import { createVoiceClone } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 import { DiscordEmojis, StatusEmojis } from '../../../constants';
 
@@ -48,16 +49,17 @@ export async function createMessage(
   }
 
   // the user has to confirm they own the voice (or have its owner's permission) before the audio is cloned
+  const confirmer = new Confirmer();
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
-    onTimeout: async () => {
+    onTimeout: () => confirmer.expire(async () => {
       try {
         // edits the response for both prefixed commands and interactions
         await displayReply(context, {description: translate('voice_clone.canceled_due_to_timeout')});
       } catch(e) {
 
       }
-    },
+    }),
   });
 
   components.createButton({
@@ -67,23 +69,25 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      // the upload takes longer than discord's 3 seconds to answer a click, answer it now and drop the buttons
-      await displayReply(context, {description: `${translate('voice_clone.uploading')} ${DiscordEmojis.TYPING}`}, {replyTo: ctx});
+      return confirmer.run(ctx, async () => {
+        // the upload takes a while, say so and drop the buttons
+        await displayReply(context, {description: `${translate('voice_clone.uploading')} ${DiscordEmojis.TYPING}`}, {replyTo: ctx});
 
-      let description: string;
-      try {
-        const voice = await createVoiceClone(context, {...args, type: platformType});
-        description = translate('voice_clone.cloned_voice_successfully', {name: Markup.codestring(voice.name)});
-      } catch(error) {
-        // max clones reached or an unsupported file, show why instead of leaving the buttons up
-        const apiError = await getApiError(error);
-        if (!apiError) {
-          throw error;
+        let description: string;
+        try {
+          const voice = await createVoiceClone(context, {...args, type: platformType});
+          description = translate('voice_clone.cloned_voice_successfully', {name: Markup.codestring(voice.name)});
+        } catch(error) {
+          // max clones reached or an unsupported file, show why instead of leaving the buttons up
+          const apiError = await getApiError(error);
+          if (!apiError) {
+            throw error;
+          }
+          const key = getApiErrorTranslationKey(apiError.code);
+          description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
         }
-        const key = getApiErrorTranslationKey(apiError.code);
-        description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
-      }
-      await displayReply(context, {description}, {replyTo: ctx});
+        await displayReply(context, {description}, {replyTo: ctx});
+      });
     },
   });
 
@@ -95,7 +99,9 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      await displayReply(context, {description: translate('voice_clone.ok_did_not_clone')}, {replyTo: ctx});
+      return confirmer.cancel(ctx, async () => {
+        await displayReply(context, {description: translate('voice_clone.ok_did_not_clone')}, {replyTo: ctx});
+      });
     },
   });
 

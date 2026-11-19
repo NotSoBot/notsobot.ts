@@ -185,15 +185,17 @@ export interface PaginatorOptions {
 
 export class Paginator {
   readonly context: Command.Context | Interaction.InteractionContext | Structures.Message;
+  // the "which page?" prompt. `opening` is while it's being posted: closing it then (a second press, a typed page, the
+  // paginator stopping) leaves the opening press to delete it once it's posted
   readonly custom: {
     expire: number,
-    isActive: boolean,
     message?: null | Structures.Message,
+    state: 'closed' | 'opening' | 'open',
     timeout: Timers.Timeout,
     userId?: null | string,
   } = {
     expire: 10000,
-    isActive: false,
+    state: 'closed',
     timeout: new Timers.Timeout(),
   };
   _isEphemeral?: boolean;
@@ -336,7 +338,7 @@ export class Paginator {
     });
     components.createButton({
       customId: PageButtonNames.CUSTOM,
-      style: (this.custom.isActive) ? MessageComponentButtonStyles.DANGER : MessageComponentButtonStyles.PRIMARY,
+      style: (this.custom.state !== 'closed') ? MessageComponentButtonStyles.DANGER : MessageComponentButtonStyles.PRIMARY,
       ...this.buttons[PageButtonNames.CUSTOM],
     });
     components.createButton({
@@ -443,23 +445,31 @@ export class Paginator {
 
   async clearCustomMessage(context?: ComponentContext): Promise<void> {
     this.custom.timeout.stop();
-    if (this.custom.isActive) {
-      if (this.custom.message) {
-        if (!this.custom.message.deleted) {
-          try {
-            if (this.context instanceof Interaction.InteractionContext) {
-              await this.context.deleteMessage(this.custom.message.id);
-            } else {
-              await this.custom.message.delete();
-            }
-          } catch(error) {
+    if (this.custom.state === 'closed') {
+      return;
+    }
+    // closed before the delete's awaited, so a press or typed page in the meantime sees it closed
+    const message = this.custom.message;
+    this.custom.message = null;
+    this.custom.state = 'closed';
+    if (message) {
+      await this.deleteCustomMessage(message);
+    }
+    await this.updateButtons(context);
+  }
 
-          }
-        }
-        this.custom.message = null;
+  private async deleteCustomMessage(message: Structures.Message): Promise<void> {
+    if (message.deleted) {
+      return;
+    }
+    try {
+      if (this.context instanceof Interaction.InteractionContext) {
+        await this.context.deleteMessage(message.id);
+      } else {
+        await message.delete();
       }
-      this.custom.isActive = false;
-      await this.updateButtons(context);
+    } catch(error) {
+
     }
   }
 
@@ -599,6 +609,14 @@ export class Paginator {
     }
     // `attachments: []` drops the old page's files, otherwise discord keeps them and adds the new ones on every page turn
     const message = await this.getPageMessage(this.page);
+    if (this.stopped) {
+      // stopped while the page was made (it expired, stop was pressed, a newer paginator replaced it), sending it would
+      // put back buttons nothing listens to anymore
+      if (context && !context.responded) {
+        await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      }
+      return;
+    }
     if (context) {
       await context.editOrRespond({...message, attachments: []});
     } else if (this.context instanceof Interaction.InteractionContext) {
@@ -663,22 +681,37 @@ export class Paginator {
     try {
       switch (context.customId) {
         case PageButtonNames.CUSTOM: {
-          if (this.custom.isActive) {
+          if (this.custom.state !== 'closed') {
             await this.clearCustomMessage(context);
           } else {
-            await this.clearCustomMessage();
-
-            this.custom.isActive = true;
-            await this.updateButtons(context);
-            const { translate } = await getTranslator(context);
-            const message = await renderDisplay(context, {description: translate('paginator.which_page')});
-            if (this.isEphemeral) {
-              message.flags = (message.flags || 0) | MessageFlags.EPHEMERAL;
+            this.custom.state = 'opening';
+            let prompt: null | Structures.Message;
+            try {
+              await this.updateButtons(context);
+              const { translate } = await getTranslator(context);
+              const message = await renderDisplay(context, {description: translate('paginator.which_page')});
+              if (this.isEphemeral) {
+                message.flags = (message.flags || 0) | MessageFlags.EPHEMERAL;
+              }
+              prompt = await context.createMessage(message);
+            } catch(error) {
+              if (this.custom.state === 'opening') {
+                this.custom.state = 'closed';
+              }
+              throw error;
             }
-            this.custom.message = await context.createMessage(message);
-            this.custom.timeout.start(this.custom.expire, async () => {
-              await this.clearCustomMessage();
-            });
+            if (this.custom.state !== 'opening') {
+              // closed while it was being posted
+              if (prompt) {
+                await this.deleteCustomMessage(prompt);
+              }
+            } else {
+              this.custom.message = prompt;
+              this.custom.state = 'open';
+              this.custom.timeout.start(this.custom.expire, async () => {
+                await this.clearCustomMessage();
+              });
+            }
           }
         }; break;
         case PageButtonNames.NEXT: {
@@ -729,7 +762,7 @@ export class Paginator {
   }
 
   async onMessage(message: Structures.Message): Promise<void> {
-    if (!this.custom.isActive || !this.canInteract(message.author.id)) {
+    if (this.custom.state === 'closed' || !this.canInteract(message.author.id)) {
       return;
     }
     const page = parseInt(message.content);

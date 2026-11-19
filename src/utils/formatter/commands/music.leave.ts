@@ -5,6 +5,7 @@ import { ComponentContext, Components } from 'detritus-client/lib/utils';
 import { deleteGuildMusic, fetchGuildMusic } from '../../../api';
 import { displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 
 import { canControlMusic, musicDjRefusal } from './music.shared';
@@ -79,62 +80,55 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   }
 
   // once a button's used the timeout leaves the message alone
-  let done = false;
+  const confirmer = new Confirmer();
   const components = new Components({
     timeout: CONFIRM_TIMEOUT,
-    onTimeout: async () => {
-      if (done) {
-        return;
-      }
+    onTimeout: () => confirmer.expire(async () => {
       try {
         // the buttons go, nothing changed
         await displayReply(context, {description});
       } catch(error) {
 
       }
-    },
+    }),
   });
 
   // only whoever used the command, the others' presses are ignored
-  const claim = async (ctx: ComponentContext): Promise<boolean> => {
-    if (ctx.userId !== context.userId || done) {
-      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      return false;
-    }
-    done = true;
-    return true;
-  };
-
   components.createButton({
     label: translate('music_leave.clear'),
     style: MessageComponentButtonStyles.DANGER,
     run: async (ctx: ComponentContext) => {
-      if (!await claim(ctx)) {
-        return;
+      if (ctx.userId !== context.userId) {
+        return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      await leaveAndClear();
-      const text = (held) ? translate('music_leave.cleared') : translate('music_leave.left_channel', {channel});
-      await displayReply(context, {description: text}, {replyTo: ctx});
+      return confirmer.run(ctx, async () => {
+        await leaveAndClear();
+        const text = (held) ? translate('music_leave.cleared') : translate('music_leave.left_channel', {channel});
+        await displayReply(context, {description: text}, {replyTo: ctx});
+      });
     },
   });
   components.createButton({
     label: translate('music_leave.keep'),
     style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
-      if (!await claim(ctx)) {
-        return;
+      if (ctx.userId !== context.userId) {
+        return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      // held already (we left), it just stays
-      if (held) {
-        return displayReply(context, {description: translate('music_leave.kept')}, {replyTo: ctx});
-      }
-      // the playing track's held where it is, a channel the node didn't know about has nothing to hold
-      if (VoiceNode.guilds.has(guildId)) {
-        VoiceNode.hold(guildId);
-      } else {
-        context.client.gateway.voiceStateUpdate(guildId, null);
-      }
-      await displayReply(context, {description: translate('music_leave.left_kept', {channel})}, {replyTo: ctx});
+      // keeping is the cancel, nothing's cleared
+      return confirmer.cancel(ctx, async () => {
+        // held already (we left), it just stays
+        if (held) {
+          return displayReply(context, {description: translate('music_leave.kept')}, {replyTo: ctx});
+        }
+        // the playing track's held where it is, a channel the node didn't know about has nothing to hold
+        if (VoiceNode.guilds.has(guildId)) {
+          VoiceNode.hold(guildId);
+        } else {
+          context.client.gateway.voiceStateUpdate(guildId, null);
+        }
+        await displayReply(context, {description: translate('music_leave.left_kept', {channel})}, {replyTo: ctx});
+      });
     },
   });
 

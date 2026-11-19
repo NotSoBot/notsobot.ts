@@ -3,6 +3,7 @@ import {
   ApplicationCommandTypes,
   ApplicationCommandOptionTypes,
   ApplicationIntegrationTypes,
+  ClientEvents,
   InteractionCallbackTypes,
   InteractionContextTypes,
   LOCAL_GUILD_ID,
@@ -19,7 +20,15 @@ import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
 
 import { createUserCommand } from '../../api';
-import { CommandResults, getCommandResult, setCommandResult } from '../../commandresults';
+import {
+  CommandResults,
+  afterJobRuns,
+  getCommandGate,
+  getCommandGateMessage,
+  getRecordedCommandResult,
+  setCommandGate,
+  setCommandResult,
+} from '../../commandresults';
 import {
   CommandCategories,
   CommandRatelimits,
@@ -230,9 +239,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       if (blocked && ignoresEphemeralSetting) {
         // for everyone in the channel (games), only the one that ran it would see it
         const { translate } = await I18n.getTranslator(context);
-        const contextMetadata = context.metadata = context.metadata || {};
-        contextMetadata.reason = warning(translate('errors.channel_turned_off_public', {command: Markup.codestring(context.name)}));
-        return false;
+        const message = warning(translate('errors.channel_turned_off_public', {command: Markup.codestring(context.name)}));
+        return setCommandGate(context, {kind: 'channel_turned_off', message});
       }
       if (!context.responded && !respondsWithModal) {
         let ephemeral = blocked;
@@ -248,7 +256,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         }
       }
 
-      const contextMetadata = context.metadata = context.metadata || {};
+      context.metadata = context.metadata || {};
       const { translate } = await I18n.getTranslator(context);
   
       const metadata = context.invoker.metadata;
@@ -256,8 +264,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         if (metadata.nsfw) {
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
-            contextMetadata.reason = warning(translate('errors.not_nsfw_channel'));
-            return isNSFWAllowed;
+            return setCommandGate(context, {kind: 'nsfw', message: warning(translate('errors.not_nsfw_channel'))});
           }
         }
         if (metadata.premium || metadata.premiumPlus || metadata.premiumServer) {
@@ -296,17 +303,17 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           }
 
           if (!hasPremium) {
-            context.metadata = context.metadata || {};
+            let message: string;
             if (metadata.premiumServer) {
-              context.metadata.reason = warning(translate('errors.premium_server_required', {command: Markup.codestring(context.name)}));
+              message = warning(translate('errors.premium_server_required', {command: Markup.codestring(context.name)}));
             } else if (metadata.premiumPlus) {
-              context.metadata.reason = warning(translate('errors.premium_plus_required', {command: Markup.codestring(context.name)}));
+              message = warning(translate('errors.premium_plus_required', {command: Markup.codestring(context.name)}));
             } else {
-              context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(context.name)}));
+              message = warning(translate('errors.premium_required', {command: Markup.codestring(context.name)}));
             }
             // a premium server gate passes with the user's own premium too, so that's the one to link
-            context.metadata.reasonPremiumSku = (metadata.premiumPlus) ? DiscordSkuIds.USER_NOTSOPREMIUM_PLUS : DiscordSkuIds.USER_NOTSOPREMIUM;
-            return hasPremium;
+            const skuId = (metadata.premiumPlus) ? DiscordSkuIds.USER_NOTSOPREMIUM_PLUS : DiscordSkuIds.USER_NOTSOPREMIUM;
+            return setCommandGate(context, {kind: 'premium', message, skuId});
           }
         }
       }
@@ -315,11 +322,11 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   }
 
   onCancel(context: Interaction.InteractionContext) {
-    const contextMetadata = context.metadata = context.metadata || {};
-    if (contextMetadata.reason) {
+    const gate = getCommandGate(context);
+    if (gate && gate.message) {
       // a link to the tier's store page, the gate already knows they don't have it
-      const upsell = (contextMetadata.reasonPremiumSku) ? {skuId: contextMetadata.reasonPremiumSku} : null;
-      return replyError(context, {description: contextMetadata.reason, upsell}, {ephemeral: true});
+      const upsell = (gate.kind === 'premium') ? {skuId: gate.skuId} : null;
+      return replyError(context, {description: gate.message, upsell}, {ephemeral: true});
     }
   }
 
@@ -409,7 +416,11 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       if (llmResponseId && context.responseId) {
         CommandResponsesStore.insertLLMResponse(context.responseId, llmResponseId, context.userId);
       }
-      await createUserCommand(
+      // the response as it is now, like it always was (a components v2 result replaces it with a follow-up later)
+      const messageResponseId = context.responseId;
+      // a media job still polling (`run` returned with its thinking reply) counts once it ends, with how it ended
+      const command = context.command;
+      await afterJobRuns(context, () => createUserCommand(
         context,
         context.userId,
         commandId,
@@ -418,11 +429,11 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           channelId: context.channelId!,
           guildId: context.guildId,
           llmResponseId,
-          messageResponseId: context.responseId,
+          messageResponseId,
           messageTriggerId: context.interactionId,
-          result: getCommandResult(context),
+          result: getRecordedCommandResult(context),
         },
-      );
+      ), (error) => context.interactionCommandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));
     }
   }
 
@@ -480,7 +491,7 @@ export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommand
   }
 
   async onCancel(context: Interaction.InteractionContext) {
-    if (context.metadata && context.metadata.reason) {
+    if (getCommandGateMessage(context)) {
       return BaseInteractionCommand.prototype.onCancel.call(this as any, context);
     }
     const { translate } = await I18n.getTranslator(context);

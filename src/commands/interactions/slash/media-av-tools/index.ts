@@ -9,6 +9,7 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAVExtractGroupCommand } from './extract';
+import { MediaAVNoiseCommand } from './noise';
 import { MediaAVToolsSetGroupCommand } from './set';
 
 import { MediaAVToolsAudioToImageCommand } from './audio-to-image';
@@ -43,6 +44,7 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new MediaAVExtractGroupCommand(),
+        new MediaAVNoiseCommand(),
         new MediaAVToolsSetGroupCommand(),
         new MediaAVToolsAudioToImageCommand(),
         new MediaAVToolsAutoSubtitleCommand(),

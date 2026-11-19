@@ -28,8 +28,6 @@ import {
 // a text search's results to pick from (a select menu fits 25), and how long they can be picked
 const MAX_CHOICES = 10;
 const PICK_TIMEOUT = 60 * 1000;
-// how long a reply that joined waits for the first track to start (a link converts first), then it's shown again
-const JOINED_START_TIMEOUT = 30 * 1000;
 
 export const COMMAND_ID = 'music.play';
 
@@ -179,8 +177,7 @@ export async function createMessage(
   // queues it. `failed` is the node's error if it can't play it later (a link that won't convert, a track opus.rip
   // doesn't have anymore)
   const queue = async (result: RestResponsesRaw.MusicSearchResult): Promise<Queued> => {
-    const { item, joined, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, result, context.userId);
-    const started = (joined) ? VoiceNode.waitForNextTrack(guildId, JOINED_START_TIMEOUT) : null;
+    const { item, joined, resumed, started } = await VoiceNode.play(context, context.client, guildId, channel.id, result, context.userId);
     // we just joined a 24/7 server: we'll stay, said once a join
     const stays = joined && musicStays(await fetchGuildMusic(context, guildId).catch(() => null));
     const note = displayDetails([resumedNote(resumed), (stays) ? musicStayNote(translate) : null]) || null;
@@ -243,8 +240,7 @@ export async function createMessage(
       return replyMusicNeedsPremium(context, translate, translate('music_play.collection_premium'));
     }
     const name = (search.collection) ? search.collection.name : null;
-    const { batch, joined, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, search.results, context.userId, name);
-    const started = (joined) ? VoiceNode.waitForNextTrack(guildId, JOINED_START_TIMEOUT) : null;
+    const { batch, joined, resumed, started } = await VoiceNode.play(context, context.client, guildId, channel.id, search.results, context.userId, name);
     const added = batch!.items;
     const total = (search.collection) ? search.collection.total : search.results.length;
     const duration = added.reduce((total, x) => total + ((x.track) ? x.track.duration : 0), 0);

@@ -4,6 +4,7 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import { createTagsDirectoryTagVerification, deleteTagsDirectoryTagVerification } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
@@ -38,16 +39,17 @@ export async function createMessage(
     return displayReply(context, {description: translate('tag_directory_verify.ok_canceled_pending_request', {tag: tagText})});
   }
 
+  const confirmer = new Confirmer();
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
-    onTimeout: async () => {
+    onTimeout: () => confirmer.expire(async () => {
       try {
         // edits the response for both prefixed commands and interactions
         await displayReply(context, {description: translate('tag_directory_verify.canceled_due_to_timeout', {tag: tagText})});
       } catch(e) {
 
       }
-    },
+    }),
   });
 
   components.createButton({
@@ -57,20 +59,22 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      let description: string;
-      try {
-        await createTagsDirectoryTagVerification(context, args.tag.id);
-        description = translate('tag_directory_verify.ok_requested', {tag: tagText});
-      } catch(error) {
-        // already pending/verified (or no longer on the directory), show why instead of leaving the buttons up
-        const apiError = await getApiError(error);
-        if (!apiError) {
-          throw error;
+      return confirmer.run(ctx, async () => {
+        let description: string;
+        try {
+          await createTagsDirectoryTagVerification(context, args.tag.id);
+          description = translate('tag_directory_verify.ok_requested', {tag: tagText});
+        } catch(error) {
+          // already pending/verified (or no longer on the directory), show why instead of leaving the buttons up
+          const apiError = await getApiError(error);
+          if (!apiError) {
+            throw error;
+          }
+          const key = getApiErrorTranslationKey(apiError.code);
+          description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
         }
-        const key = getApiErrorTranslationKey(apiError.code);
-        description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
-      }
-      await displayReply(context, {description}, {replyTo: ctx});
+        await displayReply(context, {description}, {replyTo: ctx});
+      });
     },
   });
 
@@ -82,7 +86,9 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      await displayReply(context, {description: translate('tag_directory_verify.ok_did_not_request', {tag: tagText})}, {replyTo: ctx});
+      return confirmer.cancel(ctx, async () => {
+        await displayReply(context, {description: translate('tag_directory_verify.ok_did_not_request', {tag: tagText})}, {replyTo: ctx});
+      });
     },
   });
 

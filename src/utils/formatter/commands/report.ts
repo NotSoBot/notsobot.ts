@@ -4,6 +4,7 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import { createReport, fetchCommandsResponses } from '../../../api';
 import { RestOptions, RestResponsesRaw } from '../../../api/types';
+import { Confirmer } from '../../confirmer';
 import { getTranslator, Translator } from '../../i18n';
 import { EmbedColors, ReportTypes, StatusEmojis } from '../../../constants';
 import { DisplayPayload, displayReply, isSnowflake } from '../../../utils';
@@ -58,48 +59,45 @@ export async function createMessage(
   };
 
   // a double click would send the report twice, the buttons are only gone once the first one's answered
-  let answered = false;
+  const confirmer = new Confirmer();
   const components = new Components({timeout: CONFIRM_TIMEOUT});
   components.createButton({
     label: translate('report.confirm_send'),
     style: MessageComponentButtonStyles.DANGER,
     run: async (ctx: ComponentContext) => {
-      if (ctx.userId !== context.userId || answered) {
+      if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      answered = true;
-      let update: DisplayPayload;
-      try {
-        update = sentPayload(translate, await createReport(context, resolved.options));
-      } catch(error: any) {
-        update = {color: EmbedColors.ERROR, description: `${StatusEmojis.WARNING} ${(error && error.message) || String(error)}`};
-      }
-      await finish(ctx, update);
+      return confirmer.run(ctx, async () => {
+        let update: DisplayPayload;
+        try {
+          update = sentPayload(translate, await createReport(context, resolved.options));
+        } catch(error: any) {
+          update = {color: EmbedColors.ERROR, description: `${StatusEmojis.WARNING} ${(error && error.message) || String(error)}`};
+        }
+        await finish(ctx, update);
+      });
     },
   });
   components.createButton({
     label: translate('report.confirm_cancel'),
     style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
-      if (ctx.userId !== context.userId || answered) {
+      if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      answered = true;
-      await finish(ctx, {description: translate('report.confirm_cancelled')});
+      return confirmer.cancel(ctx, () => finish(ctx, {description: translate('report.confirm_cancelled')}));
     },
   });
-  components.onTimeout = async () => {
-    // already sent or cancelled, that answer stays
-    if (answered) {
-      return;
-    }
+  // already sent or cancelled, that answer stays
+  components.onTimeout = () => confirmer.expire(async () => {
     try {
       // edits the response for both prefixed commands and interactions
       await finish(null, {description: translate('report.confirm_expired')});
     } catch(error) {
 
     }
-  };
+  });
   return displayReply(context, {...payload, components});
 }
 

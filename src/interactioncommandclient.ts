@@ -24,7 +24,8 @@ import {
   resolveGuildRule,
 } from './utils';
 import { acknowledgeUserWarnings } from './api';
-import { CommandResults, setCommandResult } from './commandresults';
+import type { GuildSettingsRule } from './api/structures/guildsettings';
+import { CommandResults, getCommandGate, getCommandGateMessage, setCommandGate, setCommandResult } from './commandresults';
 import { runWithCommandContext } from './sentry';
 
 
@@ -148,25 +149,27 @@ export class NotSoInteractionClient extends InteractionCommandClient {
 
     const { translate } = await I18n.getTranslator(context);
     const user = await UserStore.getOrFetch(context, context.userId);
-    if (!user || user.isBlocked) {
-      if (user && user.isBlocked) {
-        contextMetadata.reason = translate('blocked.user');
-        if (user.blockedReason) {
-          contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${user.blockedReason}\`)`;
-        }
-        contextMetadata.reason += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, user.blockedUntil);
-      } else {
-        contextMetadata.reason = translate('blocked.user_fetch_failed');
+    if (!user) {
+      return setCommandGate(context, {kind: 'user_fetch_failed', message: translate('blocked.user_fetch_failed')});
+    }
+    if (user.isBlocked) {
+      let message = translate('blocked.user');
+      if (user.blockedReason) {
+        message = `${message} (${translate('logger.reason')}: \`${user.blockedReason}\`)`;
       }
-      return false;
+      message += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, user.blockedUntil);
+      return setCommandGate(context, {kind: 'user_blocked', message});
     }
 
     // a warning from NotSoBot staff takes the place of this command, they run it again after reading it
     if (user.warningsPending.length) {
       const notice = Formatter.Commands.OwnerWarn.createUserWarningsNotice(translate, user.warningsPending);
-      contextMetadata.reason = notice.content;
-      contextMetadata.userWarningIds = notice.warningIds;
-      return false;
+      return setCommandGate(context, {
+        kind: 'warnings_pending',
+        message: notice.content,
+        warningIds: notice.warningIds,
+        warnings: user.warningsPending,
+      });
     }
 
     if (context.inDm) {
@@ -174,30 +177,30 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         const serverId = context.channelId!;
         const settings = await ServerSettingsStore.getOrFetch(context, serverId);
         if (settings && settings.blocked) {
-          contextMetadata.reason = translate('blocked.server');
+          let message = translate('blocked.server');
           if (settings.blockedReason) {
-            contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
+            message = `${message} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
           }
-          return false;
+          return setCommandGate(context, {kind: 'server_blocked', message});
         }
       }
 
       if (context.invoker.disableDm) {
-        contextMetadata.reason = translate('blocked.dm');
+        return setCommandGate(context, {kind: 'dm_disabled', message: translate('blocked.dm')});
       }
-      return !context.invoker.disableDm;
+      return true;
     }
 
     const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings && settings.isBlocked) {
       // if we aren't able to fetch the settings, it will surpass the blocked setting cuz it's rare to block a guild
-      contextMetadata.reason = translate('blocked.server');
+      let message = translate('blocked.server');
       if (settings.blockedReason) {
-        contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
+        message = `${message} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
       }
-      contextMetadata.reason += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, settings.blockedUntil);
-      return false;
+      message += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, settings.blockedUntil);
+      return setCommandGate(context, {kind: 'server_blocked', message});
     }
 
     const { member } = context;
@@ -231,10 +234,9 @@ export class NotSoInteractionClient extends InteractionCommandClient {
           }
           return true;
         }
-        contextMetadata.reason = match.rule.value.message || translate('rules.blocked', {rule: describeGuildRule(translate, match.rule)});
-        // for the server's auto-warn on blocked commands, its reason says which rule
-        contextMetadata.blockedByRule = match.rule;
-        return false;
+        // the rule is for the server's auto-warn on blocked commands, its reason says which rule
+        const message = match.rule.value.message || translate('rules.blocked', {rule: describeGuildRule(translate, match.rule)});
+        return setCommandGate(context, {kind: 'rule', message, rule: match.rule});
       }
 
       await UserSettingsStore.getOrFetch(context, context.userId);
@@ -242,16 +244,15 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       // loading as needed breaks the timestamp function in certain situations
 
       return true;
-    } else {
-      // Failed to fetch, got null, just block it lol
-      contextMetadata.reason = translate('blocked.server_fetch_failed');
     }
-    return false;
+    // Failed to fetch, got null, just block it lol
+    return setCommandGate(context, {kind: 'settings_fetch_failed', message: translate('blocked.server_fetch_failed')});
   }
 
   async onCommandCancel(context: Interaction.InteractionContext, command: Interaction.InteractionCommand) {
     setCommandResult(context, CommandResults.BLOCKED);
-    let content = context.metadata && context.metadata.reason;
+    const gate = getCommandGate(context);
+    let content = getCommandGateMessage(context);
     if (!content) {
       const { translate } = await I18n.getTranslator(context);
       content = translate('blocked.generic');
@@ -261,18 +262,18 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       content,
       flags: MessageFlags.EPHEMERAL,
     });
-    if (context.metadata && context.metadata.userWarningIds) {
+    if (gate && gate.kind === 'warnings_pending' && gate.warningIds) {
       // only once it was shown, a failed reply leaves them pending for the next command
-      await acknowledgeUserWarnings(context, context.userId, {warningIds: context.metadata.userWarningIds}).catch(() => null);
+      await acknowledgeUserWarnings(context, context.userId, {warningIds: gate.warningIds}).catch(() => null);
     }
-    if (context.metadata && context.metadata.blockedByRule) {
-      await this.autoWarnBlockedCommand(context).catch(() => null);
+    if (gate && gate.kind === 'rule') {
+      await this.autoWarnBlockedCommand(context, gate.rule).catch(() => null);
     }
     return reply;
   }
 
   // the server's auto-warn for running a command its rules block for them, told privately under the blocked reply
-  async autoWarnBlockedCommand(context: Interaction.InteractionContext): Promise<void> {
+  async autoWarnBlockedCommand(context: Interaction.InteractionContext, blockedBy: GuildSettingsRule): Promise<void> {
     const AutoWarn = Formatter.Commands.ModerationAutowarn;
     const member = context.member;
     const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
@@ -283,7 +284,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     if (!rule) {
       return;
     }
-    const details = {blockedBy: (context.metadata && context.metadata.blockedByRule) || null, command: `/${context.invoker.fullName}`, guild: context.guild};
+    const details = {blockedBy, command: `/${context.invoker.fullName}`, guild: context.guild};
     const audit = await I18n.getGuildTranslator(context);
     const result = await AutoWarn.runAutoWarn(context, {member, reason: AutoWarn.createAutoWarnReason(audit, rule, details), rule, settings});
     if (result) {

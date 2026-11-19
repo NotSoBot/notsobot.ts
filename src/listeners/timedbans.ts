@@ -55,6 +55,9 @@ class TimedBanScheduler extends Listener {
   queued = new Set<string>();
   // timed ban id -> when to try again, for servers we're not in
   deferred = new Map<string, number>();
+  // lifted and deleted for a while, a fetch that read the api before our delete would otherwise unban them again (even
+  // if they got banned by hand since)
+  completed = new Collections.BaseCollection<string, true>({expire: 10 * 60 * 1000});
 
   // the api's gateway only sends timed ban events to shard 0's cluster (`EVENT_ROUTE_HOME` in its utilities/tools/redis.py),
   // moving this off cluster 0 means changing that route too
@@ -63,7 +66,7 @@ class TimedBanScheduler extends Listener {
   }
 
   insertTimedBan(cluster: ClusterClient, timedBan: RestResponsesRaw.TimedBan): void {
-    if (!this.shouldHandle(cluster) || this.timedBans.has(timedBan.id) || this.queued.has(timedBan.id)) {
+    if (!this.shouldHandle(cluster) || this.timedBans.has(timedBan.id) || this.queued.has(timedBan.id) || this.completed.has(timedBan.id)) {
       return;
     }
     const shard = cluster.shards.first();
@@ -103,7 +106,7 @@ class TimedBanScheduler extends Listener {
   }
 
   enqueue(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan): void {
-    if (this.queued.has(timedBan.id)) {
+    if (this.queued.has(timedBan.id) || this.completed.has(timedBan.id)) {
       return;
     }
     const deferredUntil = this.deferred.get(timedBan.id);
@@ -237,8 +240,10 @@ class TimedBanScheduler extends Listener {
       // UNKNOWN_BAN which deletes it then
       if (!(error.response && error.response.statusCode === 404)) {
         log.error(`Failed to delete timed ban ${timedBan.id}`, error);
+        return;
       }
     }
+    this.completed.set(timedBan.id, true);
   }
 
   async fetchTimedBans(

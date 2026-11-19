@@ -22,8 +22,10 @@ import {
   MediaPixelSortFunctions,
   MediaPixelSortIntervals,
   MediaQuadartTypes,
+  MediaNoiseColors,
   MediaSongSounds,
   MediaSSTVModes,
+  MediaTextAlignments,
   MusicLoopModes,
   MusicStatsPeriods,
   MusicStatsSorts,
@@ -1121,6 +1123,91 @@ export namespace RestOptions {
     roleIconUrl?: null | string,
     // a verified app, the checkmark in its APP tag
     verified?: boolean,
+  }
+
+  export interface MediaACreateNoise extends MediaUploadBaseOptions {
+    amplitude?: number,
+    color?: MediaNoiseColors,
+    duration?: number,
+    safe?: boolean,
+    sampleRate?: number,
+  }
+
+  export interface MediaAIVManipulationAudioNoise extends MediaBaseOptions {
+    amplitude?: number,
+    color?: MediaNoiseColors,
+    sampleRate?: number,
+  }
+
+  export interface MediaAIVManipulationRepeat extends MediaBaseOptions {
+    amount?: number,
+    // seconds, played over and over until then instead of `amount` times
+    duration?: number,
+  }
+
+  export interface MediaAIVToolsFFMPEG extends MediaBaseOptions {
+    // mediascript's `ffmpeg` options (`-vf negate -af "volume=2"`)
+    options: string,
+  }
+
+  // mediascript's `text` look, `text` and `drawtext`
+  export interface MediaTextStyle {
+    align?: MediaTextAlignments,
+    background?: string,
+    color?: string,
+    // a bundled font or one of their saved fonts
+    font?: string,
+    markup?: boolean,
+    shadow?: string,
+    size?: number,
+    stroke?: string,
+    strokeWidth?: number,
+    text: string,
+    width?: number,
+  }
+
+  export interface MediaICreateTextRender extends MediaUploadBaseOptions, MediaTextStyle {
+    safe?: boolean,
+  }
+
+  export interface MediaIVManipulationBrightness extends MediaBaseOptions {
+    percentage?: number,
+  }
+
+  export interface MediaIVManipulationContrast extends MediaBaseOptions {
+    amount?: number,
+  }
+
+  export interface MediaIVManipulationContrastMultiply extends MediaBaseOptions {
+    multiplier?: number,
+  }
+
+  export interface MediaIVManipulationCropTransparency extends MediaBaseOptionsMultiple {
+
+  }
+
+  export interface MediaIVManipulationOpacity extends MediaBaseOptions {
+    percentage?: number,
+  }
+
+  export interface MediaIVManipulationSetFrameDelay extends MediaBaseOptions {
+    delay: number,
+  }
+
+  export interface MediaIVManipulationSetLoop extends MediaBaseOptions {
+    amount?: number,
+  }
+
+  export interface MediaIVManipulationSkew extends MediaBaseOptions {
+    amount?: number,
+    vertical?: boolean,
+  }
+
+  export interface MediaIVManipulationTextDraw extends MediaBaseOptions, MediaTextStyle {
+    end?: number,
+    start?: number,
+    x?: string,
+    y?: string,
   }
 
   export interface MediaICreateTombstone {

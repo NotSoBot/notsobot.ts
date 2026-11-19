@@ -5,6 +5,7 @@ import { ComponentActionRow, ComponentContext, Components } from 'detritus-clien
 import { mediaIVManipulationEyes } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import type { RestOptions } from '../../../api/types';
+import { waitForJobRuns } from '../../../commandresults';
 import { MediaEyeTypes, StatusEmojis } from '../../../constants';
 import { CommandRunCancelledError, DefaultParameters, displayReply, jobReply } from '../../../utils';
 import { TranslationKey, Translator, getTranslator } from '../../i18n';
@@ -130,6 +131,8 @@ export async function createPickerMessage(context: Command.Context, args: Comman
       context.metadata = context.metadata || {};
       context.metadata.started = Date.now();
       await render(type);
+      // `jobReply` returns once the thinking reply is up, a pick before the job ended would start a second one
+      await waitForJobRuns(context);
     } catch(error) {
       if (error instanceof CommandRunCancelledError) {
         return;

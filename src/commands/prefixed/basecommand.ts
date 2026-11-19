@@ -1,5 +1,5 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
+import { ClientEvents, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
@@ -9,7 +9,14 @@ import { getServerPremiumUsers } from '../../stores/premiumservers';
 import UserStore from '../../stores/users';
 
 import { createUserCommand } from '../../api';
-import { CommandResults, getCommandResult, setCommandResult } from '../../commandresults';
+import {
+  CommandResults,
+  afterJobRuns,
+  getCommandGate,
+  getRecordedCommandResult,
+  setCommandGate,
+  setCommandResult,
+} from '../../commandresults';
 import {
   CommandCategories,
   CommandRatelimits,
@@ -92,7 +99,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     // an async iife instead of `new Promise(async ...)`, anything thrown in there never settled the promise and left the
     // command hanging forever, now it rejects and detritus emits it as a COMMAND_ERROR
     return (async () => {
-      const contextMetadata = context.metadata = context.metadata || {};
+      context.metadata = context.metadata || {};
       const { translate } = await I18n.getTranslator(context);
   
       const metadata = (context.command || {}).metadata;
@@ -100,8 +107,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         if (metadata.nsfw) {
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
-            contextMetadata.reason = warning(translate('errors.not_nsfw_channel'));
-            return isNSFWAllowed;
+            return setCommandGate(context, {kind: 'nsfw', message: warning(translate('errors.not_nsfw_channel'))});
           }
         }
         if (metadata.premium || metadata.premiumPlus || metadata.premiumServer) {
@@ -132,17 +138,17 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           }
   
           if (!hasPremium) {
-            context.metadata = context.metadata || {};
+            let message: string;
             if (metadata.premiumServer) {
-              context.metadata.reason = warning(translate('errors.premium_server_required', {command: Markup.codestring(this.fullName)}));
+              message = warning(translate('errors.premium_server_required', {command: Markup.codestring(this.fullName)}));
             } else if (metadata.premiumPlus) {
-              context.metadata.reason = warning(translate('errors.premium_plus_required', {command: Markup.codestring(this.fullName)}));
+              message = warning(translate('errors.premium_plus_required', {command: Markup.codestring(this.fullName)}));
             } else {
-              context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(this.fullName)}));
+              message = warning(translate('errors.premium_required', {command: Markup.codestring(this.fullName)}));
             }
             // a premium server gate passes with the user's own premium too, so that's the one to link
-            context.metadata.reasonPremiumSku = (metadata.premiumPlus) ? DiscordSkuIds.USER_NOTSOPREMIUM_PLUS : DiscordSkuIds.USER_NOTSOPREMIUM;
-            return hasPremium;
+            const skuId = (metadata.premiumPlus) ? DiscordSkuIds.USER_NOTSOPREMIUM_PLUS : DiscordSkuIds.USER_NOTSOPREMIUM;
+            return setCommandGate(context, {kind: 'premium', message, skuId});
           }
         }
       }
@@ -151,11 +157,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   onCancel(context: Command.Context) {
-    const contextMetadata = context.metadata = context.metadata || {};
-    if (contextMetadata.reason) {
+    const gate = getCommandGate(context);
+    if (gate && gate.message) {
       // a link to the tier's store page, the gate already knows they don't have it
-      const upsell = (contextMetadata.reasonPremiumSku) ? {skuId: contextMetadata.reasonPremiumSku} : null;
-      return replyError(context, {description: contextMetadata.reason, upsell});
+      const upsell = (gate.kind === 'premium') ? {skuId: gate.skuId} : null;
+      return replyError(context, {description: gate.message, upsell});
     }
   }
 
@@ -286,7 +292,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
     // `@NotSoBot cmd` counts apart from the prefix, since mentions keep working after prefix commands end
     const isMention = !!context.prefix && context.commandClient.prefixes.mention.has(context.prefix);
-    await createUserCommand(
+    // the reply as it is now, like it always was, the stored one can be gone by the time a job ends
+    const messageResponseId = (context.response) ? context.response.id : undefined;
+    // a media job still polling (`run` returned with its thinking reply) counts once it ends, with how it ended
+    const command = context.command;
+    await afterJobRuns(context, () => createUserCommand(
       context,
       context.userId,
       commandId,
@@ -295,11 +305,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         commandType: (isMention) ? CommandTypes.MENTION : CommandTypes.PREFIXED,
         guildId: context.guildId,
         llmResponseId,
-        messageResponseId: (context.response) ? context.response.id : undefined,
+        messageResponseId,
         messageTriggerId: context.messageId,
-        result: getCommandResult(context),
+        result: getRecordedCommandResult(context),
       },
-    );
+    ), (error) => context.commandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));
   }
 
   async onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {

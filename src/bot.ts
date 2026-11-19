@@ -32,6 +32,7 @@ import {
 } from './sentry';
 import { connectAllStores } from './stores';
 import { clearClusterTempDirectory } from './tempfiles';
+import { ClusterStartupStage, setClusterStartup } from './utils/clusterstartup';
 
 
 import { setGlobalDispatcher, Agent } from 'undici';
@@ -49,15 +50,18 @@ process.on('unhandledRejection', (reason) => {
   captureUnhandledError(reason, 'onunhandledrejection');
 });
 
+// why this process is on its way out, null while it isn't. one exit per cause, a second one doesn't start another
+let exiting: null | 'authentication_failed' | 'uncaught_exception' = null;
+
 // a thrown exception can leave things half updated (gateway sockets, caches, timers), so report it and exit, the
 // cluster manager respawns the process
-let isExitingFromException = false;
 process.on('uncaughtException', async (error) => {
   log.error('Uncaught Exception', error);
-  if (isExitingFromException) {
+  // an authentication failed exit is only scheduled (30s+ away), a thrown exception still exits right away
+  if (exiting === 'uncaught_exception') {
     return;
   }
-  isExitingFromException = true;
+  exiting = 'uncaught_exception';
   captureUnhandledError(error, 'onuncaughtexception');
   try {
     await Sentry.flush(2000);
@@ -84,13 +88,13 @@ const FATAL_GATEWAY_CLOSE_CODES: ReadonlyArray<number> = [
 const AUTHENTICATION_FAILED_EXIT_CODE = 4;
 const AUTHENTICATION_FAILED_RESPAWN_DELAY = 30 * 1000;
 const AUTHENTICATION_FAILED_RESPAWN_JITTER = 60 * 1000;
-let isRespawningFromAuthenticationFailed = false;
 
 function respawnAfterAuthenticationFailed(shardId: number): void {
-  if (isRespawningFromAuthenticationFailed) {
+  // already exiting, for this or a thrown exception (which exits sooner than this would)
+  if (exiting) {
     return;
   }
-  isRespawningFromAuthenticationFailed = true;
+  exiting = 'authentication_failed';
   const delay = AUTHENTICATION_FAILED_RESPAWN_DELAY + Math.round(Math.random() * AUTHENTICATION_FAILED_RESPAWN_JITTER);
   log.warn(`Shard #${shardId} failed authenticating, restarting the cluster in ${delay}ms`);
   setTimeout(async () => {
@@ -139,6 +143,48 @@ async function addCommandsIn(
   }
 }
 
+// a command client stage that still fails is tried again in this process, the shards stay connected meanwhile (exiting
+// for a respawn would identify all of them again). every attempt past the end waits the last one
+const STARTUP_RETRY_DELAYS = [30 * 1000, 60 * 1000, 2 * 60 * 1000, 5 * 60 * 1000, 10 * 60 * 1000];
+
+function setStartupStage(stage: ClusterStartupStage, attempt: number = 1): void {
+  setClusterStartup({attempt, error: null, phase: 'starting', retryAt: null, stage});
+}
+
+// `retryIn` null when the stage won't be tried again, the cluster stays up as it is (shards without commands)
+function failStartupStage(stage: ClusterStartupStage, attempt: number, error: any, retryIn: null | number): void {
+  setClusterStartup({
+    attempt,
+    error: String((error && error.message) || error).slice(0, 1000),
+    phase: 'failed',
+    retryAt: (retryIn === null) ? null : Date.now() + retryIn,
+    stage,
+  });
+  const next = (retryIn === null) ? 'not retrying' : `retrying in ${retryIn}ms`;
+  log.error(`Cluster startup failed at ${stage} (attempt ${attempt}), ${next}`, error);
+  // `addCommandsIn` already reported a failed import with its files
+  if (!(error instanceof ImportedCommandsError)) {
+    captureError(error, {extra: {attempt}, tags: {source: 'cluster.startup', 'startup.stage': stage}});
+  }
+}
+
+async function runStartupStage(stage: ClusterStartupStage, run: (attempt: number) => Promise<void>): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    setStartupStage(stage, attempt);
+    try {
+      await run(attempt);
+      if (1 < attempt) {
+        log.info(`Cluster startup recovered at ${stage} after ${attempt} attempts`);
+      }
+      return;
+    } catch(error) {
+      const delay = STARTUP_RETRY_DELAYS[Math.min(attempt, STARTUP_RETRY_DELAYS.length) - 1];
+      failStartupStage(stage, attempt, error, delay);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 const cluster = new ClusterClient('', {
   cache: {
     applicationCommandPermissions: {enabled: true},
@@ -164,6 +210,8 @@ const cluster = new ClusterClient('', {
 
 
 (async () => {
+  // before anything awaits, an owner `.refresh` reaching us now has to see we're still starting
+  setStartupStage('shards');
   if (cluster.manager) {
     process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
   } else {
@@ -278,22 +326,36 @@ const cluster = new ClusterClient('', {
   }
   */
 
+  // the shards and our listeners aren't tried again, a failure there stays `failed` with the shards as they are
+  let stage: ClusterStartupStage = 'shards';
   try {
     await cluster.run();
 
+    stage = 'listeners';
+    setStartupStage(stage);
     connectAllListeners(cluster);
     connectAllStores(cluster);
     ApiEventsClient.start({shardCount: cluster.shardCount, shardEnd: cluster.shardEnd, shardStart: cluster.shardStart});
+  } catch(error) {
+    failStartupStage(stage, 1, error, null);
+    return;
+  }
 
-    log.debug('cluster ran', cluster.ran);
-    const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
-    log.info(`${shardsText} - Loaded`);
+  log.debug('cluster ran', cluster.ran);
+  const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
+  log.info(`${shardsText} - Loaded`);
 
-    // one ratelimiter for both clients, so the shared keys in `CommandRatelimits` cover `.command` and `/command` together
-    const ratelimiter = new CommandRatelimiter();
+  // one ratelimiter for both clients, so the shared keys in `CommandRatelimits` cover `.command` and `/command` together
+  const ratelimiter = new CommandRatelimiter();
 
-    {
-      const notSoCommandBot = new NotSoCommandClient(cluster, {
+  // each client is made once and kept for a retry, detritus pins it onto the cluster (`commandClient`) for good. a retry
+  // drops whatever commands imported last time and adds them all again
+  let notSoCommandBot: NotSoCommandClient | null = null;
+  await runStartupStage('commands', async () => {
+    if (notSoCommandBot) {
+      notSoCommandBot.clearCommands();
+    } else {
+      notSoCommandBot = new NotSoCommandClient(cluster, {
         activateOnEdits: true,
         maxEditDuration: COMMAND_EDIT_DURATION,
         mentionsEnabled: true,
@@ -306,39 +368,51 @@ const cluster = new ClusterClient('', {
       });
       // its event hooks (listeners/commandhooks.ts) before it runs, the listeners connected before it existed
       CommandHooksListener.reconnect(cluster);
-
-      await addCommandsIn(notSoCommandBot, './commands/prefixed', shardsText);
-      await notSoCommandBot.run();
-      log.info(`${shardsText} - Command Client Loaded`);
     }
 
-    {
-      const notSoInteractionBot = new NotSoInteractionClient(cluster, {ratelimiter});
+    await addCommandsIn(notSoCommandBot, './commands/prefixed', shardsText);
+    await notSoCommandBot.run();
+    log.info(`${shardsText} - Command Client Loaded`);
+  });
+
+  let notSoInteractionBot: NotSoInteractionClient | null = null;
+  await runStartupStage('interactions', async () => {
+    if (notSoInteractionBot) {
+      notSoInteractionBot.clearCommands();
+    } else {
+      notSoInteractionBot = new NotSoInteractionClient(cluster, {ratelimiter});
       CommandHooksListener.reconnect(cluster);
-      await addCommandsIn(notSoInteractionBot, './commands/interactions', shardsText);
-      for (let x of notSoInteractionBot.getOversizedCommands()) {
-        log.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
-      }
-      for (let x of notSoInteractionBot.getDuplicateOptionNames()) {
-        log.error(`${shardsText} - /${x.path} (#${x.index}) options ${x.names.join(', ')} are all named "${x.value}" in ${x.locale}`);
-      }
-      await notSoInteractionBot.run();
-      log.info(`${shardsText} - Interaction Command Client Loaded`);
     }
-  } catch(error) {
-    // since detritus-client beta.134 every scope is synced before one error comes out with each scope's, the wrapper
-    // alone only says "some scopes" (no field errors)
-    if (error instanceof ApplicationCommandsSyncError) {
+    await addCommandsIn(notSoInteractionBot, './commands/interactions', shardsText);
+    for (let x of notSoInteractionBot.getOversizedCommands()) {
+      log.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
+    }
+    for (let x of notSoInteractionBot.getDuplicateOptionNames()) {
+      log.error(`${shardsText} - /${x.path} (#${x.index}) options ${x.names.join(', ')} are all named "${x.value}" in ${x.locale}`);
+    }
+    try {
+      // `run()` only syncs once (it's a no-op after), so a retry after the client ran syncs on its own
+      if (notSoInteractionBot.ran) {
+        await notSoInteractionBot.checkAndUploadCommands();
+      } else {
+        await notSoInteractionBot.run();
+      }
+    } catch(error) {
+      if (!(error instanceof ApplicationCommandsSyncError)) {
+        throw error;
+      }
+      // the client ran before syncing, so its commands still answer (matched by name until their ids are known) and
+      // only discord's copy is out of date until the next `.refresh` syncs again. not a startup failure, so not retried
+      // since detritus-client beta.134 every scope is synced before one error comes out with each scope's, the wrapper
+      // alone only says "some scopes" (no field errors)
       for (let [scope, scopeError] of Object.entries(error.errors)) {
         log.error(`application commands sync failed for ${scope}`, scopeError);
         captureError(scopeError, {tags: {scope, source: 'cluster.startup.commands'}});
       }
       return;
     }
-    log.error(error);
-    // `addCommandsIn` already reported a failed import with its files
-    if (!(error instanceof ImportedCommandsError)) {
-      captureError(error, {tags: {source: 'cluster.startup'}});
-    }
-  }
+    log.info(`${shardsText} - Interaction Command Client Loaded`);
+  });
+
+  setClusterStartup({attempt: 1, error: null, phase: 'ready', retryAt: null, stage: null});
 })();

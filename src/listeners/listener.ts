@@ -7,13 +7,20 @@ import ApiEventsClient, { ApiEventsSpewer } from '../apievents';
 
 
 export class Listener {
+  // connected between `connect` and `stop`. A second `connect` (an owner `.refresh` reaching a cluster that's still
+  // starting, then its own startup connecting everything) starts over instead of subscribing everything twice
+  connected: boolean = false;
   subscriptions: Array<EventSubscription> = [];
 
   connect(cluster: ClusterClient | ShardClient) {
+    if (this.connected) {
+      this.stop(cluster);
+    }
     const subscriptions = this.create(cluster, ApiEventsClient);
     for (let subscription of subscriptions) {
       this.subscriptions.push(subscription);
     }
+    this.connected = true;
   }
 
   create(cluster: ClusterClient | ShardClient, apiEvents: ApiEventsSpewer): Array<EventSubscription> {
@@ -21,6 +28,7 @@ export class Listener {
   }
 
   stop(cluster: ClusterClient | ShardClient) {
+    this.connected = false;
     while (this.subscriptions.length) {
       const subscription = this.subscriptions.shift();
       if (subscription) {

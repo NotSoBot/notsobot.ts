@@ -32,7 +32,7 @@ const REQUEST_TIMEOUT = 10 * 1000;
 // how long a node keeps our players playing after our websocket closes (we restarted), in seconds
 const RESUME_TIMEOUT = 120;
 const RECONNECT_DELAY = 2000;
-// the node closed our websocket because a newer process of this cluster resumed the session
+// the node closed our websocket because another websocket resumed our session (see `NodeConnection.lost`)
 const NODE_CLOSE_REPLACED = 4000;
 // a node that's been down this long has its guilds moved to another node (failover)
 const FAILOVER_DELAY = 10 * 1000;
@@ -48,14 +48,22 @@ const PLAYER_UPDATE_INTERVAL = 5 * 1000;
 // soon after rejoining is the rejoin not working, after this many of those in a row it gives up and holds the track
 const REJOIN_RETRY_WINDOW = 2 * 60 * 1000;
 const REJOIN_MAX_TRIES = 3;
+// how long after leaving a rejoin joins again
+const REJOIN_DELAY = 1000;
 // with `pause_alone`, how long nobody else has to be listening before it pauses (a connection blipping)
 const ALONE_PAUSE_DELAY = 5 * 1000;
 // without 24/7, how long we stay in the channel after the queue runs out (a play in the meantime carries on) before leaving
 const IDLE_LEAVE_DELAY = 2 * 60 * 1000;
+// how long a play that joined (or started an idle queue again) waits for the first track to start (a link converts
+// first), its reply is shown again after
+const JOINED_START_TIMEOUT = 30 * 1000;
 // after starting, how long a music session from the api waits for its server to load before it's given up on, and
 // how often the waiting ones are looked at
 const RECOVER_WAIT = 60 * 1000;
 const RECOVER_INTERVAL = 5 * 1000;
+// how long a `music play` reply waits to hear its queue item failed. A 24/7 queue never leaves (which drops them), and
+// a reply this old is long out of view
+const TRACK_ERROR_LISTEN_FOR = 6 * 60 * 60 * 1000;
 
 export type MoveReason =
   // the node was disabled, between tracks (the old player is still there to ask and destroy)
@@ -113,58 +121,315 @@ export enum VoiceNodeEvents {
   LEFT = 'left',
 }
 
-interface GuildVoice {
-  // `pause_alone` paused it when nobody else was listening, someone listening again carries on (pausing or resuming by
-  // hand takes over from it)
-  alonePaused?: boolean,
-  // nobody else is listening, it pauses when this runs out
-  aloneTimeout?: ReturnType<typeof setTimeout> | null,
+type Timer = ReturnType<typeof setTimeout>;
+
+// who paused the playing track: nobody, someone (a command, the dashboard, a restart that found it paused), or
+// `pause_alone` (nobody else could hear it, someone listening again carries on, pausing or resuming by hand takes over)
+export type PauseState = 'none' | 'user' | 'alone';
+
+/**
+ * What a guild's music is doing, exactly one at a time (`setPhase` clears the timers of the one it leaves):
+ * - starting: we joined to start the node's queue and wait for our voice state and server, nothing's on the node yet
+ *   (`forwardVoice` starts it). `resumeAt` carries a held or recovered track on from where it was
+ * - playing: the node's queue is going, a track playing (or between two). `pause` is what we last told the node (set
+ *   before it answers, put back if it fails), `aloneTimeout` pauses it when nobody else is listening. `started` is
+ *   false from starting the queue until the node's first TRACK_START, a start that failed before one goes back to idle
+ * - idle: the queue ran out and we stay in the channel, the next play starts the node's queue again. For good on 24/7,
+ *   otherwise until `leaveTimeout`
+ * - disconnected: someone disconnected us (or deleted the channel), the node holds the track paused without voice and
+ *   the queue stays. Playing or resuming joins again and carries on, the node's pause timeout holds it in the api
+ * Leaving isn't a phase, a guild that left is out of `guilds` (a callback holding the old object checks it's still the
+ * one there). What runs alongside a phase stays out of it, a phase change doesn't end them: the join waiting for
+ * discord (`joinTimeout`, a rejoined player's queue can run out meanwhile), a VOICE_LOST rejoin (`rejoin`) and a move to
+ * another node (`moving`, playing or disconnected stay what they were on the new node)
+ */
+type GuildPhase =
+  {name: 'starting', resumeAt: null | {pause: PauseState, position: number}} |
+  {name: 'playing', aloneTimeout: null | Timer, pause: PauseState, started: boolean} |
+  {name: 'idle', leaveTimeout: null | Timer} |
+  {name: 'disconnected'};
+
+/**
+ * A VOICE_LOST rejoin: leave and join the same channel, discord gives us a new voice session and server for the node.
+ * - leaving: we left on purpose, the join goes out after `REJOIN_DELAY` (`timeout`). Voice states and servers from
+ *   before our leave are ignored, the voice credentials were cleared with it
+ * - awaitingVoice: joined again, waiting for the new voice state and server (`forwardVoice`), `timeout` holds the track
+ *   after `JOIN_TIMEOUT` like a join that never got its voice
+ * - done: back in voice (or disconnected meanwhile), kept so losing voice again within `REJOIN_RETRY_WINDOW` of `since`
+ *   counts as another try
+ * `left` is our leave's voice state (no channel) having come in, discord doesn't always send it before the join goes
+ * out. Until it does a voice state without a channel is ours, after it (or the join's own voice state) it's someone
+ * disconnecting us
+ */
+export type RejoinStage = 'leaving' | 'awaitingVoice' | 'done';
+
+interface GuildRejoin {
+  left: boolean,
+  // when this rejoin left
+  since: number,
+  stage: RejoinStage,
+  timeout: null | Timer,
+  // rejoins in a row that lost the connection again within `REJOIN_RETRY_WINDOW`
+  tries: number,
+}
+
+class GuildVoice {
   // the channel it's playing in (the last one while disconnected)
-  channelId?: string,
-  // someone disconnected us (or deleted the channel): the node holds the track paused without voice, the queue stays.
-  // playing or resuming joins again and carries on, the pause timeout holds it in the api like any pause
-  disconnected?: boolean,
+  channelId?: string;
   // the node's stacked live effects (`MusicEffects`) and how fast it plays the track with them, what we last told it. A
   // failover and the owner refresh keep them, they go when we leave
+  effects?: Array<string>;
+  endpoint?: string;
+  // we asked discord to join (or join again), leaving when our voice state and server don't come in time
+  joinTimeout: null | Timer = null;
+  // when it last moved, the new node's track start is the same track carrying on (not a new one at 0)
+  movedAt?: number;
+  // a move to another node is queued or running (`moveGuild`), another one isn't queued behind it
+  moving = false;
+  // the node the guild's music is on, it stays there until we leave or it's disabled (then it moves between tracks)
+  node: NodeConnection;
+  // requests to the node's player go one after another (`playerOp`)
+  ops: Promise<void> = Promise.resolve();
+  phase: GuildPhase;
+  // the track's last known position (the node's `playerUpdate`s, a seek, a new track) and when it was, for a failover
+  position?: {at: number, value: number};
+  rejoin: null | GuildRejoin = null;
+  sessionId?: string;
+  shard: ShardClient;
+  speed?: number;
+  // the node's tempo (percent, the pitch kept, 100 or none is the file as it is), kept like `volume`
+  tempo?: number;
+  token?: string;
+  // the node's volume (percent, 100 or none is the file as it is), kept like `effects`
+  volume?: number;
+
+  constructor(shard: ShardClient, node: NodeConnection, phase: GuildPhase) {
+    this.node = node;
+    this.phase = phase;
+    this.shard = shard;
+  }
+
+  // the rest is read by the music commands, what the flags before `phase` said
+
+  // pausing alone is ours, a listener coming back undoes it
+  get alonePaused(): boolean {
+    return this.phase.name === 'playing' && this.phase.pause === 'alone';
+  }
+
+  get disconnected(): boolean {
+    return this.phase.name === 'disconnected';
+  }
+
+  get idle(): boolean {
+    return this.phase.name === 'idle';
+  }
+
+  // null idle on 24/7 (we stay for good)
+  get idleTimeout(): null | Timer {
+    return (this.phase.name === 'idle') ? this.phase.leaveTimeout : null;
+  }
+
+  // a disconnected one is held paused, a starting one isn't (its `resumeAt` says how it starts)
+  get paused(): boolean {
+    return (this.phase.name === 'playing') ? this.phase.pause !== 'none' : this.phase.name === 'disconnected';
+  }
+
+  // starting: where a held or recovered track carries on from
+  get resumeAt(): undefined | {paused: boolean, position: number} {
+    if (this.phase.name !== 'starting' || !this.phase.resumeAt) {
+      return undefined;
+    }
+    return {paused: this.phase.resumeAt.pause !== 'none', position: this.phase.resumeAt.position};
+  }
+}
+
+function pauseState(paused: boolean, alone: boolean): PauseState {
+  return (paused) ? ((alone) ? 'alone' : 'user') : 'none';
+}
+
+
+/*
+ * The owner refresh hands guilds from the loaded voicenode.ts to the reloaded one as plain objects. The code before
+ * `phase` (still deployed, and what a rollback goes back to) only reads and writes these flags, so a handover always
+ * carries them, worked out from the phase. This code's own snapshot rides along and wins while it still says the same
+ */
+
+// the flags a guild had before `phase` and `rejoin` (startQueue, idle and disconnected exclude each other, `paused` is
+// what we told the node and `alonePaused` that `pause_alone` did it), and its handover entry's timers that were running
+export interface LegacyGuildFlags {
+  alonePaused?: boolean,
+  disconnected?: boolean,
+  idle?: boolean,
+  idleLeaving?: boolean,
+  paused?: boolean,
+  rejoinedAt?: number,
+  rejoining?: boolean,
+  rejoinPending?: boolean,
+  rejoinTries?: number,
+  resumeAt?: {paused: boolean, position: number},
+  startQueue?: boolean,
+}
+
+// a phase and rejoin without their timers (`idle.leaving`: its leave timer was running)
+export type GuildPhaseSnapshot =
+  {name: 'starting', resumeAt: null | {pause: PauseState, position: number}} |
+  {name: 'playing', pause: PauseState, started: boolean} |
+  {name: 'idle', leaving: boolean} |
+  {name: 'disconnected'};
+
+export interface GuildRejoinSnapshot {
+  left: boolean,
+  since: number,
+  stage: RejoinStage,
+  tries: number,
+}
+
+export function phaseFromLegacy(flags: LegacyGuildFlags): GuildPhaseSnapshot {
+  // the old `isDisconnected` won over the rest
+  if (flags.disconnected) {
+    return {name: 'disconnected'};
+  }
+  if (flags.idle) {
+    return {name: 'idle', leaving: !!flags.idleLeaving};
+  }
+  if (flags.startQueue) {
+    const resumeAt = flags.resumeAt;
+    return {name: 'starting', resumeAt: (resumeAt) ? {pause: pauseState(!!resumeAt.paused, !!flags.alonePaused), position: resumeAt.position} : null};
+  }
+  // a pause alone still on its way to the node (`alonePaused` without `paused`) wasn't one yet
+  return {name: 'playing', pause: pauseState(!!flags.paused, !!flags.alonePaused), started: true};
+}
+
+// `now` tells an old `rejoining` that's just waiting for its leave's voice state from one stuck because it never came
+export function rejoinFromLegacy(flags: LegacyGuildFlags, now: number): null | GuildRejoinSnapshot {
+  if (!flags.rejoinedAt) {
+    return null;
+  }
+  const rejoin = {left: !flags.rejoining, since: flags.rejoinedAt, tries: flags.rejoinTries || 1};
+  if (flags.rejoinPending) {
+    return {...rejoin, stage: 'leaving'};
+  }
+  // joined again without the leave's voice state yet (so the join's isn't in either)
+  if (flags.rejoining && now - flags.rejoinedAt < REJOIN_DELAY + JOIN_TIMEOUT) {
+    return {...rejoin, stage: 'awaitingVoice'};
+  }
+  return {...rejoin, left: true, stage: 'done'};
+}
+
+export function legacyFromState(phase: GuildPhaseSnapshot, rejoin: null | GuildRejoinSnapshot): LegacyGuildFlags {
+  const flags: LegacyGuildFlags = {
+    alonePaused: false,
+    disconnected: false,
+    idle: false,
+    idleLeaving: false,
+    paused: false,
+    rejoinedAt: undefined,
+    rejoining: false,
+    rejoinPending: false,
+    rejoinTries: undefined,
+    resumeAt: undefined,
+    startQueue: false,
+  };
+  switch (phase.name) {
+    case 'starting': {
+      flags.startQueue = true;
+      if (phase.resumeAt) {
+        flags.alonePaused = phase.resumeAt.pause === 'alone';
+        flags.resumeAt = {paused: phase.resumeAt.pause !== 'none', position: phase.resumeAt.position};
+      }
+    }; break;
+    case 'playing': {
+      flags.alonePaused = phase.pause === 'alone';
+      flags.paused = phase.pause !== 'none';
+    }; break;
+    case 'idle': {
+      flags.idle = true;
+      flags.idleLeaving = phase.leaving;
+    }; break;
+    case 'disconnected': {
+      flags.disconnected = flags.paused = true;
+    }; break;
+  }
+  if (rejoin) {
+    flags.rejoinedAt = rejoin.since;
+    flags.rejoinTries = rejoin.tries;
+    // the old code joins again a second after adopting one that was still leaving
+    flags.rejoinPending = rejoin.stage === 'leaving';
+    flags.rejoining = rejoin.stage !== 'done' && !rejoin.left;
+  }
+  return flags;
+}
+
+function sameLegacyFlags(x: LegacyGuildFlags, y: LegacyGuildFlags): boolean {
+  const booleans = ['alonePaused', 'disconnected', 'idle', 'idleLeaving', 'paused', 'rejoining', 'rejoinPending', 'startQueue'] as const;
+  if (booleans.some((key) => !!x[key] !== !!y[key])) {
+    return false;
+  }
+  if ((x.rejoinedAt || null) !== (y.rejoinedAt || null) || (x.rejoinTries || null) !== (y.rejoinTries || null)) {
+    return false;
+  }
+  if (!x.resumeAt || !y.resumeAt) {
+    return !x.resumeAt === !y.resumeAt;
+  }
+  return !!x.resumeAt.paused === !!y.resumeAt.paused && x.resumeAt.position === y.resumeAt.position;
+}
+
+// a handed-over guild's phase and rejoin: its snapshot while the flags still say the same (a rollback in between
+// changes the flags but carries the snapshot along untouched), otherwise from the flags. `fromFlags` when it was
+export function stateFromHandover(guild: LegacyGuildFlags & {phase?: GuildPhaseSnapshot, rejoin?: null | GuildRejoinSnapshot}, now: number): {
+  fromFlags: boolean,
+  phase: GuildPhaseSnapshot,
+  rejoin: null | GuildRejoinSnapshot,
+} {
+  if (guild.phase && guild.rejoin !== undefined && sameLegacyFlags(legacyFromState(guild.phase, guild.rejoin), guild)) {
+    return {fromFlags: false, phase: guild.phase, rejoin: guild.rejoin};
+  }
+  return {fromFlags: true, phase: phaseFromLegacy(guild), rejoin: rejoinFromLegacy(guild, now)};
+}
+
+function snapshotPhase(phase: GuildPhase): GuildPhaseSnapshot {
+  switch (phase.name) {
+    case 'starting': return {name: 'starting', resumeAt: (phase.resumeAt) ? {...phase.resumeAt} : null};
+    case 'playing': return {name: 'playing', pause: phase.pause, started: phase.started};
+    case 'idle': return {name: 'idle', leaving: !!phase.leaveTimeout};
+    case 'disconnected': return {name: 'disconnected'};
+  }
+}
+
+// timers aren't in a snapshot, the adopting instance starts them again
+function phaseFromSnapshot(phase: GuildPhaseSnapshot): GuildPhase {
+  switch (phase.name) {
+    case 'starting': return {name: 'starting', resumeAt: (phase.resumeAt) ? {...phase.resumeAt} : null};
+    case 'playing': return {name: 'playing', aloneTimeout: null, pause: phase.pause, started: phase.started};
+    case 'idle': return {name: 'idle', leaveTimeout: null};
+    case 'disconnected': return {name: 'disconnected'};
+  }
+}
+
+// a guild handed over (`VoiceNodeHandover`): the legacy flags for the code before phases (it spreads this object and
+// sets its own timers to null), the snapshot for this code. Only plain values, the old code's `GuildVoice` fields
+export type HandoverGuild = LegacyGuildFlags & {
+  aloneTimeout: null,
+  channelId?: string,
   effects?: Array<string>,
   endpoint?: string,
-  // nothing's playing (the queue ran out), we stay in the channel and the next play starts the node's queue again. For
-  // good with 24/7, otherwise until `idleTimeout`
-  idle?: boolean,
-  // not 24/7: we leave when this runs out, unless something plays (or 24/7 got turned on) in the meantime
-  idleTimeout?: ReturnType<typeof setTimeout> | null,
-  joinTimeout: ReturnType<typeof setTimeout> | null,
-  // when it last moved, the new node's track start is the same track carrying on (not a new one at 0)
+  idleTimeout: null,
+  joinTimeout: null,
   movedAt?: number,
-  // moving to another node (its old one was disabled, went down or restarted)
-  moving?: boolean,
-  // what we last told the node (pause/resume), a failover keeps it
-  paused?: boolean,
-  // the track's last known position (the node's `playerUpdate`s, a seek, a new track) and when it was, for a failover
-  position?: {at: number, value: number},
-  // when we last left and rejoined for new voice credentials
-  rejoinedAt?: number,
-  // left on purpose to rejoin, the leave's voice state isn't us being disconnected
-  rejoining?: boolean,
-  // rejoins in a row that lost the connection again within `REJOIN_RETRY_WINDOW`
-  rejoinTries?: number,
-  // the join half of a rejoin, a second after leaving
-  rejoinTimeout?: ReturnType<typeof setTimeout> | null,
-  // rejoined after a restart (from the api's music session): the queue starts with the playing track from here
-  resumeAt?: {paused: boolean, position: number},
-  // the node the guild's music is on, it stays there until we leave or it's disabled (then it moves between tracks)
+  moving: false,
   node: NodeConnection,
+  phase?: GuildPhaseSnapshot,
+  position?: {at: number, value: number},
+  rejoin?: null | GuildRejoinSnapshot,
+  rejoinTimeout: null,
   sessionId?: string,
   shard: ShardClient,
   speed?: number,
-  // turn on the node's queue mode with the first complete voice state (we just joined to play the queue)
   startQueue: boolean,
-  // the node's tempo (percent, the pitch kept, 100 or none is the file as it is), kept like `volume`
   tempo?: number,
   token?: string,
-  // the node's volume (percent, 100 or none is the file as it is), kept like `effects`
   volume?: number,
-}
+};
 
 /**
  * What a reloaded voicenode.ts (the owner refresh) takes over from the instance before it: made by the old code's
@@ -174,7 +439,7 @@ interface GuildVoice {
 export interface VoiceNodeHandover {
   // every old websocket closed, a node only resumes a session that has no websocket
   closed: Promise<void>,
-  guilds: Array<{guild: GuildVoice, guildId: string, idleLeaving?: boolean, joining: boolean, nodeId: string, rejoinPending: boolean}>,
+  guilds: Array<{guild: HandoverGuild, guildId: string, idleLeaving?: boolean, joining: boolean, nodeId: string, rejoinPending: boolean}>,
   nodes: Array<{
     disconnectedAt: null | number,
     failedAt: null | number,
@@ -196,28 +461,43 @@ export interface VoiceNodeHandover {
 
 
 /**
+ * A node's websocket, one at a time (`enter` clears the timers of the one it leaves):
+ * - closed: none, and nothing to reconnect for (never connected, or it closed with none of our guilds on it)
+ * - connecting: opening one (`connect`), its READY resolves `ready`, `CONNECT_TIMEOUT` terminates it
+ * - open: READY came, the watchdog terminates one the node stopped answering on
+ * - reconnecting: it closed with guilds on it, the next try's in `RECONNECT_DELAY`
+ * - retired: this instance is done with the node (the file was reloaded, or the node was deleted), it never connects
+ *   again. The reloaded instance (or the node's next entry) has its own connection, two websockets resuming one
+ *   session would have the node close the other (`NODE_CLOSE_REPLACED`)
+ */
+type NodeSocket =
+  {name: 'closed'} |
+  {name: 'connecting', ready: Promise<string>, timeout: Timer, ws: WebSocket} |
+  {name: 'open', watchdog: ReturnType<typeof setInterval>, ws: WebSocket} |
+  {name: 'reconnecting', timeout: Timer} |
+  {name: 'retired'};
+
+/**
  * One music node's websocket and session. The session is resumable: when we restart, the node keeps our players playing
  * (holding them while voice is gone), we reconnect with the session id we saved for it and rejoin their channels
  */
 export class NodeConnection {
   client: VoiceNodeClient;
-  connecting: null | Promise<string> = null;
-  // when the websocket closed, reconnecting stops once the node would have dropped our players anyway
-  disconnectedAt: null | number = null;
   // when connecting last failed, the node is skipped when picking one for a bit
   failedAt: null | number = null;
-  failoverTimeout: null | ReturnType<typeof setTimeout> = null;
   info: RestResponsesRaw.MusicNode;
-  // asking a resumed session's players after we restarted, the api's music sessions wait for it
-  restoring: null | Promise<void> = null;
   // the last thing we heard from it (a message or its ping)
   lastSeenAt = 0;
-  reconnectTimeout: null | ReturnType<typeof setTimeout> = null;
+  // since the websocket was lost, until the next READY: reconnecting stops once the node would have dropped our players
+  // anyway, and its guilds move to another node after `FAILOVER_DELAY`. Not in `state`, it spans the reconnect tries
+  outage: null | {failoverTimeout: null | Timer, since: number} = null;
+  // asking a resumed session's players after we restarted, the api's music sessions wait for it
+  restoring: null | Promise<void> = null;
   // the node said it keeps our players when the websocket closes
   resuming = false;
+  // the session we have on the node, kept while reconnecting (it's resumed, the player routes keep working with it)
   sessionId: null | string = null;
-  watchdog: null | ReturnType<typeof setInterval> = null;
-  ws: null | WebSocket = null;
+  state: NodeSocket = {name: 'closed'};
 
   constructor(client: VoiceNodeClient, info: RestResponsesRaw.MusicNode) {
     this.client = client;
@@ -232,13 +512,26 @@ export class NodeConnection {
     return this.info.url.replace(/\/+$/, '');
   }
 
+  get ws(): null | WebSocket {
+    return (this.state.name === 'connecting' || this.state.name === 'open') ? this.state.ws : null;
+  }
+
+  get disconnectedAt(): null | number {
+    return (this.outage) ? this.outage.since : null;
+  }
+
   get isConnected(): boolean {
-    return !!this.sessionId && !!this.ws && this.ws.readyState === WebSocket.OPEN;
+    return this.state.name === 'open' && !!this.sessionId && this.state.ws.readyState === WebSocket.OPEN;
   }
 
   // connected, or worth trying: never failed, or failed long enough ago
   get isAvailable(): boolean {
     return this.isConnected || !this.failedAt || NODE_RETRY_AFTER < Date.now() - this.failedAt;
+  }
+
+  // the client's own entry for the node, not one it replaced (a reload, the node deleted and added again)
+  get isCurrent(): boolean {
+    return this.state.name !== 'retired' && !this.client.detached && this.client.nodes.get(this.id) === this;
   }
 
   get guildIds(): Array<string> {
@@ -259,16 +552,37 @@ export class NodeConnection {
     }
   }
 
+  private enter(state: NodeSocket) {
+    const old = this.state;
+    // retired for good
+    if (old.name === 'retired') {
+      return;
+    }
+    switch (old.name) {
+      case 'connecting': clearTimeout(old.timeout); break;
+      case 'open': clearInterval(old.watchdog); break;
+      case 'reconnecting': clearTimeout(old.timeout); break;
+    }
+    this.state = state;
+  }
+
+  private endOutage() {
+    if (this.outage && this.outage.failoverTimeout) {
+      clearTimeout(this.outage.failoverTimeout);
+    }
+    this.outage = null;
+  }
+
   connect(userId: string): Promise<string> {
-    // reloaded, the new instance has its own connection
-    if (this.client.detached) {
+    // reloaded (or the node was deleted), the one that replaced this has its own connection
+    if (!this.isCurrent) {
       return Promise.reject(new Error('Music was just reloaded, try again'));
     }
-    if (this.sessionId && this.ws && this.ws.readyState === WebSocket.OPEN) {
-      return Promise.resolve(this.sessionId);
+    if (this.isConnected) {
+      return Promise.resolve(this.sessionId!);
     }
-    if (this.connecting) {
-      return this.connecting;
+    if (this.state.name === 'connecting') {
+      return this.state.ready;
     }
 
     const headers: Record<string, string> = {authorization: this.info.password, 'client-name': 'notsobot', 'user-id': userId};
@@ -277,125 +591,148 @@ export class NodeConnection {
       headers['session-id'] = resumeId;
     }
 
-    const promise = this.connecting = new Promise<string>((resolve, reject) => {
-      const ws = this.ws = new WebSocket(this.url.replace(/^http/, 'ws') + '/websocket', {
-        handshakeTimeout: CONNECT_TIMEOUT,
-        headers,
-      });
-      const timeout = setTimeout(() => {
-        ws.terminate();
-        reject(new Error(`The voice node ${this.info.name} didn't answer`));
-      }, CONNECT_TIMEOUT);
+    // one that's still closing (open, its close not in yet) goes: its close is ignored once it isn't ours, and the node
+    // would close it for the new one anyway
+    const lingering = this.ws;
+    if (lingering) {
+      this.outage = this.outage || {failoverTimeout: null, since: Date.now()};
+    }
 
-      ws.on('ping', () => this.lastSeenAt = Date.now());
-      ws.on('message', (data) => {
-        // a websocket we already dropped (reloaded), whatever it still says is for nobody
-        if (this.ws !== ws) {
-          return;
-        }
-        this.lastSeenAt = Date.now();
-        let message: NodeMessage;
-        try {
-          message = JSON.parse(data.toString());
-        } catch(error) {
-          return;
-        }
-        if (!message || typeof(message.data) !== 'object' || !message.data) {
-          return;
-        }
-        switch (message.op) {
-          case 'READY': {
-            clearTimeout(timeout);
-            this.onReady(ws, message.data.sessionId, !!message.data.resumed);
-            resolve(message.data.sessionId);
-          }; break;
-          case 'PLAYER_UPDATE': {
-            this.client.onPlayerUpdate(this, message.data);
-          }; break;
-          default: {
-            this.client.onEvent(this, message);
-          };
-        }
-      });
-      ws.on('close', (code) => {
-        clearTimeout(timeout);
-        reject(new Error(`The voice node ${this.info.name} connection closed`));
-        if (this.ws === ws && code === NODE_CLOSE_REPLACED) {
-          // a newer process of this cluster resumed our session (we were stuck), its players are its now. reconnecting
-          // would take them back and the two of us would keep taking turns
-          log.warn(`voice node ${this.info.name} session was taken over by a newer process, not reconnecting`);
-          this.ws = null;
-          this.sessionId = null;
-          if (this.watchdog) {
-            clearInterval(this.watchdog);
-            this.watchdog = null;
-          }
-          return;
-        }
-        if (this.ws === ws) {
-          this.ws = null;
-          this.failedAt = Date.now();
-          this.disconnectedAt = this.disconnectedAt || Date.now();
-          if (this.watchdog) {
-            clearInterval(this.watchdog);
-            this.watchdog = null;
-          }
-          // nothing could take them (no other node up), the node would have dropped them by now anyway
-          if (RESUME_TIMEOUT * 1000 < Date.now() - this.disconnectedAt) {
-            for (const guildId of this.guildIds) {
-              this.client.nodeLost(guildId, this.disconnectedAt);
-            }
-          }
-          if (this.guildIds.length) {
-            // a short blip resumes (the node kept playing), a node still gone after a few seconds has its guilds moved
-            if (!this.failoverTimeout) {
-              const wait = Math.max(0, FAILOVER_DELAY - (Date.now() - this.disconnectedAt));
-              this.failoverTimeout = setTimeout(() => {
-                this.failoverTimeout = null;
-                if (!this.isConnected) {
-                  this.client.failover(this, 'down', this.disconnectedAt || Date.now());
-                }
-              }, wait);
-            }
-            // the node keeps our players for a bit, reconnect while there's anything to keep
-            if (this.reconnectTimeout) {
-              clearTimeout(this.reconnectTimeout);
-            }
-            this.reconnectTimeout = setTimeout(() => {
-              this.reconnectTimeout = null;
-              this.connect(userId).catch((error) => log.warn(`voice node ${this.info.name} reconnect`, error));
-            }, RECONNECT_DELAY);
-          }
-        }
-      });
-      ws.on('error', (error) => log.warn(`voice node ${this.info.name}`, error));
+    let resolveReady!: (sessionId: string) => void;
+    let rejectReady!: (error: Error) => void;
+    const ready = new Promise<string>((resolve, reject) => {
+      resolveReady = resolve;
+      rejectReady = reject;
     });
-    promise.then(() => this.connecting = null, () => this.connecting = null);
-    return promise;
+    const ws = new WebSocket(this.url.replace(/^http/, 'ws') + '/websocket', {
+      handshakeTimeout: CONNECT_TIMEOUT,
+      headers,
+    });
+    const timeout = setTimeout(() => {
+      rejectReady(new Error(`The voice node ${this.info.name} didn't answer`));
+      ws.terminate();
+    }, CONNECT_TIMEOUT);
+    this.enter({name: 'connecting', ready, timeout, ws});
+    if (lingering) {
+      lingering.terminate();
+    }
+
+    ws.on('ping', () => this.lastSeenAt = Date.now());
+    ws.on('message', (data) => {
+      // a websocket we already dropped (reloaded), whatever it still says is for nobody
+      if (this.ws !== ws) {
+        return;
+      }
+      this.lastSeenAt = Date.now();
+      let message: NodeMessage;
+      try {
+        message = JSON.parse(data.toString());
+      } catch(error) {
+        return;
+      }
+      if (!message || typeof(message.data) !== 'object' || !message.data) {
+        return;
+      }
+      switch (message.op) {
+        case 'READY': {
+          this.onReady(ws, message.data.sessionId, !!message.data.resumed);
+          resolveReady(message.data.sessionId);
+        }; break;
+        case 'PLAYER_UPDATE': {
+          this.client.onPlayerUpdate(this, message.data);
+        }; break;
+        default: {
+          this.client.onEvent(this, message);
+        };
+      }
+    });
+    ws.on('close', (code) => {
+      rejectReady(new Error(`The voice node ${this.info.name} connection closed`));
+      if (this.ws === ws) {
+        this.lost(code, userId);
+      }
+    });
+    ws.on('error', (error) => log.warn(`voice node ${this.info.name}`, error));
+    return ready;
+  }
+
+  // the websocket closed (or never opened): reconnect while guilds are on it (the node keeps their players for a bit),
+  // move them to another node if it stays down, or drop them once the node would have dropped their players anyway
+  private lost(code: number, userId: string) {
+    if (code === NODE_CLOSE_REPLACED) {
+      // another websocket resumed our session. Only this cluster has its id (the tmp file is per cluster and per
+      // container) and detritus starts a cluster's next process once the last one exited, so it was a second
+      // connection in this process: an entry this instance replaced, or the instance before a reload (`isCurrent` stops
+      // those now). Whoever has the session has its players, it isn't resumed again (that would take turns with it):
+      // a new session's READY puts our guilds on new players (`failover` 'restarted'), or they fail over meanwhile
+      log.warn(`voice node ${this.info.name} session was resumed by another connection, starting a new one`);
+      this.forgetSession();
+    }
+    this.failedAt = Date.now();
+    this.outage = this.outage || {failoverTimeout: null, since: Date.now()};
+    const outage = this.outage;
+    // nothing could take them (no other node up), the node would have dropped them by now anyway
+    if (RESUME_TIMEOUT * 1000 < Date.now() - outage.since) {
+      for (const guildId of this.guildIds) {
+        this.client.nodeLost(guildId, outage.since);
+      }
+    }
+    if (!this.guildIds.length) {
+      this.enter({name: 'closed'});
+      return;
+    }
+    // a short blip resumes (the node kept playing), a node still gone after a few seconds has its guilds moved
+    if (!outage.failoverTimeout) {
+      const wait = Math.max(0, FAILOVER_DELAY - (Date.now() - outage.since));
+      outage.failoverTimeout = setTimeout(() => {
+        outage.failoverTimeout = null;
+        if (this.outage === outage && !this.isConnected && this.isCurrent) {
+          this.client.failover(this, 'down', outage.since);
+        }
+      }, wait);
+    }
+    // the node keeps our players for a bit, reconnect while there's anything to keep
+    this.enter({
+      name: 'reconnecting',
+      timeout: setTimeout(() => {
+        this.connect(userId).catch((error) => log.warn(`voice node ${this.info.name} reconnect`, error));
+      }, RECONNECT_DELAY),
+    });
+  }
+
+  // a session another websocket took isn't resumed again, the next connect starts a new one
+  private forgetSession() {
+    const sessionId = this.sessionId;
+    this.resuming = false;
+    this.sessionId = null;
+    if (this.sessionFile && sessionId && this.readSavedSessionId() === sessionId) {
+      try {
+        fs.unlinkSync(this.sessionFile);
+      } catch(error) {
+        log.warn('voice node session file', error);
+      }
+    }
   }
 
   private onReady(ws: WebSocket, sessionId: string, resumed: boolean) {
     const previousId = this.sessionId;
     const downAt = this.disconnectedAt;
-    this.disconnectedAt = null;
+    this.endOutage();
     this.failedAt = null;
     this.lastSeenAt = Date.now();
     this.resuming = false;
     this.sessionId = sessionId;
-    if (this.failoverTimeout) {
-      clearTimeout(this.failoverTimeout);
-      this.failoverTimeout = null;
-    }
     // a node that froze (no ping, no messages) never closes the websocket itself
-    if (this.watchdog) {
-      clearInterval(this.watchdog);
-    }
-    this.watchdog = setInterval(() => {
-      if (this.ws === ws && NODE_SILENT_TIMEOUT < Date.now() - this.lastSeenAt) {
-        log.warn(`voice node ${this.info.name} stopped answering`);
-        ws.terminate();
-      }
-    }, 10 * 1000);
+    this.enter({
+      name: 'open',
+      watchdog: setInterval(() => {
+        if (this.ws === ws && NODE_SILENT_TIMEOUT < Date.now() - this.lastSeenAt) {
+          log.warn(`voice node ${this.info.name} stopped answering`);
+          ws.terminate();
+        }
+      }, 10 * 1000),
+      ws,
+    });
     if (this.sessionFile) {
       try {
         fs.writeFileSync(this.sessionFile, sessionId);
@@ -467,21 +804,17 @@ export class NodeConnection {
     }
   }
 
-  // this file is being reloaded: stops its timers and closes the websocket without touching the players (the session
-  // is resuming, the node keeps them playing), resolves once it's closed for the next instance to resume it
-  async detach(): Promise<void> {
-    for (const timeout of [this.failoverTimeout, this.reconnectTimeout]) {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-    }
-    if (this.watchdog) {
-      clearInterval(this.watchdog);
-    }
-    this.failoverTimeout = this.reconnectTimeout = this.watchdog = null;
-    // its close handler and messages see it isn't ours anymore
+  // this file is being reloaded (or the node was deleted): stops its timers and closes the websocket without touching
+  // the players (the session is resuming, the node keeps them playing), resolves once it's closed for the next
+  // instance to resume it
+  async retire(): Promise<void> {
     const ws = this.ws;
-    this.ws = null;
+    // its close handler and messages see it isn't ours anymore
+    this.enter({name: 'retired'});
+    if (this.outage && this.outage.failoverTimeout) {
+      clearTimeout(this.outage.failoverTimeout);
+      this.outage.failoverTimeout = null;
+    }
     if (!ws) {
       return;
     }
@@ -550,8 +883,9 @@ export class VoiceNodeClient extends EventSpewer {
   // this file was reloaded and this instance handed everything over (`detach`), it doesn't connect or join anymore
   detached = false;
   guilds = new Map<string, GuildVoice>();
-  // by queue item id, told the node's error when it couldn't play that item (until the item ends or we leave)
-  trackErrorListeners = new Map<string, {guildId: string, listener: (error: string) => void}>();
+  // by queue item id (oldest first), told the node's error when it couldn't play that item (until the item ends, we
+  // leave or `TRACK_ERROR_LISTEN_FOR`)
+  trackErrorListeners = new Map<string, {addedAt: number, guildId: string, listener: (error: string) => void}>();
   // by guild, told when its next track starts or we leave (a skip shows what comes after it)
   nextTrackWaiters = new Map<string, Set<(result: 'left' | 'started') => void>>();
   nodes = new Map<string, NodeConnection>();
@@ -587,11 +921,14 @@ export class VoiceNodeClient extends EventSpewer {
         }
         for (const [id, node] of Array.from(this.nodes)) {
           if (!ids.has(id)) {
-            if (node.guildIds.length) {
+            const resumed = Array.from(this.resumedPlayers.values()).some((player) => player.node === node);
+            if (node.guildIds.length || resumed) {
               // deleted, its last info still says what it was
               node.info = {...node.info, enabled: false};
             } else {
+              // its websocket goes too, a new entry for it (added back) would resume the same session
               this.nodes.delete(id);
+              node.retire().catch((error) => log.warn(`voice node ${node.info.name} close`, error));
             }
           }
         }
@@ -731,18 +1068,17 @@ export class VoiceNodeClient extends EventSpewer {
     if (this.detached || this.guilds.has(guildId)) {
       return;
     }
-    this.join(shard, guildId, channelId, true, node);
-    const guild = this.guilds.get(guildId)!;
+    // a track that would have ended by now isn't carried on, the queue starts with the next one. One still paused
+    // alone carries on once someone listening is in with us
+    const resumeAt = (session.finished) ? null : {pause: pauseState(session.paused, !!session.paused_alone), position: session.position};
+    const guild = this.join(shard, guildId, channelId, node, {name: 'starting', resumeAt});
+    if (!guild) {
+      return;
+    }
     // they were on before the restart, they go back on with the queue
     guild.effects = session.effects || [];
     guild.tempo = session.tempo ?? 100;
     guild.volume = session.volume ?? 100;
-    // a track that would have ended by now isn't carried on, the queue starts with the next one
-    if (!session.finished) {
-      guild.resumeAt = {paused: session.paused, position: session.position};
-      // still paused alone, someone listening once we're in carries on
-      guild.alonePaused = session.paused && !!session.paused_alone;
-    }
     log.info(`voice node rejoined ${guildId} on ${node.info.name} at ${(session.finished) ? 'the next track' : `${session.position}ms`}`);
   }
 
@@ -757,27 +1093,24 @@ export class VoiceNodeClient extends EventSpewer {
       this.resumedPlayers.delete(guildId);
       if (!channelId) {
         // disconnected before the restart, still waiting for someone to resume it
-        const held = {at: Date.now(), value: position};
-        this.guilds.set(guildId, {disconnected: true, effects, joinTimeout: null, node, paused: true, position: held, shard, speed, startQueue: false, tempo, volume});
+        const guild = new GuildVoice(shard, node, {name: 'disconnected'});
+        Object.assign(guild, {effects, position: {at: Date.now(), value: position}, speed, tempo, volume});
+        this.guilds.set(guildId, guild);
         continue;
       }
-      this.join(shard, guildId, channelId, false, node);
-      const guild = this.guilds.get(guildId);
-      if (guild) {
-        guild.effects = effects;
-        guild.paused = paused;
-        guild.position = {at: Date.now(), value: position};
-        guild.speed = speed;
-        guild.tempo = tempo;
-        guild.volume = volume;
-        // nothing's playing (24/7 after the queue ran out): the next play has to start the node's queue again, like
-        // `queueEnded` left it. Without it we'd think it's playing and the queued track would never start
-        if (idle) {
-          guild.idle = true;
-          guild.paused = guild.alonePaused = false;
-          guild.position = {at: Date.now(), value: 0};
-          this.idleUnlessStaying(guildId, guild).catch((error) => log.warn(`voice node idle ${guildId}`, error));
-        }
+      // nothing's playing (24/7 after the queue ran out): the next play has to start the node's queue again, like
+      // `queueEnded` left it. Without it we'd think it's playing and the queued track would never start
+      const phase: GuildPhase = (idle) ?
+        {name: 'idle', leaveTimeout: null} :
+        {name: 'playing', aloneTimeout: null, pause: pauseState(paused, false), started: true};
+      const existed = this.guilds.has(guildId);
+      const guild = this.join(shard, guildId, channelId, node, phase);
+      if (!guild || existed) {
+        continue;
+      }
+      Object.assign(guild, {effects, position: {at: Date.now(), value: (idle) ? 0 : position}, speed, tempo, volume});
+      if (idle) {
+        this.idleUnlessStaying(guildId, guild).catch((error) => log.warn(`voice node idle ${guildId}`, error));
       }
     }
   }
@@ -790,33 +1123,86 @@ export class VoiceNodeClient extends EventSpewer {
     return this.cluster.shards.get(shardId);
   }
 
-  private join(shard: ShardClient, guildId: string, channelId: string, startQueue: boolean, node: NodeConnection) {
+  // joins `channelId` for a new guild in `phase`, or for one we're already in (reconnecting after being disconnected),
+  // which keeps its phase. Leaves if our voice state and server don't come in time
+  private join(shard: ShardClient, guildId: string, channelId: string, node: NodeConnection, phase: GuildPhase): GuildVoice | null {
     // reloaded, something still running from before (a restore) doesn't join for the old instance
     if (this.detached) {
-      return;
+      return null;
     }
-    const guild = this.guilds.get(guildId);
-    if (guild && guild.joinTimeout) {
-      clearTimeout(guild.joinTimeout);
+    let guild = this.guilds.get(guildId);
+    if (guild) {
+      guild.node = node;
+      guild.shard = shard;
+    } else {
+      guild = new GuildVoice(shard, node, phase);
+      this.guilds.set(guildId, guild);
     }
-    this.guilds.set(guildId, {
-      ...guild,
-      joinTimeout: setTimeout(() => this.leave(guildId), JOIN_TIMEOUT),
-      node,
-      shard,
-      startQueue: startQueue || !!(guild && guild.startQueue),
-    });
+    const joined = guild;
+    if (joined.joinTimeout) {
+      clearTimeout(joined.joinTimeout);
+    }
+    joined.joinTimeout = setTimeout(() => {
+      joined.joinTimeout = null;
+      if (this.guilds.get(guildId) === joined) {
+        this.leave(guildId);
+      }
+    }, JOIN_TIMEOUT);
     shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: true});
     // effects, a volume and a tempo still on (a reconnect after being disconnected, whose session went) are kept for a
     // restart too, without them the session starts with the server's saved ones (`applySavedSound`)
-    const effects = (guild && guild.effects && guild.effects.length) ? guild.effects : undefined;
-    const volume = (guild && guild.volume !== undefined && guild.volume !== 100) ? guild.volume : undefined;
-    const tempo = (guild && guild.tempo !== undefined && guild.tempo !== 100) ? guild.tempo : undefined;
-    const speed = (guild && guild.speed && guild.speed !== 1) ? guild.speed : undefined;
-    const joined = this.guilds.get(guildId)!;
+    const effects = (joined.effects && joined.effects.length) ? joined.effects : undefined;
+    const volume = (joined.volume !== undefined && joined.volume !== 100) ? joined.volume : undefined;
+    const tempo = (joined.tempo !== undefined && joined.tempo !== 100) ? joined.tempo : undefined;
+    const speed = (joined.speed && joined.speed !== 1) ? joined.speed : undefined;
     putGuildMusicSession({client: shard}, guildId, {channelId, effects, nodeId: node.id, speed, tempo, volume})
       .then((session) => this.applySavedSound(guildId, joined, session))
       .catch((error) => log.warn(`voice node session ${guildId}`, error));
+    return joined;
+  }
+
+  // requests to a guild's node player go one after another, in order: a move reads the player's state and sends it to
+  // the new node, a pause (or a disconnect, a volume) sent in between went to the old node or was overwritten by what
+  // the move read. Each op checks the guild is still there (and in the phase it's for) when it runs, and none awaits
+  // another op of the same guild (it would wait for itself)
+  private playerOp<T>(guild: GuildVoice, op: () => Promise<T>): Promise<T> {
+    const result = guild.ops.then(op);
+    guild.ops = result.then(() => {}, () => {});
+    return result;
+  }
+
+  // the phase's timers go with it
+  private setPhase<T extends GuildPhase>(guild: GuildVoice, phase: T): T {
+    clearPhaseTimers(guild.phase);
+    guild.phase = phase;
+    return phase;
+  }
+
+  private setRejoin(guild: GuildVoice, rejoin: null | GuildRejoin) {
+    if (guild.rejoin && guild.rejoin.timeout) {
+      clearTimeout(guild.rejoin.timeout);
+    }
+    guild.rejoin = rejoin;
+  }
+
+  // a rejoin in progress is over (back in voice, disconnected), its tries still count for a while
+  private endRejoin(guild: GuildVoice) {
+    const rejoin = guild.rejoin;
+    if (rejoin && rejoin.stage !== 'done') {
+      this.setRejoin(guild, {left: true, since: rejoin.since, stage: 'done', timeout: null, tries: rejoin.tries});
+    }
+  }
+
+  private clearGuildTimers(guild: GuildVoice) {
+    clearPhaseTimers(guild.phase);
+    if (guild.joinTimeout) {
+      clearTimeout(guild.joinTimeout);
+      guild.joinTimeout = null;
+    }
+    if (guild.rejoin && guild.rejoin.timeout) {
+      clearTimeout(guild.rejoin.timeout);
+      guild.rejoin.timeout = null;
+    }
   }
 
   // the server's saved effects, volume and tempo (the api keeps what was last set until someone changes it, `music
@@ -837,14 +1223,23 @@ export class VoiceNodeClient extends EventSpewer {
       changes.tempo = guild.tempo = session.tempo;
     }
     // still connecting sends them with the voice, a disconnected one's player gets them when it's back in
-    if (!Object.keys(changes).length || guild.startQueue || guild.disconnected) {
+    if (!Object.keys(changes).length || guild.phase.name === 'starting' || guild.phase.name === 'disconnected') {
       return;
     }
-    guild.node.updatePlayer(guildId, changes).then((player) => {
+    this.updateStoppedPlayer(guildId, guild, changes, 'saved sound');
+  }
+
+  // effects, a volume or a tempo for the node's player without a reply waiting on it, the speed it answers with is kept
+  private updateStoppedPlayer(guildId: string, guild: GuildVoice, changes: Record<string, unknown>, what: string) {
+    this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) !== guild) {
+        return;
+      }
+      const player = await guild.node.updatePlayer(guildId, changes);
       if (player && this.guilds.get(guildId) === guild) {
         this.applyNodeSpeed(guildId, guild, player.speed || 1);
       }
-    }, (error) => log.warn(`voice node ${guild.node.info.name} saved sound ${guildId}`, error));
+    }).catch((error) => log.warn(`voice node ${guild.node.info.name} ${what} ${guildId}`, error));
   }
 
   // the node's speed with the effects and the tempo it was given, the api's position goes on at it
@@ -879,6 +1274,9 @@ export class VoiceNodeClient extends EventSpewer {
     joined: boolean,
     // paused too long the last time (`hold`), this track carries on from `position` before the queue
     resumed: null | {item: RestResponsesRaw.GuildMusicQueueItem, position: number},
+    // when `joined`, resolves once the first track starts (or `JOINED_START_TIMEOUT`). Waited on from before the node
+    // is asked, its track start can come in before the request's answer
+    started: null | Promise<'left' | 'started' | 'timeout'>,
   }> {
     const guild = this.guilds.get(guildId);
     const node = (guild) ? guild.node : await this.pickNode(shard);
@@ -907,100 +1305,135 @@ export class VoiceNodeClient extends EventSpewer {
     // joined from this one
     if (this.detached) {
       if (guild) {
-        return {batch, item, joined: false, resumed: null};
+        return {batch, item, joined: false, resumed: null, started: null};
       }
       throw new Error('Music was just reloaded, try again');
     }
-    const joined = !this.guilds.has(guildId);
-    if (joined) {
-      this.join(shard, guildId, channelId, true, node);
-      if (resumed) {
-        this.guilds.get(guildId)!.resumeAt = {paused: false, position: resumed.position};
-      }
-    } else if (guild && guild.idle) {
-      // 24/7 with nothing playing, the node's queue starts again (like joining, the reply waits for it)
-      await this.startIdle(guildId, guild);
-      return {batch, item, joined: true, resumed: null};
-    } else {
-      // queued while disconnected, the held track carries on in their channel
-      this.reconnect(guildId, channelId);
+    const current = this.guilds.get(guildId);
+    if (!current) {
+      const started = this.waitForNextTrack(guildId, JOINED_START_TIMEOUT);
+      const resumeAt = (resumed) ? {pause: 'none' as const, position: resumed.position} : null;
+      this.join(shard, guildId, channelId, node, {name: 'starting', resumeAt});
+      return {batch, item, joined: true, resumed, started};
+    } else if (current.phase.name === 'idle') {
+      // 24/7 with nothing playing (or the queue just ran out), the node's queue starts again (like joining, the reply
+      // waits for it)
+      const started = this.waitForNextTrack(guildId, JOINED_START_TIMEOUT);
+      await this.startIdle(guildId, current);
+      return {batch, item, joined: true, resumed: null, started};
     }
-    return {batch, item, joined, resumed: (joined) ? resumed : null};
+    // queued while disconnected, the held track carries on in their channel
+    this.reconnect(guildId, channelId);
+    return {batch, item, joined: false, resumed: null, started: null};
   }
 
   // `listener` gets the node's error if the queue item fails (converting it, or while it plays), once
   onTrackError(guildId: string, queueItemId: string, listener: (error: string) => void) {
-    this.trackErrorListeners.set(queueItemId, {guildId, listener});
+    const now = Date.now();
+    // oldest first, the expired ones are at the front
+    for (const [id, waiter] of this.trackErrorListeners) {
+      if (now - waiter.addedAt < TRACK_ERROR_LISTEN_FOR) {
+        break;
+      }
+      this.trackErrorListeners.delete(id);
+    }
+    // to the back, the order stays oldest first
+    this.trackErrorListeners.delete(queueItemId);
+    this.trackErrorListeners.set(queueItemId, {addedAt: now, guildId, listener});
   }
 
   // false while joining, while disconnected (`reconnect` carries on from there) and while 24/7 keeps us in voice with
   // nothing playing
   isPlaying(guildId: string): boolean {
     const guild = this.guilds.get(guildId);
-    return !!guild && !guild.startQueue && !guild.disconnected && !guild.idle;
+    return !!guild && guild.phase.name === 'playing';
   }
 
   // 24/7 got turned off: an idle guild leaves after `IDLE_LEAVE_DELAY`, a playing one that long after its queue runs out
   unstay(guildId: string) {
     const guild = this.guilds.get(guildId);
-    if (guild && guild.idle && !guild.idleTimeout) {
+    if (guild && guild.phase.name === 'idle' && !guild.phase.leaveTimeout) {
       this.leaveWhenIdle(guildId, guild);
     }
   }
 
-  // an idle guild (24/7, or waiting to leave) plays its queue again
+  // an idle guild (24/7, or waiting to leave) plays its queue again. If the node never starts it (the request failed
+  // and no track started meanwhile) it's idle again, leaving unless 24/7, instead of in voice with nothing on for good
   private async startIdle(guildId: string, guild: GuildVoice) {
-    this.clearIdleTimeout(guild);
-    guild.idle = false;
-    guild.paused = guild.alonePaused = false;
-    guild.position = {at: Date.now(), value: 0};
-    await guild.node.updatePlayer(guildId, {paused: false, queue: true});
-  }
-
-  // the queue ran out: we stay in the channel idle until the next play, for good on 24/7 servers and for
-  // `IDLE_LEAVE_DELAY` on the rest. The api says which, from the server's setting and premium
-  private async queueEnded(guildId: string, guild: GuildVoice) {
-    const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
-    if (this.guilds.get(guildId) !== guild) {
+    const idle: GuildPhase = guild.phase;
+    if (idle.name !== 'idle') {
       return;
     }
-    if (!music || guild.disconnected) {
+    const playing: GuildPhase & {name: 'playing'} = {name: 'playing', aloneTimeout: null, pause: 'none', started: false};
+    this.setPhase(guild, playing);
+    guild.position = {at: Date.now(), value: 0};
+    try {
+      await this.playerOp(guild, async () => {
+        // left, or disconnected meanwhile (its own op holds the player)
+        if (this.guilds.get(guildId) === guild && guild.phase === playing) {
+          await guild.node.updatePlayer(guildId, {paused: false, queue: true});
+        }
+      });
+    } catch(error) {
+      if (this.guilds.get(guildId) === guild && guild.phase === playing && !playing.started) {
+        this.setPhase(guild, {name: 'idle', leaveTimeout: null});
+        this.idleUnlessStaying(guildId, guild).catch((error) => log.warn(`voice node idle ${guildId}`, error));
+      }
+      throw error;
+    }
+  }
+
+  // the queue ran out (`QUEUE_END` already made the guild idle, `phase`): we stay in the channel idle until the next
+  // play, for good on 24/7 servers and for `IDLE_LEAVE_DELAY` on the rest. The api says which, from the server's setting
+  // and premium
+  private async queueEnded(guildId: string, guild: GuildVoice, phase: GuildPhase) {
+    const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
+    // we left, or a play started the queue again while the api answered (another end is its own)
+    if (this.guilds.get(guildId) !== guild || guild.phase !== phase) {
+      return;
+    }
+    if (!music) {
       return this.leave(guildId);
     }
-    guild.idle = true;
-    guild.paused = guild.alonePaused = false;
-    guild.position = {at: Date.now(), value: 0};
-    // nothing comes next (a skip of the last track waits for this)
-    this.resolveNextTrack(guildId, 'left');
     this.editSession(guildId, guild, {paused: false, position: 0});
     if (!music.premium || !music.stay) {
       this.leaveWhenIdle(guildId, guild);
     }
   }
 
-  // idle without knowing the server's 24/7 (rejoined after a restart): the api says whether we wait to leave
+  // idle without knowing the server's 24/7 (rejoined after a restart, a failed start): the api says whether we wait to leave
   private async idleUnlessStaying(guildId: string, guild: GuildVoice) {
+    const phase = guild.phase;
     const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
-    if (this.guilds.get(guildId) === guild && guild.idle && !guild.idleTimeout && (!music || !music.premium || !music.stay)) {
+    if (this.guilds.get(guildId) === guild && guild.phase === phase && phase.name === 'idle' && !phase.leaveTimeout && (!music || !music.premium || !music.stay)) {
       this.leaveWhenIdle(guildId, guild);
     }
   }
 
   private leaveWhenIdle(guildId: string, guild: GuildVoice) {
-    this.clearIdleTimeout(guild);
-    guild.idleTimeout = setTimeout(() => {
-      guild.idleTimeout = null;
-      this.idleTimedOut(guildId, guild).catch((error) => {
+    const phase = guild.phase;
+    if (phase.name !== 'idle') {
+      return;
+    }
+    if (phase.leaveTimeout) {
+      clearTimeout(phase.leaveTimeout);
+    }
+    phase.leaveTimeout = setTimeout(() => {
+      phase.leaveTimeout = null;
+      this.idleTimedOut(guildId, guild, phase).catch((error) => {
         log.warn(`voice node idle leave ${guildId}`, error);
-        this.leave(guildId);
+        if (this.guilds.get(guildId) === guild && guild.phase === phase) {
+          this.leave(guildId);
+        }
       });
     }, IDLE_LEAVE_DELAY);
   }
 
   // still idle after `IDLE_LEAVE_DELAY`: we leave, unless 24/7 got turned on in the meantime
-  private async idleTimedOut(guildId: string, guild: GuildVoice) {
+  private async idleTimedOut(guildId: string, guild: GuildVoice, phase: GuildPhase & {name: 'idle'}) {
     const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
-    if (this.guilds.get(guildId) !== guild || !guild.idle || guild.idleTimeout) {
+    // played meanwhile, or another wait started (24/7 turned off again)
+    if (this.guilds.get(guildId) !== guild || guild.phase !== phase || phase.leaveTimeout) {
       return;
     }
     if (!music || !music.premium || !music.stay) {
@@ -1008,35 +1441,27 @@ export class VoiceNodeClient extends EventSpewer {
     }
   }
 
-  private clearIdleTimeout(guild: GuildVoice) {
-    if (guild.idleTimeout) {
-      clearTimeout(guild.idleTimeout);
-      guild.idleTimeout = null;
-    }
-  }
-
   isDisconnected(guildId: string): boolean {
     const guild = this.guilds.get(guildId);
-    return !!guild && !!guild.disconnected;
+    return !!guild && guild.phase.name === 'disconnected';
   }
 
   // joined to play the queue and still connecting to voice, nothing's on the node yet
   isStarting(guildId: string): boolean {
     const guild = this.guilds.get(guildId);
-    return !!guild && guild.startQueue && !guild.disconnected && !guild.idle;
+    return !!guild && guild.phase.name === 'starting';
   }
 
   // a resume while still connecting (`isStarting`): a restart's rejoin of a paused track carries on unpaused once it's
   // in. Where it starts from, null when it isn't connecting anymore
   resumeStarting(guildId: string): null | number {
     const guild = this.guilds.get(guildId);
-    if (!guild || !this.isStarting(guildId)) {
+    if (!guild || guild.phase.name !== 'starting') {
       return null;
     }
-    guild.paused = guild.alonePaused = false;
-    if (guild.resumeAt) {
-      guild.resumeAt.paused = false;
-      return guild.resumeAt.position;
+    if (guild.phase.resumeAt) {
+      guild.phase.resumeAt.pause = 'none';
+      return guild.phase.resumeAt.position;
     }
     return 0;
   }
@@ -1060,8 +1485,7 @@ export class VoiceNodeClient extends EventSpewer {
     if (this.detached || this.guilds.has(guildId)) {
       return null;
     }
-    this.join(shard, guildId, channelId, true, node);
-    this.guilds.get(guildId)!.resumeAt = {paused: false, position: music.held_position};
+    this.join(shard, guildId, channelId, node, {name: 'starting', resumeAt: {pause: 'none', position: music.held_position}});
     return {item: music.current, position: music.held_position};
   }
 
@@ -1069,10 +1493,10 @@ export class VoiceNodeClient extends EventSpewer {
   // reaches it (`forwardVoice`)
   reconnect(guildId: string, channelId: string): boolean {
     const guild = this.guilds.get(guildId);
-    if (!guild || !guild.disconnected || this.detached) {
+    if (!guild || guild.phase.name !== 'disconnected' || this.detached) {
       return false;
     }
-    this.join(guild.shard, guildId, channelId, false, guild.node);
+    this.join(guild.shard, guildId, channelId, guild.node, guild.phase);
     return true;
   }
 
@@ -1101,21 +1525,25 @@ export class VoiceNodeClient extends EventSpewer {
     if (!guild || !guild.channelId || this.detached) {
       return;
     }
+    const phase = guild.phase;
+    if (phase.name !== 'playing') {
+      return;
+    }
     if (this.hasListeners(guild.shard, guild.channelId, true)) {
-      if (guild.aloneTimeout) {
-        clearTimeout(guild.aloneTimeout);
-        guild.aloneTimeout = null;
+      if (phase.aloneTimeout) {
+        clearTimeout(phase.aloneTimeout);
+        phase.aloneTimeout = null;
       }
-      if (guild.alonePaused) {
+      if (phase.pause === 'alone') {
         this.setPaused(guildId, false).catch((error) => log.warn(`voice node resuming ${guildId} for a listener`, error));
       }
       return;
     }
-    if (guild.aloneTimeout || guild.paused || !this.isPlaying(guildId)) {
+    if (phase.aloneTimeout || phase.pause !== 'none') {
       return;
     }
-    guild.aloneTimeout = setTimeout(() => {
-      guild.aloneTimeout = null;
+    phase.aloneTimeout = setTimeout(() => {
+      phase.aloneTimeout = null;
       this.pauseAlone(guildId, guild).catch((error) => log.warn(`voice node pausing ${guildId} alone`, error));
     }, ALONE_PAUSE_DELAY);
   }
@@ -1124,8 +1552,8 @@ export class VoiceNodeClient extends EventSpewer {
   // premium servers can turn it off, the api says). Without 24/7 the node's pause timeout then leaves with it held
   private async pauseAlone(guildId: string, guild: GuildVoice) {
     const stillAlone = () => {
-      return this.guilds.get(guildId) === guild && !guild.paused && this.isPlaying(guildId) && !!guild.channelId &&
-        !this.hasListeners(guild.shard, guild.channelId, true);
+      return this.guilds.get(guildId) === guild && guild.phase.name === 'playing' && guild.phase.pause === 'none' &&
+        !!guild.channelId && !this.hasListeners(guild.shard, guild.channelId, true);
     };
     if (!stillAlone()) {
       return;
@@ -1141,30 +1569,53 @@ export class VoiceNodeClient extends EventSpewer {
   // `pause_alone`'s, a listener coming back undoes it (anyone else's pause or resume stays)
   async setPaused(guildId: string, paused: boolean, alone: boolean = false): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
-    if (!guild || !this.isPlaying(guildId)) {
+    if (!guild || guild.phase.name !== 'playing') {
       return null;
     }
-    // before the node answers, a listener coming back in the meantime resumes it
-    guild.alonePaused = alone && paused;
-    const player = await guild.node.updatePlayer(guildId, {paused});
-    guild.paused = paused;
-    if (player) {
-      guild.position = {at: Date.now(), value: player.position || 0};
+    const phase = guild.phase;
+    const before = phase.pause;
+    const pause = pauseState(paused, alone);
+    // right away: a listener coming back before the node answers resumes it (its resume goes after this)
+    phase.pause = pause;
+    try {
+      return await this.playerOp(guild, async () => {
+        if (this.guilds.get(guildId) !== guild || guild.phase !== phase) {
+          return null;
+        }
+        const player = await guild.node.updatePlayer(guildId, {paused});
+        if (player) {
+          guild.position = {at: Date.now(), value: player.position || 0};
+        }
+        this.editSession(guildId, guild, {paused, pausedAlone: pause === 'alone', position: (guild.position) ? guild.position.value : undefined});
+        return (player && player.track) ? player : null;
+      });
+    } catch(error) {
+      // what the node still has, unless something told it otherwise since
+      if (phase.pause === pause) {
+        phase.pause = before;
+      }
+      throw error;
     }
-    this.editSession(guildId, guild, {paused, pausedAlone: guild.alonePaused, position: (guild.position) ? guild.position.value : undefined});
-    return (player && player.track) ? player : null;
   }
 
   // `pause_alone` paused it, nobody else in the channel can hear it (the dashboard can't resume it)
   isPausedAlone(guildId: string): boolean {
     const guild = this.guilds.get(guildId);
-    return !!guild && !!guild.paused && !!guild.alonePaused;
+    return !!guild && guild.phase.name === 'playing' && guild.phase.pause === 'alone';
   }
 
   // `position` in milliseconds, past the end ends the track (and the queue goes on), null when nothing's playing
   async seek(guildId: string, position: number): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
-    if (!guild || !this.isPlaying(guildId)) {
+    if (!guild || guild.phase.name !== 'playing') {
+      return null;
+    }
+    return this.playerOp(guild, () => this.seekPlayer(guildId, guild, position, 'playing'));
+  }
+
+  // inside an op: a seek (or a replay while held) of a guild still in `phase`
+  private async seekPlayer(guildId: string, guild: GuildVoice, position: number, phase: 'disconnected' | 'playing'): Promise<NodePlayer | null> {
+    if (this.guilds.get(guildId) !== guild || guild.phase.name !== phase) {
       return null;
     }
     const player = await guild.node.updatePlayer(guildId, {position});
@@ -1177,57 +1628,72 @@ export class VoiceNodeClient extends EventSpewer {
   // on across tracks and leaving until changed (the api saves them for the server). null when nothing's playing
   async setEffects(guildId: string, effects: Array<string>): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
-    if (!guild || !this.isPlaying(guildId)) {
+    if (!guild || guild.phase.name !== 'playing') {
       return null;
     }
-    const player = await guild.node.updatePlayer(guildId, {effects});
-    guild.effects = effects;
-    guild.speed = (player && player.speed) || 1;
-    if (player) {
-      guild.position = {at: Date.now(), value: player.position || 0};
-    }
-    // a restart puts them back on (`recoverGuild`), the api's position goes on at the new speed
-    this.editSession(guildId, guild, {effects, position: (player) ? guild.position!.value : undefined, speed: guild.speed});
-    return (player && player.track) ? player : null;
+    return this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) !== guild || guild.phase.name !== 'playing') {
+        return null;
+      }
+      const player = await guild.node.updatePlayer(guildId, {effects});
+      guild.effects = effects;
+      guild.speed = (player && player.speed) || 1;
+      if (player) {
+        guild.position = {at: Date.now(), value: player.position || 0};
+      }
+      // a restart puts them back on (`recoverGuild`), the api's position goes on at the new speed
+      this.editSession(guildId, guild, {effects, position: (player) ? guild.position!.value : undefined, speed: guild.speed});
+      return (player && player.track) ? player : null;
+    });
   }
 
   // the node's tempo (percent, `MIN_MUSIC_SPEED` to `MAX_MUSIC_SPEED`, the pitch kept, 100 is the file as it is), it
   // stays across tracks and leaving like the effects. null when nothing's playing
   async setTempo(guildId: string, tempo: number): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
-    if (!guild || !this.isPlaying(guildId)) {
+    if (!guild || guild.phase.name !== 'playing') {
       return null;
     }
-    const player = await guild.node.updatePlayer(guildId, {tempo});
-    guild.tempo = tempo;
-    guild.speed = (player && player.speed) || 1;
-    if (player) {
-      guild.position = {at: Date.now(), value: player.position || 0};
-    }
-    // a restart puts it back (`recoverGuild`), the api's position goes on at the new speed
-    this.editSession(guildId, guild, {position: (player) ? guild.position!.value : undefined, speed: guild.speed, tempo});
-    return (player && player.track) ? player : null;
+    return this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) !== guild || guild.phase.name !== 'playing') {
+        return null;
+      }
+      const player = await guild.node.updatePlayer(guildId, {tempo});
+      guild.tempo = tempo;
+      guild.speed = (player && player.speed) || 1;
+      if (player) {
+        guild.position = {at: Date.now(), value: player.position || 0};
+      }
+      // a restart puts it back (`recoverGuild`), the api's position goes on at the new speed
+      this.editSession(guildId, guild, {position: (player) ? guild.position!.value : undefined, speed: guild.speed, tempo});
+      return (player && player.track) ? player : null;
+    });
   }
 
   // the node's volume (percent, 0 to 200, 100 is the file as it is), it stays across tracks and leaving like the
   // effects. null when nothing's playing
   async setVolume(guildId: string, volume: number): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
-    if (!guild || !this.isPlaying(guildId)) {
+    if (!guild || guild.phase.name !== 'playing') {
       return null;
     }
-    const player = await guild.node.updatePlayer(guildId, {volume});
-    guild.volume = volume;
-    // a restart puts it back (`recoverGuild`)
-    this.editSession(guildId, guild, {volume});
-    return (player && player.track) ? player : null;
+    return this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) !== guild || guild.phase.name !== 'playing') {
+        return null;
+      }
+      const player = await guild.node.updatePlayer(guildId, {volume});
+      guild.volume = volume;
+      // a restart puts it back (`recoverGuild`)
+      this.editSession(guildId, guild, {volume});
+      return (player && player.track) ? player : null;
+    });
   }
 
   // the server's saved effects, volume or tempo changed while we're in voice but not playing (24/7 with nothing on,
   // disconnected, still joining): what the queue starts with next. The api has them already (`editGuildMusicSound`)
   setStoppedSound(guildId: string, changes: {effects?: Array<string>, tempo?: number, volume?: number}) {
     const guild = this.guilds.get(guildId);
-    if (!guild || this.isPlaying(guildId)) {
+    if (!guild || guild.phase.name === 'playing') {
       return;
     }
     if (changes.effects) {
@@ -1240,44 +1706,45 @@ export class VoiceNodeClient extends EventSpewer {
       guild.volume = changes.volume;
     }
     // still connecting sends them with the voice
-    if (guild.startQueue) {
+    if (guild.phase.name === 'starting') {
       return;
     }
-    guild.node.updatePlayer(guildId, changes).then((player) => {
-      if (player && this.guilds.get(guildId) === guild) {
-        this.applyNodeSpeed(guildId, guild, player.speed || 1);
-      }
-    }, (error) => log.warn(`voice node ${guild.node.info.name} sound ${guildId}`, error));
+    this.updateStoppedPlayer(guildId, guild, changes, 'sound');
   }
 
   // what's playing back to the start, playing or paused as it was. Disconnected, it stays held paused at the start for
   // `reconnect`. null when nothing's playing (joining, 24/7 with nothing on)
   async replay(guildId: string): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
-    if (!guild || guild.idle || guild.startQueue) {
+    if (!guild || (guild.phase.name !== 'playing' && guild.phase.name !== 'disconnected')) {
       return null;
     }
-    if (!guild.disconnected) {
-      return this.seek(guildId, 0);
-    }
-    const player = await guild.node.updatePlayer(guildId, {position: 0});
-    guild.position = {at: Date.now(), value: 0};
-    this.editSession(guildId, guild, {position: 0});
-    return (player && player.track) ? player : null;
+    return this.playerOp(guild, () => {
+      const phase = guild.phase.name;
+      return (phase === 'playing' || phase === 'disconnected') ? this.seekPlayer(guildId, guild, 0, phase) : Promise.resolve(null);
+    });
   }
 
   // ends the track, the node goes on with the next queued item (or the queue ends and we leave). The node keeps
   // `paused` across tracks, so it's unpaused too, unless `pause_alone` paused it (nobody's there to hear the next one)
   async skip(guildId: string): Promise<boolean> {
     const guild = this.guilds.get(guildId);
-    if (!guild || !this.isPlaying(guildId)) {
+    if (!guild || guild.phase.name !== 'playing') {
       return false;
     }
-    const paused = this.isPausedAlone(guildId);
-    await guild.node.updatePlayer(guildId, {paused, skip: true});
-    guild.paused = paused;
-    this.editSession(guildId, guild, {paused, pausedAlone: paused});
-    return true;
+    return this.playerOp(guild, async () => {
+      const phase = guild.phase;
+      if (this.guilds.get(guildId) !== guild || phase.name !== 'playing') {
+        return false;
+      }
+      const paused = phase.pause === 'alone';
+      await guild.node.updatePlayer(guildId, {paused, skip: true});
+      if (guild.phase === phase) {
+        phase.pause = pauseState(paused, true);
+      }
+      this.editSession(guildId, guild, {paused, pausedAlone: paused});
+      return true;
+    });
   }
 
   // resolves when the guild's next track starts, or we leave (the queue ran out), `timeout` otherwise (a link still
@@ -1341,11 +1808,14 @@ export class VoiceNodeClient extends EventSpewer {
       return;
     }
     const channelId = guild.channelId;
-    const paused = !!guild.paused;
-    const position = (guild.idle) ? 0 : this.estimatePosition(guild, downAt);
+    const idle = guild.phase.name === 'idle';
+    const paused = guild.paused;
+    // still paused alone, someone listening once we're back carries on
+    const pausedAlone = guild.alonePaused;
+    const position = (idle) ? 0 : this.estimatePosition(guild, downAt);
     this.drop(guildId);
     this.emit(VoiceNodeEvents.LEFT, {guildId});
-    if (guild.disconnected) {
+    if (guild.phase.name === 'disconnected') {
       return;
     }
     const shard = guild.shard;
@@ -1362,8 +1832,6 @@ export class VoiceNodeClient extends EventSpewer {
         deleteGuildMusicSession({client: shard}, guildId).catch((error) => log.warn('voice node session', error));
         return;
       }
-      // still paused alone, someone listening once we're back carries on
-      const pausedAlone = paused && !!guild.alonePaused;
       editGuildMusicSession({client: shard}, guildId, {nodeId: null, paused, pausedAlone, position})
         .catch((error) => log.warn(`voice node session ${guildId}`, error));
       const effects = guild.effects || [];
@@ -1372,7 +1840,7 @@ export class VoiceNodeClient extends EventSpewer {
       this.recoveredSessions.set(guildId, {
         loadedAt: Date.now(),
         // 24/7 with nothing playing has no track to carry on, the queue starts again
-        session: {channel_id: channelId, effects, finished: !!guild.idle, guild_id: guildId, held: false, node_id: null, paused, paused_alone: pausedAlone, position, speed: guild.speed || 1, stay: true, tempo, volume},
+        session: {channel_id: channelId, effects, finished: idle, guild_id: guildId, held: false, node_id: null, paused, paused_alone: pausedAlone, position, speed: guild.speed || 1, stay: true, tempo, volume},
       });
       log.info(`voice node ${guild.node.info.name} lost ${guildId} (24/7), rejoining at ${position}ms once a node can be reached`);
       this.watchRecovered();
@@ -1391,7 +1859,7 @@ export class VoiceNodeClient extends EventSpewer {
     // still playing, it went on since the last update
     let position = 0;
     if (guild.position) {
-      const played = (guild.paused || guild.disconnected) ? 0 : Date.now() - guild.position.at;
+      const played = (guild.paused) ? 0 : Date.now() - guild.position.at;
       position = guild.position.value + Math.round(played * (guild.speed || 1));
     }
     this.drop(guildId);
@@ -1402,7 +1870,9 @@ export class VoiceNodeClient extends EventSpewer {
     this.emit(VoiceNodeEvents.LEFT, {guildId});
   }
 
-  // leaves the channel and ends the node's player, what happens to the api's queue and session is up to the caller
+  // leaves the channel and ends the node's player, what happens to the api's queue and session is up to the caller.
+  // Not an op (it'd wait behind a hung request, and a play right after would make a player for it to destroy): ops
+  // still queued find the guild gone, a move that was making a player on its new node destroys it after
   private drop(guildId: string): GuildVoice | null {
     const guild = this.guilds.get(guildId);
     if (!guild) {
@@ -1410,11 +1880,7 @@ export class VoiceNodeClient extends EventSpewer {
     }
     this.guilds.delete(guildId);
     this.resolveNextTrack(guildId, 'left');
-    for (const timeout of [guild.aloneTimeout, guild.idleTimeout, guild.joinTimeout]) {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-    }
+    this.clearGuildTimers(guild);
     for (const [queueItemId, waiter] of this.trackErrorListeners) {
       if (waiter.guildId === guildId) {
         this.trackErrorListeners.delete(queueItemId);
@@ -1431,20 +1897,28 @@ export class VoiceNodeClient extends EventSpewer {
     if (!guild) {
       return;
     }
+    const rejoin = (guild.rejoin && guild.rejoin.stage !== 'done') ? guild.rejoin : null;
     if (!channelId) {
-      if (guild.rejoining) {
-        // our own leave to rejoin, the new voice server comes with the join
-        guild.rejoining = false;
-        guild.endpoint = guild.token = undefined;
+      if (rejoin && (!rejoin.left || rejoin.stage === 'leaving')) {
+        // our own leave to rejoin, the join's voice state and server come next
+        rejoin.left = true;
         return;
       }
       // still joining, nothing's on the node to hold
-      if (guild.startQueue) {
+      if (guild.phase.name === 'starting') {
         return this.leave(guildId, true);
       }
       return this.disconnect(guildId, guild);
     }
-    if (guild.channelId && guild.channelId !== channelId && !guild.disconnected) {
+    if (rejoin) {
+      // from before our leave, the join's comes after it
+      if (rejoin.stage === 'leaving') {
+        return;
+      }
+      // the join's, without a channel from here on is someone disconnecting us
+      rejoin.left = true;
+    }
+    if (guild.channelId && guild.channelId !== channelId && guild.phase.name !== 'disconnected') {
       // someone dragged us to another channel
       this.editSession(guildId, guild, {channelId});
     }
@@ -1457,37 +1931,39 @@ export class VoiceNodeClient extends EventSpewer {
   // for us), the queue stays for `reconnect`. The api's music session is held where it stopped (like `hold`), so if we
   // and the node both restart the next `music play` still carries on with it. Reconnecting's join clears the hold
   private disconnect(guildId: string, guild: GuildVoice) {
-    if (guild.disconnected) {
+    const phase = guild.phase;
+    if (phase.name === 'disconnected') {
       return;
     }
     // 24/7 with nothing playing has nothing to hold, it stays out until the next play
-    if (guild.idle) {
+    if (phase.name === 'idle') {
       return this.leave(guildId);
     }
-    for (const timeout of [guild.aloneTimeout, guild.joinTimeout, guild.rejoinTimeout]) {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
+    if (guild.joinTimeout) {
+      clearTimeout(guild.joinTimeout);
+      guild.joinTimeout = null;
     }
-    guild.aloneTimeout = guild.joinTimeout = guild.rejoinTimeout = null;
-    guild.alonePaused = false;
+    this.endRejoin(guild);
     // where it got to before it's paused, the node's answer is exact and replaces it
     const position = this.estimatePosition(guild, Date.now());
-    guild.disconnected = true;
+    const disconnected = this.setPhase(guild, {name: 'disconnected'});
     guild.endpoint = guild.sessionId = guild.token = undefined;
-    guild.paused = true;
     guild.position = {at: Date.now(), value: position};
     const channelId = guild.channelId;
     const held = (channelId) ?
       putGuildMusicSession({client: guild.shard}, guildId, {channelId, held: true, nodeId: null, paused: true, position, speed: 1}) :
       deleteGuildMusicSession({client: guild.shard}, guildId);
     held.catch((error) => log.warn(`voice node hold ${guildId}`, error));
-    guild.node.updatePlayer(guildId, {paused: true, voice: null}).then(async (player) => {
+    this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) !== guild) {
+        return;
+      }
+      const player = await guild.node.updatePlayer(guildId, {paused: true, voice: null});
       if (player) {
         guild.position = {at: Date.now(), value: player.position || 0};
         // after the hold's saved, a patch before it would find no session
         await held.catch(() => {});
-        if (this.guilds.get(guildId) === guild && guild.disconnected) {
+        if (this.guilds.get(guildId) === guild && guild.phase === disconnected) {
           this.editSession(guildId, guild, {position: guild.position.value});
         }
       }
@@ -1500,21 +1976,26 @@ export class VoiceNodeClient extends EventSpewer {
     if (!guild || !endpoint) {
       return;
     }
+    // from before our leave to rejoin, the join's comes after it
+    if (guild.rejoin && guild.rejoin.stage === 'leaving') {
+      return;
+    }
     guild.endpoint = endpoint;
     guild.token = token;
     this.forwardVoice(guildId, guild);
   }
 
+  // our complete voice to the node: starting starts the queue with it, disconnected carries the held track on
   private forwardVoice(guildId: string, guild: GuildVoice) {
     const { channelId, endpoint, sessionId, token } = guild;
     if (!channelId || !endpoint || !sessionId || !token) {
       return;
     }
     const body: Record<string, unknown> = {voice: {channelId, endpoint, sessionId, token}};
-    if (guild.startQueue) {
+    const phase = guild.phase;
+    if (phase.name === 'starting') {
       body.paused = false;
       body.queue = true;
-      guild.startQueue = false;
       // a restart's recovered effects, volume and tempo (a new player has none, at 100)
       if (guild.effects && guild.effects.length) {
         body.effects = guild.effects;
@@ -1525,38 +2006,47 @@ export class VoiceNodeClient extends EventSpewer {
       if (guild.tempo !== undefined && guild.tempo !== 100) {
         body.tempo = guild.tempo;
       }
-      if (guild.resumeAt) {
+      const resumeAt = phase.resumeAt;
+      this.setPhase(guild, {name: 'playing', aloneTimeout: null, pause: (resumeAt) ? resumeAt.pause : 'none', started: false});
+      if (resumeAt) {
         // rejoined after a restart, the playing track carries on
-        body.paused = guild.resumeAt.paused;
-        body.position = guild.resumeAt.position;
+        body.paused = resumeAt.pause !== 'none';
+        body.position = resumeAt.position;
         body.queueCurrent = true;
-        guild.paused = guild.resumeAt.paused;
-        guild.position = {at: Date.now(), value: guild.resumeAt.position};
+        guild.position = {at: Date.now(), value: resumeAt.position};
         guild.movedAt = Date.now();
-        guild.resumeAt = undefined;
         // a held one was left paused in the session
-        this.editSession(guildId, guild, {paused: guild.paused, pausedAlone: guild.alonePaused, position: guild.position.value});
+        this.editSession(guildId, guild, {paused: resumeAt.pause !== 'none', pausedAlone: resumeAt.pause === 'alone', position: resumeAt.position});
       }
-    }
-    if (guild.disconnected) {
+    } else if (phase.name === 'disconnected') {
       // joined again after being disconnected, the held track carries on
       body.paused = false;
-      guild.disconnected = false;
-      guild.paused = guild.alonePaused = false;
+      this.setPhase(guild, {name: 'playing', aloneTimeout: null, pause: 'none', started: true});
       this.editSession(guildId, guild, {paused: false, position: (guild.position) ? guild.position.value : undefined});
     }
     if (guild.joinTimeout) {
       clearTimeout(guild.joinTimeout);
       guild.joinTimeout = null;
     }
-    guild.node.updatePlayer(guildId, body).then((player) => {
+    if (guild.rejoin && guild.rejoin.stage === 'awaitingVoice') {
+      this.endRejoin(guild);
+    }
+    this.playerOp(guild, async () => {
+      // to the node it's on by now (a move before this went first)
+      if (this.guilds.get(guildId) !== guild) {
+        return null;
+      }
+      return guild.node.updatePlayer(guildId, body);
+    }).then((player) => {
       // the recovered (or saved) effects and tempo play it at this
       if (player && this.guilds.get(guildId) === guild) {
         this.applyNodeSpeed(guildId, guild, player.speed || 1);
       }
     }, (error) => {
       log.warn(`voice node ${guild.node.info.name}`, error);
-      this.leave(guildId);
+      if (this.guilds.get(guildId) === guild) {
+        this.leave(guildId);
+      }
     });
   }
 
@@ -1570,12 +2060,20 @@ export class VoiceNodeClient extends EventSpewer {
     switch (event.op) {
       // the queue ran out (24/7 stays), or the node couldn't reach the api
       case 'QUEUE_END': {
-        if (event.data.error) {
+        if (event.data.error || guild.phase.name === 'disconnected') {
           this.leave(guildId);
         } else {
-          this.queueEnded(guildId, guild).catch((error) => {
+          // idle right away, not once the api answers: the node stopped asking for tracks, so a `music play` in
+          // between has to start its queue again (`startIdle`), `reconnect` would leave it queued with nothing playing
+          const idle = this.setPhase(guild, {name: 'idle', leaveTimeout: null});
+          guild.position = {at: Date.now(), value: 0};
+          // nothing comes next (a skip of the last track waits for this)
+          this.resolveNextTrack(guildId, 'left');
+          this.queueEnded(guildId, guild, idle).catch((error) => {
             log.warn(`voice node queue end ${guildId}`, error);
-            this.leave(guildId);
+            if (this.guilds.get(guildId) === guild) {
+              this.leave(guildId);
+            }
           });
         }
       }; break;
@@ -1602,8 +2100,12 @@ export class VoiceNodeClient extends EventSpewer {
       // (the nodes are fetched again at most once a minute, so a node disabled on the dashboard is noticed)
       case 'TRACK_START': {
         // a track playing isn't idle, even if it was restored as idle between two tracks
-        guild.idle = false;
-        this.clearIdleTimeout(guild);
+        const phase = guild.phase;
+        if (phase.name === 'idle') {
+          this.setPhase(guild, {name: 'playing', aloneTimeout: null, pause: 'none', started: true});
+        } else if (phase.name === 'playing') {
+          phase.started = true;
+        }
         if (!guild.movedAt || PLAYER_UPDATE_INTERVAL * 2 < Date.now() - guild.movedAt) {
           guild.position = {at: Date.now(), value: 0};
         }
@@ -1635,31 +2137,58 @@ export class VoiceNodeClient extends EventSpewer {
   // keeps losing it right after rejoining is left (the track held for the next play) instead of rejoining forever
   private rejoin(guildId: string, error: null | string) {
     const guild = this.guilds.get(guildId);
-    if (!guild || !guild.channelId || guild.disconnected || guild.rejoinTimeout) {
+    // already rejoining, its own voice comes
+    if (!guild || !guild.channelId || guild.phase.name === 'disconnected' || (guild.rejoin && guild.rejoin.stage !== 'done')) {
       return;
     }
     const now = Date.now();
-    const retry = !!guild.rejoinedAt && now - guild.rejoinedAt < REJOIN_RETRY_WINDOW;
-    guild.rejoinTries = (retry) ? (guild.rejoinTries || 0) + 1 : 1;
-    if (REJOIN_MAX_TRIES < guild.rejoinTries) {
+    const last = guild.rejoin;
+    const tries = (last && now - last.since < REJOIN_RETRY_WINDOW) ? last.tries + 1 : 1;
+    if (REJOIN_MAX_TRIES < tries) {
       log.warn(`voice connection for ${guildId} keeps getting lost (${error || 'no error'}), leaving`);
-      return (guild.idle) ? this.leave(guildId) : this.hold(guildId);
+      return (guild.phase.name === 'idle') ? this.leave(guildId) : this.hold(guildId);
     }
     const channelId = guild.channelId;
-    guild.rejoinedAt = now;
-    guild.rejoining = true;
     log.warn(`voice connection for ${guildId} was lost (${error || 'no error'}), rejoining`);
-    guild.shard.gateway.voiceStateUpdate(guildId, null);
+    // the old ones are dead, and discord doesn't order the join's voice server before or after its voice state: one of
+    // them with what's left of the old would go to the node
+    guild.endpoint = guild.sessionId = guild.token = undefined;
+    this.setRejoin(guild, {left: false, since: now, stage: 'leaving', timeout: null, tries});
     this.rejoinLater(guildId, guild, channelId);
+    guild.shard.gateway.voiceStateUpdate(guildId, null);
   }
 
+  // the join half of a rejoin, `REJOIN_DELAY` after leaving
   private rejoinLater(guildId: string, guild: GuildVoice, channelId: string) {
-    guild.rejoinTimeout = setTimeout(() => {
-      guild.rejoinTimeout = null;
-      if (this.guilds.get(guildId) === guild) {
-        guild.shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: true});
+    const rejoin = guild.rejoin;
+    if (!rejoin || rejoin.stage !== 'leaving') {
+      return;
+    }
+    rejoin.timeout = setTimeout(() => {
+      rejoin.timeout = null;
+      if (this.guilds.get(guildId) !== guild || guild.rejoin !== rejoin) {
+        return;
       }
-    }, 1000);
+      rejoin.stage = 'awaitingVoice';
+      this.awaitRejoinVoice(guildId, guild);
+      guild.shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: true});
+    }, REJOIN_DELAY);
+  }
+
+  // like any join, voice that doesn't come back leaves (the track held for the next play)
+  private awaitRejoinVoice(guildId: string, guild: GuildVoice) {
+    const rejoin = guild.rejoin;
+    if (!rejoin || rejoin.stage !== 'awaitingVoice') {
+      return;
+    }
+    rejoin.timeout = setTimeout(() => {
+      rejoin.timeout = null;
+      if (this.guilds.get(guildId) !== guild || guild.rejoin !== rejoin || rejoin.stage !== 'awaitingVoice') {
+        return;
+      }
+      log.warn(`voice connection for ${guildId} didn't come back after rejoining, leaving`);
+      return (guild.phase.name === 'idle') ? this.leave(guildId) : this.hold(guildId);
+    }, JOIN_TIMEOUT);
   }
 
   // where a guild's track got to on a node that's gone: its last known position, plus the time it kept playing after
@@ -1698,76 +2227,100 @@ export class VoiceNodeClient extends EventSpewer {
    * nodes: the new node gets the same voice state (we stay in the channel, discord drops the old node's voice connection)
    * and takes the queue's playing item over from where it was (`queueCurrent`). Draining asks the old player where it is
    * and destroys it, a node that's down or restarted can't be asked, so it's the last known position. A guild stays put
-   * when no other node can take it (a node that's down keeps being reconnected to until it gives up)
+   * when no other node can take it (a node that's down keeps being reconnected to until it gives up). An op: a pause, a
+   * volume or a disconnect while it moves goes to the new node after it
    */
   async moveGuild(guildId: string, reason: MoveReason, downAt: number = Date.now()): Promise<void> {
     const guild = this.guilds.get(guildId);
     if (!guild || guild.moving) {
       return;
     }
+    guild.moving = true;
+    try {
+      await this.playerOp(guild, () => this.movePlayer(guildId, guild, reason, downAt));
+    } finally {
+      guild.moving = false;
+    }
+  }
+
+  private async movePlayer(guildId: string, guild: GuildVoice, reason: MoveReason, downAt: number) {
+    if (this.guilds.get(guildId) !== guild) {
+      return;
+    }
     const from = guild.node;
     // a node that's down isn't picked again, a restarted one can take its own guilds back
     const exclude = (reason === 'down') ? from : undefined;
 
-    // still joining, nothing's on the node yet: the voice state goes to the new one when it comes
-    if (guild.startQueue) {
+    // still joining, nothing's on the node yet: the voice goes to the new one when it comes (an op after this one, even
+    // if it came while picking)
+    if (guild.phase.name === 'starting') {
       if (reason !== 'drain') {
         const to = await this.pickNode(guild.shard, exclude).catch(() => null);
-        if (to && this.guilds.get(guildId) === guild) {
+        if (to && this.guilds.get(guildId) === guild && guild.node === from) {
           guild.node = to;
         }
       }
       return;
     }
 
-    // a disconnected one has no voice to send, the new node holds it paused like the old one did
-    const { channelId, endpoint, sessionId, token } = guild;
-    const voice = (channelId && endpoint && sessionId && token) ? {channelId, endpoint, sessionId, token} : null;
-    if (!voice && !guild.disconnected) {
+    const to = await this.pickNode(guild.shard, exclude).catch(() => null);
+    if (!to || this.guilds.get(guildId) !== guild || guild.node !== from || (reason === 'drain' && to === from)) {
       return;
     }
-    guild.moving = true;
-    try {
-      const to = await this.pickNode(guild.shard, exclude).catch(() => null);
-      if (!to || this.guilds.get(guildId) !== guild || (reason === 'drain' && to === from)) {
-        return;
-      }
 
-      let paused = !!guild.paused;
-      let position: number;
-      if (reason === 'drain') {
-        const player = await from.getPlayer(guildId);
-        position = (player) ? player.position || 0 : 0;
-        paused = !!(player && player.paused);
-      } else {
-        position = this.estimatePosition(guild, downAt);
-      }
-
-      // events from here on are the old player ending, ignored
-      guild.node = to;
-      if (reason === 'drain') {
-        await from.destroyPlayer(guildId).catch((error) => log.warn(`voice node ${from.info.name} destroy`, error));
-      }
-      try {
-        await to.updatePlayer(guildId, {...(voice) ? {voice} : {}, effects: guild.effects || [], paused, position, queue: true, queueCurrent: true, tempo: guild.tempo ?? 100, volume: guild.volume ?? 100});
-      } catch(error) {
-        // nothing's playing it anymore, leave like a node that fails on join (the queue stays)
-        log.warn(`voice node ${to.info.name} taking over ${guildId}`, error);
-        if (this.guilds.get(guildId) === guild) {
-          this.leave(guildId);
-        }
-        return;
-      }
-      guild.movedAt = Date.now();
-      guild.paused = paused;
-      guild.position = {at: Date.now(), value: position};
-      if (voice) {
-        this.editSession(guildId, guild, {nodeId: to.id, paused, position});
-      }
-      log.info(`voice node moved ${guildId} from ${from.info.name} to ${to.info.name} at ${position}ms (${reason})`);
-    } finally {
-      guild.moving = false;
+    let position: number;
+    if (reason === 'drain') {
+      const player = await from.getPlayer(guildId);
+      position = (player) ? player.position || 0 : 0;
+    } else {
+      position = this.estimatePosition(guild, downAt);
     }
+    if (this.guilds.get(guildId) !== guild) {
+      return;
+    }
+
+    // events from here on are the old player ending, ignored
+    guild.node = to;
+    if (reason === 'drain') {
+      await from.destroyPlayer(guildId).catch((error) => log.warn(`voice node ${from.info.name} destroy`, error));
+    }
+    if (this.guilds.get(guildId) !== guild) {
+      return;
+    }
+    // what it is now (a pause, a disconnect or a rejoin can have come in while picking), anything newer is an op after
+    // this. Without voice the new node holds the track until a voice comes: a disconnected one's `reconnect`, or the
+    // voice a rejoin (or a rejoin after a restart) is still waiting for, whose own op goes to the new node
+    const voice = this.voiceOf(guild);
+    const paused = guild.paused;
+    try {
+      await to.updatePlayer(guildId, {...(voice) ? {voice} : {}, effects: guild.effects || [], paused, position, queue: true, queueCurrent: true, tempo: guild.tempo ?? 100, volume: guild.volume ?? 100});
+    } catch(error) {
+      // nothing's playing it anymore, leave like a node that fails on join (the queue stays)
+      log.warn(`voice node ${to.info.name} taking over ${guildId}`, error);
+      if (this.guilds.get(guildId) === guild) {
+        this.leave(guildId);
+      }
+      return;
+    }
+    if (this.guilds.get(guildId) !== guild) {
+      // left while it was asked, the leave's destroy could have come first. Unless a new play is on it already
+      const now = this.guilds.get(guildId);
+      if (!now || now.node !== to) {
+        to.destroyPlayer(guildId).catch(() => {});
+      }
+      return;
+    }
+    guild.movedAt = Date.now();
+    guild.position = {at: Date.now(), value: position};
+    if (voice) {
+      this.editSession(guildId, guild, {nodeId: to.id, paused, position});
+    }
+    log.info(`voice node moved ${guildId} from ${from.info.name} to ${to.info.name} at ${position}ms (${reason})`);
+  }
+
+  private voiceOf(guild: GuildVoice): null | {channelId: string, endpoint: string, sessionId: string, token: string} {
+    const { channelId, endpoint, sessionId, token } = guild;
+    return (channelId && endpoint && sessionId && token) ? {channelId, endpoint, sessionId, token} : null;
   }
 
   /**
@@ -1782,41 +2335,50 @@ export class VoiceNodeClient extends EventSpewer {
       this.recoveryInterval = null;
     }
     const guilds = Array.from(this.guilds).map(([guildId, guild]) => {
-      const { aloneTimeout, idleTimeout, joinTimeout, rejoinTimeout } = guild;
-      // a pending pause is checked again by the new instance's next voice state, it isn't carried over
-      if (aloneTimeout) {
-        clearTimeout(aloneTimeout);
-      }
-      // the new instance waits the whole delay again
-      if (idleTimeout) {
-        clearTimeout(idleTimeout);
-      }
-      if (joinTimeout) {
-        clearTimeout(joinTimeout);
-      }
-      if (rejoinTimeout) {
-        clearTimeout(rejoinTimeout);
-      }
+      const phase = snapshotPhase(guild.phase);
+      const rejoin = (guild.rejoin) ? {left: guild.rejoin.left, since: guild.rejoin.since, stage: guild.rejoin.stage, tries: guild.rejoin.tries} : null;
+      const { idleLeaving, rejoinPending, ...flags } = legacyFromState(phase, rejoin);
+      const joining = !!guild.joinTimeout;
+      // a pending pause alone is checked again by the new instance's next voice state, the idle leave waits the whole
+      // delay again
+      this.clearGuildTimers(guild);
+      const { channelId, effects, endpoint, movedAt, node, position, sessionId, shard, speed, tempo, token, volume } = guild;
       // a copy, whatever this instance still has running (a command, a move) changes its own
-      return {
-        guild: {...guild, aloneTimeout: null, idleTimeout: null, joinTimeout: null, moving: false, rejoinTimeout: null},
-        guildId,
-        idleLeaving: !!idleTimeout,
-        joining: !!joinTimeout,
-        nodeId: guild.node.id,
-        rejoinPending: !!rejoinTimeout,
+      const handed: HandoverGuild = {
+        ...flags,
+        aloneTimeout: null,
+        channelId,
+        effects,
+        endpoint,
+        idleTimeout: null,
+        joinTimeout: null,
+        movedAt,
+        moving: false,
+        node,
+        phase,
+        position,
+        rejoin,
+        rejoinTimeout: null,
+        sessionId,
+        shard,
+        speed,
+        startQueue: !!flags.startQueue,
+        tempo,
+        token,
+        volume,
       };
+      return {guild: handed, guildId, idleLeaving: !!idleLeaving, joining, nodeId: guild.node.id, rejoinPending: !!rejoinPending};
     });
     const nodes = Array.from(this.nodes.values()).map((node) => ({
       disconnectedAt: node.disconnectedAt,
       failedAt: node.failedAt,
       info: node.info,
-      reconnect: !!node.ws || !!node.reconnectTimeout || !!node.guildIds.length,
+      reconnect: !!node.ws || node.state.name === 'reconnecting' || !!node.guildIds.length,
       restoring: !!node.restoring,
       sessionId: node.sessionId,
     }));
     const handover: VoiceNodeHandover = {
-      closed: Promise.all(Array.from(this.nodes.values()).map((node) => node.detach())).then(() => {}),
+      closed: Promise.all(Array.from(this.nodes.values()).map((node) => node.retire())).then(() => {}),
       guilds,
       nodes,
       nodesFetchedAt: this.nodesFetchedAt,
@@ -1839,7 +2401,8 @@ export class VoiceNodeClient extends EventSpewer {
   /**
    * Takes over from the instance before this file was reloaded (`detach`): the same guilds, still in their channels
    * with their voice state (nothing's left or rejoined), and the same node sessions, resumed once the old websockets
-   * closed (`READY` with `resumed`). Also how the old instance comes back when the new file failed to load
+   * closed (`READY` with `resumed`). Also how the old instance comes back when the new file failed to load. Guilds from
+   * the code before phases only have their flags (`stateFromHandover`)
    */
   adopt(cluster: ClusterClient, handover: VoiceNodeHandover) {
     this.cluster = cluster;
@@ -1855,29 +2418,49 @@ export class VoiceNodeClient extends EventSpewer {
 
     for (const old of handover.nodes) {
       const node = new NodeConnection(this, old.info);
-      node.disconnectedAt = old.disconnectedAt;
       node.failedAt = old.failedAt;
+      node.outage = (old.disconnectedAt !== null) ? {failoverTimeout: null, since: old.disconnectedAt} : null;
       // the players' routes keep working with the session id until the websocket's back. one still being restored
       // after a restart is asked again (its players aren't ours yet), resuming from the saved session id
       node.sessionId = (old.restoring) ? null : old.sessionId;
       this.nodes.set(node.id, node);
     }
-    for (const { guild, guildId, idleLeaving, joining, nodeId, rejoinPending } of handover.guilds) {
+    const now = Date.now();
+    for (const { guild: old, guildId, idleLeaving, joining, nodeId, rejoinPending } of handover.guilds) {
       const node = this.nodes.get(nodeId);
       if (!node) {
         continue;
       }
-      const adopted: GuildVoice = {...guild, aloneTimeout: null, idleTimeout: null, joinTimeout: null, moving: false, node, rejoinTimeout: null};
-      this.guilds.set(guildId, adopted);
+      const state = stateFromHandover({...old, idleLeaving: !!idleLeaving, rejoinPending: !!rejoinPending}, now);
+      const guild = new GuildVoice(old.shard, node, phaseFromSnapshot(state.phase));
+      const { channelId, effects, endpoint, movedAt, position, sessionId, speed, tempo, token, volume } = old;
+      Object.assign(guild, {channelId, effects, endpoint, movedAt, position, sessionId, speed, tempo, token, volume});
+      let rejoin = state.rejoin;
+      if (rejoin && rejoin.stage === 'awaitingVoice' && this.voiceOf(guild) && rejoin.left) {
+        // its voice is all in, the rejoin's over (the stage just wasn't moved on before the handover)
+        rejoin = {...rejoin, stage: 'done'};
+      }
+      if (state.fromFlags && rejoin && rejoin.stage !== 'done' && !rejoin.left) {
+        // the old code clears these on the leave's voice state, which hasn't come
+        guild.endpoint = guild.sessionId = guild.token = undefined;
+      }
+      guild.rejoin = (rejoin) ? {...rejoin, timeout: null} : null;
+      this.guilds.set(guildId, guild);
       if (joining) {
-        adopted.joinTimeout = setTimeout(() => this.leave(guildId), JOIN_TIMEOUT);
+        guild.joinTimeout = setTimeout(() => {
+          guild.joinTimeout = null;
+          if (this.guilds.get(guildId) === guild) {
+            this.leave(guildId);
+          }
+        }, JOIN_TIMEOUT);
       }
-      if (idleLeaving && adopted.idle) {
-        this.leaveWhenIdle(guildId, adopted);
+      if (state.phase.name === 'idle' && state.phase.leaving) {
+        this.leaveWhenIdle(guildId, guild);
       }
-      if (rejoinPending && adopted.channelId) {
-        this.rejoinLater(guildId, adopted, adopted.channelId);
+      if (guild.channelId) {
+        this.rejoinLater(guildId, guild, guild.channelId);
       }
+      this.awaitRejoinVoice(guildId, guild);
     }
     for (const { guildId, nodeId, ...player } of handover.resumedPlayers) {
       const node = this.nodes.get(nodeId);
@@ -1903,6 +2486,16 @@ export class VoiceNodeClient extends EventSpewer {
         this.resumeSessions(shard);
       }
     });
+  }
+}
+
+function clearPhaseTimers(phase: GuildPhase) {
+  if (phase.name === 'playing' && phase.aloneTimeout) {
+    clearTimeout(phase.aloneTimeout);
+    phase.aloneTimeout = null;
+  } else if (phase.name === 'idle' && phase.leaveTimeout) {
+    clearTimeout(phase.leaveTimeout);
+    phase.leaveTimeout = null;
   }
 }
 

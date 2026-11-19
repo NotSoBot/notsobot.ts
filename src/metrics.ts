@@ -2,7 +2,7 @@ import { CommandClient, InteractionCommandClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription } from 'detritus-utils';
 
-import { getRunErrorResult } from './commandresults';
+import { CommandResults, getCommandResult, getPendingJobRuns, getRunErrorResult, waitForJobRuns } from './commandresults';
 
 
 // what changed since this cluster's last metrics report, `listeners/metricsinterval.ts` sends it to the api every so
@@ -136,13 +136,23 @@ function recordCommand(type: string, result: string, started?: number): void {
   }
 }
 
+// a run that left a media job polling (`jobReply` returns with its thinking reply) counts once the job ends, with how it
+// ended (its command result, `ran` only when the result was posted) and the whole time
+function recordCommandRan(type: string, context: {metadata?: Record<string, any>}): void {
+  const started = context.metadata && context.metadata.started;
+  if (!getPendingJobRuns(context).length) {
+    return recordCommand(type, CommandResults.RAN, started);
+  }
+  waitForJobRuns(context).then(() => {
+    recordCommand(type, getCommandResult(context) || CommandResults.RAN, started);
+  }).catch(() => {});
+}
+
 // `started` is set by the clients' `onCommandCheck`. the metrics listener hooks these up (and removes them on a refresh)
 export function connectCommandMetrics(commandClient: CommandClient): Array<EventSubscription> {
   const type = 'prefixed';
   return [
-    commandClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => {
-      recordCommand(type, 'ran', context.metadata && context.metadata.started);
-    }),
+    commandClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => recordCommandRan(type, context)),
     commandClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, async ({context, error}) => {
       recordCommand(type, await getRunErrorResult(error), context.metadata && context.metadata.started);
     }),
@@ -154,9 +164,7 @@ export function connectCommandMetrics(commandClient: CommandClient): Array<Event
 export function connectInteractionCommandMetrics(interactionClient: InteractionCommandClient): Array<EventSubscription> {
   const type = 'interaction';
   return [
-    interactionClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => {
-      recordCommand(type, 'ran', context.metadata && context.metadata.started);
-    }),
+    interactionClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => recordCommandRan(type, context)),
     interactionClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, async ({context, error}) => {
       recordCommand(type, await getRunErrorResult(error), context.metadata && context.metadata.started);
     }),

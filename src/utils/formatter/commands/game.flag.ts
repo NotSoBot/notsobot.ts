@@ -108,7 +108,10 @@ interface Game {
   context: GameContext,
   country: Country,
   deadline: number,
-  // edits of the message go one at a time, so a slow hint edit can't land after the result
+  // messages deleted while the flag was going up (its id isn't known yet), checked against it once it is. null after
+  deletedWhilePosting: Array<string> | null,
+  // edits of the message go one at a time (the first post too), so a slow hint edit or an early guess's result can't
+  // land before or after the wrong one
   edits: Promise<void>,
   finished: boolean,
   flag: Buffer,
@@ -191,6 +194,7 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
     context,
     country,
     deadline: 0,
+    deletedWhilePosting: [],
     edits: Promise.resolve(),
     finished: false,
     flag: Buffer.alloc(0),
@@ -232,13 +236,24 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
 
   game.startedAt = Date.now();
   game.deadline = game.startedAt + ROUND_TIME;
-  try {
+  // the chat is read from here on, a guess during the upload queues its result behind the first post instead of
+  // replying alongside it
+  const posted = (async () => {
     await editOrReply(context, await renderDisplay(context, createGamePayload(game)));
+    game.responseId = await getResponseId(game);
+  })();
+  game.edits = posted.catch(() => {});
+  try {
+    await posted;
   } catch(error) {
     cleanupGame(game);
     throw error;
   }
-  game.responseId = await getResponseId(game);
+  const deletedWhilePosting = game.deletedWhilePosting || [];
+  game.deletedWhilePosting = null;
+  if (game.responseId && deletedWhilePosting.includes(game.responseId)) {
+    abortGame(game, false);
+  }
   // its start was deleted while the flag was going up
   if (game.aborted) {
     deleteResponse(game);
@@ -341,6 +356,10 @@ function deleteResponse(game: Game): void {
 function onMessagesDeleted(game: Game, channelId: string, messageIds: Array<string>): void {
   if (channelId !== game.channelId || game.aborted || game.finished) {
     return;
+  }
+  // still going up, its id is checked against these once it's known
+  if (game.deletedWhilePosting) {
+    game.deletedWhilePosting.push(...messageIds);
   }
   const starts = [game.responseId];
   if (game.context instanceof Command.Context) {

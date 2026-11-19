@@ -4,6 +4,7 @@ import { ComponentContext, Components } from 'detritus-client/lib/utils';
 
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
+import { Confirmer } from '../../confirmer';
 import { DisplayPayload, I18n, displayReply, formatUserForAuditLog, renderDisplay, renderEphemeralDisplay } from '../../../utils';
 
 import * as ModerationNick from './moderation.nick';
@@ -90,10 +91,9 @@ export async function createMessage(
     payload.title = translate('nickmass.can_edit', {count: members.length.toLocaleString(language), total: guild.members.length.toLocaleString(language)});
     payload.description = translate('nickmass.estimate', {seconds: ((members.length / amount) * time).toLocaleString(language)});
 
-    // `started`: this prompt was continued, a second click (or its expiry) mustn't run or cover it again. `running`: this
-    // run is going, Stop on an old progress message used to stop a later run in the server (they share `isExecuting`)
-    let started = false;
-    let running = false;
+    // continue only runs once, a second click (or its expiry) mustn't run or cover it again. Stop only acts while this
+    // prompt's run is going, Stop on an old progress message used to stop a later run in the server (they share `isExecuting`)
+    const confirmer = new Confirmer();
     const components = new Components({timeout: 5 * (60 * 1000)});
     components.createButton({
       label: translate('common.continue'),
@@ -103,7 +103,7 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        if (started) {
+        if (confirmer.state !== 'pending') {
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
         // checked again here, two prompts could both be continued and rename everyone twice at the same time
@@ -113,8 +113,7 @@ export async function createMessage(
           }));
         }
         isExecuting.nick = true;
-        started = running = true;
-        components.onTimeout = undefined;
+        confirmer.transition('pending', 'running');
 
         const amounts = {
           changed: 0,
@@ -169,10 +168,9 @@ export async function createMessage(
               if (ctx.userId !== context.userId) {
                 return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
               }
-              if (!running) {
+              if (!confirmer.transition('running', 'done')) {
                 return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
               }
-              running = false;
               isExecuting.nick = false;
 
               payload.color = EmbedColors.ERROR;
@@ -205,7 +203,7 @@ export async function createMessage(
             await displayReply(context, {...payload, components}, {replyTo: ctx});
           } catch(error) {
             isExecuting.nick = false;
-            running = false;
+            confirmer.transition('running', 'done');
             throw error;
           }
         }
@@ -255,12 +253,12 @@ export async function createMessage(
               };
               // otherwise the server stays "in progress" until a restart
               isExecuting.nick = false;
-              running = false;
+              confirmer.transition('running', 'done');
               throw error;
             }
           }
         }
-        running = false;
+        confirmer.transition('running', 'done');
 
         if (!isExecuting.nick) {
           payload.color = EmbedColors.ERROR;
@@ -326,15 +324,17 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        payload.color = EmbedColors.ERROR;
-        payload.title = translate('nickmass.cancelled_title');
-        payload.description = translate('nickmass.cancelled_before', {count: members.length.toLocaleString(language)});
-        await displayReply(context, payload, {replyTo: ctx});
+        return confirmer.cancel(ctx, () => {
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('nickmass.cancelled_title');
+          payload.description = translate('nickmass.cancelled_before', {count: members.length.toLocaleString(language)});
+          return displayReply(context, payload, {replyTo: ctx});
+        });
       },
     });
 
     const message = await replyWithMessage(context, await renderDisplay(context, {...payload, components}));
-    components.onTimeout = async () => {
+    components.onTimeout = () => confirmer.expire(async () => {
       try {
         payload.color = EmbedColors.ERROR;
         payload.title = translate('nickmass.expired_title');
@@ -343,7 +343,7 @@ export async function createMessage(
       } catch(error) {
 
       }
-    };
+    });
     return message || undefined;
   }
   return displayReply(context, {description: translate('nickmass.none')});

@@ -10,8 +10,10 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAIVAudioPutConcatCommand } from './audio-concat';
 import { MediaAIVAudioPutMixCommand } from './audio-mix';
+import { MediaAIVToolsAudioNoiseCommand } from './audio-noise';
 import { MediaAIVAudioPutReplaceCommand } from './audio-replace';
 import { MediaAIVConvertCommand } from './convert';
+import { MediaAIVToolsFFMPEGCommand } from './ffmpeg';
 
 
 export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
@@ -35,8 +37,10 @@ export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
       options: [
         new MediaAIVAudioPutConcatCommand(),
         new MediaAIVAudioPutMixCommand(),
+        new MediaAIVToolsAudioNoiseCommand(),
         new MediaAIVAudioPutReplaceCommand(),
         new MediaAIVConvertCommand(),
+        new MediaAIVToolsFFMPEGCommand(),
       ],
     });
   }

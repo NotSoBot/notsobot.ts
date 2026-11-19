@@ -1966,6 +1966,25 @@ export const MediaSSTVModesToText: Record<MediaSSTVModes, string> = Object.freez
 
 
 // what `song` plays its chords on (the api's `MediaSongSounds`)
+// ffmpeg's `anoisesrc` colors (`audio noise`, `noise`), sent lowercase like the api's FFMPEGNoiseColors values
+export enum MediaNoiseColors {
+  BLUE = 'blue',
+  BROWN = 'brown',
+  PINK = 'pink',
+  VELVET = 'velvet',
+  VIOLET = 'violet',
+  WHITE = 'white',
+}
+
+export const MediaNoiseColorsToText: Record<MediaNoiseColors, string> = Object.freeze({
+  [MediaNoiseColors.BLUE]: 'Blue',
+  [MediaNoiseColors.BROWN]: 'Brown',
+  [MediaNoiseColors.PINK]: 'Pink',
+  [MediaNoiseColors.VELVET]: 'Velvet',
+  [MediaNoiseColors.VIOLET]: 'Violet',
+  [MediaNoiseColors.WHITE]: 'White',
+});
+
 export enum MediaSongSounds {
   CHIPTUNE = 'CHIPTUNE',
   PAD = 'PAD',
@@ -1978,6 +1997,21 @@ export const MediaSongSoundsToText: Record<MediaSongSounds, string> = Object.fre
   [MediaSongSounds.PAD]: 'Pad',
   [MediaSongSounds.PIANO]: 'Piano',
   [MediaSongSounds.PLUCK]: 'Pluck',
+});
+
+// how `text`/`drawtext` lines up the lines of its text
+export enum MediaTextAlignments {
+  CENTER = 'center',
+  JUSTIFY = 'justify',
+  LEFT = 'left',
+  RIGHT = 'right',
+}
+
+export const MediaTextAlignmentsToText: Record<MediaTextAlignments, string> = Object.freeze({
+  [MediaTextAlignments.CENTER]: 'Center',
+  [MediaTextAlignments.JUSTIFY]: 'Justify',
+  [MediaTextAlignments.LEFT]: 'Left',
+  [MediaTextAlignments.RIGHT]: 'Right',
 });
 
 

@@ -3,6 +3,7 @@ import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus
 import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 
 import { putTag } from '../../../api';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
@@ -48,16 +49,17 @@ export async function createMessage(
     !referenceTag.locked
   );
 
+  const confirmer = new Confirmer();
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
-    onTimeout: async () => {
+    onTimeout: () => confirmer.expire(async () => {
       try {
         // edits the response for both prefixed commands and interactions
         await displayReply(context, {description: translate('tag_edit.request_expired_tag_was_not_edited', {name})});
       } catch(error) {
 
       }
-    },
+    }),
   });
 
   if (canEditOriginal) {
@@ -68,10 +70,12 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        const tag = await putTag(context, {content: args.content, name: referenceTag.name, serverId: referenceTag.server_id!});
-        await displayReply(context, {
-          description: translate('tag_edit.successfully_edited_tag', {name: Markup.codestring(tag.name)}),
-        }, {replyTo: ctx});
+        return confirmer.run(ctx, async () => {
+          const tag = await putTag(context, {content: args.content, name: referenceTag.name, serverId: referenceTag.server_id!});
+          await displayReply(context, {
+            description: translate('tag_edit.successfully_edited_tag', {name: Markup.codestring(tag.name)}),
+          }, {replyTo: ctx});
+        });
       },
     });
   }
@@ -84,10 +88,12 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      const tag = await putTag(context, {content: args.content, name: args.tag.name, serverId});
-      await displayReply(context, {
-        description: translate('tag_edit.successfully_edited_tag', {name: Markup.codestring(tag.name)}),
-      }, {replyTo: ctx});
+      return confirmer.run(ctx, async () => {
+        const tag = await putTag(context, {content: args.content, name: args.tag.name, serverId});
+        await displayReply(context, {
+          description: translate('tag_edit.successfully_edited_tag', {name: Markup.codestring(tag.name)}),
+        }, {replyTo: ctx});
+      });
     },
   });
 
@@ -99,7 +105,9 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      await displayReply(context, {description: translate('tag_edit.canceled_editing_tag', {name})}, {replyTo: ctx});
+      return confirmer.cancel(ctx, async () => {
+        await displayReply(context, {description: translate('tag_edit.canceled_editing_tag', {name})}, {replyTo: ctx});
+      });
     },
   });
 

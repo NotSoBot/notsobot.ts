@@ -6092,3 +6092,102 @@ export async function voiceCloneTransfer(
 ) {
   return raw.voiceCloneTransfer(context, voiceId, options);
 }
+
+
+export async function mediaACreateNoise(
+  context: RequestContext,
+  options: RestOptions.MediaACreateNoise,
+) {
+  return raw.mediaACreateNoise(context, options);
+}
+
+export async function mediaAIVManipulationAudioNoise(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioNoise,
+) {
+  return raw.mediaAIVManipulationAudioNoise(context, options);
+}
+
+export async function mediaAIVManipulationRepeat(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationRepeat,
+) {
+  return raw.mediaAIVManipulationRepeat(context, options);
+}
+
+export async function mediaAIVToolsFFMPEG(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsFFMPEG,
+) {
+  return raw.mediaAIVToolsFFMPEG(context, options);
+}
+
+export async function mediaICreateText(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTextRender,
+) {
+  return raw.mediaICreateText(context, options);
+}
+
+export async function mediaIVManipulationBrightness(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationBrightness,
+) {
+  return raw.mediaIVManipulationBrightness(context, options);
+}
+
+export async function mediaIVManipulationContrast(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationContrast,
+) {
+  return raw.mediaIVManipulationContrast(context, options);
+}
+
+export async function mediaIVManipulationContrastMultiply(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationContrastMultiply,
+) {
+  return raw.mediaIVManipulationContrastMultiply(context, options);
+}
+
+export async function mediaIVManipulationCropTransparency(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCropTransparency,
+) {
+  return raw.mediaIVManipulationCropTransparency(context, options);
+}
+
+export async function mediaIVManipulationOpacity(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOpacity,
+) {
+  return raw.mediaIVManipulationOpacity(context, options);
+}
+
+export async function mediaIVManipulationSetFrameDelay(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSetFrameDelay,
+) {
+  return raw.mediaIVManipulationSetFrameDelay(context, options);
+}
+
+export async function mediaIVManipulationSetLoop(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSetLoop,
+) {
+  return raw.mediaIVManipulationSetLoop(context, options);
+}
+
+export async function mediaIVManipulationSkew(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSkew,
+) {
+  return raw.mediaIVManipulationSkew(context, options);
+}
+
+export async function mediaIVManipulationTextDraw(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTextDraw,
+) {
+  return raw.mediaIVManipulationTextDraw(context, options);
+}

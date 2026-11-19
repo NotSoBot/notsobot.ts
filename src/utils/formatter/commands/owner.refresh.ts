@@ -6,6 +6,7 @@ import { NotSoCommandClient } from '../../../commandclient';
 import { NotSoInteractionClient } from '../../../interactioncommandclient';
 import { log } from '../../../log';
 import { displayReply } from '../../../utils';
+import { ClusterStartupPhase, ClusterStartupStage } from '../../clusterstartup';
 
 
 // the compiled source's folder (this file is in its utils/formatter/commands), what every cluster loaded its files from
@@ -19,7 +20,15 @@ async function refreshCommands(
   refreshVoice: boolean,
   LIB_PATH: string,
   extras: Record<string, any>,
-): Promise<Array<number> | RefreshFailure> {
+): Promise<Array<number> | RefreshFailure | RefreshSkipped> {
+  // a cluster still starting (or retrying a failed stage) loads its commands from lib itself, swapping things under it
+  // would reset a command client mid-import. the key is utils/clusterstartup.ts' (inline, this function is sent as
+  // source), a cluster from before it has none and counts as ready
+  const startup = (globalThis as any).notsobotClusterStartup;
+  if (startup && startup.phase !== 'ready') {
+    return {clusterId: cluster.clusterId, phase: startup.phase, skipped: true, stage: startup.stage};
+  }
+
   const LISTENERS_PATH = '/listeners/';
   const STORE_PATH = '/stores/';
 
@@ -320,6 +329,13 @@ export interface RefreshFailure {
   error: string,
 }
 
+export interface RefreshSkipped {
+  clusterId: number,
+  phase: ClusterStartupPhase,
+  skipped: true,
+  stage: null | ClusterStartupStage,
+}
+
 export interface CommandArgs {
   voice?: boolean,
 }
@@ -342,6 +358,13 @@ export async function createMessage(
   });
   */
 
+  // clusters still starting weren't touched, they pick up lib's commands on their own. listeners/stores they already
+  // loaded stay as they were until a refresh after they're ready
+  const skipped = shardIds.filter((x: any) => x && !Array.isArray(x) && !(x instanceof Error) && x.skipped) as Array<RefreshSkipped>;
+  const skippedText = (skipped.length) ? `not ready, skipped: ${skipped.slice(0, 20).map((x) => {
+    return `cluster ${x.clusterId} (${x.phase}${(x.stage) ? ` at ${x.stage}` : ''})`;
+  }).join(', ')}${(20 < skipped.length) ? ', ...' : ''}` : '';
+
   const failures = shardIds.filter((x: any) => x && !Array.isArray(x) && !(x instanceof Error) && x.dump) as Array<RefreshFailure>;
   if (failures.length) {
     const badStrings = failures.flatMap((x) => x.dump.badStrings || []);
@@ -352,6 +375,7 @@ export async function createMessage(
       ...failures.map((x) => `Error: ${x.error}`),
       ...badStrings.slice(0, 5).map((x: string) => `bad text: \`${x.slice(0, 200)}\``),
       ...((changed.length) ? [`changed: ${changed.slice(0, 20).map((name) => `/${name}`).join(', ')}`] : []),
+      ...((skippedText) ? [skippedText] : []),
     ].join('\n');
     return displayReply(context, {
       description: description.slice(0, 4000),
@@ -387,6 +411,9 @@ export async function createMessage(
   if (restarting.length) {
     const clusters = restarting.slice(0, 20).join(', ') + ((20 < restarting.length) ? ', ...' : '');
     description.push(`restarting (they load the new code when they're back): cluster ${clusters}`);
+  }
+  if (skippedText) {
+    description.push(skippedText);
   }
   return displayReply(context, {description: description.join('\n')});
 }

@@ -26,11 +26,15 @@ class ReminderInterval extends Listener {
   catchUpIntervalTime = 5 * 60 * 1000;
   // scan a bit past the next interval so timer drift can't leave a gap between scans
   scanMargin = 5 * 60 * 1000;
+  // a reminder goes scheduled (`reminders`) -> sending/deleting (`handled`, plus `deleteRetries` while its delete keeps
+  // failing) -> done (`completed`), and `isKnown` covers all of them
   reminders = new Collections.BaseCollection<string, ReminderItem>();
   // reminders that were executed (or are executing) but not yet deleted from the api
   handled = new Set<string>();
   // pending retries for reminders whose delete failed
   deleteRetries = new Collections.BaseCollection<string, Timers.Timeout>();
+  // sent and deleted for a while, a fetch that read the api before our delete would otherwise send it again
+  completed = new Collections.BaseCollection<string, true>({expire: 10 * 60 * 1000});
   deleteRetryMin = 15 * 1000;
   deleteRetryMax = 10 * 60 * 1000;
 
@@ -38,6 +42,10 @@ class ReminderInterval extends Listener {
   // moving this off cluster 0 means changing that route too
   shouldHandle(cluster: ClusterClient): boolean {
     return cluster.clusterId === 0;
+  }
+
+  isKnown(reminderId: string): boolean {
+    return this.reminders.has(reminderId) || this.handled.has(reminderId) || this.completed.has(reminderId);
   }
 
   createReminderText(reminder: RestResponsesRaw.Reminder, expired: boolean = false): string {
@@ -69,7 +77,7 @@ class ReminderInterval extends Listener {
       return;
     }
 
-    if (this.reminders.has(reminder.id) || this.handled.has(reminder.id)) {
+    if (this.isKnown(reminder.id)) {
       return;
     }
 
@@ -102,7 +110,7 @@ class ReminderInterval extends Listener {
     reminder: RestResponsesRaw.Reminder,
     content: string,
   ): Promise<void> {
-    if (this.handled.has(reminder.id)) {
+    if (this.handled.has(reminder.id) || this.completed.has(reminder.id)) {
       return;
     }
     this.handled.add(reminder.id);
@@ -172,6 +180,7 @@ class ReminderInterval extends Listener {
         return;
       }
     }
+    this.completed.set(reminderId, true);
     this.handled.delete(reminderId);
   }
 
@@ -232,7 +241,7 @@ class ReminderInterval extends Listener {
     // Maybe limit to less than a week old?
     const reminders = await this.fetchReminders(shard, 0, timestampMax);
     for (let [reminderId, reminder] of reminders) {
-      if (this.reminders.has(reminderId) || this.handled.has(reminderId)) {
+      if (this.isKnown(reminderId)) {
         continue;
       }
       const content = this.createReminderText(reminder, true);

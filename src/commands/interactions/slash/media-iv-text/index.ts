@@ -11,6 +11,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaIVAchievementCommand } from './achievement';
 import { MediaIVCaptionCommand } from './caption';
 import { MediaIVDemotivateCommand } from './demotivate';
+import { MediaIVTextDrawTextCommand } from './draw-text';
 import { MediaIVMemeCommand } from './meme';
 import { MediaIVNewsCommand } from './news';
 import { MediaIVNotificationCommand } from './notification';
@@ -46,6 +47,7 @@ export default class MediaIVTextGroupCommand extends BaseSlashCommand {
         new MediaIVAchievementCommand(),
         new MediaIVCaptionCommand(),
         new MediaIVDemotivateCommand(),
+        new MediaIVTextDrawTextCommand(),
         new MediaIVMemeCommand(),
         new MediaIVNewsCommand(),
         new MediaIVNotificationCommand(),

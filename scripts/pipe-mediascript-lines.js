@@ -39,6 +39,7 @@ const STRING_SAMPLES = {
   flyImage: SAMPLE('photo.jpg'),
   font: 'IMPACT',
   notes: 'C4 E4 G4:2',
+  options: '-vf negate -af "volume=2"',
   resize: 'fit(mw, mh)',
   sentence: 'hello there',
   size: '64',

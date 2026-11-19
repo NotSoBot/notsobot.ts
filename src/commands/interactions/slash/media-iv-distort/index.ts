@@ -24,6 +24,7 @@ import { MediaIVMandalaScopeCommand } from './mandalascope';
 import { MediaIVMultiplyCommand } from './multiply';
 import { MediaIVPinchPunchCommand } from './pinch-punch';
 import { MediaIVRippleCommand } from './ripple';
+import { MediaIVSkewCommand } from './skew';
 import { MediaIVSwirlCommand } from './swirl';
 import { MediaIVTunnelCommand } from './tunnel';
 import { MediaIVVegasWaveCommand } from './vegas-wave';
@@ -69,6 +70,7 @@ export default class MediaIVDistortGroupCommand extends BaseSlashCommand {
         new MediaIVMultiplyCommand(),
         new MediaIVPinchPunchCommand(),
         new MediaIVRippleCommand(),
+        new MediaIVSkewCommand(),
         new MediaIVSwirlCommand(),
         new MediaIVTunnelCommand(),
         new MediaIVVegasWaveCommand(),

@@ -6,6 +6,7 @@ import { postTagsImport } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
+import { Confirmer } from '../../confirmer';
 import { Translator, getTranslator } from '../../i18n';
 
 
@@ -89,9 +90,10 @@ export async function createMessage(
     return displayReply(context, {description: createResultText(translator, result)});
   }
 
+  const confirmer = new Confirmer();
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
-    onTimeout: async () => {
+    onTimeout: () => confirmer.expire(async () => {
       try {
         // drop the button, the result stays
         components.clear();
@@ -99,30 +101,29 @@ export async function createMessage(
       } catch(e) {
 
       }
-    },
+    }),
   });
 
-  let overwritten = false;
   components.createButton({
     label: translate('tag_import.overwrite', {count: overwritable.length.toLocaleString(language)}),
     style: MessageComponentButtonStyles.DANGER,
     run: async (ctx: ComponentContext) => {
-      if (ctx.userId !== context.userId || overwritten) {
+      if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      overwritten = true;
-      components.clear();
 
       // the api checks again that each of these can be overwritten by this user
-      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      const overwriteResult = await postTagsImport(context, serverId, {...importOptions, overwrite: overwritable});
-      return displayReply(context, {
-        components,
-        description: [
-          createResultText(translator, result),
-          '',
-          createResultText(translator, overwriteResult),
-        ].join('\n'),
+      return confirmer.run(ctx, async () => {
+        components.clear();
+        const overwriteResult = await postTagsImport(context, serverId, {...importOptions, overwrite: overwritable});
+        return displayReply(context, {
+          components,
+          description: [
+            createResultText(translator, result),
+            '',
+            createResultText(translator, overwriteResult),
+          ].join('\n'),
+        });
       });
     },
   });

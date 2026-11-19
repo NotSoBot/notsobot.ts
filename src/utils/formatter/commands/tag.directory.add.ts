@@ -4,6 +4,7 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import { putTagsDirectoryTag } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis, TagDirectoryCategories } from '../../../constants';
@@ -42,16 +43,17 @@ export async function createMessage(
   const tagText = Markup.codestring(args.tag.name);
 
   // the user has to confirm they made the tag's content (or have its owner's permission) before it goes public
+  const confirmer = new Confirmer();
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
-    onTimeout: async () => {
+    onTimeout: () => confirmer.expire(async () => {
       try {
         // edits the response for both prefixed commands and interactions
         await displayReply(context, {description: translate('tag_directory_add.canceled_due_to_timeout', {tag: tagText})});
       } catch(e) {
 
       }
-    },
+    }),
   });
 
   components.createButton({
@@ -61,24 +63,26 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      let description: string;
-      try {
-        await putTagsDirectoryTag(context, args.tag.id, {
-          category: args.category,
-          description: args.description,
-          title: args.title,
-        });
-        description = translate('tag_directory_add.ok_added_tag_to_the_tag_directory', {tag: Markup.codestring(args.tag.id)});
-      } catch(error) {
-        // already listed (or no longer the user's), show why instead of leaving the buttons up
-        const apiError = await getApiError(error);
-        if (!apiError) {
-          throw error;
+      return confirmer.run(ctx, async () => {
+        let description: string;
+        try {
+          await putTagsDirectoryTag(context, args.tag.id, {
+            category: args.category,
+            description: args.description,
+            title: args.title,
+          });
+          description = translate('tag_directory_add.ok_added_tag_to_the_tag_directory', {tag: Markup.codestring(args.tag.id)});
+        } catch(error) {
+          // already listed (or no longer the user's), show why instead of leaving the buttons up
+          const apiError = await getApiError(error);
+          if (!apiError) {
+            throw error;
+          }
+          const key = getApiErrorTranslationKey(apiError.code);
+          description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
         }
-        const key = getApiErrorTranslationKey(apiError.code);
-        description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
-      }
-      await displayReply(context, {description}, {replyTo: ctx});
+        await displayReply(context, {description}, {replyTo: ctx});
+      });
     },
   });
 
@@ -90,7 +94,9 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      await displayReply(context, {description: translate('tag_directory_add.ok_did_not_add', {tag: tagText})}, {replyTo: ctx});
+      return confirmer.cancel(ctx, async () => {
+        await displayReply(context, {description: translate('tag_directory_add.ok_did_not_add', {tag: tagText})}, {replyTo: ctx});
+      });
     },
   });
 

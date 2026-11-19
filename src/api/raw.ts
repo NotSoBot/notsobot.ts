@@ -15932,3 +15932,325 @@ export async function voiceCloneTransfer(
     },
   });
 }
+
+
+export async function mediaACreateNoise(
+  context: RequestContext,
+  options: RestOptions.MediaACreateNoise,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    amplitude: options.amplitude,
+    color: options.color,
+    duration: options.duration,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    sample_rate: options.sampleRate,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_A_CREATE_NOISE,
+    },
+  });
+}
+
+export async function mediaAIVManipulationAudioNoise(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioNoise,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    amplitude: options.amplitude,
+    color: options.color,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    sample_rate: options.sampleRate,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_AUDIO_NOISE,
+    },
+  });
+}
+
+export async function mediaAIVManipulationRepeat(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationRepeat,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    amount: options.amount,
+    duration: options.duration,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_REPEAT,
+    },
+  });
+}
+
+export async function mediaAIVToolsFFMPEG(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsFFMPEG,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    options: options.options,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_FFMPEG,
+    },
+  });
+}
+
+export async function mediaICreateText(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTextRender,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    align: options.align,
+    background: options.background,
+    color: options.color,
+    font: options.font,
+    markup: options.markup,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    shadow: options.shadow,
+    size: options.size,
+    stroke: options.stroke,
+    stroke_width: options.strokeWidth,
+    text: options.text,
+    width: options.width,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_TEXT,
+    },
+  });
+}
+
+export async function mediaIVManipulationBrightness(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationBrightness,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    percentage: options.percentage,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_BRIGHTNESS,
+    },
+  });
+}
+
+export async function mediaIVManipulationContrast(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationContrast,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    amount: options.amount,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_CONTRAST,
+    },
+  });
+}
+
+export async function mediaIVManipulationContrastMultiply(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationContrastMultiply,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    multiplier: options.multiplier,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_CONTRAST_MULTIPLY,
+    },
+  });
+}
+
+export async function mediaIVManipulationCropTransparency(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCropTransparency,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_CROP_TRANSPARENCY,
+    },
+  });
+}
+
+export async function mediaIVManipulationOpacity(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOpacity,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    percentage: options.percentage,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OPACITY,
+    },
+  });
+}
+
+export async function mediaIVManipulationSetFrameDelay(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSetFrameDelay,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    delay: options.delay,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SET_FRAME_DELAY,
+    },
+  });
+}
+
+export async function mediaIVManipulationSetLoop(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSetLoop,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    amount: options.amount,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SET_LOOP,
+    },
+  });
+}
+
+export async function mediaIVManipulationSkew(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSkew,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    amount: options.amount,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+    vertical: options.vertical,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SKEW,
+    },
+  });
+}
+
+export async function mediaIVManipulationTextDraw(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTextDraw,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    align: options.align,
+    background: options.background,
+    color: options.color,
+    end: options.end,
+    font: options.font,
+    markup: options.markup,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    shadow: options.shadow,
+    size: options.size,
+    start: options.start,
+    stroke: options.stroke,
+    stroke_width: options.strokeWidth,
+    text: options.text,
+    url: options.url,
+    width: options.width,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_TEXT_DRAW,
+    },
+  });
+}

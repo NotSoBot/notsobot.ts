@@ -59,6 +59,8 @@ type GameContext = Command.Context | Interaction.InteractionContext;
 
 enum GamePhases {
   LOBBY = 'LOBBY',
+  // the host pressed start, waiting on the secret image (people can still join or leave)
+  STARTING = 'STARTING',
   ROUND = 'ROUND',
   VOTING = 'VOTING',
   FINISHED = 'FINISHED',
@@ -105,7 +107,6 @@ interface Game {
   secretPromptId: number,
   refreshing: Promise<void> | null,
   refreshQueued: boolean,
-  startRequested: boolean,
   timer: Timers.Timeout,
   voteMessage: Structures.Message | null,
   // voter -> index in `entries`
@@ -148,7 +149,6 @@ export async function createMessage(
     secretPromptId: 0,
     refreshing: null,
     refreshQueued: false,
-    startRequested: false,
     timer: new Timers.Timeout(),
     voteMessage: null,
     votes: new Map(),
@@ -225,7 +225,7 @@ function generateRandomReference(game: Game): void {
       }
       game.referenceError = error;
       // fails the lobby right away, a start that's waiting on it fails the game itself
-      if (game.phase === GamePhases.LOBBY && !game.startRequested) {
+      if (game.phase === GamePhases.LOBBY) {
         const { translate } = await getTranslator(game.context);
         await failGame(game, translate('game.imagine.image_failed'), error);
       }
@@ -308,9 +308,10 @@ function createGamePayload(game: Game, translator: Translator): DisplayPayload {
   }
 
   switch (game.phase) {
-    case GamePhases.LOBBY: {
+    case GamePhases.LOBBY:
+    case GamePhases.STARTING: {
       const players = Array.from(game.players.keys()).map((userId) => `<@${userId}>`);
-      const note = (game.startRequested) ? (
+      const note = (game.phase === GamePhases.STARTING) ? (
         translate('game.imagine.starting_when_ready')
       ) : (
         translate('game.imagine.lobby_closes', {time: displayTimestamp(game.deadline)})
@@ -368,7 +369,7 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
   components.createButton({
     label: `${translator.translate('game.imagine.join')} (${game.players.size}/${MAX_PLAYERS})`,
     run: async (ctx: ComponentContext) => {
-      if (game.phase !== GamePhases.LOBBY) {
+      if (game.phase !== GamePhases.LOBBY && game.phase !== GamePhases.STARTING) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       const { translate } = await getTranslator(ctx);
@@ -391,7 +392,7 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
     label: translator.translate('game.imagine.leave'),
     style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
-      if (game.phase !== GamePhases.LOBBY) {
+      if (game.phase !== GamePhases.LOBBY && game.phase !== GamePhases.STARTING) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       if (!game.players.has(ctx.userId)) {
@@ -405,21 +406,23 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
   });
 
   components.createButton({
-    disabled: game.startRequested,
+    disabled: game.phase === GamePhases.STARTING,
     label: translator.translate('game.imagine.start'),
     style: MessageComponentButtonStyles.SUCCESS,
     run: async (ctx: ComponentContext) => {
-      if (game.phase !== GamePhases.LOBBY || game.startRequested) {
+      if (game.phase !== GamePhases.LOBBY) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      const { translate } = await getTranslator(ctx);
       if (ctx.userId !== game.hostId) {
+        const { translate } = await getTranslator(ctx);
         return respondEphemeral(ctx, translate('game.imagine.only_host', {user: `<@${game.hostId}>`}));
       }
       if (game.players.size < MIN_PLAYERS) {
+        const { translate } = await getTranslator(ctx);
         return respondEphemeral(ctx, translate('game.imagine.need_players', {count: MIN_PLAYERS}));
       }
-      game.startRequested = true;
+      // before anything awaits, so a double click can't start it twice
+      game.phase = GamePhases.STARTING;
       // the image can take a bit, the lobby doesn't expire on them while it finishes (the job wait time still applies)
       game.timer.stop();
       await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -433,11 +436,11 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
   });
 
   components.createButton({
-    disabled: game.startRequested,
+    disabled: game.phase === GamePhases.STARTING,
     label: translator.translate('game.imagine.set_prompt'),
     style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
-      if (game.phase !== GamePhases.LOBBY || game.startRequested) {
+      if (game.phase !== GamePhases.LOBBY) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       const hostTranslator = await getTranslator(ctx);
@@ -501,7 +504,7 @@ async function submitSecretPrompt(
 ): Promise<unknown> {
   const translator = await getTranslator(ctx);
   const { translate } = translator;
-  if (game.phase !== GamePhases.LOBBY || game.startRequested) {
+  if (game.phase !== GamePhases.LOBBY) {
     return modalContext.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, await renderPlayerMessage(ctx, {
       description: translate('game.imagine.already_started'),
     }, true));
@@ -535,7 +538,7 @@ async function submitSecretPrompt(
   }
 
   // they set another prompt meanwhile, or the game started with the old image
-  if (secretPromptId !== game.secretPromptId || game.phase !== GamePhases.LOBBY || game.startRequested) {
+  if (secretPromptId !== game.secretPromptId || game.phase !== GamePhases.LOBBY) {
     return modalContext.editResponse(await renderPlayerMessage(ctx, {
       description: translate('game.imagine.secret_prompt_replaced'),
     }, false));
@@ -556,7 +559,7 @@ async function submitSecretPrompt(
 
 async function startRound(game: Game): Promise<void> {
   // cancelled (or the lobby expired) while the image was generating
-  if (game.phase !== GamePhases.LOBBY) {
+  if (game.phase !== GamePhases.STARTING) {
     return;
   }
   if (game.referenceError || !game.reference) {
@@ -566,7 +569,7 @@ async function startRound(game: Game): Promise<void> {
   // people left while it waited on the image, back to the lobby for what's left of its time (at least a minute), a
   // whole new lobby could go past the 15 minutes a slash command's token can edit its response for
   if (game.players.size < MIN_PLAYERS) {
-    game.startRequested = false;
+    game.phase = GamePhases.LOBBY;
     game.deadline = Math.max(game.deadline, Date.now() + 60 * 1000);
     game.timer.start(game.deadline - Date.now(), async () => {
       const { translate } = await getTranslator(game.context);

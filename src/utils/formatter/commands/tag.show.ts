@@ -480,6 +480,9 @@ function getMimetypeFromExtension(extension: string): string | undefined {
 }
 
 
+// what a tag message's components are doing, see `generateComponents`
+type ComponentsState = 'idle' | 'executing' | 'continuing' | 'locked' | 'expired';
+
 export interface GenerateComponentsOptions {
   ai?: TagMessageAIOptions,
   // the message is this press's response (NotSoAI continuing), its components are turned off through it
@@ -497,9 +500,9 @@ export function generateComponents(
   }
 
   const { replyTo } = options;
-  let isExecuting = false;
-  // a one-time `ai` component was pressed, nothing on the message works after it
-  let isLocked = false;
+  // one thing at a time on the message: a tagscript press (`executing`), NotSoAI's turn after a press (`continuing`) or
+  // the timeout. `locked` is after a one-time `ai` pick and `expired` after the timeout, nothing works after either
+  let state: ComponentsState = 'idle';
   const hasAI = parsedTag.components.components.some(TagFormatter.hasComponentAI);
 
   // the message these components are on (the command's reply, or the press NotSoAI continued from) with its buttons and
@@ -531,90 +534,116 @@ export function generateComponents(
     }
   };
 
+  // the onTimeout script, or the components stripped (turned off for components v2)
+  const expire = async () => {
+    if (parsedTag.components && parsedTag.components.onTimeout) {
+      await TagFormatter.increaseComponentExecutions(parsedTag);
+      const newParsedTag = await TagFormatter.parse(
+        context,
+        parsedTag.components.onTimeout,
+        '',
+        parsedTag.variables,
+        parsedTag.context,
+        parsedTag.limits,
+        parsedTag.files,
+        true,
+        {isRoot: true},
+      );
+      return createTagMessage(context, newParsedTag);
+    }
+
+    if (replyTo) {
+      return disableOwnerComponents();
+    }
+
+    let response: Structures.Message | null = null;
+    if (context instanceof Command.Context) {
+      const contextResponse = context.response;
+      if (contextResponse && contextResponse.canEdit) {
+        response = contextResponse;
+      }
+    } else if (context instanceof Interaction.InteractionContext) {
+      response = context.response;
+    }
+
+    let components: any;
+    if (response) {
+      if (response.hasFlagComponentsV2) {
+        const raw = disableComponentsJSON(JSON.parse(JSON.stringify(response.components)));
+        components = {toJSON: () => raw};
+      } else {
+        components = [];
+      }
+
+      if (context instanceof Command.Context) {
+        return await response.edit({components});
+      } else if (context instanceof Interaction.InteractionContext) {
+        return editOrReply(context, {
+          attachments: undefined,
+          content: undefined,
+          components,
+          embeds: undefined,
+        });
+      }
+    } else {
+      // fall back to just clearing out all components and pray its not ComponentsV2
+      if (context instanceof Interaction.InteractionContext) {
+        return editOrReply(context, {
+          attachments: undefined,
+          content: undefined,
+          components: [],
+          embeds: undefined,
+        });
+      }
+    }
+  };
+
   const components = new Components({
     timeout: (hasAI) ? AI_COMPONENTS_TIMEOUT : 1 * (60 * 1000),
     onError: (componentContext: ComponentContext, error: Error) => {
       return componentContext.editOrRespond(translate('tag_show.tagscript_error_has_occured', {error: error}));
     },
     onTimeout: async () => {
-      if (parsedTag.components && parsedTag.components.onTimeout) {
-        await TagFormatter.increaseComponentExecutions(parsedTag);
-        const newParsedTag = await TagFormatter.parse(
-          context,
-          parsedTag.components.onTimeout,
-          '',
-          parsedTag.variables,
-          parsedTag.context,
-          parsedTag.limits,
-          parsedTag.files,
-          true,
-          {isRoot: true},
-        );
-        return createTagMessage(context, newParsedTag);
+      // NotSoAI's turn is on another message and leaves this one's listener as is, it expires once the turn is done.
+      // a tagscript press re-arms this listener when it turns the buttons off, and its result brings its own or times
+      // out again, so it's skipped. after a one-time pick the buttons are already off
+      if (state === 'continuing') {
+        state = 'expired';
+        return;
       }
-
-      if (replyTo) {
-        return disableOwnerComponents();
+      if (state !== 'idle') {
+        return;
       }
-
-      let response: Structures.Message | null = null;
-      if (context instanceof Command.Context) {
-        const contextResponse = context.response;
-        if (contextResponse && contextResponse.canEdit) {
-          response = contextResponse;
-        }
-      } else if (context instanceof Interaction.InteractionContext) {
-        response = context.response;
-      }
-
-      let components: any;
-      if (response) {
-        if (response.hasFlagComponentsV2) {
-          const raw = disableComponentsJSON(JSON.parse(JSON.stringify(response.components)));
-          components = {toJSON: () => raw};
-        } else {
-          components = [];
-        }
-
-        if (context instanceof Command.Context) {
-          return await response.edit({components});
-        } else if (context instanceof Interaction.InteractionContext) {
-          return editOrReply(context, {
-            attachments: undefined,
-            content: undefined,
-            components,
-            embeds: undefined,
-          });
-        }
-      } else {
-        // fall back to just clearing out all components and pray its not ComponentsV2
-        if (context instanceof Interaction.InteractionContext) {
-          return editOrReply(context, {
-            attachments: undefined,
-            content: undefined,
-            components: [],
-            embeds: undefined,
-          });
-        }
-      }
+      state = 'expired';
+      return expire();
     },
   });
 
   // NotSoAI's turn after a press: the press's response is the new reply, a one-time pick turns the message's components off
   // first. only one at a time, a double click shouldn't spend twice
-  let isContinuing = false;
   const continueAI = async (
     target: TagReplyTarget,
     pressed: Structures.Message | null | undefined,
     once: boolean,
     prompt: string,
   ) => {
-    await target.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
-    if (once) {
-      isLocked = true;
-      await disableOwnerComponents(pressed).catch(() => {});
+    state = 'continuing';
+    let locks = false;
+    try {
+      await target.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+      if (once) {
+        locks = true;
+        await disableOwnerComponents(pressed).catch(() => {});
+      }
+      await options.ai!.onContinue(target, prompt);
+    } finally {
+      // the listener timed out during the turn (the cast undoes the narrowing to `continuing`)
+      const timedOut = (state as ComponentsState) === 'expired';
+      state = (locks) ? 'locked' : (timedOut) ? 'expired' : 'idle';
+      if (timedOut && !locks) {
+        await expire().catch(() => {});
+      }
     }
-    await options.ai!.onContinue(target, prompt);
   };
 
   function injectAIIntoComponent(x: Record<string, any>): void {
@@ -628,7 +657,7 @@ export function generateComponents(
     x.run = async (componentContext: ComponentContext) => {
       // only who asked, even with `ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE`: the turn runs with the asker's context (their
       // memory, music permissions, credits), so someone else's press would act as them
-      if (!options.ai || isLocked || isContinuing || componentContext.userId !== context.userId) {
+      if (!options.ai || state !== 'idle' || componentContext.userId !== context.userId) {
         await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
         return;
       }
@@ -640,19 +669,14 @@ export function generateComponents(
           title: aiInput.title,
           run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
             const input = String(args.input || '').trim();
-            if (!options.ai || isLocked || isContinuing || !input) {
+            if (!options.ai || state !== 'idle' || !input) {
               await modalContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
               return;
             }
             const prompt = (aiText) ?
               ((aiText.includes(TagFormatter.COMPONENT_AI_INPUT)) ? aiText.split(TagFormatter.COMPONENT_AI_INPUT).join(input) : `${aiText}\n${input}`) :
               input;
-            isContinuing = true;
-            try {
-              await continueAI(modalContext, pressed, once, prompt);
-            } finally {
-              isContinuing = false;
-            }
+            await continueAI(modalContext, pressed, once, prompt);
           },
         });
         modal.createLabel({label: aiInput.label}).createInputText({
@@ -678,12 +702,7 @@ export function generateComponents(
         await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
         return;
       }
-      isContinuing = true;
-      try {
-        await continueAI(componentContext, pressed, once, prompt);
-      } finally {
-        isContinuing = false;
-      }
+      await continueAI(componentContext, pressed, once, prompt);
     };
   }
 
@@ -710,13 +729,13 @@ export function generateComponents(
           await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           return;
         }
-        if (isExecuting || isLocked) {
+        if (state !== 'idle') {
           // ack it so a double click doesn't show 'This interaction failed'
           await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
           return;
         }
 
-        isExecuting = true;
+        state = 'executing';
         // reset in a finally, otherwise one failed parse leaves every later click doing nothing
         try {
           for (let x of components.components) {
@@ -773,7 +792,7 @@ export function generateComponents(
           );
           return await createTagMessage(context, newParsedTag, '', componentContext);
         } finally {
-          isExecuting = false;
+          state = 'idle';
         }
       };
     }

@@ -1,21 +1,62 @@
-import { Command, Interaction, Structures, Utils } from 'detritus-client';
+import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
+import { ComponentContext } from 'detritus-client/lib/utils';
 
 
-export type OnErrorCallback = (error: any, confirmer: Confirmer) => Promise<any> | any;
-export type OnExpireCallback = (confirmer: Confirmer) => Promise<any> | any;
-export type OnCancelCallback = (payload: any) => Promise<Utils.Embed> | Utils.Embed;
-export type OnConfirmationCallback = (payload: any) => Promise<Utils.Embed> | Utils.Embed;
-export type OnConfirmationSuccessCallback = () => Promise<Utils.Embed> | Utils.Embed;
+// a confirm prompt (continue/cancel buttons before a destructive action), each button only acts from the state it expects
+//   pending  the buttons are up, nobody answered yet
+//   running  continue was pressed and its work is going (presses are only acknowledged)
+//   done     it finished (or errored), or was cancelled. Never runs again, presses are only acknowledged
+//   expired  nobody answered in time
+// pending → running → done, pending → done (cancel), pending → expired (timeout). running → pending only when the
+// continue press couldn't even be acknowledged
+export type ConfirmerState = 'done' | 'expired' | 'pending' | 'running';
 
 
 export class Confirmer {
-  readonly context: Command.Context | Interaction.InteractionContext | Structures.Message;
+  state: ConfirmerState = 'pending';
 
-  constructor(context: Command.Context | Interaction.InteractionContext | Structures.Message) {
-    this.context = context;
+  // only moves when it's in `from`, so a double click or a late timeout can't act twice
+  transition(from: ConfirmerState, to: ConfirmerState): boolean {
+    if (this.state !== from) {
+      return false;
+    }
+    this.state = to;
+    return true;
   }
 
-  get channelId(): string {
-    return this.context.channelId!;
+  // continue: runs `work` once, the press is answered first so slow work doesn't fail the interaction (`work` edits the
+  // message through `ctx` afterwards). an error still ends it, the action may have partly happened
+  async run(ctx: ComponentContext, work: () => Promise<unknown>): Promise<unknown> {
+    if (!this.transition('pending', 'running')) {
+      return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+    }
+    try {
+      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+    } catch(error) {
+      // the press couldn't be answered (too late), nothing ran so the buttons still work
+      this.transition('running', 'pending');
+      throw error;
+    }
+    try {
+      return await work();
+    } finally {
+      this.transition('running', 'done');
+    }
+  }
+
+  // cancel: only before continue was pressed
+  async cancel(ctx: ComponentContext, work: () => Promise<unknown>): Promise<unknown> {
+    if (!this.transition('pending', 'done')) {
+      return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+    }
+    return work();
+  }
+
+  // the timeout: only when nobody answered, it never covers a result
+  async expire(work: () => Promise<unknown>): Promise<unknown> {
+    if (!this.transition('pending', 'expired')) {
+      return;
+    }
+    return work();
   }
 }

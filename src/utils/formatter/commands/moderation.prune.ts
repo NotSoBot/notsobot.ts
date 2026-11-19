@@ -12,6 +12,7 @@ import { Timers } from 'detritus-utils';
 import { formatPermissions, replyWarning } from '../../../commands/errors';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
+import { Confirmer } from '../../confirmer';
 import { I18n, displayDetail, displayDetailsLine, displayReply, formatUserForAuditLog } from '../../../utils';
 
 
@@ -374,23 +375,21 @@ export async function createMessage(
     } else {
       // keep holding the prune lock until continue/cancel is pressed (or nobody answers), otherwise another large prune
       // could be started while this one is waiting on confirmation
-      let responded = false;
+      const confirmer = new Confirmer();
       const components = new Components({
         timeout: MAX_TIME_TO_RESPOND,
-        onTimeout: () => {
-          if (!responded) {
-            isExecuting.prune = false;
-          }
-        },
+        onTimeout: () => confirmer.expire(async () => {
+          isExecuting.prune = false;
+        }),
       });
       components.createButton({
         label: translate('common.continue'),
         style: MessageComponentButtonStyles.DANGER,
         run: async (ctx: ComponentContext) => {
-          if (responded || !timeout.hasStarted || ctx.userId !== context.userId) {
+          // the "starting" reply answers the press right away
+          if (!timeout.hasStarted || ctx.userId !== context.userId || !confirmer.transition('pending', 'running')) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
-          responded = true;
           timeout.stop();
 
           try {
@@ -405,6 +404,7 @@ export async function createMessage(
             await displayReply(context, {description: translate('prune.errored', {error: String(error)})}, {replyTo: ctx});
           } finally {
             isExecuting.prune = false;
+            confirmer.transition('running', 'done');
           }
 
           await clearMessages(timeout, toClear(message));
@@ -415,10 +415,9 @@ export async function createMessage(
         label: translate('common.cancel'),
         style: MessageComponentButtonStyles.SECONDARY,
         run: async (ctx: ComponentContext) => {
-          if (responded || !timeout.hasStarted || ctx.userId !== context.userId) {
+          if (!timeout.hasStarted || ctx.userId !== context.userId || !confirmer.transition('pending', 'done')) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
-          responded = true;
           timeout.stop();
 
           isExecuting.prune = false;
@@ -453,8 +452,7 @@ export async function createMessage(
       });
       clearMessages(timeout, toClear(message), MAX_TIME_TO_RESPOND).then(() => {
         // the confirmation expired without an answer
-        if (!responded) {
-          responded = true;
+        if (confirmer.transition('pending', 'expired')) {
           isExecuting.prune = false;
         }
       });

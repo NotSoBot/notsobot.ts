@@ -4,6 +4,7 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserStore from '../../../stores/users';
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 
 import { fetchTag, fetchTagsDirectory, putTag } from '../../../api';
@@ -84,16 +85,17 @@ async function confirmAddTag(
   const { translate, translateMaybe } = await getTranslator(context);
   const tagText = Markup.codestring(args.tag.name);
 
+  const confirmer = new Confirmer();
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
-    onTimeout: async () => {
+    onTimeout: () => confirmer.expire(async () => {
       try {
         // edits the response for both prefixed commands and interactions
         await displayReply(context, {description: translate('tag_get.canceled_due_to_timeout', {tag: tagText})});
       } catch(e) {
 
       }
-    },
+    }),
   });
 
   components.createButton({
@@ -103,19 +105,21 @@ async function confirmAddTag(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      let description: string;
-      try {
-        description = await addTag(context, args, tagName, serverId);
-      } catch(error) {
-        // the name got taken (or the tag left the directory) while it waited, show why instead of leaving the buttons up
-        const apiError = await getApiError(error);
-        if (!apiError) {
-          throw error;
+      return confirmer.run(ctx, async () => {
+        let description: string;
+        try {
+          description = await addTag(context, args, tagName, serverId);
+        } catch(error) {
+          // the name got taken (or the tag left the directory) while it waited, show why instead of leaving the buttons up
+          const apiError = await getApiError(error);
+          if (!apiError) {
+            throw error;
+          }
+          const key = getApiErrorTranslationKey(apiError.code);
+          description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
         }
-        const key = getApiErrorTranslationKey(apiError.code);
-        description = `${StatusEmojis.WARNING} ${(key) ? translateMaybe(key, apiError.message) : apiError.message}`;
-      }
-      await displayReply(context, {description}, {replyTo: ctx});
+        await displayReply(context, {description}, {replyTo: ctx});
+      });
     },
   });
 
@@ -127,7 +131,9 @@ async function confirmAddTag(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
 
-      await displayReply(context, {description: translate('tag_get.ok_did_not_add', {tag: tagText})}, {replyTo: ctx});
+      return confirmer.cancel(ctx, async () => {
+        await displayReply(context, {description: translate('tag_get.ok_did_not_add', {tag: tagText})}, {replyTo: ctx});
+      });
     },
   });
 

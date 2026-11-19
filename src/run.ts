@@ -71,19 +71,17 @@ async function waitForApi(): Promise<void> {
 
 // `kill -s SIGUSR2` (`docker compose kill -s SIGUSR2 bot`) respawns the clusters one at a time on the code that's now in
 // lib, for the files the refresh command can't swap in. the rest of the shards stay connected meanwhile
-// a second signal while it's still going would start another pass alongside it, respawning (and identifying) every
-// cluster twice
-let isRespawning = false;
 process.on('SIGUSR2', async () => {
   if (!manager.ran) {
     log.info('SIGUSR2 ignored, the clusters are still starting');
     return;
   }
-  if (isRespawning) {
+  // our detritus' respawnAll hands back the pass that's already going instead of starting a second one, this only
+  // keeps the signal from logging (and awaiting) it twice
+  if (manager._respawningAll) {
     log.info('SIGUSR2 ignored, the clusters are already being respawned');
     return;
   }
-  isRespawning = true;
   log.info('SIGUSR2, respawning the clusters one at a time');
   try {
     await manager.respawnAll();
@@ -91,8 +89,6 @@ process.on('SIGUSR2', async () => {
   } catch(error) {
     log.error('respawning the clusters failed', error);
     captureError(error, {tags: {source: 'manager.respawn'}});
-  } finally {
-    isRespawning = false;
   }
 });
 

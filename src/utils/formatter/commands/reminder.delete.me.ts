@@ -4,6 +4,7 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 import { Endpoints } from 'detritus-client-rest';
 
 import { deleteReminder, fetchReminderPositional } from '../../../api';
+import { Confirmer } from '../../confirmer';
 import { Translator, getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { reminderJumpLink } from './reminder.list.me';
@@ -80,6 +81,7 @@ export async function confirmReminderDeletion(
   payload.title = translate('reminder_delete_me.are_you_sure_you_want_to_delete');
   payload.description = describeReminder(context, reminder, translate).join('\n');
 
+  const confirmer = new Confirmer();
   const components = new Components({timeout: 5 * (60 * 1000)});
   components.createButton({
     label: translate('reminder_delete_me.continue'),
@@ -88,16 +90,18 @@ export async function confirmReminderDeletion(
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      try {
-        await deleteReminder(context, reminder.id);
-        payload.title = translate('reminder_delete_me.reminder_deleted');
-        payload.color = EmbedColors.LOG_CREATION;
-      } catch(error) {
-        payload.color = EmbedColors.ERROR;
-        payload.title = translate('reminder_delete_me.reminder_deletion_errored');
-      }
+      return confirmer.run(ctx, async () => {
+        try {
+          await deleteReminder(context, reminder.id);
+          payload.title = translate('reminder_delete_me.reminder_deleted');
+          payload.color = EmbedColors.LOG_CREATION;
+        } catch(error) {
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('reminder_delete_me.reminder_deletion_errored');
+        }
 
-      await displayReply(context, payload, {replyTo: ctx});
+        await displayReply(context, payload, {replyTo: ctx});
+      });
     },
   });
 
@@ -108,15 +112,17 @@ export async function confirmReminderDeletion(
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-  
-      payload.color = EmbedColors.ERROR;
-      payload.title = translate('reminder_delete_me.reminder_deletion_cancelled');
-      await displayReply(context, payload, {replyTo: ctx});
+
+      return confirmer.cancel(ctx, () => {
+        payload.color = EmbedColors.ERROR;
+        payload.title = translate('reminder_delete_me.reminder_deletion_cancelled');
+        return displayReply(context, payload, {replyTo: ctx});
+      });
     },
   });
 
   const message = await displayReply(context, {...payload, components});
-  components.onTimeout = async () => {
+  components.onTimeout = () => confirmer.expire(async () => {
     try {
       payload.color = EmbedColors.ERROR;
       payload.title = translate('reminder_delete_me.reminder_deletion_request_expired');
@@ -126,6 +132,6 @@ export async function confirmReminderDeletion(
     } catch(error) {
   
     }
-  };
+  });
   return message;
 }

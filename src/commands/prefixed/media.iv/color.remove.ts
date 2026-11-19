@@ -16,7 +16,7 @@ export default class ColorRemoveCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['color rm', 'colour remove', 'colour rm'],
+      aliases: ['color rm', 'colour remove', 'colour rm', 'chromakey'],
       args: [
         {
           name: 'threshold',

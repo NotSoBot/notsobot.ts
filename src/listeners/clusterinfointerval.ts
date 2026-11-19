@@ -18,60 +18,91 @@ const MIN_TIME_BETWEEN_FORCED = 5000;
 
 class ClusterInfoInterval extends Listener {
   lastUpload = 0;
-  uploading = false;
+  // one upload at a time so they can't land out of order, a change while one is going (or while throttled) marks
+  // `dirty` and gets exactly one more upload after it
+  inFlight: null | Promise<void> = null;
+  dirty = false;
+  trailing = new Timers.Timeout();
 
   async maybeUploadInformation(cluster: ClusterClient, force: boolean = false): Promise<void> {
+    if (this.inFlight) {
+      // a forced one is answered by the upload that's going
+      if (!force) {
+        this.dirty = true;
+      }
+      return;
+    }
+
     const lastUpload = this.lastUpload;
     const sinceLast = Date.now() - lastUpload;
-    if ((force && this.uploading) || sinceLast <= ((force) ? MIN_TIME_BETWEEN_FORCED : MAX_TIME_BETWEEN)) {
+    if (force) {
+      if (sinceLast <= MIN_TIME_BETWEEN_FORCED) {
+        return;
+      }
+    } else if (sinceLast <= MAX_TIME_BETWEEN) {
+      // send the last change once the throttle is over instead of waiting for the api's next ask
+      this.dirty = true;
+      if (!this.trailing.hasStarted) {
+        this.trailing.start(MAX_TIME_BETWEEN - sinceLast + 1, () => this.maybeUploadInformation(cluster));
+      }
       return;
     }
 
     const shard = cluster.shards.first();
     if (shard) {
-      this.uploading = true;
-      try {
-        const usage = process.memoryUsage();
-
-        this.lastUpload = Date.now();
-        await putInfoDiscord({client: shard}, {
-          clusterId: cluster.clusterId,
-          // rss is what the os actually charges the process; external already includes arrayBuffers so summing heap fields double counts buffers
-          ramUsage: usage.rss,
-          shardCount: cluster.shardCount,
-          shardsPerCluster: (cluster.manager) ? cluster.manager.clusterShardsPer : 1,
-          shards: cluster.shards.map((shard) => {
-            return {
-              shardId: shard.shardId,
-              status: shard.gateway.state,
-
-              applications: shard.applications.length,
-              channels: shard.channels.length,
-              channelThreads: shard.channels.filter((channel) => channel.isGuildThread).length,
-              emojis: shard.emojis.length,
-              events: shard.gateway.sequence,
-              guilds: shard.guilds.length,
-              guildScheduledEvents: shard.guildScheduledEvents.length,
-              members: shard.members.length,
-              memberCount: shard.guilds.reduce((x, guild) => x + guild.memberCount, 0),
-              messages: shard.messages.length,
-              permissionOverwrites: shard.channels.reduce((x, channel) => x + channel.permissionOverwrites.length, 0),
-              presences: shard.presences.length,
-              presenceActivities: shard.presences.reduce((x, presence) => x + presence.activities.length, 0),
-              roles: shard.roles.length,
-              stageInstances: shard.stageInstances.length,
-              typings: shard.typings.length,
-              users: shard.users.length,
-              voiceStates: shard.voiceStates.length,
-            };
-          }),
-        });
-      } catch(error) {
+      this.dirty = false;
+      this.trailing.stop();
+      this.lastUpload = Date.now();
+      const promise = this.uploadInformation(cluster, shard).catch(() => {
+        // only this upload could've moved it, nothing else runs while it's in flight
         this.lastUpload = lastUpload;
+      });
+      this.inFlight = promise;
+      try {
+        await promise;
       } finally {
-        this.uploading = false;
+        this.inFlight = null;
+      }
+      if (this.dirty) {
+        this.maybeUploadInformation(cluster);
       }
     }
+  }
+
+  async uploadInformation(cluster: ClusterClient, shard: ShardClient): Promise<void> {
+    const usage = process.memoryUsage();
+    await putInfoDiscord({client: shard}, {
+      clusterId: cluster.clusterId,
+      // rss is what the os actually charges the process; external already includes arrayBuffers so summing heap fields double counts buffers
+      ramUsage: usage.rss,
+      shardCount: cluster.shardCount,
+      shardsPerCluster: (cluster.manager) ? cluster.manager.clusterShardsPer : 1,
+      shards: cluster.shards.map((shard) => {
+        return {
+          shardId: shard.shardId,
+          status: shard.gateway.state,
+
+          applications: shard.applications.length,
+          channels: shard.channels.length,
+          channelThreads: shard.channels.filter((channel) => channel.isGuildThread).length,
+          emojis: shard.emojis.length,
+          events: shard.gateway.sequence,
+          guilds: shard.guilds.length,
+          guildScheduledEvents: shard.guildScheduledEvents.length,
+          members: shard.members.length,
+          memberCount: shard.guilds.reduce((x, guild) => x + guild.memberCount, 0),
+          messages: shard.messages.length,
+          permissionOverwrites: shard.channels.reduce((x, channel) => x + channel.permissionOverwrites.length, 0),
+          presences: shard.presences.length,
+          presenceActivities: shard.presences.reduce((x, presence) => x + presence.activities.length, 0),
+          roles: shard.roles.length,
+          stageInstances: shard.stageInstances.length,
+          typings: shard.typings.length,
+          users: shard.users.length,
+          voiceStates: shard.voiceStates.length,
+        };
+      }),
+    });
   }
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
@@ -102,6 +133,11 @@ class ClusterInfoInterval extends Listener {
     }
 
     return subscriptions;
+  }
+
+  stop(cluster: ClusterClient | ShardClient) {
+    super.stop(cluster);
+    this.trailing.stop();
   }
 }
 

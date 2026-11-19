@@ -2,8 +2,9 @@ import { Collections, Command, CommandAttributes, CommandClient, GatewayClientEv
 import { ClientEvents } from 'detritus-client/lib/constants';
 
 import { acknowledgeUserWarnings, fetchCommandsResponses } from './api';
+import type { GuildSettingsRule } from './api/structures/guildsettings';
 import { RestResponsesRaw } from './api/types';
-import { CommandResults, setCommandResult } from './commandresults';
+import { CommandResults, clearCommandGate, getCommandGate, setCommandGate, setCommandResult } from './commandresults';
 import { getSlashCommandIds } from './commands/interactions/basecommand';
 import { replyWarning } from './commands/errors';
 import { CommandMetadata } from './commands/prefixed/basecommand';
@@ -58,17 +59,20 @@ export class NotSoCommandClient extends CommandClient {
       return true;
     }
 
+    // blocked users and servers (and dm-disabled commands) are stopped without a word, see `onCommandCancel`
     const user = await UserStore.getOrFetch(context, context.userId);
-    if (!user || user.isBlocked) {
-      return false;
+    if (!user) {
+      return setCommandGate(context, {kind: 'user_fetch_failed'});
+    }
+    if (user.isBlocked) {
+      return setCommandGate(context, {kind: 'user_blocked'});
     }
 
     // a warning from NotSoBot staff takes the place of this command, they run it again after reading it. not for the
     // custom command fallback (`onCommandCancel` says nothing for those), it runs for every unmatched message, or an
     // auto-embed (they only pasted a link)
     if (user.warningsPending.length && command.name && !getAutoEmbedLink(context)) {
-      contextMetadata.userWarnings = user.warningsPending;
-      return false;
+      return setCommandGate(context, {kind: 'warnings_pending', warnings: user.warningsPending});
     }
 
     // load their settings into cache before any early return (dms, admins, rules), the timezone and parser
@@ -76,14 +80,14 @@ export class NotSoCommandClient extends CommandClient {
     await UserSettingsStore.getOrFetch(context, context.userId);
 
     if (context.inDm) {
-      return !command.disableDm;
+      return (command.disableDm) ? setCommandGate(context, {kind: 'dm_disabled'}) : true;
     }
 
     const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     // without settings (the fetch failed and there's no older copy) only admins get through, see the end
     if (settings && settings.isBlocked) {
-      return false;
+      return setCommandGate(context, {kind: 'server_blocked'});
     }
 
     const { channel, member } = context;
@@ -104,8 +108,7 @@ export class NotSoCommandClient extends CommandClient {
       }
       if (!context.client.applicationCommandPermissions.isAllowed(guildId, applicationCommandIds, context.channel, member)) {
         // the server's discord command permissions for its slash version, `onCommandCancel` reacts like a rule
-        contextMetadata.blockedByCommandPermissions = true;
-        return false;
+        return setCommandGate(context, {kind: 'command_permissions'});
       }
     }
 
@@ -120,17 +123,14 @@ export class NotSoCommandClient extends CommandClient {
         userId: context.userId,
       });
       if (match && !match.rule.allows) {
-        // only rules with a message tell the user anything, see `onCommandCancel`
-        contextMetadata.blockedMessage = match.rule.value.message;
-        // for the server's auto-warn on blocked commands, its reason says which rule
-        contextMetadata.blockedByRule = match.rule;
-        return false;
+        // only rules with a message tell the user anything, see `onCommandCancel`. the rule is for the server's
+        // auto-warn on blocked commands, its reason says which rule
+        return setCommandGate(context, {kind: 'rule', message: match.rule.value.message || null, rule: match.rule});
       }
       return true;
     }
     // couldn't load the server's settings and there's no older copy of them, so its rules can't be checked
-    contextMetadata.settingsFetchFailed = true;
-    return false;
+    return setCommandGate(context, {kind: 'settings_fetch_failed'});
   }
 
   async getAttributes(context: Command.Context): Promise<CommandAttributes | null> {
@@ -298,10 +298,9 @@ export class NotSoCommandClient extends CommandClient {
           return true;
         }
         const hasPremium = !!(await Promise.resolve(command.onBefore(context)));
-        if (!hasPremium && context.metadata) {
-          // it goes to the regular commands instead, the premium reason would be replied by any of them that cancels
-          delete context.metadata.reason;
-          delete context.metadata.reasonPremiumSku;
+        if (!hasPremium) {
+          // it goes to the regular commands instead, the premium gate would be replied by any of them that cancels
+          clearCommandGate(context);
         }
         return hasPremium;
       })();
@@ -365,16 +364,17 @@ export class NotSoCommandClient extends CommandClient {
     setCommandResult(context, CommandResults.BLOCKED);
     // the custom command fallback runs for every unmatched prefixed message, those aren't commands. an auto-embed the
     // rules (or a block, or a pending warning) stopped was just someone posting a link: no reply, no auto-warn
-    if (!context.metadata || !command.name || getAutoEmbedLink(context)) {
+    const gate = getCommandGate(context);
+    if (!gate || !command.name || getAutoEmbedLink(context)) {
       return;
     }
-    if (context.metadata.userWarnings) {
+    if (gate.kind === 'warnings_pending') {
       if (!context.canReply) {
         return;
       }
       try {
         const { translate } = await I18n.getTranslator(context);
-        const notice = Formatter.Commands.OwnerWarn.createUserWarningsNotice(translate, context.metadata.userWarnings);
+        const notice = Formatter.Commands.OwnerWarn.createUserWarningsNotice(translate, gate.warnings);
         await displayReply(context, {color: EmbedColors.ERROR, description: notice.content});
         // only once it was shown, a failed reply leaves them pending for the next command
         await acknowledgeUserWarnings(context, context.userId, {warningIds: notice.warningIds});
@@ -384,7 +384,8 @@ export class NotSoCommandClient extends CommandClient {
       return;
     }
     const AutoWarn = Formatter.Commands.ModerationAutowarn;
-    const autoWarnRule = (context.metadata.blockedByRule) ? this.resolveBlockedCommandAutoWarn(context) : null;
+    const blockedByRule = (gate.kind === 'rule') ? gate.rule : null;
+    const autoWarnRule = (blockedByRule) ? this.resolveBlockedCommandAutoWarn(context) : null;
     const deleteReplies = !!autoWarnRule && AutoWarn.deletesBlockedCommand(autoWarnRule);
     if (deleteReplies) {
       // nothing left to cancel, deleting the trigger shouldn't mark the blocked run as cancelled
@@ -392,27 +393,28 @@ export class NotSoCommandClient extends CommandClient {
       AutoWarn.deleteTriggerLater(context.message);
     }
     // the rule's message, once per user in a channel every so often
+    const ruleMessage = (gate.kind === 'rule') ? gate.message : null;
     let blockedMessage: null | string = null;
-    if (context.metadata.blockedMessage && context.canReply) {
+    if (ruleMessage && context.canReply) {
       const key = `${context.channelId}.${context.userId}`;
       if (!blockedMessageReplies.has(key)) {
         blockedMessageReplies.set(key, Date.now());
-        blockedMessage = context.metadata.blockedMessage;
+        blockedMessage = ruleMessage;
       }
     }
     if (autoWarnRule || blockedMessage) {
-      await this.replyBlockedCommand(context, command.name, autoWarnRule, blockedMessage).catch(() => null);
+      await this.replyBlockedCommand(context, command.name, autoWarnRule, blockedMessage, blockedByRule).catch(() => null);
     }
-    if (context.metadata.blockedMessage) {
+    if (ruleMessage) {
       return;
     }
     // a rule without a message (or the slash version's discord permissions) and no auto-warn: react so the command
-    // isn't silently ignored. blocked users and servers never get here with these set
-    if ((context.metadata.blockedByRule || context.metadata.blockedByCommandPermissions) && !autoWarnRule) {
+    // isn't silently ignored. blocked users and servers have their own gates
+    if ((gate.kind === 'rule' || gate.kind === 'command_permissions') && !autoWarnRule) {
       await this.reactNotAllowed(context, command.name);
       return;
     }
-    if (!context.metadata.settingsFetchFailed) {
+    if (gate.kind !== 'settings_fetch_failed') {
       return;
     }
     const now = Date.now();
@@ -515,6 +517,7 @@ export class NotSoCommandClient extends CommandClient {
     commandName: string,
     rule: RestResponsesRaw.GuildWarningAuto | null,
     blockedMessage: null | string,
+    blockedBy: GuildSettingsRule | null,
   ): Promise<void> {
     const AutoWarn = Formatter.Commands.ModerationAutowarn;
     const member = context.member!;
@@ -524,7 +527,7 @@ export class NotSoCommandClient extends CommandClient {
         const settings = GuildSettingsStore.get(context.guildId!)!;
         const audit = await I18n.getGuildTranslator(context);
         const reason = AutoWarn.createAutoWarnReason(audit, rule, {
-          blockedBy: (context.metadata && context.metadata.blockedByRule) || null,
+          blockedBy,
           command: commandName,
           guild: context.guild,
         });

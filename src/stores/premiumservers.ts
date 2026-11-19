@@ -9,6 +9,7 @@ import { UserFull } from '../api/structures/user';
 import { RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
+import { LoadOnce } from '../utils/loadonce';
 
 
 // a failed load isn't retried on every message (custom commands check this for each one)
@@ -19,13 +20,7 @@ const RETRY_LOAD_AFTER = 30 * 1000;
 // There's at most a couple of slots per premium plus subscriber, so every one of them is loaded once and kept up to date
 // from the api's events instead of asking for each server
 class PremiumServersStore extends Store<string, Collections.BaseSet<string>> {
-  // bumped on a resync, a load that started before one doesn't count
-  generation: number = 0;
-  loaded: boolean = false;
-  loadFailedAt: number = 0;
-  loading: null | Promise<boolean> = null;
-  // updated by an event while loading, the loaded list could be from before it
-  updatedWhileLoading = new Collections.BaseSet<string>();
+  loader = new LoadOnce<string>(RETRY_LOAD_AFTER);
 
   insert(serverId: string, userIds: Array<string>): void {
     if (userIds.length) {
@@ -36,56 +31,26 @@ class PremiumServersStore extends Store<string, Collections.BaseSet<string>> {
   }
 
   async load(context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext): Promise<boolean> {
-    if (this.loaded) {
-      return true;
-    }
-    if (this.loading) {
-      return this.loading;
-    }
-    if (Date.now() - this.loadFailedAt < RETRY_LOAD_AFTER) {
-      return false;
-    }
+    return this.loader.load(() => fetchPremiumServers(context), ({ items }, updatedWhileLoading) => {
+      const userIdsByServer = new Map<string, Array<string>>();
+      for (let item of items) {
+        if (!userIdsByServer.has(item.server_id)) {
+          userIdsByServer.set(item.server_id, []);
+        }
+        userIdsByServer.get(item.server_id)!.push(item.user_id);
+      }
 
-    this.updatedWhileLoading.clear();
-    const generation = this.generation;
-    this.loading = (async () => {
-      try {
-        const { items } = await fetchPremiumServers(context);
-        if (generation !== this.generation) {
-          // a resync happened while loading, the load after it takes over
-          return false;
-        }
-        const userIdsByServer = new Map<string, Array<string>>();
-        for (let item of items) {
-          if (!userIdsByServer.has(item.server_id)) {
-            userIdsByServer.set(item.server_id, []);
-          }
-          userIdsByServer.get(item.server_id)!.push(item.user_id);
-        }
-
-        for (let serverId of Array.from(this.keys())) {
-          if (!userIdsByServer.has(serverId) && !this.updatedWhileLoading.has(serverId)) {
-            this.delete(serverId);
-          }
-        }
-        for (let [serverId, userIds] of userIdsByServer) {
-          if (!this.updatedWhileLoading.has(serverId)) {
-            this.insert(serverId, userIds);
-          }
-        }
-        this.loaded = true;
-      } catch(error) {
-        if (generation === this.generation) {
-          this.loadFailedAt = Date.now();
-        }
-      } finally {
-        if (generation === this.generation) {
-          this.loading = null;
+      for (let serverId of Array.from(this.keys())) {
+        if (!userIdsByServer.has(serverId) && !updatedWhileLoading.has(serverId)) {
+          this.delete(serverId);
         }
       }
-      return this.loaded;
-    })();
-    return this.loading;
+      for (let [serverId, userIds] of userIdsByServer) {
+        if (!updatedWhileLoading.has(serverId)) {
+          this.insert(serverId, userIds);
+        }
+      }
+    });
   }
 
   /**
@@ -117,11 +82,14 @@ class PremiumServersStore extends Store<string, Collections.BaseSet<string>> {
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
+    // an object made before `loader` existed (`.refresh` keeps it, only adding new fields) still has the old ones, and
+    // an old load still going would apply without seeing the events from here on. moving its generation on skips that
+    if (typeof((this as any).generation) === 'number') {
+      (this as any).generation++;
+    }
     {
       const subscription = apiEvents.subscribe(RedisChannels.PREMIUM_SERVERS_UPDATE, (payload: RedisPayloads.PremiumServersUpdate) => {
-        if (this.loading) {
-          this.updatedWhileLoading.add(payload.server_id);
-        }
+        this.loader.markUpdated(payload.server_id);
         this.insert(payload.server_id, payload.user_ids);
       });
       subscriptions.push(subscription);
@@ -129,10 +97,7 @@ class PremiumServersStore extends Store<string, Collections.BaseSet<string>> {
     {
       // events were missed, so the slots could be stale. load them all again on the next use
       const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
-        this.generation++;
-        this.loaded = false;
-        this.loadFailedAt = 0;
-        this.loading = null;
+        this.loader.reset();
       });
       subscriptions.push(subscription);
     }

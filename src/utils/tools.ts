@@ -56,7 +56,7 @@ import { JobError } from '../api/errors';
 import { RestOptions, RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
-import { CommandResults, setCommandResult } from '../commandresults';
+import { CommandResults, JobRun, JobRunStates, getRunErrorResult, setCommandResult } from '../commandresults';
 import {
   CodeLanguages,
   CodeLanguagesToName,
@@ -278,6 +278,11 @@ export async function editOrReply(
   }
 
   options = await addPrefixSlashTip(context, options as Command.EditOrReply);
+  // again after the awaits (a big file's separate upload takes a while): an edit of the trigger in the meantime gave
+  // the reply to the newer run, editing it now would put this result over its thinking message
+  if (isCommandRunCancelled(context)) {
+    throw new CommandRunCancelledError();
+  }
 
   // discord can't edit a components v2 message back into plain content, so detritus would delete the reply and send a
   // new one (an edit re-running the command over a finished media result, then replying with its thinking text). plain
@@ -2229,41 +2234,60 @@ export async function jobReply(
   // the reply's edit times we made ourselves (showing its status), any other edit means it was taken over
   const ownEditedAtUnix = new Set([message && message.editedAtUnix]);
 
+  // the job outlives `run` from here, the command's result and its recording (`onFinally`, the metrics) wait on
+  // `jobRun.done`, which every way the polling stops below ends
+  const jobRun = new JobRun(context, job.id, (startedAt === null) ? JobRunStates.QUEUED : JobRunStates.STARTED, MAX_JOB_WAIT_TIME);
   const timer = new Timers.Timeout();
   const deadline = Date.now() + MAX_JOB_WAIT_TIME;
   const pollingFunction = async () => {
     // the trigger was edited or deleted, its job was already cancelled with it
     if (isCommandRunCancelled(context)) {
+      jobRun.finish(JobRunStates.CANCELLED, CommandResults.CANCELLED);
       return;
     }
     // errors in here would be unhandled rejections (and leave the user at "thinking"), so show them instead
     let keepPolling = false;
+    // how the job ended, set before showing it so a reply failing afterwards doesn't change what the job did
+    let end: [JobRunStates, CommandResults] | null = null;
     try {
       if (message) {
         // the reply was edited or can't be anymore, nothing's waiting on the job
         if (!ownEditedAtUnix.has(message.editedAtUnix) || !message.canEdit) {
+          end = [JobRunStates.TAKEN_OVER, CommandResults.CANCELLED];
           return cancelJob(context, job.id);
         }
+      } else if (context instanceof Interaction.InteractionContext && context.responseDeleted) {
+        // only we can edit an interaction's response, so deleting it is the only takeover. discord only tells us about
+        // the ones we get gateway events for (not ephemeral ones, or user installs without the bot), the deadline is
+        // still what stops the rest
+        end = [JobRunStates.TAKEN_OVER, CommandResults.CANCELLED];
+        return cancelJob(context, job.id);
       }
-      // todo: if message is null, it means the context is an interaction, check that
       const refreshedJob = await fetchJob(context, job.id);
       if (refreshedJob.result.error) {
+        end = [JobRunStates.FAILED, await getRunErrorResult(new JobError(refreshedJob))];
         return await replyJobError(context, refreshedJob);
       }
       if (refreshedJob.result.response) {
-        return await replyResult(refreshedJob.result.response);
+        // only once it's posted, discord refusing the result is our failure (shown as one below)
+        await replyResult(refreshedJob.result.response);
+        end = [JobRunStates.SUCCEEDED, CommandResults.RAN];
+        return;
       }
       if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
+        end = [JobRunStates.UNKNOWN, CommandResults.RUN_ERROR];
         return await replyJobWarning(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
       }
       // interactions have no message to check, so this is the only thing that stops a stuck job from polling forever
       if (deadline <= Date.now()) {
+        end = [JobRunStates.TIMED_OUT, CommandResults.RUN_ERROR];
         cancelJob(context, job.id);
         return await replyJobTimedOut(context, translate, refreshedJob);
       }
       if (refreshedJob.status === 'started' && startedAt === null) {
         startedAt = Date.now();
       }
+      jobRun.state = (refreshedJob.status === 'started') ? JobRunStates.STARTED : JobRunStates.QUEUED;
       const nextStatusText = jobStatusText(translate, refreshedJob, startedAt);
       if (nextStatusText !== statusText && JOB_STATUS_EDIT_INTERVAL <= Date.now() - statusTextShownAt) {
         statusText = nextStatusText;
@@ -2276,6 +2300,11 @@ export async function jobReply(
       keepPolling = true;
     } catch(error) {
       cancelJob(context, job.id);
+      if (!end) {
+        // the trigger was edited or deleted while posting (`editOrReply` refusing to), not a failure
+        const cancelled = error instanceof CommandRunCancelledError || isCommandRunCancelled(context);
+        end = (cancelled) ? [JobRunStates.CANCELLED, CommandResults.CANCELLED] : [JobRunStates.ERRORED, CommandResults.RUN_ERROR];
+      }
       try {
         const lines = [translate('media.job_failed', {error: String(error.message || error)})];
         // discord rejecting the result's reply (400 Invalid Form Body) says which field it didn't like
@@ -2291,6 +2320,9 @@ export async function jobReply(
     } finally {
       if (!keepPolling) {
         untrackJob(context, job.id);
+        // after what it ended with was shown, so the duration has it
+        const [state, result] = end || [JobRunStates.ERRORED, CommandResults.RUN_ERROR];
+        jobRun.finish(state, result);
       }
     }
     timer.start(pollingTime, pollingFunction);

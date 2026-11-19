@@ -78,6 +78,12 @@ export const Api = Object.freeze({
   JOB:
     '/jobs/:jobId',
 
+  MEDIA_AIV_MANIPULATION_AUDIO_NOISE:
+    '/media/aiv/manipulation/audio/noise',
+  MEDIA_AIV_MANIPULATION_REPEAT:
+    '/media/aiv/manipulation/repeat',
+  MEDIA_A_CREATE_NOISE:
+    '/media/a/create/noise',
   MEDIA_A_CREATE_SONG:
     '/media/a/create/song',
   MEDIA_AIV_MANIPULATION_ADHD:
@@ -127,6 +133,8 @@ export const Api = Object.freeze({
     '/media/aiv/tools/analyze',
   MEDIA_AIV_TOOLS_EXIF:
     '/media/aiv/tools/exif',
+  MEDIA_AIV_TOOLS_FFMPEG:
+    '/media/aiv/tools/ffmpeg',
 
   MEDIA_AV_MANIPULATION_AUDIO_AUTOTUNE:
     '/media/av/manipulation/audio/autotune',
@@ -200,6 +208,24 @@ export const Api = Object.freeze({
   MEDIA_AV_TOOLS_TRANSCRIBE:
     '/media/av/tools/transcribe',
 
+  MEDIA_IV_MANIPULATION_BRIGHTNESS:
+    '/media/iv/manipulation/brightness',
+  MEDIA_IV_MANIPULATION_CONTRAST:
+    '/media/iv/manipulation/contrast',
+  MEDIA_IV_MANIPULATION_CONTRAST_MULTIPLY:
+    '/media/iv/manipulation/contrast/multiply',
+  MEDIA_IV_MANIPULATION_CROP_TRANSPARENCY:
+    '/media/iv/manipulation/crop/transparency',
+  MEDIA_IV_MANIPULATION_OPACITY:
+    '/media/iv/manipulation/opacity',
+  MEDIA_IV_MANIPULATION_SET_FRAME_DELAY:
+    '/media/iv/manipulation/set/framedelay',
+  MEDIA_IV_MANIPULATION_SET_LOOP:
+    '/media/iv/manipulation/set/loop',
+  MEDIA_IV_MANIPULATION_SKEW:
+    '/media/iv/manipulation/skew',
+  MEDIA_IV_MANIPULATION_TEXT_DRAW:
+    '/media/iv/manipulation/text/draw',
   MEDIA_I_CREATE_FOGGY_WINDOW:
     '/media/i/create/foggy-window',
   MEDIA_I_CREATE_HACKER:
@@ -222,6 +248,8 @@ export const Api = Object.freeze({
     '/media/i/create/sonic',
   MEDIA_I_CREATE_SOUP:
     '/media/i/create/soup',
+  MEDIA_I_CREATE_TEXT:
+    '/media/i/create/text',
   MEDIA_I_CREATE_THONKIFY:
     '/media/i/create/thonkify',
   MEDIA_I_CREATE_TOMBSTONE:

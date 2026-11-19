@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
 import { ComponentContext, Components } from 'detritus-client/lib/utils';
 
+import { Confirmer } from '../../confirmer';
 import { getTranslator } from '../../i18n';
 
 import { deleteUserLLMMemories } from '../../../api';
@@ -28,6 +29,7 @@ export async function createMessage(
     title: translate('settings_ai_memory.are_you_sure_you_want_to_clear'),
   };
 
+  const confirmer = new Confirmer();
   const components = new Components({timeout: 5 * (60 * 1000)});
   components.createButton({
     label: translate('settings_ai_memory.continue'),
@@ -36,15 +38,17 @@ export async function createMessage(
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      try {
-        const response = await deleteUserLLMMemories(context, context.userId);
-        payload.color = EmbedColors.LOG_CREATION;
-        payload.title = translate('settings_ai_memory.cleared', {count: response.count.toLocaleString(language)});
-      } catch(error) {
-        payload.color = EmbedColors.ERROR;
-        payload.title = translate('settings_ai_memory.clear_errored');
-      }
-      await displayReply(context, payload, {replyTo: ctx});
+      return confirmer.run(ctx, async () => {
+        try {
+          const response = await deleteUserLLMMemories(context, context.userId);
+          payload.color = EmbedColors.LOG_CREATION;
+          payload.title = translate('settings_ai_memory.cleared', {count: response.count.toLocaleString(language)});
+        } catch(error) {
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('settings_ai_memory.clear_errored');
+        }
+        await displayReply(context, payload, {replyTo: ctx});
+      });
     },
   });
 
@@ -55,14 +59,16 @@ export async function createMessage(
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      payload.color = EmbedColors.ERROR;
-      payload.title = translate('settings_ai_memory.clear_cancelled');
-      await displayReply(context, payload, {replyTo: ctx});
+      return confirmer.cancel(ctx, () => {
+        payload.color = EmbedColors.ERROR;
+        payload.title = translate('settings_ai_memory.clear_cancelled');
+        return displayReply(context, payload, {replyTo: ctx});
+      });
     },
   });
 
   const message = await displayReply(context, {...payload, components});
-  components.onTimeout = async () => {
+  components.onTimeout = () => confirmer.expire(async () => {
     try {
       payload.color = EmbedColors.ERROR;
       payload.title = translate('settings_ai_memory.clear_expired');
@@ -71,6 +77,6 @@ export async function createMessage(
     } catch(error) {
 
     }
-  };
+  });
   return message;
 }

@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { getCommandGateMessage } from '../../../../commandresults';
 import { displayReply } from '../../../../utils';
 
 import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../basecommand';
@@ -15,7 +16,7 @@ export class BaseOwnerCommandOption extends BaseInteractionCommandOption {
   }
 
   onCancel(context: Interaction.InteractionContext) {
-    if (context.metadata && context.metadata.reason) {
+    if (getCommandGateMessage(context)) {
       return BaseInteractionCommand.prototype.onCancel.call(this as any, context);
     }
     return displayReply(context, {description: 'no', ephemeral: true});

@@ -1,6 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, Permissions } from 'detritus-client/lib/constants';
 
+import { getCommandGateMessage } from '../../../../../commandresults';
 import { StatusEmojis } from '../../../../../constants';
 import { Formatter, I18n, displayReply } from '../../../../../utils';
 
@@ -42,7 +43,7 @@ export class BaseNickMassCommandOption extends BaseInteractionCommandOption {
   }
 
   async onCancel(context: Interaction.InteractionContext) {
-    if (context.metadata && context.metadata.reason) {
+    if (getCommandGateMessage(context)) {
       return BaseInteractionCommand.prototype.onCancel.call(this as any, context);
     }
     const { language, translate } = await I18n.getTranslator(context);

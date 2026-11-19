@@ -20,6 +20,7 @@ import { MediaAIVInterpolateCommand } from './interpolate';
 import { MediaAIVJoinCommand } from './join';
 import { MediaAIVOverlayCommand } from './overlay';
 import { MediaAIVPipeCommand } from './pipe';
+import { MediaAIVRepeatCommand } from './repeat';
 import { MediaAIVReverseCommand } from './reverse';
 import { MediaAIVSeeSawCommand } from './seesaw';
 import { MediaAIVShuffleCommand } from './shuffle';
@@ -60,6 +61,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
         new MediaAIVJoinCommand(),
         new MediaAIVOverlayCommand(),
         new MediaAIVPipeCommand(),
+        new MediaAIVRepeatCommand(),
         new MediaAIVReverseCommand(),
         new MediaAIVSeeSawCommand(),
         new MediaAIVShuffleCommand,

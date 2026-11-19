@@ -86,6 +86,10 @@ export interface ApiGatewayRequest {
   nonce: string,
 }
 
+// idle until `start()`, then connecting (socket opening) -> handshaking (open, HELLO then IDENTIFY or RESUME) -> ready
+// (READY/RESUMED), backoff while a reconnect waits, ended for good after `end()`
+export type ApiEventsPhase = 'idle' | 'connecting' | 'handshaking' | 'ready' | 'backoff' | 'ended';
+
 export interface ApiEventsShards {
   shardCount: number,
   shardEnd: number,
@@ -99,7 +103,6 @@ export interface ApiEventsShards {
 const API_EVENT_CHANNEL = /^[A-Z][A-Z0-9_]{0,63}$/;
 
 export class ApiEventsSpewer extends EventSpewer {
-  ended: boolean = false;
   // the api answered our last heartbeat, one still unanswered when the next is due means the connection is dead
   heartbeatAcked: boolean = true;
   heartbeatInterval = new Timers.Interval();
@@ -109,6 +112,7 @@ export class ApiEventsSpewer extends EventSpewer {
   // a connection dropped while we had no sequence, so the next connection can't replay what we missed
   missedEvents: boolean = false;
   pendingResponses: Array<{createdAt: number, d: any}> = [];
+  phase: ApiEventsPhase = 'idle';
   reconnectAttempts: number = 0;
   reconnectTimeout = new Timers.Timeout();
   // the api couldn't resume the current connection, we already resynced for it
@@ -125,6 +129,17 @@ export class ApiEventsSpewer extends EventSpewer {
     this.heartbeatInterval.unref();
     this.reconnectTimeout.unref();
     this.sessionTimeout.unref();
+  }
+
+  get ended(): boolean {
+    return this.phase === 'ended';
+  }
+
+  setPhase(phase: ApiEventsPhase): void {
+    if (this.phase !== phase) {
+      log.debug(`Api events connection ${this.phase} -> ${phase}`);
+      this.phase = phase;
+    }
   }
 
   // connects once the cluster's shards are known and its listeners/stores are subscribed, so no event goes unheard
@@ -162,6 +177,7 @@ export class ApiEventsSpewer extends EventSpewer {
 
     this.socket = socket;
     this.resynced = false;
+    this.setPhase('connecting');
 
     let handshakeStatusCode: null | number = null;
     socket.on('unexpected-response', (request, response) => {
@@ -171,6 +187,9 @@ export class ApiEventsSpewer extends EventSpewer {
       socket.terminate();
     });
     socket.on('open', () => {
+      if (socket === this.socket) {
+        this.setPhase('handshaking');
+      }
       this.flushPendingResponses();
       this.sessionTimeout.start(SESSION_TIMEOUT, () => {
         if (socket === this.socket) {
@@ -199,7 +218,7 @@ export class ApiEventsSpewer extends EventSpewer {
 
   end(): void {
     if (!this.ended) {
-      this.ended = true;
+      this.setPhase('ended');
       this.reconnectTimeout.stop();
       this.cleanupSocket();
     }
@@ -261,6 +280,7 @@ export class ApiEventsSpewer extends EventSpewer {
   }
 
   onSessionReady(): void {
+    this.setPhase('ready');
     markApiReachable();
     this.sessionTimeout.stop();
     this.missedEvents = false;
@@ -299,9 +319,14 @@ export class ApiEventsSpewer extends EventSpewer {
     if (socket !== this.socket) {
       return;
     }
+    // how far it got before closing (refused while connecting, timed out handshaking, dropped once ready)
+    const phase = this.phase;
     this.socket = null;
     this.heartbeatInterval.stop();
     this.sessionTimeout.stop();
+    // even when we never had a session (the very first connection failing): our listeners/stores started before it
+    // (reminders and timed bans scanned the api, commands fill caches), so READY's resync catches them up on whatever
+    // went by while we had no connection
     if (!this.lastId) {
       this.missedEvents = true;
     }
@@ -334,7 +359,7 @@ export class ApiEventsSpewer extends EventSpewer {
     }
 
     const wait = this.scheduleReconnect(delay);
-    log.warn(`Api events connection closed (${code}${(reason) ? `, ${reason}` : ''}), reconnecting in ${wait}ms`);
+    log.warn(`Api events connection closed while ${phase} (${code}${(reason) ? `, ${reason}` : ''}), reconnecting in ${wait}ms`);
   }
 
   // returns how long it'll actually wait, with the jitter
@@ -343,6 +368,7 @@ export class ApiEventsSpewer extends EventSpewer {
       return 0;
     }
     const wait = delay + Math.floor(Math.random() * Math.max(delay, RECONNECT_JITTER_MIN));
+    this.setPhase('backoff');
     this.reconnectTimeout.start(wait, () => this.connect());
     return wait;
   }
@@ -377,6 +403,7 @@ export class ApiEventsSpewer extends EventSpewer {
         // what we missed is gone, start from the newest event and drop anything cached
         this.lastId = null;
         this.resynced = true;
+        this.setPhase('handshaking');
         this.emitResync();
         this.identify();
       }; break;

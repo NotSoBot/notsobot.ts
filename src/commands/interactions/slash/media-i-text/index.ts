@@ -19,6 +19,7 @@ import { MediaIRipCommand } from './rip';
 import { MediaISnowWritingCommand } from './snow';
 import { MediaISonicCommand } from './sonic';
 import { MediaISoupCommand } from './soup';
+import { MediaITextCommand } from './text';
 import { MediaIThonkifyCommand } from './thonkify';
 import { MediaITreeCarvingCommand } from './tree-carving';
 import { MediaIWoodenSignCommand } from './wooden-sign';
@@ -56,6 +57,7 @@ export default class MediaITextGroupCommand extends BaseSlashCommand {
         new MediaISnowWritingCommand(),
         new MediaISonicCommand(),
         new MediaISoupCommand(),
+        new MediaITextCommand(),
         new MediaIThonkifyCommand(),
         new MediaITreeCarvingCommand(),
         new MediaIWoodenSignCommand(),
