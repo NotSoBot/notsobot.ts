@@ -1,10 +1,10 @@
 import { Collections, Command, CommandAttributes, CommandClient, GatewayClientEvents, Interaction, Structures } from 'detritus-client';
-import { ClientEvents, LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
+import { ClientEvents } from 'detritus-client/lib/constants';
 
 import { acknowledgeUserWarnings, fetchCommandsResponses } from './api';
 import { RestResponsesRaw } from './api/types';
 import { CommandResults, setCommandResult } from './commandresults';
-import { BaseInteractionCommand } from './commands/interactions/basecommand';
+import { getSlashCommandIds } from './commands/interactions/basecommand';
 import { replyWarning } from './commands/errors';
 import { CommandMetadata } from './commands/prefixed/basecommand';
 import { runWithCommandContext } from './sentry';
@@ -39,44 +39,13 @@ import {
   untrackCommandRun,
 } from './utils';
 import { AutoEmbedLink, findAutoEmbedLink, getAutoEmbedLink } from './utils/autoembed';
+import { fillApplicationCommandPermissions } from './utils/commandpermissions';
 
 
 
 // command names/aliases that are also how a question starts, after a mention they go to the ai (`how` is wikihow's,
 // `im` image search's). their commands still run with the regular prefix, or for anyone that can't use the ai
 const MENTION_AI_WORDS = new Set(['how', 'im']);
-
-// detritus' fill() puts an empty collection in the cache before fetching, so commands that run while it's fetching
-// (or after it failed, it was never removed) saw no slash command permission overrides at all
-const applicationCommandPermissionFills = new Map<string, Promise<void>>();
-// guild id -> when its fill failed (no `applications.commands` scope answers 403 every time), not retried for a bit, every
-// non-admin prefixed command in it used to ask again
-const APPLICATION_COMMAND_PERMISSIONS_RETRY_AFTER = 5 * 60 * 1000;
-const applicationCommandPermissionFailures = new Collections.BaseCollection<string, number>({
-  expire: APPLICATION_COMMAND_PERMISSIONS_RETRY_AFTER,
-});
-
-async function fillApplicationCommandPermissions(context: Command.Context, guildId: string): Promise<void> {
-  if (applicationCommandPermissionFailures.has(guildId)) {
-    return;
-  }
-  let promise = applicationCommandPermissionFills.get(guildId);
-  if (!promise) {
-    promise = (async () => {
-      try {
-        await context.client.applicationCommandPermissions.fill(guildId);
-      } catch(error) {
-        context.client.applicationCommandPermissions.delete(guildId);
-        applicationCommandPermissionFailures.set(guildId, Date.now());
-        throw error;
-      } finally {
-        applicationCommandPermissionFills.delete(guildId);
-      }
-    })();
-    applicationCommandPermissionFills.set(guildId, promise);
-  }
-  return promise;
-}
 
 export class NotSoCommandClient extends CommandClient {
   async onCommandCheck(context: Command.Context, command: Command.Command) {
@@ -125,31 +94,18 @@ export class NotSoCommandClient extends CommandClient {
       return true;
     }
 
-    if (!isAdmin && context.interactionCommandClient && context.channel && member) {
-      const interactionCommand = context.interactionCommandClient.commands.find((x): x is BaseInteractionCommand => {
-        return x instanceof BaseInteractionCommand && x.commandIds.has(commandId);
-      });
-      if (interactionCommand) {
-        try {
-          await fillApplicationCommandPermissions(context, guildId);
-        } catch(error) {
-          
-        }
-        const applicationCommandPermissions = context.client.applicationCommandPermissions.get(guildId);
-        if (applicationCommandPermissions && applicationCommandPermissions.length) {
-          const applicationCommandIds = [
-            interactionCommand.ids.get(LOCAL_GUILD_ID),
-            interactionCommand.ids.get(guildId),
-          ].filter(Boolean) as Array<string>;
-          for (let applicationCommandId of applicationCommandIds) {
-            const applicationCommandPermission = applicationCommandPermissions.get(applicationCommandId);
-            if (applicationCommandPermission && !applicationCommandPermission.isAllowed(context.channel, member)) {
-              // the server's discord command permissions for its slash version, `onCommandCancel` reacts like a rule
-              contextMetadata.blockedByCommandPermissions = true;
-              return false;
-            }
-          }
-        }
+    if (!isAdmin && context.channel && member) {
+      // its slash version's overrides, or the app-wide ones (every command, also the prefix-only ones like `ocr`)
+      const applicationCommandIds = getSlashCommandIds(context.interactionCommandClient, commandId, guildId);
+      try {
+        await fillApplicationCommandPermissions(context, guildId);
+      } catch(error) {
+
+      }
+      if (!context.client.applicationCommandPermissions.isAllowed(guildId, applicationCommandIds, context.channel, member)) {
+        // the server's discord command permissions for its slash version, `onCommandCancel` reacts like a rule
+        contextMetadata.blockedByCommandPermissions = true;
+        return false;
       }
     }
 

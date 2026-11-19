@@ -1,13 +1,15 @@
-import { Collections, Interaction, Structures } from 'detritus-client';
+import { Collections, Interaction, InteractionCommandClient, Structures } from 'detritus-client';
 import {
   ApplicationCommandTypes,
   ApplicationCommandOptionTypes,
   ApplicationIntegrationTypes,
   InteractionCallbackTypes,
   InteractionContextTypes,
+  LOCAL_GUILD_ID,
   MessageFlags,
 } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
+import { RequestTypes } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../stores/guildsettings';
 import CommandResponsesStore from '../../stores/commandresponses';
@@ -30,6 +32,7 @@ import {
 } from '../../constants';
 import { captureCommandError, captureError } from '../../sentry';
 import { DefaultParameters, FindMediaUrlOptions, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
+import { fillApplicationCommandPermissions } from '../../utils/commandpermissions';
 
 import {
   createArgumentErrorPayload,
@@ -83,6 +86,69 @@ async function replyMediaUrlNotFound(
     return replyWarning(context, translate('errors.no_channel_history'));
   }
   return replyWarning(context, translate(notFound));
+}
+
+
+// the application command ids (global and this server's) of a prefixed command's slash version, for its overrides in
+// the server's discord command permissions. none (a prefix-only command like `ocr`) leaves only the app-wide ones
+export function getSlashCommandIds(
+  interactionCommandClient: InteractionCommandClient | null | undefined,
+  commandId: string,
+  guildId: string,
+): Array<string> {
+  const interactionCommand = interactionCommandClient && interactionCommandClient.commands.find((x): x is BaseInteractionCommand => {
+    return x instanceof BaseInteractionCommand && x.commandIds.has(commandId);
+  });
+  if (!interactionCommand) {
+    return [];
+  }
+  return [interactionCommand.ids.get(LOCAL_GUILD_ID), interactionCommand.ids.get(guildId)].filter(Boolean) as Array<string>;
+}
+
+// followups don't take the response's ephemeral flag, so a second message (`displayReply` followUp, a paginator's
+// page prompt) or a response swapped for a followup (`replaceInteractionResponse`) went public after a private defer
+export function keepFollowUpsPrivate(context: Interaction.InteractionContext): void {
+  const createMessage = context.createMessage.bind(context);
+  context.createMessage = (options: RequestTypes.ExecuteWebhook | string = {}) => {
+    const data: RequestTypes.ExecuteWebhook = (typeof(options) === 'string') ? {content: options} : {...options};
+    data.flags = (data.flags || 0) | MessageFlags.EPHEMERAL;
+    return createMessage(data);
+  };
+}
+
+// how long a slash run waits for the server's command permissions on their first load, the interaction has to be
+// answered within 3 seconds. too slow counts as allowed (a public reply)
+const COMMAND_PERMISSIONS_WAIT = 1500;
+
+// a run through the member's own install, in a server that has the bot but turned NotSoBot (or this command) off in
+// this channel with its discord command permissions. discord only applies those to the server install, so the bot
+// answers privately there instead. cached on the context, the tag writes ask too
+export async function isBlockedUserInstallRun(context: Interaction.InteractionContext): Promise<boolean> {
+  const contextMetadata = context.metadata = context.metadata || {};
+  if (typeof(contextMetadata.blockedUserInstallRun) === 'boolean') {
+    return contextMetadata.blockedUserInstallRun;
+  }
+  let blocked = false;
+  const { channel, guildId, member } = context;
+  if (
+    guildId && channel && member &&
+    !context.isFromGuildInstall &&
+    context.isBotPresent &&
+    !context.user.isClientOwner
+  ) {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([
+      fillApplicationCommandPermissions(context, guildId).catch(() => null),
+      new Promise((resolve) => timeout = setTimeout(resolve, COMMAND_PERMISSIONS_WAIT)),
+    ]);
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    const data = context.interaction.data as Structures.InteractionDataApplicationCommand | undefined;
+    const applicationCommandIds = (data && data.id) ? [data.id] : [];
+    blocked = !context.client.applicationCommandPermissions.isAllowed(guildId, applicationCommandIds, channel, member);
+  }
+  return contextMetadata.blockedUserInstallRun = blocked;
 }
 
 
@@ -158,14 +224,27 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     return (async () => {
       const respondsWithModal = !!(context.invoker as any).respondsWithModal || !!(context.command as any).respondsWithModal;
       const ignoresEphemeralSetting = !!(context.invoker as any).ignoresEphemeralSetting;
-      if (!context.responded && !respondsWithModal && !ignoresEphemeralSetting && UserSettingsStore.has(context.userId)) {
-        const settings = UserSettingsStore.get(context.userId)!;
-        switch (settings.application_command_response_type) {
-          case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
-            await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-              flags: MessageFlags.EPHEMERAL,
-            });
-          };
+      // the server turned NotSoBot off here (see `isBlockedUserInstallRun`). the modal ones (reports) already answer
+      // privately in every reply
+      const blocked = !respondsWithModal && await isBlockedUserInstallRun(context);
+      if (blocked && ignoresEphemeralSetting) {
+        // for everyone in the channel (games), only the one that ran it would see it
+        const { translate } = await I18n.getTranslator(context);
+        const contextMetadata = context.metadata = context.metadata || {};
+        contextMetadata.reason = warning(translate('errors.channel_turned_off_public', {command: Markup.codestring(context.name)}));
+        return false;
+      }
+      if (!context.responded && !respondsWithModal) {
+        let ephemeral = blocked;
+        if (!ephemeral && !ignoresEphemeralSetting && UserSettingsStore.has(context.userId)) {
+          const settings = UserSettingsStore.get(context.userId)!;
+          ephemeral = settings.application_command_response_type === UserSettingsApplicationCommandResponseTypes.EPHEMERAL;
+        }
+        if (ephemeral) {
+          await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+            flags: MessageFlags.EPHEMERAL,
+          });
+          keepFollowUpsPrivate(context);
         }
       }
 
@@ -382,15 +461,19 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
 
 
 // tags are stored per server, so only let them be written in servers that added the bot (not through a user install)
-// the bot user can be in the server without the server install of the slash commands (old invites), then the command comes through the user install
+// the bot user can be in the server without the server install of the slash commands (old invites), then the command
+// comes through the user install. a channel where the server turned NotSoBot off is checked apart, see `isBlockedUserInstallRun`
 export function canWriteServerTags(context: Interaction.InteractionContext): boolean {
   return !context.guildId || context.isFromGuildInstall || context.isBotPresent;
 }
 
 export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommandOption {
   // replacing the group's `onBefore` skipped its early ephemeral defer (the user's response setting) and metadata gates
-  onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
+  async onBefore(context: Interaction.InteractionContext): Promise<boolean> {
     if (!canWriteServerTags(context)) {
+      return false;
+    }
+    if (await isBlockedUserInstallRun(context)) {
       return false;
     }
     return BaseInteractionCommand.prototype.onBefore.call(this as any, context);
@@ -401,6 +484,9 @@ export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommand
       return BaseInteractionCommand.prototype.onCancel.call(this as any, context);
     }
     const { translate } = await I18n.getTranslator(context);
+    if (context.metadata && context.metadata.blockedUserInstallRun) {
+      return replyWarning(context, translate('tag.channel_turned_off'));
+    }
     return replyWarning(context, translate('tag.server_not_installed'));
   }
 }

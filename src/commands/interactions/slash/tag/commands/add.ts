@@ -4,7 +4,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { StatusEmojis } from '../../../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
-import { BaseInteractionCommand, BaseInteractionCommandOption, canWriteServerTags } from '../../../basecommand';
+import { BaseInteractionCommand, BaseInteractionCommandOption, canWriteServerTags, isBlockedUserInstallRun } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'add';
@@ -41,6 +41,12 @@ export class TagCommandsAddCommand extends BaseInteractionCommandOption {
       const { translate } = await I18n.getTranslator(context);
       context.metadata = context.metadata || {};
       context.metadata.content = translate('tag.server_not_installed');
+      return false;
+    }
+    if (await isBlockedUserInstallRun(context)) {
+      const { translate } = await I18n.getTranslator(context);
+      context.metadata = context.metadata || {};
+      context.metadata.content = translate('tag.channel_turned_off');
       return false;
     }
 

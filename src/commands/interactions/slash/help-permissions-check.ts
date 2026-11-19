@@ -16,7 +16,11 @@ import {
   resolveGuildRule,
 } from '../../../utils';
 
-import { BaseSlashCommand } from '../basecommand';
+import { BaseSlashCommand, getSlashCommandIds, isBlockedUserInstallRun } from '../basecommand';
+import {
+  fillApplicationCommandPermissions,
+  getApplicationCommandPermissionsLoaded,
+} from '../../../utils/commandpermissions';
 
 
 export const COMMAND_NAME = 'help-permissions-check';
@@ -106,7 +110,18 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
       if (context.inDmWithBot) {
         description.push(translate('permcheck.bot_dm'));
       } else {
-        description.push(translate((context.isFromGuildInstall) ? 'permcheck.installed' : 'permcheck.installed_bot_only'));
+        // through the member's own install the server install can still be there: the server turned NotSoBot off in this
+        // channel, the command permissions loading proves it has the slash commands scope
+        let installed: I18n.TranslationKey = 'permcheck.installed';
+        if (!context.isFromGuildInstall) {
+          await fillApplicationCommandPermissions(context, context.guildId!).catch(() => null);
+          if (await isBlockedUserInstallRun(context)) {
+            installed = 'permcheck.installed_channel_off';
+          } else if (getApplicationCommandPermissionsLoaded(context, context.guildId!) !== true) {
+            installed = 'permcheck.installed_bot_only';
+          }
+        }
+        description.push(translate(installed));
       }
 
       description.push('');
@@ -139,6 +154,14 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
         } else {
           if (isAdmin) {
             description.push(`-> ${translate('permcheck.bypass_admin_partial')}`);
+          } else if (channel && member) {
+            // same check as `NotSoCommandClient.onCommandCheck`, the server's discord command permissions (Integrations)
+            const applicationCommandIds = getSlashCommandIds(context.interactionCommandClient, commandId, guild!.id);
+            await fillApplicationCommandPermissions(context, guild!.id).catch(() => null);
+            if (!context.client.applicationCommandPermissions.isAllowed(guild!.id, applicationCommandIds, channel, member)) {
+              description.push(`-> ${translate('permcheck.command_permissions_block')}: ${StatusEmojis.NOT_ALLOWED}`);
+              willPrefixCommandsWork = false;
+            }
           }
           // same check as `NotSoCommandClient.onCommandCheck`
           const match = resolveGuildRule(settings, GuildRuleActions.ACCESS, {

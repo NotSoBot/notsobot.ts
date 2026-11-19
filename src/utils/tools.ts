@@ -3793,8 +3793,18 @@ export function findSlashCommandFullName(context: Command.Context, commandId: st
 
 // discord won't give the message content intent to bots that use it for prefix commands, so they stop working on new
 // year (a mention keeps working, discord still sends us messages that mention us). until then a prefixed command's reply
-// says how else to run it, once a day per user, and in december counts down to the day
+// says when they end and how else to run it, once a day per user, and in december counts down to the day
 export const PREFIX_COMMANDS_END = Date.UTC(2027, 0, 1);
+
+// the day itself, written out in the user's language. not a discord `<t:…:D>` timestamp: that shows midnight utc in
+// the reader's timezone, so the whole americas would read "december 31, 2026"
+export function formatPrefixCommandsEndDate(language: string): string {
+  try {
+    return new Intl.DateTimeFormat(language, {dateStyle: 'long', timeZone: 'UTC'}).format(PREFIX_COMMANDS_END);
+  } catch(error) {
+    return new Intl.DateTimeFormat('en-US', {dateStyle: 'long', timeZone: 'UTC'}).format(PREFIX_COMMANDS_END);
+  }
+}
 const PREFIX_SLASH_TIP_COUNTDOWN_START = Date.UTC(2026, 11, 1);
 const PREFIX_SLASH_TIP_EVERY = 24 * 60 * 60 * 1000;
 // discord's limits for a components v2 message, the tip is skipped instead of making the reply fail
@@ -3842,7 +3852,7 @@ async function createPrefixSlashTip(context: Command.Context): Promise<PrefixSla
   }
   prefixSlashTipShown.set(context.userId, true);
 
-  const { translate } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   const slashName = findSlashCommandFullName(context, getCommandIdFromInvoker(command));
   // written out in a codestring (a real mention can't sit inside one), typing "@name" picks the bot from autocomplete
   const botName = (context.client.user) ? context.client.user.username : 'NotSoBot';
@@ -3850,7 +3860,7 @@ async function createPrefixSlashTip(context: Command.Context): Promise<PrefixSla
   const commands = (slashName) ? translate('prefix_slash_tip.or', {mention, slash: slashCommandMention(context, slashName)}) : mention;
   let textWithoutNitro: string;
   if (now < PREFIX_SLASH_TIP_COUNTDOWN_START) {
-    textWithoutNitro = `-# ${translate('prefix_slash_tip.retiring', {commands})}`;
+    textWithoutNitro = `-# ${translate('prefix_slash_tip.ending_on', {commands, date: formatPrefixCommandsEndDate(language)})}`;
   } else {
     const time = Markup.timestamp(PREFIX_COMMANDS_END, MarkupTimestampStyles.RELATIVE);
     textWithoutNitro = `-# ${translate('prefix_slash_tip.ending', {commands, time})}`;
