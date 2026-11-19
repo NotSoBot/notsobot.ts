@@ -505,3 +505,10 @@ export function musicItemDetails(translate: Translator['translate'], item: RestR
     translate('music_queue.requested_by', {user: `<@${item.user_id}>`}),
   ];
 }
+
+
+// what a skip is for: the api's playing item, or between tracks (a link still converting, nothing's playing for the api
+// yet) the queued one the node is getting ready. `playing` is the guild's phase (`VoiceNode.isPlaying`)
+export function musicSkipTarget(music: RestResponsesRaw.FetchGuildMusic, playing: boolean): null | RestResponsesRaw.GuildMusicQueueItem {
+  return music.current || ((playing && music.queue[0]) || null);
+}

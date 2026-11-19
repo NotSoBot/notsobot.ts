@@ -132,6 +132,7 @@ import {
   MusicVoteKinds,
   clearMusicVotes,
   musicItemPosition,
+  musicSkipTarget,
   musicSoundSettingRefusal,
   musicVote,
 } from '../formatter/commands/music.shared';
@@ -8277,7 +8278,9 @@ const ScriptTags = Object.freeze({
 
     // dj mode makes it a vote for everyone but djs (`musicVote`)
     const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
-    if (!music.current) {
+    // a skip between tracks is for the link converting to play next
+    const target = (action === 'skip') ? musicSkipTarget(music, VoiceNode.isPlaying(guildId)) : music.current;
+    if (!target) {
       throw new TagError('Nothing is playing in this server');
     }
 
@@ -8288,7 +8291,7 @@ const ScriptTags = Object.freeze({
     }
 
     const kind = (action === 'pause') ? MusicVoteKinds.PAUSE : (action === 'resume') ? MusicVoteKinds.RESUME : MusicVoteKinds.SKIP;
-    const vote = musicVote(kind, member, channel, music.current, music);
+    const vote = musicVote(kind, member, channel, target, music);
     if (!vote.done) {
       tag.text += `voted ${vote.votes}/${vote.needed}`;
       return true;
@@ -8304,7 +8307,7 @@ const ScriptTags = Object.freeze({
         done = await withDeadline(context, tag, () => VoiceNode.setPaused(guildId, false));
         clearMusicVotes(MusicVoteKinds.PAUSE, guildId);
       }; break;
-      case 'skip': done = await withDeadline(context, tag, () => VoiceNode.skip(guildId)); break;
+      case 'skip': done = await withDeadline(context, tag, () => VoiceNode.skip(guildId, target.id)); break;
     }
     if (!done) {
       throw new TagError('Nothing is playing in this server');

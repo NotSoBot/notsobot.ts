@@ -35,6 +35,7 @@ import {
   musicNowPlaying,
   musicPlayerPosition,
   musicPlayerSpeed,
+  musicSkipTarget,
   musicSpeedText,
   musicVote,
 } from './music.shared';
@@ -410,16 +411,17 @@ export async function onMusicControl(
     case MusicControls.SKIP: {
       // a vote like `music skip`, it only says how many voted until enough did
       const music = await fetchGuildMusic(context, guildId).catch(() => null);
-      if (!music || !music.current) {
+      const target = (music) ? musicSkipTarget(music, VoiceNode.isPlaying(guildId)) : null;
+      if (!music || !target) {
         return followUp(translate('music.nothing_playing'));
       }
-      const vote = musicVote(MusicVoteKinds.SKIP, member!, channel!, music.current, music);
+      const vote = musicVote(MusicVoteKinds.SKIP, member!, channel!, target, music);
       if (!vote.done) {
-        return followUp(translate('music_skip.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}));
+        return followUp(translate('music_skip.voted', {title: musicItemTitle(target), votes: `${vote.votes}/${vote.needed}`}));
       }
       // the message shows what comes next, so it waits for it to start (or for us to leave, the queue ran out)
       const next = VoiceNode.waitForNextTrack(guildId);
-      done = await VoiceNode.skip(guildId);
+      done = await VoiceNode.skip(guildId, target.id);
       if (done) {
         await next;
       }
@@ -532,7 +534,7 @@ async function playMusicNow(
   } else {
     // the page shows it playing, so it waits for it to start (a link still converting times out, it's next anyway)
     const next = VoiceNode.waitForNextTrack(guildId);
-    if (await VoiceNode.skip(guildId)) {
+    if (await VoiceNode.skip(guildId, music.current.id)) {
       clearMusicVotes(MusicVoteKinds.SKIP, guildId);
       await next;
     }

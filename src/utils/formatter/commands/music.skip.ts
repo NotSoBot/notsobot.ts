@@ -6,7 +6,7 @@ import { displayDetails, displayDetailsLine, displayReply } from '../../../utils
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { MusicVoteKinds, musicItemDetails, musicItemTitle, musicVote } from './music.shared';
+import { MusicVoteKinds, musicItemDetails, musicItemTitle, musicSkipTarget, musicVote } from './music.shared';
 
 
 export const COMMAND_ID = 'music.skip';
@@ -28,14 +28,15 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: translate('music_controls.join_my_channel', {channel: `<#${guild.channelId}>`})});
   }
 
-  // what's playing before it's skipped and what's next, for the reply
+  // what's playing before it's skipped (or the link converting to play next) and what's after it, for the reply
   const music = await fetchGuildMusic(context, guildId);
-  if (!music.current) {
+  const target = musicSkipTarget(music, true);
+  if (!target) {
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
-  const title = `**${musicItemTitle(music.current)}**`;
+  const title = `**${musicItemTitle(target)}**`;
 
-  const vote = musicVote(MusicVoteKinds.SKIP, member, channel, music.current, music);
+  const vote = musicVote(MusicVoteKinds.SKIP, member, channel, target, music);
   if (!vote.done) {
     return displayReply(context, {
       description: displayDetails([
@@ -45,12 +46,15 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     });
   }
 
-  if (!await VoiceNode.skip(guildId)) {
+  if (!await VoiceNode.skip(guildId, target.id)) {
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
 
-  // the track loop goes on to the next one too, the queue loop puts the skipped one back at the end
-  const next = music.queue[0] || ((music.loop === MusicLoopModes.QUEUE) ? music.current : null);
+  // the track loop goes on to the next one too, the queue loop puts the skipped one back at the end (one that was still
+  // converting is dropped)
+  const next = (target === music.current) ?
+    music.queue[0] || ((music.loop === MusicLoopModes.QUEUE) ? music.current : null) :
+    music.queue[1] || null;
   return displayReply(context, {
     description: displayDetails([
       translate('music_skip.skipped', {title}),

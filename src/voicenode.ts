@@ -1726,8 +1726,11 @@ export class VoiceNodeClient extends EventSpewer {
   }
 
   // ends the track, the node goes on with the next queued item (or the queue ends and we leave). The node keeps
-  // `paused` across tracks, so it's unpaused too, unless `pause_alone` paused it (nobody's there to hear the next one)
-  async skip(guildId: string): Promise<boolean> {
+  // `paused` across tracks, so it's unpaused too, unless `pause_alone` paused it (nobody's there to hear the next one).
+  // `itemId` is the queue item we said was skipped (`musicSkipTarget`): near a track's end the api has the next one
+  // playing already, between tracks one's converting, the node skips that one then. A skip that reaches the node after
+  // its track ended on its own is dropped instead of skipping the next one too
+  async skip(guildId: string, itemId?: string): Promise<boolean> {
     const guild = this.guilds.get(guildId);
     if (!guild || guild.phase.name !== 'playing') {
       return false;
@@ -1738,7 +1741,7 @@ export class VoiceNodeClient extends EventSpewer {
         return false;
       }
       const paused = phase.pause === 'alone';
-      await guild.node.updatePlayer(guildId, {paused, skip: true});
+      await guild.node.updatePlayer(guildId, {paused, skip: true, ...(itemId) ? {skipItemId: itemId} : {}});
       if (guild.phase === phase) {
         phase.pause = pauseState(paused, true);
       }
