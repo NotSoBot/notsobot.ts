@@ -1212,6 +1212,14 @@ export const Api = Object.freeze({
     '/reminders',
   REMINDER:
     '/reminders/:reminderId',
+  GUILD_DECOY:
+    '/guilds/:guildId/decoy',
+  GUILD_DECOY_DELETE:
+    '/guilds/:guildId/decoy/delete',
+  GUILD_DECOY_TRIGGER:
+    '/guilds/:guildId/decoy/trigger',
+  DECOYS:
+    '/decoys',
   GUILD_TIMED_BANS:
     '/guilds/:guildId/bans/timed',
   GUILD_TIMED_BANS_DELETE:

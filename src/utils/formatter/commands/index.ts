@@ -645,6 +645,7 @@ import * as ServerFontsList from './server.fonts.list';
 import * as ServerFontsRemove from './server.fonts.remove';
 import * as ServerFontsRename from './server.fonts.rename';
 import * as ServerInvites from './server.invites';
+import * as ServerDecoy from './server.decoy';
 import * as ServerLoggers from './server.loggers';
 import * as ServerLoggersAdd from './server.loggers.add';
 import * as ServerLoggersIgnore from './server.loggers.ignore';
@@ -1489,6 +1490,7 @@ export {
   ServerFontsRemove,
   ServerFontsRename,
   ServerInvites,
+  ServerDecoy,
   ServerLoggers,
   ServerLoggersAdd,
   ServerLoggersIgnore,

@@ -36,6 +36,7 @@ export class ServerSetDmsCommand extends BaseInteractionCommandOption {
             Parameters.Slash.createChoice('Mutes', 'mute', {localizationKey: 'settings_server_moderation.kind_mute'}),
             Parameters.Slash.createChoice('Warnings', 'warn', {localizationKey: 'settings_server_moderation.kind_warn'}),
             Parameters.Slash.createChoice('Auto-warnings', 'autowarn', {localizationKey: 'settings_server_moderation.kind_autowarn'}),
+            Parameters.Slash.createChoice('Decoy channel removals', 'decoy', {localizationKey: 'settings_server_moderation.kind_decoy'}),
           ],
           value: Formatter.Commands.SettingsServerSetDms.forSlashParser,
         },

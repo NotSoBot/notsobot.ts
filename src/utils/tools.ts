@@ -10,6 +10,7 @@ import {
   ApplicationCommandTypes,
   DiscordAbortCodes,
   DiscordRegexNames,
+  INTERACTION_TIMEOUT,
   InteractionCallbackTypes,
   MarkupTimestampStyles,
   MessageComponentButtonStyles,
@@ -2165,7 +2166,8 @@ export async function jobReply(
   job: RestResponsesRaw.JobResponse,
   // `describe` makes the text shown above the result, from its response (like the `arguments` the job sent back)
   options: {
-    actions?: MediaReplyActions,
+    // or made from the response (like a gallery's page buttons, only when it has pages)
+    actions?: MediaReplyActions | ((response: RestResponsesRaw.FileResponse) => MediaReplyActions | undefined),
     describe?: (response: RestResponsesRaw.FileResponse) => string | undefined,
     // the small text under the result (components v2, the others show it after `describe`'s)
     describeBelow?: (response: RestResponsesRaw.FileResponse) => string | undefined,
@@ -2181,7 +2183,7 @@ export async function jobReply(
   pollingTime: number = 500,
 ) {
   const replyOptions = (response: RestResponsesRaw.FileResponse) => ({
-    actions: options.actions,
+    actions: (typeof(options.actions) === 'function') ? options.actions(response) : options.actions,
     description: (options.describe) ? options.describe(response) : undefined,
     descriptionBelow: (options.describeBelow) ? options.describeBelow(response) : undefined,
     embedFooter: (options.describeEmbedFooter) ? options.describeEmbedFooter(response) : undefined,
@@ -3381,6 +3383,22 @@ export interface MediaReplyActions {
   onTimeout?: (strip: () => Promise<void>) => Promise<void> | void,
   rows: Array<ComponentActionRow>,
   timeout: number,
+}
+
+// a slash reply is edited through the command's own interaction token, which discord drops 15 minutes after the command
+// was used, so its rows go a bit before that while they still can. worked out as each one is posted
+const MEDIA_REPLY_ACTIONS_TOKEN_MARGIN = 30 * 1000;
+
+export function getMediaReplyActionsTimeout(
+  context: Command.Context | Interaction.InteractionContext,
+  timeout: number,
+): number {
+  if (context instanceof Interaction.InteractionContext) {
+    const left = context.interaction.createdAtUnix + INTERACTION_TIMEOUT - MEDIA_REPLY_ACTIONS_TOKEN_MARGIN - Date.now();
+    // 0 is no timeout at all
+    return Math.max(1, Math.min(timeout, left));
+  }
+  return timeout;
 }
 
 // what `descriptionBelow` says, as an embed's footer: plain text (footers don't render markdown), a small icon before

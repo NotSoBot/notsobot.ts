@@ -3,11 +3,13 @@ import { MessageComponentButtonStyles } from 'detritus-client/lib/constants';
 import { ComponentActionRow, ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
 import { EmbedColors, MessageComponentCustomIds } from '../../../constants';
-import { createTimestampStringFromGuild, createUserEmbed, createUserString, displayDetailsLine, displayTimestamp } from '../../../utils';
+import { createTimestampStringFromGuild, createUserEmbed, createUserString, displayDetailsLine, displayTimestamp, formatDuration } from '../../../utils';
 
 import type { TranslationKey, Translator } from '../../i18n';
 import { addContainerFooter, addContainerHeader, createContainerTitle, createFooterTimestamp, createUserHeaderLines } from './tools';
 import {
+  GuildLoggingEventDecoyCatch,
+  GuildLoggingEventDecoyNoticeDelete,
   GuildLoggingEventGuildWarningAdd,
   GuildLoggingEventGuildWarningRemove,
   GuildLoggingEventGuildWarningsClear,
@@ -251,6 +253,113 @@ export function formatGuildWarningsClearComponents(
     footer: translator.translate('logger.footer.warnings_cleared'),
     happened,
     moderation: getWarningsClearLines(event, translator),
+    translator,
+  });
+}
+
+
+// where, what they posted, and what happened to them
+function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Translator): Array<string> {
+  const { language, translate } = translator;
+  const { action, attachments, channelId, clean, content, warned } = event.payload;
+  const lines: Array<string> = [`**${translate('logger.decoy_caught_in')}**: <#${channelId}>`];
+  if (content) {
+    lines.push(`**${translate('logger.decoy_posted')}**:`, Markup.codeblock(content.slice(0, 900)));
+  }
+  let actionText: string;
+  switch (action) {
+    case 'ban': actionText = translate('logger.decoy_banned'); break;
+    case 'softban': actionText = (clean) ? translate('logger.decoy_softbanned', {
+      duration: formatDuration(clean * 1000, language),
+    }) : translate('logger.decoy_softbanned_no_clean'); break;
+    default: actionText = translate('logger.decoy_not_removed');
+  }
+  lines.push(displayDetailsLine([
+    actionText,
+    (warned) && translate('logger.decoy_warned'),
+    (attachments) && translate('logger.decoy_attachments', {count: attachments.toLocaleString(language)}),
+  ], true));
+  return lines;
+}
+
+
+export function formatDecoyCatch(
+  event: GuildLoggingEventDecoyCatch,
+  embed: Embed,
+  files: LogPayloadFiles,
+  translator: Translator,
+): void {
+  const { guildId, happened } = event;
+  const { user } = event.payload;
+  setUserEmbed(user.id, user, embed, translator);
+  formatEmbed(embed, {
+    color: (event.payload.action === 'none') ? EmbedColors.LOG_UPDATE : EmbedColors.LOG_DELETION,
+    footer: translator.translate('logger.footer.decoy_catch'),
+    guildId,
+    happened,
+    moderation: getDecoyCatchLines(event, translator),
+    translator,
+  });
+}
+
+
+export function formatDecoyCatchComponents(
+  event: GuildLoggingEventDecoyCatch,
+  container: ComponentContainer,
+  files: LogPayloadFiles,
+  translator: Translator,
+): void {
+  const { happened } = event;
+  const { user } = event.payload;
+  formatContainer(container, user.id, user, {
+    color: (event.payload.action === 'none') ? EmbedColors.LOG_UPDATE : EmbedColors.LOG_DELETION,
+    footer: translator.translate('logger.footer.decoy_catch'),
+    happened,
+    moderation: getDecoyCatchLines(event, translator),
+    translator,
+  });
+}
+
+
+function getDecoyNoticeDeleteLines(event: GuildLoggingEventDecoyNoticeDelete, translator: Translator): Array<string> {
+  const { channelId, userId } = event.payload;
+  return [translator.translate('logger.decoy_notice_deleted', {channel: `<#${channelId}>`, user: `<@${userId}>`})];
+}
+
+
+export function formatDecoyNoticeDelete(
+  event: GuildLoggingEventDecoyNoticeDelete,
+  embed: Embed,
+  files: LogPayloadFiles,
+  translator: Translator,
+): void {
+  const { guildId, happened } = event;
+  const { user, userId } = event.payload;
+  setUserEmbed(userId, user, embed, translator);
+  formatEmbed(embed, {
+    color: EmbedColors.LOG_UPDATE,
+    footer: translator.translate('logger.footer.decoy_notice_deleted'),
+    guildId,
+    happened,
+    moderation: getDecoyNoticeDeleteLines(event, translator),
+    translator,
+  });
+}
+
+
+export function formatDecoyNoticeDeleteComponents(
+  event: GuildLoggingEventDecoyNoticeDelete,
+  container: ComponentContainer,
+  files: LogPayloadFiles,
+  translator: Translator,
+): void {
+  const { happened } = event;
+  const { user, userId } = event.payload;
+  formatContainer(container, userId, user, {
+    color: EmbedColors.LOG_UPDATE,
+    footer: translator.translate('logger.footer.decoy_notice_deleted'),
+    happened,
+    moderation: getDecoyNoticeDeleteLines(event, translator),
     translator,
   });
 }

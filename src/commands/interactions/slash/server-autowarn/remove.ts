@@ -39,6 +39,7 @@ export class ServerAutowarnRemoveCommand extends BaseInteractionCommandOption {
             Parameters.Slash.createChoice('Mentions', GuildWarningAutoTriggers.MENTIONS, {localizationKey: 'moderation_autowarn.choice_mentions'}),
             Parameters.Slash.createChoice('Blocked Commands', GuildWarningAutoTriggers.BLOCKED_COMMAND, {localizationKey: 'moderation_autowarn.choice_blocked_command'}),
             Parameters.Slash.createChoice('AutoMod', GuildWarningAutoTriggers.AUTOMOD, {localizationKey: 'moderation_autowarn.choice_automod'}),
+            Parameters.Slash.createChoice('Decoy Channel', GuildWarningAutoTriggers.DECOY, {localizationKey: 'moderation_autowarn.choice_decoy'}),
           ],
           required: true,
         },

@@ -349,6 +349,35 @@ export namespace RestOptions {
     userIds: Array<string>,
   }
 
+  // a decoy's fields the bot changes, left out: unchanged, null clears it (`webhookId` and `webhookToken` go together)
+  export interface GuildDecoyFields {
+    baitEnabled?: boolean,
+    baitInterval?: number,
+    cleanSeconds?: number | null,
+    nameGenerated?: boolean,
+    noticeContent?: string | null,
+    noticeMessageId?: string | null,
+    noticePendingUserId?: string | null,
+    noticeUserId?: string | null,
+    webhookId?: string | null,
+    webhookToken?: string | null,
+  }
+
+  export interface PutGuildDecoy extends GuildDecoyFields {
+    channelId: string,
+    userId: string,
+  }
+
+  export interface DeleteGuildDecoy {
+    // only if it's still this channel's
+    channelId?: string,
+  }
+
+  export interface FetchDecoys {
+    after?: string,
+    limit?: number,
+  }
+
   export interface DeleteGuildTimedBan {
     // only delete it if it's still this one
     timedBanId?: string,
@@ -2512,6 +2541,9 @@ export namespace RestResponsesRaw {
     download_quality?: {best: string, capped: string, tier: 'premium' | 'premium_plus'},
     // a fetch (`.download`) of a social media post: its text and who posted it, whatever the site gave (auto-embed's text)
     post?: FetchMediaPost | null,
+    // a fetch of a post with more than one media (a gallery/carousel): how many and which one this is (0 based, the
+    // position the site picked when the asked one was past the end). each is the same url at another `media_position`
+    pages?: {count: number, position: number},
     file: {
       filename: string,
       filename_base: string,
@@ -2999,6 +3031,47 @@ export namespace RestResponsesRaw {
   export interface FetchTimedBans {
     count: number,
     timed_bans: Array<TimedBan>,
+  }
+
+  export interface FetchGuildDecoy {
+    decoy: GuildDecoy | null,
+  }
+
+  export interface PutGuildDecoy {
+    decoy: GuildDecoy,
+  }
+
+  export type EditGuildDecoy = PutGuildDecoy;
+
+  export interface DeleteGuildDecoy {
+    removed: boolean,
+  }
+
+  export interface FetchDecoys {
+    decoys: Array<GuildDecoy>,
+  }
+
+  // a server's decoy channel, `notice_user_id` null: the notice is the bot's own (`notice_content`, null: the default)
+  export interface GuildDecoy {
+    added: string,
+    bait_enabled: boolean,
+    // seconds between bait messages on average
+    bait_interval: number,
+    channel_id: string,
+    // seconds of messages the softban deletes, null: the server's ban clean
+    clean_seconds: number | null,
+    guild_id: string,
+    name_generated: boolean,
+    notice_content: string | null,
+    notice_message_id: string | null,
+    // whose next message in the channel becomes the notice
+    notice_pending_user_id: string | null,
+    notice_user_id: string | null,
+    triggered_count: number,
+    triggered_last: string | null,
+    user_id: string | null,
+    webhook_id: string | null,
+    webhook_token?: string | null,
   }
 
   export interface TimedBan {

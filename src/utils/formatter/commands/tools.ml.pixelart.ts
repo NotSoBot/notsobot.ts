@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { INTERACTION_TIMEOUT, InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
+import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
 import { ComponentActionRow, ComponentContext, Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesMLPixelart } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { MediaReplyActions, jobReply, mediaReply } from '../../../utils';
+import { MediaReplyActions, getMediaReplyActionsTimeout, jobReply, mediaReply } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -21,10 +21,8 @@ const SEED_MAX = 2 ** 32;
 
 // sprites in the grid, a button each
 const SPRITE_COUNT = 4;
-// how long the buttons keep working, an interaction's reply can only be edited for 15 minutes
+// how long the buttons keep working, a slash reply's go sooner (`getMediaReplyActionsTimeout`)
 const PICK_TIMEOUT = 10 * 60 * 1000;
-// how long before the interaction token runs out a slash reply's buttons go
-const PICK_TIMEOUT_MARGIN = 30 * 1000;
 
 export interface CommandArgs {
   query: string,
@@ -60,17 +58,6 @@ export async function createMessage(
   // the shown view's buttons timed out mid swap, they go if the swap doesn't land (a landed one brings its own)
   let stripAfterSwap: (() => Promise<void>) | null = null;
 
-  // slash replies are edited through the command's own interaction token, which discord drops 15 minutes after the
-  // command was used, so the buttons go a bit before that while they still can. worked out as each view is posted
-  const getPickTimeout = (): number => {
-    if (context instanceof Interaction.InteractionContext) {
-      const left = context.interaction.createdAtUnix + INTERACTION_TIMEOUT - PICK_TIMEOUT_MARGIN - Date.now();
-      // 0 is no timeout at all
-      return Math.max(1, Math.min(PICK_TIMEOUT, left));
-    }
-    return PICK_TIMEOUT;
-  };
-
   const createActions = (view: PixelartView): MediaReplyActions => {
     const row = new ComponentActionRow();
     if (view.kind === 'grid') {
@@ -91,7 +78,7 @@ export async function createMessage(
     return {
       rows: [row],
       get timeout() {
-        return getPickTimeout();
+        return getMediaReplyActionsTimeout(context, PICK_TIMEOUT);
       },
       onTimeout: (strip) => {
         if (shown !== view) {

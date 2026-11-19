@@ -22,6 +22,7 @@ export const DM_KINDS: Array<{flag: GuildModerationDmFlags, key: TranslationKey,
   {flag: GuildModerationDmFlags.MUTE, key: 'settings_server_moderation.kind_mute', value: 'mute', values: ['mute', 'mutes', 'timeout']},
   {flag: GuildModerationDmFlags.WARN, key: 'settings_server_moderation.kind_warn', value: 'warn', values: ['warn', 'warns', 'warning', 'warnings']},
   {flag: GuildModerationDmFlags.AUTOWARN, key: 'settings_server_moderation.kind_autowarn', value: 'autowarn', values: ['autowarn', 'autowarns', 'auto-warn']},
+  {flag: GuildModerationDmFlags.DECOY, key: 'settings_server_moderation.kind_decoy', value: 'decoy', values: ['decoy', 'decoys']},
 ];
 
 export interface CommandArgs {

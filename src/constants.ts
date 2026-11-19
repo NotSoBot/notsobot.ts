@@ -121,6 +121,7 @@ export enum ApiErrorCodes {
   MAX_GUILD_REPORTS = 30030,
   MAX_GUILD_REPORT_MESSAGES = 30031,
   CREDITS_LIMIT = 30033,
+  MAX_GUILD_DECOYS = 30034,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -1246,6 +1247,8 @@ export enum GuildWarningAutoTriggers {
   AUTOMOD = 'automod',
   // running a command the server's rules block for them
   BLOCKED_COMMAND = 'blocked_command',
+  // posting in the server's decoy channel, always server-wide
+  DECOY = 'decoy',
   // a message mentioning more than the rule's `limit` users and roles
   MENTIONS = 'mentions',
 }
@@ -1314,6 +1317,8 @@ export enum GuildModerationDmFlags {
   WARN = 1 << 3,
   // warnings from the server's auto-warn rules
   AUTOWARN = 1 << 4,
+  // removed for posting in the server's decoy channel
+  DECOY = 1 << 5,
 }
 
 export const GUILD_MODERATION_DM_ALL = (
@@ -1321,7 +1326,8 @@ export const GUILD_MODERATION_DM_ALL = (
   GuildModerationDmFlags.KICK |
   GuildModerationDmFlags.MUTE |
   GuildModerationDmFlags.WARN |
-  GuildModerationDmFlags.AUTOWARN
+  GuildModerationDmFlags.AUTOWARN |
+  GuildModerationDmFlags.DECOY
 );
 
 
@@ -2334,6 +2340,7 @@ export enum RedditTimeTypes {
 
 
 export enum RedisChannels {
+  GUILD_DECOY_UPDATE = 'GUILD_DECOY_UPDATE',
   GUILD_FEATURES_UPDATE = 'GUILD_FEATURES_UPDATE',
   GUILD_LOGGER_UPDATE = 'GUILD_LOGGER_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',

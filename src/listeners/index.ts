@@ -5,6 +5,8 @@ export { default as AutomodListener } from './automod';
 export { default as BulkDeleteListener } from './bulkdelete';
 export { default as ChannelDeleteListener } from './channeldelete';
 export { default as CommandHooksListener } from './commandhooks';
+export { default as DecoyListener } from './decoy';
+export { default as DecoyBaitScheduler } from './decoybait';
 export { default as BotGuildsListener } from './botguilds';
 export { default as ClusterInfoInterval } from './clusterinfointerval';
 export { default as ComponentsListener } from './components';

@@ -2,6 +2,7 @@ export { Store, connectAllStores } from './store';
 
 export { default as ChannelMembersStore } from './channelmembers';
 export { default as CommandResponsesStore } from './commandresponses';
+export { default as DecoyStore } from './decoys';
 export { default as GuildChannelsStore } from './guildchannels';
 export { default as GuildMembersStore } from './guildmembers';
 export { default as GuildMetadataStore } from './guildmetadata';

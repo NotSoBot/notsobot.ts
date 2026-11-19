@@ -1374,6 +1374,134 @@ export async function fetchReminders(
 }
 
 
+// what the api takes for a decoy's fields, only the ones given
+function createGuildDecoyBody(options: RestOptions.GuildDecoyFields): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+  const fields: Array<[keyof RestOptions.GuildDecoyFields, string]> = [
+    ['baitEnabled', 'bait_enabled'],
+    ['baitInterval', 'bait_interval'],
+    ['cleanSeconds', 'clean_seconds'],
+    ['nameGenerated', 'name_generated'],
+    ['noticeContent', 'notice_content'],
+    ['noticeMessageId', 'notice_message_id'],
+    ['noticePendingUserId', 'notice_pending_user_id'],
+    ['noticeUserId', 'notice_user_id'],
+    ['webhookId', 'webhook_id'],
+    ['webhookToken', 'webhook_token'],
+  ];
+  for (let [key, name] of fields) {
+    if (options[key] !== undefined) {
+      body[name] = options[key];
+    }
+  }
+  return body;
+}
+
+
+export async function fetchGuildDecoy(
+  context: RequestContext,
+  guildId: string,
+): Promise<RestResponsesRaw.FetchGuildDecoy> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_DECOY,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function putGuildDecoy(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildDecoy,
+): Promise<RestResponsesRaw.PutGuildDecoy> {
+  const body = {
+    ...createGuildDecoyBody(options),
+    channel_id: options.channelId,
+    user_id: options.userId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_DECOY,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function editGuildDecoy(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.GuildDecoyFields,
+): Promise<RestResponsesRaw.EditGuildDecoy> {
+  return request(context, {
+    body: createGuildDecoyBody(options),
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.GUILD_DECOY,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function deleteGuildDecoy(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildDecoy = {},
+): Promise<RestResponsesRaw.DeleteGuildDecoy> {
+  const body = {
+    channel_id: options.channelId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_DECOY_DELETE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function putGuildDecoyTrigger(
+  context: RequestContext,
+  guildId: string,
+  channelId: string,
+): Promise<null> {
+  return request(context, {
+    body: {channel_id: channelId},
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_DECOY_TRIGGER,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function fetchDecoys(
+  context: RequestContext,
+  options: RestOptions.FetchDecoys = {},
+): Promise<RestResponsesRaw.FetchDecoys> {
+  const query = {
+    after: options.after,
+    limit: options.limit,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.DECOYS,
+    },
+  });
+}
+
+
 export async function putGuildTimedBans(
   context: RequestContext,
   guildId: string,

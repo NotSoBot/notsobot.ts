@@ -11,6 +11,10 @@ export type ClientStatusType = 'desktop' | 'mobile' | 'web';
 
 // logs the bot posts itself from its commands, warnings aren't discord actions so there's no gateway event or audit log
 export enum GuildLoggingCustomEvents {
+  // someone posted in the decoy channel
+  DECOY_CATCH = 'decoyCatch',
+  // a member's notice in the decoy channel got deleted, the decoy waits for their next message
+  DECOY_NOTICE_DELETE = 'decoyNoticeDelete',
   GUILD_WARNING_ADD = 'guildWarningAdd',
   GUILD_WARNING_REMOVE = 'guildWarningRemove',
   GUILD_WARNINGS_CLEAR = 'guildWarningsClear',
@@ -238,6 +242,38 @@ export type GuildLoggingEventItem = {
     moderator: Structures.User,
     user: Structures.User,
   },
+} | GuildLoggingEventDecoy;
+
+export type GuildLoggingEventDecoy = {
+  audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
+  guildId: string,
+  happened: number,
+  name: GuildLoggingCustomEvents.DECOY_CATCH,
+  payload: {
+    // ban: the warning ladder reached a ban, softban: removed with their messages deleted, none: I couldn't remove them
+    action: 'ban' | 'none' | 'softban',
+    attachments: number,
+    channelId: string,
+    // seconds of their messages deleted
+    clean: number,
+    // what they posted, empty without it (attachments only, or no message content)
+    content: string,
+    user: Structures.User,
+    warned: boolean,
+  },
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  ignoreTargets?: GuildLoggingIgnoreTargets,
+  guildId: string,
+  happened: number,
+  name: GuildLoggingCustomEvents.DECOY_NOTICE_DELETE,
+  payload: {
+    channelId: string,
+    // the notice's author, only when cached
+    user: Structures.User | null,
+    userId: string,
+  },
 };
 
 export type GuildLoggingEventChannelCreate = Extract<GuildLoggingEventItem, {name: ClientEvents.CHANNEL_CREATE}>;
@@ -259,7 +295,10 @@ export type GuildLoggingEventVoiceStateUpdate = Extract<GuildLoggingEventItem, {
 export type GuildLoggingEventGuildWarningAdd = Extract<GuildLoggingEventItem, {name: GuildLoggingCustomEvents.GUILD_WARNING_ADD}>;
 export type GuildLoggingEventGuildWarningRemove = Extract<GuildLoggingEventItem, {name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE}>;
 export type GuildLoggingEventGuildWarningsClear = Extract<GuildLoggingEventItem, {name: GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR}>;
-export type GuildLoggingEventModeration = GuildLoggingEventGuildWarningAdd | GuildLoggingEventGuildWarningRemove | GuildLoggingEventGuildWarningsClear;
+export type GuildLoggingEventDecoyCatch = Extract<GuildLoggingEventDecoy, {name: GuildLoggingCustomEvents.DECOY_CATCH}>;
+export type GuildLoggingEventDecoyNoticeDelete = Extract<GuildLoggingEventDecoy, {name: GuildLoggingCustomEvents.DECOY_NOTICE_DELETE}>;
+export type GuildLoggingEventModeration = GuildLoggingEventGuildWarningAdd | GuildLoggingEventGuildWarningRemove | GuildLoggingEventGuildWarningsClear |
+  GuildLoggingEventDecoy;
 
 export type LogPayloadFiles = Array<{filename: string, value: any}>;
 

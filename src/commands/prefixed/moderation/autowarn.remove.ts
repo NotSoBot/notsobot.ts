@@ -39,7 +39,7 @@ export default class AutowarnRemoveCommand extends BaseCommand {
           `${COMMAND_NAME} automod -rule Bad Words`,
         ],
         id: Formatter.Commands.ModerationAutowarn.COMMAND_ID_REMOVE,
-        usage: '<mentions|blocked|automod> (-channel <channel:id|mention|name>) (-rule <automod rule:id|name>)',
+        usage: '<mentions|blocked|automod|decoy> (-channel <channel:id|mention|name>) (-rule <automod rule:id|name>)',
       },
       permissions: [Permissions.MANAGE_GUILD],
       type: Formatter.Commands.ModerationAutowarn.triggerParser,

@@ -387,7 +387,9 @@ class GuildLoggingListener extends Listener {
       // warnings have no event flags to disable, a moderation logger logs all of them
       case GuildLoggingCustomEvents.GUILD_WARNING_ADD:
       case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE:
-      case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: shouldLog = true; break;
+      case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR:
+      case GuildLoggingCustomEvents.DECOY_CATCH:
+      case GuildLoggingCustomEvents.DECOY_NOTICE_DELETE: shouldLog = true; break;
     }
     // add support for the logger disabled events
     if (shouldLog) {
@@ -426,7 +428,9 @@ class GuildLoggingListener extends Listener {
         }; break;
         case GuildLoggingCustomEvents.GUILD_WARNING_ADD:
         case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE:
-        case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: {
+        case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR:
+        case GuildLoggingCustomEvents.DECOY_CATCH:
+        case GuildLoggingCustomEvents.DECOY_NOTICE_DELETE: {
           loggerType = GuildLoggerTypes.MODERATION;
         }; break;
       }

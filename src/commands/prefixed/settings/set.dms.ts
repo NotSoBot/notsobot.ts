@@ -29,7 +29,7 @@ export default class SetDmsCommand extends BaseCommand {
           `${COMMAND_NAME} -dm on -for warn`,
         ],
         id: Formatter.Commands.SettingsServerSetDms.COMMAND_ID,
-        usage: '(-dm <on|off> (-for <ban|kick|mute|warn|autowarn>))',
+        usage: '(-dm <on|off> (-for <ban|kick|mute|warn|autowarn|decoy>))',
       },
       permissions: [Permissions.MANAGE_GUILD],
     });

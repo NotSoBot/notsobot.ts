@@ -836,6 +836,36 @@ export async function deleteGuildMusicQueue(
 }
 
 
+export async function fetchGuildDecoy(context: RequestContext, guildId: string) {
+  return raw.fetchGuildDecoy(context, guildId);
+}
+
+
+export async function putGuildDecoy(context: RequestContext, guildId: string, options: RestOptions.PutGuildDecoy) {
+  return raw.putGuildDecoy(context, guildId, options);
+}
+
+
+export async function editGuildDecoy(context: RequestContext, guildId: string, options: RestOptions.GuildDecoyFields) {
+  return raw.editGuildDecoy(context, guildId, options);
+}
+
+
+export async function deleteGuildDecoy(context: RequestContext, guildId: string, options: RestOptions.DeleteGuildDecoy = {}) {
+  return raw.deleteGuildDecoy(context, guildId, options);
+}
+
+
+export async function putGuildDecoyTrigger(context: RequestContext, guildId: string, channelId: string) {
+  return raw.putGuildDecoyTrigger(context, guildId, channelId);
+}
+
+
+export async function fetchDecoys(context: RequestContext, options: RestOptions.FetchDecoys = {}) {
+  return raw.fetchDecoys(context, options);
+}
+
+
 export async function putGuildTimedBans(
   context: RequestContext,
   guildId: string,

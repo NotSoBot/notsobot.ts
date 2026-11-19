@@ -57,6 +57,8 @@ export function createLogPayloadEmbed(event: GuildLoggingEventItem, translator: 
     }; break;
     case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE: Moderation.formatGuildWarningRemove(event, embed, files, translator); break;
     case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: Moderation.formatGuildWarningsClear(event, embed, files, translator); break;
+    case GuildLoggingCustomEvents.DECOY_CATCH: Moderation.formatDecoyCatch(event, embed, files, translator); break;
+    case GuildLoggingCustomEvents.DECOY_NOTICE_DELETE: Moderation.formatDecoyNoticeDelete(event, embed, files, translator); break;
   }
   return {components, embed: sanitizeEmbed(embed), files};
 }
@@ -85,6 +87,8 @@ export function createLogPayloadComponents(event: GuildLoggingEventItem, transla
     case GuildLoggingCustomEvents.GUILD_WARNING_ADD: Moderation.formatGuildWarningAddComponents(event, container, files, translator); break;
     case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE: Moderation.formatGuildWarningRemoveComponents(event, container, files, translator); break;
     case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: Moderation.formatGuildWarningsClearComponents(event, container, files, translator); break;
+    case GuildLoggingCustomEvents.DECOY_CATCH: Moderation.formatDecoyCatchComponents(event, container, files, translator); break;
+    case GuildLoggingCustomEvents.DECOY_NOTICE_DELETE: Moderation.formatDecoyNoticeDeleteComponents(event, container, files, translator); break;
   }
   return {container, files};
 }

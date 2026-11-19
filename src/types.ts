@@ -2,6 +2,12 @@ import { RestResponsesRaw } from './api/types';
 
 
 export namespace RedisPayloads {
+  // the server's decoy channel now, null: it has none
+  export interface GuildDecoyUpdate {
+    decoy: RestResponsesRaw.GuildDecoy | null,
+    guild_id: string,
+  }
+
   export interface GuildFeaturesUpdate {
     features: Array<string>,
     id: string,

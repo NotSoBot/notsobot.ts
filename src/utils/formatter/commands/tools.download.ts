@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
-import { MarkupTimestampStyles, MessageFlags } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { InteractionCallbackTypes, MarkupTimestampStyles, MessageComponentButtonStyles, MessageFlags } from 'detritus-client/lib/constants';
+import { ComponentActionRow, ComponentContext, Markup } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -14,11 +14,21 @@ import {
   DiscordEmojis,
   DiscordReactionEmojis,
   DiscordSkuIds,
+  EmbedColors,
   UserSettingsResponseDisplayTypes,
 } from '../../../constants';
 import { DefaultParameters, jobReply, jobWaitForResponse, linkPremiumSkuName, mediaReply } from '../../../utils';
-import { DisplayPayload, MediaReplyEmbedFooter, displayReply, getResponseDisplayForReply } from '../../../utils/tools';
+import {
+  DisplayPayload,
+  MediaReplyActions,
+  MediaReplyEmbedFooter,
+  displayReply,
+  getMediaReplyActionsTimeout,
+  getResponseDisplayForReply,
+  renderEphemeralDisplay,
+} from '../../../utils/tools';
 import { getAutoEmbedLink } from '../../autoembed';
+import { PageButtonNames, PageButtons } from '../../paginator';
 import { Translator, getTranslator } from '../../i18n';
 
 
@@ -75,16 +85,20 @@ async function createMediaMessage(
   options: CreateMessageOptions,
   autoEmbed: ReturnType<typeof getAutoEmbedLink>,
 ) {
-  const job = await utilitiesFetchMedia(context, {
+  const fetchOptions = {
     downloadQuality: args.quality,
     locale: args.locale,
     mediaFormat: args.mediaFormat,
-    mediaPosition: args.mediaPosition,
     safe: DefaultParameters.safe(context),
     url: args.url,
-  });
+  };
+  const job = await utilitiesFetchMedia(context, {...fetchOptions, mediaPosition: args.mediaPosition});
+  // another page of the post (`response.pages`) is the same download at its position
+  const fetchPage = async (position: number) => {
+    return jobWaitForResponse(context, await utilitiesFetchMedia(context, {...fetchOptions, mediaPosition: position}));
+  };
   if (autoEmbed) {
-    return autoEmbedReply(context as Command.Context, job, autoEmbed.spoiler);
+    return autoEmbedReply(context as Command.Context, job, autoEmbed.spoiler, fetchPage);
   }
 
   const translator = await getTranslator(context);
@@ -102,16 +116,30 @@ async function createMediaMessage(
     const text = translate('tools_download.quality_upsell', {best, quality: capped});
     return `-# ${linkPremiumSkuName(context, text, DiscordSkuIds.USER_NOTSOPREMIUM)}`;
   };
+  const describe = (response: RestResponsesRaw.FileResponse) => {
+    const lines = [
+      (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).above : undefined,
+      describeQuality(response),
+    ].filter(Boolean);
+    return (lines.length) ? lines.join('\n') : undefined;
+  };
+  const describeBelow = (response: RestResponsesRaw.FileResponse) => {
+    return (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).below : undefined;
+  };
+  const describeEmbedFooter = (response: RestResponsesRaw.FileResponse) => {
+    return (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).footer : undefined;
+  };
   return jobReply(context, job, {
-    describe: (response) => {
-      const lines = [
-        (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).above : undefined,
-        describeQuality(response),
-      ].filter(Boolean);
-      return (lines.length) ? lines.join('\n') : undefined;
-    },
-    describeBelow: (response) => (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).below : undefined,
-    describeEmbedFooter: (response) => (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).footer : undefined,
+    actions: (response) => createPageActions(context, translator, response, fetchPage, (page, actions) => mediaReply(context, page, {
+      actions,
+      description: describe(page),
+      descriptionBelow: describeBelow(page),
+      embedFooter: describeEmbedFooter(page),
+      spoiler: args.spoiler,
+    })),
+    describe,
+    describeBelow,
+    describeEmbedFooter,
     // `.embed` replaces the link's preview like auto-embed does (slash commands have no message of theirs to change)
     onSuccess: (options.post && context instanceof Command.Context) ? () => suppressLinkEmbed(context) : undefined,
     spoiler: args.spoiler,
@@ -119,19 +147,159 @@ async function createMediaMessage(
 }
 
 
+// how long a post's page buttons keep working, a slash reply's go sooner (`getMediaReplyActionsTimeout`)
+const PAGES_TIMEOUT = 10 * 60 * 1000;
+
+type DownloadPages = NonNullable<RestResponsesRaw.FileResponse['pages']>;
+
+// a post with more than one media (`response.pages`, a gallery or carousel) gets the paginator's previous/next buttons
+// under it with the page it's on between them, starting on the one that was asked for (`-position 1` is page 2). a
+// press downloads that position of the same link and shows it in place of the last, the same way (`render`). only
+// whoever ran it can press them like the paginator, and a page that fails tells them why and leaves the last one up
+function createPageActions(
+  context: Command.Context | Interaction.InteractionContext,
+  translator: Translator,
+  response: RestResponsesRaw.FileResponse,
+  fetchPage: (position: number) => Promise<RestResponsesRaw.FileResponse>,
+  render: (response: RestResponsesRaw.FileResponse, actions: MediaReplyActions | undefined) => Promise<unknown>,
+): MediaReplyActions | undefined {
+  if (!response.pages) {
+    return undefined;
+  }
+  const { language } = translator;
+  // the pages on the reply, set once a press's edit lands: only the shown one's buttons time out (and go), and a failed
+  // edit leaves the old one (and its buttons) up so they still go
+  let shown: DownloadPages = response.pages;
+  // a page is being downloaded, the other presses are ignored until it's shown
+  let swapping = false;
+  // the shown page's buttons timed out mid swap, they go if the swap doesn't land (a landed one brings its own)
+  let stripAfterSwap: (() => Promise<void>) | null = null;
+
+  const createActions = (pages: DownloadPages): MediaReplyActions => {
+    const row = new ComponentActionRow();
+    row.createButton({
+      ...PageButtons[PageButtonNames.PREVIOUS],
+      disabled: pages.position <= 0,
+      run: (ctx) => onPress(ctx, pages.position - 1),
+    });
+    // where it is, never pressed
+    row.createButton({
+      disabled: true,
+      label: `${(pages.position + 1).toLocaleString(language)}/${pages.count.toLocaleString(language)}`,
+      style: MessageComponentButtonStyles.SECONDARY,
+    });
+    row.createButton({
+      ...PageButtons[PageButtonNames.NEXT],
+      disabled: pages.count - 1 <= pages.position,
+      run: (ctx) => onPress(ctx, pages.position + 1),
+    });
+    return {
+      rows: [row],
+      get timeout() {
+        return getMediaReplyActionsTimeout(context, PAGES_TIMEOUT);
+      },
+      onTimeout: (strip) => {
+        if (shown !== pages) {
+          return;
+        }
+        if (swapping) {
+          stripAfterSwap = strip;
+          return;
+        }
+        return strip().catch(() => {});
+      },
+    };
+  };
+
+  const onPress = async (ctx: ComponentContext, position: number) => {
+    if (ctx.userId !== context.userId || swapping) {
+      return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
+    }
+    swapping = true;
+    let swapped = false;
+    try {
+      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      let page: RestResponsesRaw.FileResponse;
+      try {
+        // no "took", it would count from when the command was run
+        page = {...await fetchPage(position), took: 0};
+      } catch(error) {
+        await replyPageError(ctx, context, translator, error);
+        return;
+      }
+      // the api's pages, it moves a position past the end back to the last one (and a post can lose some)
+      const pages = page.pages || null;
+      await render(page, (pages) ? createActions(pages) : undefined);
+      swapped = true;
+      if (pages) {
+        shown = pages;
+      }
+    } catch(error) {
+
+    } finally {
+      swapping = false;
+      const strip = stripAfterSwap;
+      stripAfterSwap = null;
+      if (strip && !swapped) {
+        await strip().catch(() => {});
+      }
+    }
+  };
+
+  return createActions(shown);
+}
+
+
+// why a page couldn't be shown, only to whoever pressed it (the reply keeps the last page)
+async function replyPageError(
+  ctx: ComponentContext,
+  context: Command.Context | Interaction.InteractionContext,
+  translator: Translator,
+  error: any,
+): Promise<void> {
+  // required here, commands/errors imports utils (and this file with it) back
+  const { createRunErrorPayload, warning }: typeof import('../../../commands/errors') = require('../../../commands/errors');
+  try {
+    const payload = await createRunErrorPayload(context, warning(translator.translate('errors.prefix_run_title')), error, translator);
+    // the upsell like `replyError` has it
+    const { upsell } = payload;
+    let description = payload.description;
+    if (upsell) {
+      description = (upsell.text) ?
+        `${description}\n-# ${linkPremiumSkuName(context, upsell.text, upsell.skuId)}` :
+        linkPremiumSkuName(context, description, upsell.skuId);
+    }
+    await ctx.createMessage(renderEphemeralDisplay(ctx, translator, {color: EmbedColors.ERROR, description, title: payload.title}));
+  } catch(error) {
+
+  }
+}
+
+
 // auto-embed: no thinking reply while it downloads (the typing indicator shows it's on it) and no upsell line, just the
 // media, with the post's text above it when the server wants that. a failed job throws for `onRunError` to react with,
 // then the link's own embed goes away since ours replaced it
-async function autoEmbedReply(context: Command.Context, job: Parameters<typeof jobWaitForResponse>[1], spoiler: boolean) {
+async function autoEmbedReply(
+  context: Command.Context,
+  job: Parameters<typeof jobWaitForResponse>[1],
+  spoiler: boolean,
+  fetchPage: (position: number) => Promise<RestResponsesRaw.FileResponse>,
+) {
   const response = await jobWaitForResponse(context, job);
-  const post: FormattedPost = (isAutoEmbedTextOn(context) && response.post) ? formatPost(await getTranslator(context), response.post, {spoiler}) : {};
-  const reply = await mediaReply(context, response, {
-    description: post.above,
-    descriptionBelow: post.below,
-    embedFooter: post.footer,
-    hideDetails: true,
-    spoiler,
-  });
+  const translator = await getTranslator(context);
+  // a gallery's other pages are shown the same way
+  const render = (page: RestResponsesRaw.FileResponse, actions: MediaReplyActions | undefined) => {
+    const post: FormattedPost = (isAutoEmbedTextOn(context) && page.post) ? formatPost(translator, page.post, {spoiler}) : {};
+    return mediaReply(context, page, {
+      actions,
+      description: post.above,
+      descriptionBelow: post.below,
+      embedFooter: post.footer,
+      hideDetails: true,
+      spoiler,
+    });
+  };
+  const reply = await render(response, createPageActions(context, translator, response, fetchPage, render));
   await suppressLinkEmbed(context);
   return reply;
 }

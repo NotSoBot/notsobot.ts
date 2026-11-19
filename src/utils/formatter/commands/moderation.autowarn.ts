@@ -6,6 +6,7 @@ import { deleteGuildTimedBans, editGuildSettings, putGuildTimedBans, putGuildWar
 import { GuildSettings, GuildSettingsRule } from '../../../api/structures/guildsettings';
 import { RestResponsesRaw } from '../../../api/types';
 import GuildLoggingListener from '../../../listeners/guildlogging';
+import DecoyStore from '../../../stores/decoys';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import {
   DateMomentLogFormat,
@@ -33,6 +34,7 @@ export const COMMAND_ID = 'server.autowarn.list';
 // the commands changing them, through `createSetMessage`
 export const COMMAND_ID_AUTOMOD = 'server.autowarn.automod';
 export const COMMAND_ID_BLOCKED = 'server.autowarn.blocked';
+export const COMMAND_ID_DECOY = 'server.autowarn.decoy';
 export const COMMAND_ID_EXEMPT = 'server.autowarn.exempt';
 export const COMMAND_ID_MENTIONS = 'server.autowarn.mentions';
 export const COMMAND_ID_REMOVE = 'server.autowarn.remove';
@@ -356,6 +358,7 @@ export function describeGuildWarningAuto(
       return translate('moderation_autowarn.trigger_automod', {rule: (name) ? `**${Markup.escape.all(name)}**` : Markup.codestring(rule.automod_rule_id)});
     };
     case GuildWarningAutoTriggers.BLOCKED_COMMAND: return translate('moderation_autowarn.trigger_blocked_command');
+    case GuildWarningAutoTriggers.DECOY: return translate('moderation_autowarn.trigger_decoy');
     case GuildWarningAutoTriggers.MENTIONS: return translate('moderation_autowarn.trigger_mentions', {limit: String(rule.limit)});
   }
   return rule.trigger;
@@ -454,6 +457,7 @@ export const TRIGGER_VALUES: Record<string, GuildWarningAutoTriggers> = Object.f
   blocked: GuildWarningAutoTriggers.BLOCKED_COMMAND,
   blocked_command: GuildWarningAutoTriggers.BLOCKED_COMMAND,
   commands: GuildWarningAutoTriggers.BLOCKED_COMMAND,
+  decoy: GuildWarningAutoTriggers.DECOY,
   mention: GuildWarningAutoTriggers.MENTIONS,
   mentions: GuildWarningAutoTriggers.MENTIONS,
   pings: GuildWarningAutoTriggers.MENTIONS,
@@ -506,7 +510,8 @@ export async function createSetMessage(
   if (!settings) {
     return reply(translate('settings_server_set_warnings.error_fetching'));
   }
-  const channelId = (args.channel) ? args.channel.id : null;
+  // there's only the one decoy channel, its rule is always server-wide
+  const channelId = (args.channel && args.trigger !== GuildWarningAutoTriggers.DECOY) ? args.channel.id : null;
   const automodRuleId = (args.trigger === GuildWarningAutoTriggers.AUTOMOD && args.automodRule) ? args.automodRule.id : null;
   const isSame = (rule: RestResponsesRaw.GuildWarningAuto) => {
     return rule.trigger === args.trigger && rule.channel_id === channelId && (rule.automod_rule_id || null) === automodRuleId;
@@ -569,6 +574,10 @@ export async function createSetMessage(
   // discord only sends AutoMod's actions to bots with manage server
   if (rule && rule.trigger === GuildWarningAutoTriggers.AUTOMOD && !(context.me && context.me.can(Permissions.MANAGE_GUILD))) {
     description.push(`-# ${translate('moderation_autowarn.automod_needs_manage_guild')}`);
+  }
+  // it only does something once there's a decoy channel
+  if (rule && rule.trigger === GuildWarningAutoTriggers.DECOY && !DecoyStore.get(context.guildId!)) {
+    description.push(`-# ${translate('moderation_autowarn.decoy_missing')}`);
   }
   // blocked commands only come from the server's rules
   if (rule && rule.trigger === GuildWarningAutoTriggers.BLOCKED_COMMAND && !settings.rules.some((x) => !x.allows)) {
@@ -647,16 +656,23 @@ export interface AutoWarnOptions {
   // on top of the trigger, what the cooldown's for (the AutoMod rule, so different ones each warn)
   cooldownKey?: string,
   member: Structures.Member,
+  // a line for their dm under the warning (the decoy's removal), only if the dm goes out
+  dmNote?: string,
   // the message that set it off, so an edit to it doesn't warn them again
   messageId?: string,
   // what they did, in the server's language (it's the warning's reason)
   reason: string,
   rule: RestResponsesRaw.GuildWarningAuto,
+  // false: the ladder step comes back in the result without being done, the caller does it (the decoy turns it into
+  // its own ban or softban)
+  runStep?: boolean,
   settings: GuildSettings,
 }
 
 export interface AutoWarnResult {
   counts: RestResponsesRaw.GuildWarningCounts,
+  // if their dm went out (the server can turn them off, they can have dms closed)
+  dmSent: boolean,
   // the ladder step the warning reached, and if it went through (the bot can be missing the permission for it)
   step: RestResponsesRaw.GuildWarningAction | null,
   stepDone: boolean,
@@ -718,6 +734,7 @@ export async function runAutoWarn(
   });
 
   const audit = await getGuildTranslator(languageContext);
+  let dmSent = false;
   // before the step, a kick or ban would stop them getting it
   if ((options.settings.settings.moderationDmDisabled & GuildModerationDmFlags.AUTOWARN) !== GuildModerationDmFlags.AUTOWARN) {
     try {
@@ -739,14 +756,16 @@ export async function runAutoWarn(
           dm.translate('moderation_warn.auto_reached', {count: step.threshold.toLocaleString(dm.language)}),
           formatWarningAction(dm, step),
         ]) : '',
+        (options.dmNote) ? `\n${options.dmNote}` : '',
       ].join('\n').trim());
+      dmSent = true;
     } catch(error) {
       // they have dms closed
     }
   }
 
-  const stepDone = (step) ? await runWarningStep(context, member, step, audit, options.reason) : false;
-  return {counts, step, stepDone, warning};
+  const stepDone = (step && options.runStep !== false) ? await runWarningStep(context, member, step, audit, options.reason) : false;
+  return {counts, dmSent, step, stepDone, warning};
 }
 
 
@@ -857,6 +876,8 @@ export function createAutoWarnReason(
     // the server's rule that blocked the command, and the server for its channel/role/user's name
     blockedBy?: GuildSettingsRule | null,
     command?: string,
+    // decoy: the channel's name, plain since it goes in their dm's codeblock and the audit log
+    decoyChannelName?: string,
     guild?: Structures.Guild | null,
     mentions?: number,
   },
@@ -875,6 +896,9 @@ export function createAutoWarnReason(
         (details.blockedBy) && describeGuildRule(translate, details.blockedBy, {guild: details.guild, plain: true}),
       ]);
       return translate(key, {command: blocked});
+    };
+    case GuildWarningAutoTriggers.DECOY: {
+      return translate('moderation_autowarn.reason_decoy', {channel: `#${details.decoyChannelName || '?'}`});
     };
     case GuildWarningAutoTriggers.MENTIONS: {
       return translate('moderation_autowarn.reason_mentions', {
