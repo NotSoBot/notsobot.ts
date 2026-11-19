@@ -389,6 +389,11 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
   async onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
     captureCommandError(context, error);
+    // a modal response has no message to edit or follow up on (detritus beta.136+ throws instead of asking discord), the
+    // error is only reported
+    if (context.responseType === InteractionCallbackTypes.MODAL) {
+      return;
+    }
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.run_title', {label: translateErrorLabel(this.error, translator.translate)}));
     await replyError(context, await createRunErrorPayload(context, title, error, translator), {ephemeral: true});

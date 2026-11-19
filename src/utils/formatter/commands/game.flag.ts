@@ -553,8 +553,8 @@ function createGuessModal(game: Game, translator: Translator): InteractionModal 
 }
 
 
-// plain text, detritus keys a click's response listener by the clicked message, so a reply with components would take
-// over the game's buttons (same as the imagine game)
+// plain text (same as the imagine game). detritus before beta.136 keyed a click's response listener by the clicked
+// message, so a reply with components took over the game's buttons, fixed there but the warnings need none anyway
 function respondEphemeral(ctx: ComponentContext | InteractionModalContext, content: string) {
   return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
     allowedMentions: {parse: []},

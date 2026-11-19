@@ -89,6 +89,31 @@ const AUTHENTICATION_FAILED_EXIT_CODE = 4;
 const AUTHENTICATION_FAILED_RESPAWN_DELAY = 30 * 1000;
 const AUTHENTICATION_FAILED_RESPAWN_JITTER = 60 * 1000;
 
+// a 401 on our token latches the shard's rest client (`haltOnUnauthorized`), refusing its discord requests instead of
+// adding to the invalid request limit (10k per 10 minutes per ip, then cloudflare bans the host for up to an hour). Every
+// cluster shares the ip, so 1280 shards still sending after a token reset reach it in seconds. A bad token also closes the
+// gateway with 4004 (respawn above), the latch is lifted after one invalid request window in case it was only a blip,
+// which costs at most one 401 per shard per window
+const TOKEN_UNAUTHORIZED_RETRY_DELAY = 10 * 60 * 1000;
+const TOKEN_UNAUTHORIZED_RETRY_JITTER = 60 * 1000;
+
+function onRestTokenUnauthorized(shard: ShardClient, route: string): void {
+  const raw = shard.rest.raw;
+  const delay = TOKEN_UNAUTHORIZED_RETRY_DELAY + Math.round(Math.random() * TOKEN_UNAUTHORIZED_RETRY_JITTER);
+  log.error(`Shard #${shard.shardId}: discord rejected our token with a 401 (${route}), refusing its requests for ${delay}ms`);
+  captureError(new Error('Discord rejected our token with a 401, refusing requests'), {
+    fingerprint: ['rest-token-unauthorized'],
+    tags: {'http.route': route, shard_id: shard.shardId},
+  });
+  setTimeout(() => {
+    if (raw.tokenUnauthorized && !shard.killed) {
+      log.info(`Shard #${shard.shardId}: sending requests with our token again after the 401`);
+      // the same token, `setToken()` is what clears the latch
+      raw.setToken(raw.token);
+    }
+  }, delay).unref();
+}
+
 function respawnAfterAuthenticationFailed(shardId: number): void {
   // already exiting, for this or a thrown exception (which exits sooner than this would)
   if (exiting) {
@@ -205,6 +230,10 @@ const cluster = new ClusterClient('', {
       status: PresenceStatuses.ONLINE,
     },
   },
+  rest: {
+    // see `onRestTokenUnauthorized()`
+    haltOnUnauthorized: true,
+  },
 });
 
 
@@ -266,6 +295,12 @@ const cluster = new ClusterClient('', {
         });
       }
     }
+  });
+
+  // once per shard, each has its own rest client and latch
+  cluster.on(ClientEvents.REST_TOKEN_UNAUTHORIZED, ({response, shard}) => {
+    const route = response.request.route;
+    onRestTokenUnauthorized(shard, (route) ? route.path : response.request.method);
   });
 
   cluster.on(ClientEvents.SHARD, ({shard}) => {

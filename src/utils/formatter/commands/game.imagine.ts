@@ -655,8 +655,9 @@ async function renderPlayerMessage(ctx: ComponentContext, payload: DisplayPayloa
 }
 
 
-// plain text like the music controls' replies, detritus keys a click's response listener by the clicked message, so a
-// reply with components (a components v2 container) took over the game message's buttons and the next click did nothing
+// plain text like the music controls' replies. detritus before beta.136 keyed a click's response listener by the clicked
+// message, so a reply with components (a components v2 container) took over the game message's buttons and the next
+// click did nothing, fixed there but these replies need no components anyway
 function respondEphemeral(ctx: ComponentContext, content: string) {
   return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
     allowedMentions: {parse: []},

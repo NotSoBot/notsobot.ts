@@ -1,3 +1,6 @@
+import { RefusalReasons } from 'detritus-client-rest/lib/constants';
+import { RequestRefusedError } from 'detritus-client-rest/lib/errors';
+
 import { ApiErrorCodes } from '../constants';
 
 import { RestResponsesRaw } from './types';
@@ -64,10 +67,16 @@ export async function isApiDownError(error: any): Promise<boolean> {
 // somewhere between us and the server (cloudflare). timeouts are left out, trying again would just wait that long again
 const CONNECTION_DROP_CODES: ReadonlyArray<string> = ['ECONNRESET', 'EPIPE', 'UND_ERR_CLOSED', 'UND_ERR_SOCKET'];
 
-// detritus-client-rest (beta.39+) refuses every discord request while cloudflare has banned our ip (a 429 without a `via`
-// header), it can last an hour. A plain Error, no response, the message is the only way to tell
+// detritus-client-rest refuses every discord request while cloudflare has banned our ip (a 429 without a `via` header),
+// it can last an hour. Nothing reached discord, so there's no response
 export function isDiscordEdgeRatelimitError(error: any): boolean {
-  return !!error && typeof(error.message) === 'string' && error.message.startsWith('Refusing to send request, ratelimited by cloudflare');
+  return error instanceof RequestRefusedError && error.reason === RefusalReasons.EDGE_RATELIMITED;
+}
+
+// refused because an earlier request with our token got a 401 (`haltOnUnauthorized` in bot.ts), every discord request
+// on that shard fails like this until the latch is lifted
+export function isDiscordTokenRefusedError(error: any): boolean {
+  return error instanceof RequestRefusedError && error.reason === RefusalReasons.TOKEN_UNAUTHORIZED;
 }
 
 // undici's fetch says `fetch failed` (before the response) or `terminated` (while reading the body) with the socket

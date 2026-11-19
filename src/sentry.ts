@@ -7,7 +7,7 @@ import { Command, CommandClient, Interaction, InteractionCommandClient } from 'd
 import { EventSubscription } from 'detritus-utils';
 import { ClientEvents } from 'detritus-client/lib/constants';
 
-import { JobError, isDiscordEdgeRatelimitError } from './api/errors';
+import { JobError, isDiscordEdgeRatelimitError, isDiscordTokenRefusedError } from './api/errors';
 import { CommandRunCancelledError, UserError } from './utils/errors';
 import { isTagError } from './utils/tags/exceptions';
 
@@ -209,6 +209,11 @@ export function captureCommandError(context: SentryCommandContext, error: any, s
   // every command fails while it lasts, one grouped event a minute is enough to know
   if (isDiscordEdgeRatelimitError(error)) {
     captureError(error, {fingerprint: ['discord-edge-ratelimited'], level: 'warning', tags: {source}, throttle: 60 * 1000});
+    return;
+  }
+  // the 401 that latched it is reported once per shard (bot.ts), the reply can't go out either
+  if (isDiscordTokenRefusedError(error)) {
+    captureError(error, {fingerprint: ['discord-token-refused'], level: 'warning', tags: {source}, throttle: 60 * 1000});
     return;
   }
   captureError(error, {context, tags: {source}});
