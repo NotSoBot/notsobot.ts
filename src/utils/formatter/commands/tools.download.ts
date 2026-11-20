@@ -106,13 +106,13 @@ async function createMediaMessage(
   const gallery = await getPostGallery(context, (autoEmbed) ? {autoEmbed: true} : {view});
   const job = await utilitiesFetchMedia(context, {
     ...fetchOptions,
-    mediaGallerySize: (gallery) ? GALLERY_SIZE : undefined,
+    mediaGallerySize: (gallery) ? getGallerySize() : undefined,
     mediaPosition: args.mediaPosition,
   });
   // another page of the post (`response.pages`) is the same download at its position, another ten is one request too
   const fetchers: PageFetchers = {
     gallery: async (start: number) => {
-      return jobWaitForResponse(context, await utilitiesFetchMedia(context, {...fetchOptions, mediaGallerySize: GALLERY_SIZE, mediaPosition: start}));
+      return jobWaitForResponse(context, await utilitiesFetchMedia(context, {...fetchOptions, mediaGallerySize: getGallerySize(), mediaPosition: start}));
     },
     page: async (position: number) => {
       return jobWaitForResponse(context, await utilitiesFetchMedia(context, {...fetchOptions, mediaPosition: position}));
@@ -202,8 +202,12 @@ function hasPages(response: RestResponsesRaw.FileResponse): boolean {
 // the same link, a ten is one request (`media_gallery_size`, the command's own brings the first) and kept for paging
 // back. ones that fail are left out with a note (and tried again, one by one, when their ten comes back). a first ten
 // that can't be one gallery (audio, or only one of them came through) pages one media at a time instead, starting on
-// the page that was asked for
-const GALLERY_SIZE = MEDIA_REPLY_FILES_MAX;
+// the page that was asked for. a call, not a constant: utils/tools imports this file back (through utils/index and the
+// listeners), so at load time its `MEDIA_REPLY_FILES_MAX` is still undefined and a copy of it here stayed undefined
+// (no gallery size was sent and every ten came out empty, "None of this part of the post could be downloaded")
+function getGallerySize(): number {
+  return MEDIA_REPLY_FILES_MAX;
+}
 
 // how a post's other pages are downloaded
 interface PageFetchers {
@@ -303,7 +307,7 @@ function replyWithPages(
   const fetchGalleryRequest = (index: number): Promise<void> => {
     let promise = galleryFetching.get(index);
     if (!promise) {
-      promise = fetchers.gallery(index * GALLERY_SIZE).then((fetched) => {
+      promise = fetchers.gallery(index * getGallerySize()).then((fetched) => {
         for (const [position, page] of galleryResponses({...fetched, took: 0})) {
           if (!responses.has(position)) {
             responses.set(position, page);
@@ -315,8 +319,8 @@ function replyWithPages(
     return promise;
   };
   const galleryPositions = (index: number): Array<number> => {
-    const start = index * GALLERY_SIZE;
-    const end = Math.min(start + GALLERY_SIZE, pages.count);
+    const start = index * getGallerySize();
+    const end = Math.min(start + getGallerySize(), pages.count);
     return Array.from({length: end - start}, (_, i) => start + i);
   };
   // a ten (0 based) from what's already here, in order
@@ -368,14 +372,14 @@ function replyWithPages(
   };
 
   return (async () => {
-    const firstIndex = Math.floor(askedPosition / GALLERY_SIZE);
+    const firstIndex = Math.floor(askedPosition / getGallerySize());
     // the first ten came with the response (its failed ones aren't tried again right away)
     let first: GalleryPage | null = null;
     if (options.gallery !== false) {
       first = collectGallery(firstIndex);
     }
     if (first && 2 <= first.responses.length && first.responses.every(isGalleryMedia)) {
-      const pageLimit = Math.ceil(pages.count / GALLERY_SIZE);
+      const pageLimit = Math.ceil(pages.count / getGallerySize());
       const paginator = createPaginator(firstIndex + 1, pageLimit, async (pageNumber) => {
         // the first ten is already here, its failed ones aren't tried again right away
         let gallery: GalleryPage;
