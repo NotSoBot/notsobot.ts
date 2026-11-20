@@ -12,6 +12,7 @@ import { MediaIVBounceCommand } from './bounce';
 import { MediaIVDanceCommand } from './dance';
 import { MediaIVFlashCommand } from './flash';
 import { MediaIVInOutCommand } from './in-out';
+import { MediaIVMitosisCommand } from './mitosis';
 import { MediaIVOrbCommand } from './orb';
 import { MediaIVOutInCommand } from './out-in';
 import { MediaIVPrismCommand } from './prism';
@@ -48,6 +49,7 @@ export default class MediaIVAnimateGroupCommand extends BaseSlashCommand {
         new MediaIVDanceCommand(),
         new MediaIVFlashCommand(),
         new MediaIVInOutCommand(),
+        new MediaIVMitosisCommand(),
         new MediaIVOutInCommand(),
         new MediaIVRainbowCommand(),
         new MediaIVSideToSideCommand(),

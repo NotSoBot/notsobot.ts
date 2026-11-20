@@ -267,6 +267,7 @@ import * as MediaIVManipulationMirrorBottom from './media.iv.manipulation.mirror
 import * as MediaIVManipulationMirrorLeft from './media.iv.manipulation.mirror.left';
 import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.right';
 import * as MediaIVManipulationMirrorTop from './media.iv.manipulation.mirror.top';
+import * as MediaIVManipulationMitosis from './media.iv.manipulation.mitosis';
 import * as MediaIVManipulationMotionBlur from './media.iv.manipulation.motion.blur';
 import * as MediaIVManipulationMultiply from './media.iv.manipulation.multiply';
 import * as MediaIVManipulationMuseum from './media.iv.manipulation.museum';
@@ -1115,6 +1116,7 @@ export {
   MediaIVManipulationMirrorLeft,
   MediaIVManipulationMirrorRight,
   MediaIVManipulationMirrorTop,
+  MediaIVManipulationMitosis,
   MediaIVManipulationMotionBlur,
   MediaIVManipulationMultiply,
   MediaIVManipulationMuseum,

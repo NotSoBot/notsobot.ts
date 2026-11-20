@@ -1,5 +1,5 @@
-FROM node:24-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS deps
-# 2026.10.23, node 24.22.1
+FROM node:26-slim@sha256:e6bedef217677b276c591795e169840edd9096dbf13f29df8ef8d1856b8820bc AS deps
+# 2026.11.11, node 26.13.1
 
 WORKDIR /notsobot.ts
 

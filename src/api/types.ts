@@ -1684,6 +1684,12 @@ export namespace RestOptions {
     percentage?: number,
   }
 
+  export interface MediaIVManipulationMitosis extends MediaBaseOptions {
+    direction?: string,
+    duration?: number,
+    style?: string,
+  }
+
   export interface MediaIVManipulationMotionBlur extends MediaBaseOptionsMultiple {
     strength?: number,
     vertical?: boolean,

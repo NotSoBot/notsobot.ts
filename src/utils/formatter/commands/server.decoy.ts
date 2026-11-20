@@ -454,6 +454,8 @@ export async function createStatusMessage(context: Context, known?: RestResponse
       (decoy.clean_seconds === null) ? ` ${translate('decoy.clean_server_default')}` : ''
     }`,
     `-> ${(rule) ? translate('decoy.warnings_on', {weight: formatWarningWeight(translator, rule.warnings)}) : translate('decoy.warnings_off')}`,
+    // the create reply scrolls away, this is where moderators look it up again
+    `-# ${translate('decoy.who_is_skipped')}`,
     displayDetailsLine([
       translate('decoy.caught', {count: decoy.triggered_count.toLocaleString(language)}),
       (decoy.triggered_last) && translate('decoy.last_caught', {when: displayTimestamp(decoy.triggered_last)}),

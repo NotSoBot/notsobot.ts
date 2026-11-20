@@ -7330,6 +7330,30 @@ export async function mediaIVManipulationMirrorTop(
 }
 
 
+export async function mediaIVManipulationMitosis(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMitosis,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    direction: options.direction,
+    duration: options.duration,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    style: options.style,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MITOSIS,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationMotionBlur(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMotionBlur,

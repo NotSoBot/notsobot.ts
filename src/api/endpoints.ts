@@ -488,6 +488,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/mirror-right',
   MEDIA_IV_MANIPULATION_MIRROR_TOP:
     '/media/iv/manipulation/mirror-top',
+  MEDIA_IV_MANIPULATION_MITOSIS:
+    '/media/iv/manipulation/mitosis',
   MEDIA_IV_MANIPULATION_MOTION_BLUR:
     '/media/iv/manipulation/motion/blur',
   MEDIA_IV_MANIPULATION_MULTIPLY:

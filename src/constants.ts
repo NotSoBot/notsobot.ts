@@ -1850,6 +1850,18 @@ export const MediaMemeFontsToText: Record<MediaMemeFonts, string> = Object.freez
 });
 
 
+export enum MediaMitosisDirections {
+  HORIZONTAL = 'HORIZONTAL',
+  VERTICAL = 'VERTICAL',
+}
+
+
+export enum MediaMitosisStyles {
+  ABSORB = 'ABSORB',
+  SPLIT = 'SPLIT',
+}
+
+
 export enum MediaPix2PixModels {
   EDGES = 'EDGES',
   EMOJI = 'EMOJI',

@@ -2816,6 +2816,14 @@ export async function mediaIVManipulationMirrorTop(
 }
 
 
+export async function mediaIVManipulationMitosis(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMitosis,
+) {
+  return raw.mediaIVManipulationMitosis(context, options);
+}
+
+
 export async function mediaIVManipulationMotionBlur(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMotionBlur,
