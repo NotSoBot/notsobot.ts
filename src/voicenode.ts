@@ -64,6 +64,11 @@ const RECOVER_INTERVAL = 5 * 1000;
 // how long a `music play` reply waits to hear its queue item failed. A 24/7 queue never leaves (which drops them), and
 // a reply this old is long out of view
 const TRACK_ERROR_LISTEN_FOR = 6 * 60 * 60 * 1000;
+// a listen (`listen`) the node never ended is given up on this long after its duration (a node from before listening
+// ignores `listen`, one that went away can't say)
+const LISTEN_END_GRACE = 15 * 1000;
+// after asking the node to stop, this long for its `LISTEN_END`
+const LISTEN_STOP_WAIT = 5 * 1000;
 
 export type MoveReason =
   // the node was disabled, between tracks (the old player is still there to ask and destroy)
@@ -87,7 +92,43 @@ type NodeEvent =
   {op: 'TRACK_ERROR', data: {error: string, guildId: string, track: NodeTrack}} |
   {op: 'QUEUE_END', data: {error: null | string, guildId: string}} |
   {op: 'PAUSE_TIMEOUT', data: {guildId: string, timeout: number}} |
-  {op: 'VOICE_LOST', data: {error: null | string, guildId: string}};
+  {op: 'VOICE_LOST', data: {error: null | string, guildId: string}} |
+  // a listen's last few seconds of audio (a base64 ogg opus file) every few seconds of new audio, then its end. `userId`
+  // is null when it's listening to everyone
+  {op: 'LISTEN_AUDIO', data: {audio: string, duration: number, guildId: string, heard: number, userId: null | string}} |
+  {op: 'LISTEN_END', data: {guildId: string, heard: number, reason: string, userId: null | string}};
+
+// why a listen ended: the node's (`stopped` when we asked, `time` its duration ran out, `voice` its voice connection
+// went, `replaced`, `destroyed`, `failed` it couldn't mix everyone), `left` when we left the channel, `timeout` when the
+// node never said
+export type ListenEndReason = 'destroyed' | 'failed' | 'left' | 'replaced' | 'stopped' | 'time' | 'timeout' | 'voice';
+
+export interface ListenHandlers {
+  // the latest few seconds of their audio, an ogg opus file
+  onAudio: (audio: Buffer, heard: number) => void,
+  onEnd: (reason: ListenEndReason) => void,
+}
+
+// a guild's listen, one at a time. `timeout` gives up on it if the node never ends it
+interface GuildListen extends ListenHandlers {
+  stopping: boolean,
+  timeout: null | ReturnType<typeof setTimeout>,
+  // who it's listening to, null for everyone
+  userId: null | string,
+}
+
+// why `listen` can't start: we're playing in another channel of the server (or held after being disconnected from
+// one), or someone's being listened to already
+export class VoiceListenError extends Error {
+  channelId: null | string;
+  reason: 'busy' | 'elsewhere';
+
+  constructor(reason: 'busy' | 'elsewhere', channelId: null | string = null) {
+    super((reason === 'busy') ? 'Already listening in this server' : 'Playing in another voice channel');
+    this.channelId = channelId;
+    this.reason = reason;
+  }
+}
 
 // the track an event is about, `queueItemId` is null for a url played directly
 interface NodeTrack {
@@ -883,6 +924,8 @@ export class VoiceNodeClient extends EventSpewer {
   // this file was reloaded and this instance handed everything over (`detach`), it doesn't connect or join anymore
   detached = false;
   guilds = new Map<string, GuildVoice>();
+  // by guild, someone's audio the node is sending us (`listen`), we're undeafened while one runs
+  listens = new Map<string, GuildListen>();
   // by queue item id (oldest first), told the node's error when it couldn't play that item (until the item ends, we
   // leave or `TRACK_ERROR_LISTEN_FOR`)
   trackErrorListeners = new Map<string, {addedAt: number, guildId: string, listener: (error: string) => void}>();
@@ -1125,7 +1168,8 @@ export class VoiceNodeClient extends EventSpewer {
 
   // joins `channelId` for a new guild in `phase`, or for one we're already in (reconnecting after being disconnected),
   // which keeps its phase. Leaves if our voice state and server don't come in time
-  private join(shard: ShardClient, guildId: string, channelId: string, node: NodeConnection, phase: GuildPhase): GuildVoice | null {
+  // `selfDeaf` false for joining to listen (discord sends a deafened bot no audio)
+  private join(shard: ShardClient, guildId: string, channelId: string, node: NodeConnection, phase: GuildPhase, selfDeaf: boolean = true): GuildVoice | null {
     // reloaded, something still running from before (a restore) doesn't join for the old instance
     if (this.detached) {
       return null;
@@ -1148,7 +1192,7 @@ export class VoiceNodeClient extends EventSpewer {
         this.leave(guildId);
       }
     }, JOIN_TIMEOUT);
-    shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: true});
+    shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf});
     // effects, a volume and a tempo still on (a reconnect after being disconnected, whose session went) are kept for a
     // restart too, without them the session starts with the server's saved ones (`applySavedSound`)
     const effects = (joined.effects && joined.effects.length) ? joined.effects : undefined;
@@ -1437,6 +1481,10 @@ export class VoiceNodeClient extends EventSpewer {
       return;
     }
     if (!music || !music.premium || !music.stay) {
+      // joined only to listen, it's still going: we wait again once it's over (`endListen`)
+      if (this.listens.has(guildId)) {
+        return;
+      }
       this.leave(guildId);
     }
   }
@@ -1883,6 +1931,8 @@ export class VoiceNodeClient extends EventSpewer {
     }
     this.guilds.delete(guildId);
     this.resolveNextTrack(guildId, 'left');
+    // out of `guilds` first, ending it doesn't deafen us again in a channel we're leaving
+    this.endListen(guildId, 'left');
     this.clearGuildTimers(guild);
     for (const [queueItemId, waiter] of this.trackErrorListeners) {
       if (waiter.guildId === guildId) {
@@ -2125,6 +2175,144 @@ export class VoiceNodeClient extends EventSpewer {
       case 'VOICE_LOST': {
         this.rejoin(guildId, event.data.error);
       }; break;
+      case 'LISTEN_AUDIO': {
+        const listen = this.listens.get(guildId);
+        if (listen && !listen.stopping && listen.userId === event.data.userId && typeof(event.data.audio) === 'string') {
+          listen.onAudio(Buffer.from(event.data.audio, 'base64'), event.data.heard);
+        }
+      }; break;
+      case 'LISTEN_END': {
+        const listen = this.listens.get(guildId);
+        if (listen && listen.userId === event.data.userId) {
+          this.endListen(guildId, event.data.reason as ListenEndReason);
+        }
+      }; break;
+    }
+  }
+
+  isListening(guildId: string): boolean {
+    return this.listens.has(guildId);
+  }
+
+  // has the node send us `userId`'s audio in `channelId` (everyone's mixed for null) for up to `duration` milliseconds
+  // (`handlers`), until `stopListening`. We're undeafened while it runs. Playing in that channel already it goes
+  // alongside the music, otherwise we join idle for it (leaving like an idle guild once it's over, unless something gets
+  // played)
+  async listen(
+    shard: ShardClient,
+    guildId: string,
+    channelId: string,
+    userId: null | string,
+    duration: number,
+    handlers: ListenHandlers,
+  ): Promise<void> {
+    if (this.detached) {
+      throw new Error('Music was just reloaded, try again');
+    }
+    if (this.listens.has(guildId)) {
+      throw new VoiceListenError('busy');
+    }
+    let guild = this.guilds.get(guildId);
+    if (guild && (guild.phase.name === 'disconnected' || guild.channelId !== channelId)) {
+      throw new VoiceListenError('elsewhere', guild.channelId || null);
+    }
+    const listen: GuildListen = {...handlers, stopping: false, timeout: null, userId};
+    // taken before anything's awaited, a second listen in the meantime is busy
+    this.listens.set(guildId, listen);
+    try {
+      if (guild) {
+        shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: false});
+      } else {
+        const node = await this.pickNode(shard);
+        // left or joined by something else while picking
+        if (this.listens.get(guildId) !== listen || this.guilds.has(guildId) || this.detached) {
+          throw new Error('Music changed while joining, try again');
+        }
+        const joined = this.join(shard, guildId, channelId, node, {name: 'idle', leaveTimeout: null}, false);
+        if (!joined) {
+          throw new Error('Music was just reloaded, try again');
+        }
+        guild = joined;
+        this.idleUnlessStaying(guildId, joined).catch((error) => log.warn(`voice node idle ${guildId}`, error));
+      }
+      const listening = guild;
+      listen.timeout = setTimeout(() => this.giveUpListen(guildId, listen), duration + LISTEN_END_GRACE);
+      // before our voice reaches a new player the node holds it, it starts once the voice connection's up
+      await this.playerOp(listening, async () => {
+        if (this.guilds.get(guildId) === listening && this.listens.get(guildId) === listen) {
+          await listening.node.updatePlayer(guildId, {listen: (userId) ? {duration, userId} : {duration, everyone: true}});
+        }
+      });
+    } catch(error) {
+      if (this.listens.get(guildId) === listen) {
+        this.endListen(guildId, 'timeout', false);
+      }
+      throw error;
+    }
+  }
+
+  // asks the node to stop (a song was found, or they pressed stop), its `LISTEN_END` ends it here
+  stopListening(guildId: string) {
+    const listen = this.listens.get(guildId);
+    const guild = this.guilds.get(guildId);
+    if (!listen || listen.stopping) {
+      return;
+    }
+    listen.stopping = true;
+    if (listen.timeout) {
+      clearTimeout(listen.timeout);
+    }
+    listen.timeout = setTimeout(() => this.giveUpListen(guildId, listen), LISTEN_STOP_WAIT);
+    if (!guild) {
+      return this.endListen(guildId, 'left');
+    }
+    this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) === guild) {
+        await guild.node.updatePlayer(guildId, {listen: null});
+      }
+    }).catch((error) => {
+      log.warn(`voice node ${guild.node.info.name} stop listening ${guildId}`, error);
+      this.giveUpListen(guildId, listen);
+    });
+  }
+
+  // the node never ended it (or couldn't be asked to stop): it's over here, and we tell the node in case it's still going
+  private giveUpListen(guildId: string, listen: GuildListen) {
+    if (this.listens.get(guildId) !== listen) {
+      return;
+    }
+    const guild = this.guilds.get(guildId);
+    if (guild && !listen.stopping) {
+      guild.node.updatePlayer(guildId, {listen: null}).catch(() => {});
+    }
+    this.endListen(guildId, (listen.stopping) ? 'stopped' : 'timeout');
+  }
+
+  // the listen's over: we deafen ourselves again (still in the channel), a guild we joined only for it starts waiting
+  // to leave again, and its command hears why it ended
+  private endListen(guildId: string, reason: ListenEndReason, notify: boolean = true) {
+    const listen = this.listens.get(guildId);
+    if (!listen) {
+      return;
+    }
+    this.listens.delete(guildId);
+    if (listen.timeout) {
+      clearTimeout(listen.timeout);
+      listen.timeout = null;
+    }
+    const guild = this.guilds.get(guildId);
+    if (guild && guild.channelId && guild.phase.name !== 'disconnected') {
+      guild.shard.gateway.voiceStateUpdate(guildId, guild.channelId, {selfDeaf: true});
+    }
+    if (guild && guild.phase.name === 'idle' && !guild.phase.leaveTimeout) {
+      this.idleUnlessStaying(guildId, guild).catch((error) => log.warn(`voice node idle ${guildId}`, error));
+    }
+    if (notify) {
+      try {
+        listen.onEnd(reason);
+      } catch(error) {
+        log.warn(`voice node listen end ${guildId}`, error);
+      }
     }
   }
 
@@ -2333,6 +2521,14 @@ export class VoiceNodeClient extends EventSpewer {
    */
   detach(): VoiceNodeHandover {
     this.detached = true;
+    // listens aren't handed over, the reloaded instance wouldn't know to stop them or deafen us again
+    for (const guildId of Array.from(this.listens.keys())) {
+      const guild = this.guilds.get(guildId);
+      if (guild) {
+        guild.node.updatePlayer(guildId, {listen: null}).catch(() => {});
+      }
+      this.endListen(guildId, 'left');
+    }
     if (this.recoveryInterval) {
       clearInterval(this.recoveryInterval);
       this.recoveryInterval = null;

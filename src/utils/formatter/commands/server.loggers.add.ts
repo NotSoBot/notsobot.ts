@@ -11,11 +11,24 @@ import { I18n } from '../../../utils';
 import { createLoggersEmbed, getLoggerTypeText } from './server.loggers';
 
 
-export const MAX_LOGGERS = 10;
+export const MAX_LOGGERS = 25;
+// of one type, on top of the total (the api's `MAX_GUILD_LOGGER_AMOUNT_PER_TYPE*`, keep them the same). each logger is
+// its own webhook send, so the busy types (a user update goes to every server they're in) get fewer
+export const MAX_LOGGERS_PER_TYPE = 3;
+export const MAX_LOGGERS_PER_TYPE_BUSY = 2;
+
+export function getMaxLoggersOfType(type: GuildLoggerTypes): number {
+  switch (type) {
+    case GuildLoggerTypes.MESSAGES:
+    case GuildLoggerTypes.USERS: return MAX_LOGGERS_PER_TYPE_BUSY;
+  }
+  return MAX_LOGGERS_PER_TYPE;
+}
 
 export const LOGGER_CHANNEL_NAMES: Record<GuildLoggerTypes, string> = {
   [GuildLoggerTypes.BANS]: 'ban-logs',
   [GuildLoggerTypes.CHANNELS]: 'channel-logs',
+  [GuildLoggerTypes.DECOY]: 'decoy-logs',
   [GuildLoggerTypes.MEMBERS]: 'member-logs',
   [GuildLoggerTypes.MESSAGES]: 'message-logs',
   [GuildLoggerTypes.MODERATION]: 'mod-logs',
@@ -84,6 +97,10 @@ export async function getLoggerAddWarning(
   }
   if (MAX_LOGGERS <= settings.loggers.length) {
     return translate('moderation.logger_max', {max: MAX_LOGGERS});
+  }
+  const maxOfType = getMaxLoggersOfType(options.type);
+  if (maxOfType <= settings.loggers.filter((logger) => logger.type === options.type).length) {
+    return translate('moderation.logger_max_type', {max: maxOfType});
   }
   if (options.channel) {
     const channelId = options.channel.id;

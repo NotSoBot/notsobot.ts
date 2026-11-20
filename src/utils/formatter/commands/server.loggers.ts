@@ -21,6 +21,7 @@ export function getLoggerTypeText(translate: I18n.Translator['translate'], type:
   switch (type) {
     case GuildLoggerTypes.BANS: return translate('loggers.type.ban');
     case GuildLoggerTypes.CHANNELS: return translate('loggers.type.channel');
+    case GuildLoggerTypes.DECOY: return translate('loggers.type.decoy');
     case GuildLoggerTypes.MEMBERS: return translate('loggers.type.member');
     case GuildLoggerTypes.MESSAGES: return translate('loggers.type.message');
     case GuildLoggerTypes.MODERATION: return translate('loggers.type.moderation');
@@ -57,6 +58,7 @@ export async function createLoggersEmbed(
   switch (options.only) {
     case GuildLoggerTypes.BANS: onlyText = translate('loggers.types.ban'); break;
     case GuildLoggerTypes.CHANNELS: onlyText = translate('loggers.types.channel'); break;
+    case GuildLoggerTypes.DECOY: onlyText = translate('loggers.types.decoy'); break;
     case GuildLoggerTypes.MEMBERS: onlyText = translate('loggers.types.member'); break;
     case GuildLoggerTypes.MESSAGES: onlyText = translate('loggers.types.message'); break;
     case GuildLoggerTypes.MODERATION: onlyText = translate('loggers.types.moderation'); break;

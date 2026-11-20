@@ -6,19 +6,20 @@ import { Formatter, Parameters } from '../../../utils';
 import { BaseAudioOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'audio identify';
+export const COMMAND_NAME = 'music identify';
 
-export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand {
+// was `audio identify` (kept as an alias), its id stays `media.av.tools.identify`
+export default class MusicIdentifyCommand extends BaseAudioOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['a identify'],
+      aliases: ['audio identify', 'a identify'],
       args: [
         {name: 'start', aliases: ['s'], type: Parameters.secondsWithOptions({negatives: true})},
       ],
       metadata: {
-        category: CommandCategories.AUDIO,
+        category: CommandCategories.MUSIC,
         description: 'Identify a song in an audio or video file',
         examples: [
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,

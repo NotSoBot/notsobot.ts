@@ -140,7 +140,7 @@ function isEarlyJobTimeout(apiError: ApiErrorBody): boolean {
 const LIMIT_API_ERROR_SCOPES: Partial<Record<ApiErrorCodes, ReadonlyArray<string>>> = {
   [ApiErrorCodes.MAX_APPLICATIONS]: [''],
   [ApiErrorCodes.MAX_CUSTOM_COMMANDS]: [''],
-  [ApiErrorCodes.MAX_GUILD_LOGGERS]: [''],
+  [ApiErrorCodes.MAX_GUILD_LOGGERS]: ['', 'type'],
   [ApiErrorCodes.MAX_GUILD_PREFIXES]: [''],
   [ApiErrorCodes.MAX_GUILD_REPORTS]: [''],
   [ApiErrorCodes.MAX_GUILD_REPORT_MESSAGES]: ['hour'],

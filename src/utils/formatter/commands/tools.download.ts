@@ -15,15 +15,20 @@ import {
   DiscordReactionEmojis,
   DiscordSkuIds,
   EmbedColors,
+  PostGalleryViews,
+  PostGalleryViewsToTypes,
   UserSettingsResponseDisplayTypes,
 } from '../../../constants';
 import { DefaultParameters, jobReply, jobWaitForResponse, linkPremiumSkuName, mediaReply } from '../../../utils';
 import {
   DisplayPayload,
+  MEDIA_REPLY_FILES_MAX,
   MediaReplyEmbedFooter,
+  createMediaReplyFilesPage,
   createMediaReplyPage,
   displayReply,
   getMediaReplyActionsTimeout,
+  getPostGallery,
   getResponseDisplayForReply,
   renderEphemeralDisplay,
 } from '../../../utils/tools';
@@ -42,6 +47,8 @@ export interface CommandArgs {
   quality?: string,
   spoiler?: boolean,
   url: string,
+  // a post with more than one media as one gallery or one per page (`PostGalleryViews`), over their settings
+  view?: string,
 }
 
 export interface CreateMessageOptions {
@@ -129,19 +136,36 @@ async function createMediaMessage(
   const describeEmbedFooter = (response: RestResponsesRaw.FileResponse) => {
     return (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).footer : undefined;
   };
-  // the same text on every page, with which page it is under the media when it's one of a gallery's
-  const replyOptions = (response: RestResponsesRaw.FileResponse, pageText?: PageText) => ({
+  // the same text on every page, which page it is replaces the size line when it's one of a post's. `.embed` has no
+  // size line at all (it's the post, like auto-embed), only the page
+  const replyOptions = (response: RestResponsesRaw.FileResponse, pageText?: string) => ({
     description: describe(response),
-    descriptionBelow: withPageText(describeBelow(response), pageText),
-    embedFooter: withPageFooter(describeEmbedFooter(response), pageText),
+    descriptionBelow: describeBelow(response),
+    details: pageText,
+    embedFooter: describeEmbedFooter(response),
+    hideDetails: !!options.post,
     spoiler: args.spoiler,
   });
+  // a post's ten: the post's text from the first, the quality upsell from any that has one
+  const galleryOptions = (gallery: GalleryPage, pageText?: string) => {
+    const [ first ] = gallery.responses;
+    const quality = gallery.responses.find((response) => response.download_quality) || first;
+    return {
+      ...replyOptions(first, pageText),
+      description: joinLines(describe(quality), galleryNotice(translator, gallery)),
+      // a paginator's page would bring the hosted ones back when paged to again
+      reupload: !pageText,
+      took: galleryTook(gallery),
+    };
+  };
   return jobReply(context, job, {
-    send: (response) => {
+    send: async (response) => {
       if (hasPages(response)) {
-        return replyWithPages(context, translator, response, fetchPage, (page, pageText) => {
-          return createMediaReplyPage(context, page, replyOptions(page, pageText));
-        });
+        const view = (args.view) ? PostGalleryViewsToTypes[args.view as PostGalleryViews] : undefined;
+        return replyWithPages(context, translator, response, fetchPage, {
+          gallery: (gallery, pageText) => createMediaReplyFilesPage(context, galleryEntries(gallery), galleryOptions(gallery, pageText)),
+          single: (page, pageText) => createMediaReplyPage(context, page, replyOptions(page, pageText)),
+        }, {gallery: await getPostGallery(context, {view})});
       }
       return mediaReply(context, response, replyOptions(response));
     },
@@ -154,43 +178,67 @@ async function createMediaMessage(
 // how long a post's page buttons keep working, a slash reply's go sooner (`getMediaReplyActionsTimeout`)
 const PAGES_TIMEOUT = 10 * 60 * 1000;
 
-// which page of a gallery it is, under the media like the post's site and stats (`below`), the embed display has it
-// in its footer
-interface PageText {
-  below: string,
-  footer: string,
-}
-
 function hasPages(response: RestResponsesRaw.FileResponse): boolean {
   return !!response.pages && 1 < response.pages.count;
 }
 
-function withPageText(below: string | undefined, pageText?: PageText): string | undefined {
-  if (!pageText) {
-    return below;
-  }
-  // the post's `-# site • time • stats` line gets it last, otherwise it's its own small line
-  return (below) ? `${below} • ${pageText.footer}` : pageText.below;
+// a post with more than one media (`response.pages`, a gallery or carousel) is shown up to ten at a time, in one media
+// gallery (discord's upload limit is per file, so every one the api attached fits). more than ten is a paginator of
+// tens, starting on the ten with the asked for page (`-position 12` starts on 11-20). each media is that position of
+// the same link, all of a ten downloaded at once the first time it's shown and kept for paging back. ones that fail are
+// left out with a note (and tried again when their ten comes back). a first ten that can't be one gallery (audio, or
+// only one of them came through) pages one media at a time instead, starting on the page that was asked for
+const GALLERY_SIZE = MEDIA_REPLY_FILES_MAX;
+
+export interface GalleryPage {
+  // how many of its positions couldn't be downloaded
+  failed: number,
+  responses: Array<RestResponsesRaw.FileResponse>,
 }
 
-function withPageFooter(footer: MediaReplyEmbedFooter | undefined, pageText?: PageText): MediaReplyEmbedFooter | undefined {
-  if (!pageText || !footer) {
-    // without a footer the embed shows `descriptionBelow`, which has it
-    return footer;
-  }
-  return {...footer, text: [footer.text, pageText.footer].filter(Boolean).join(' • ')};
+interface PageRenderers {
+  // one media of a post the gallery can't show
+  single: (response: RestResponsesRaw.FileResponse, pageText: string) => Promise<Page>,
+  // up to ten of them, `pageText` only when there's more than one ten. which page it is replaces the size line
+  gallery: (gallery: GalleryPage, pageText?: string) => Promise<Page>,
 }
 
-// a post with more than one media (`response.pages`, a gallery or carousel) is a paginator, starting on the page that
-// was asked for (`-position 1` is page 2). a page is that position of the same link, downloaded the first time it's
-// shown and kept for paging back. a page that fails tells whoever pressed it why and the last one stays up
+// what a media gallery item can show: a picture, or a video that has one (one without is only audio)
+function isGalleryMedia(response: RestResponsesRaw.FileResponse): boolean {
+  const { metadata } = response.file;
+  const mimetype = metadata.mimetype || '';
+  return (mimetype.startsWith('image/') || mimetype.startsWith('video/')) && !!(metadata.width && metadata.height);
+}
+
+function galleryEntries(gallery: GalleryPage): NonNullable<RestResponsesRaw.FileResponse['files']> {
+  return gallery.responses.map((response) => ({file: response.file, file_old: response.file_old, storage: response.storage}));
+}
+
+// "took" is the command's, only on the ten it started with (the others' are zeroed by `replyWithPages`)
+function galleryTook(gallery: GalleryPage): number {
+  return Math.max(0, ...gallery.responses.map((response) => response.took || 0));
+}
+
+// above the media, after the post's text: how many of the ten couldn't be downloaded
+function galleryNotice(translator: Translator, gallery: GalleryPage): string | undefined {
+  if (!gallery.failed) {
+    return undefined;
+  }
+  return `-# ${translator.translate('tools_embed.gallery_failed', {count: gallery.failed.toLocaleString(translator.language)})}`;
+}
+
+function joinLines(...lines: Array<string | undefined>): string | undefined {
+  return lines.filter(Boolean).join('\n') || undefined;
+}
+
 function replyWithPages(
   context: Command.Context | Interaction.InteractionContext,
   translator: Translator,
   response: RestResponsesRaw.FileResponse,
   fetchPage: (position: number) => Promise<RestResponsesRaw.FileResponse>,
-  createPage: (response: RestResponsesRaw.FileResponse, pageText: PageText) => Promise<Page>,
-  options: {deleteContextMessage?: boolean} = {},
+  render: PageRenderers,
+  // false pages one media at a time right away (their setting or `-view pages`), without downloading ten at once
+  options: {deleteContextMessage?: boolean, gallery?: boolean} = {},
 ) {
   const { language, translate } = translator;
   const pages = response.pages!;
@@ -206,22 +254,69 @@ function replyWithPages(
     }
     return promise;
   };
-  const paginator = new Paginator(context, {
-    deleteContextMessage: options.deleteContextMessage,
-    expire: getMediaReplyActionsTimeout(context, PAGES_TIMEOUT),
-    page: pages.position + 1,
-    pageLimit: pages.count,
-    onError: (error, paginator, ctx) => (ctx) ? replyPageError(ctx, context, translator, error) : undefined,
-    onPage: async (pageNumber) => {
-      const page = await fetchCached(pageNumber - 1);
-      const text = translate('paginator.page', {
-        page: pageNumber.toLocaleString(language),
-        total: paginator.pageLimit.toLocaleString(language),
+  // a ten (0 based) all at once, in order. only throws when none of them came through
+  const fetchGallery = async (index: number): Promise<GalleryPage> => {
+    const start = index * GALLERY_SIZE;
+    const end = Math.min(start + GALLERY_SIZE, pages.count);
+    const positions = Array.from({length: end - start}, (_, i) => start + i);
+    const results = await Promise.allSettled(positions.map(fetchCached));
+    const responses: Array<RestResponsesRaw.FileResponse> = [];
+    let error: any;
+    for (let result of results) {
+      if (result.status === 'fulfilled') {
+        responses.push(result.value);
+      } else if (error === undefined) {
+        error = result.reason;
+      }
+    }
+    if (!responses.length) {
+      throw error;
+    }
+    return {failed: results.length - responses.length, responses};
+  };
+  const createPageText = (pageNumber: number, pageLimit: number): string => {
+    return translate('paginator.page', {
+      page: pageNumber.toLocaleString(language),
+      total: pageLimit.toLocaleString(language),
+    });
+  };
+  const createPaginator = (page: number, pageLimit: number, onPage: (pageNumber: number) => Promise<Page>) => {
+    return new Paginator(context, {
+      deleteContextMessage: options.deleteContextMessage,
+      expire: getMediaReplyActionsTimeout(context, PAGES_TIMEOUT),
+      page,
+      pageLimit,
+      onError: (error, paginator, ctx) => (ctx) ? replyPageError(ctx, context, translator, error) : undefined,
+      onPage,
+    });
+  };
+
+  return (async () => {
+    const firstIndex = Math.floor(pages.position / GALLERY_SIZE);
+    let first: GalleryPage | null = (options.gallery === false) ? null : await fetchGallery(firstIndex);
+    if (first && 2 <= first.responses.length && first.responses.every(isGalleryMedia)) {
+      const pageLimit = Math.ceil(pages.count / GALLERY_SIZE);
+      const paginator = createPaginator(firstIndex + 1, pageLimit, async (pageNumber) => {
+        // the first ten is already here, its failed ones aren't tried again right away
+        let gallery: GalleryPage;
+        if (first && pageNumber === firstIndex + 1) {
+          gallery = first;
+          first = null;
+        } else {
+          gallery = await fetchGallery(pageNumber - 1);
+        }
+        return render.gallery(gallery, (1 < pageLimit) ? createPageText(pageNumber, pageLimit) : undefined);
       });
-      return createPage(page, {below: `-# ${text}`, footer: text});
-    },
-  });
-  return paginator.start();
+      return paginator.start();
+    }
+
+    // one at a time, the ten's downloads stay in the cache for paging to them
+    const paginator = createPaginator(pages.position + 1, pages.count, async (pageNumber) => {
+      const page = await fetchCached(pageNumber - 1);
+      return render.single(page, createPageText(pageNumber, pages.count));
+    });
+    return paginator.start();
+  })();
 }
 
 
@@ -262,21 +357,28 @@ async function autoEmbedReply(
 ) {
   const response = await jobWaitForResponse(context, job);
   const translator = await getTranslator(context);
-  const replyOptions = (page: RestResponsesRaw.FileResponse, pageText?: PageText) => {
+  // no size line, which page it is still shows in its place
+  const replyOptions = (page: RestResponsesRaw.FileResponse, pageText?: string) => {
     const post: FormattedPost = (isAutoEmbedTextOn(context) && page.post) ? formatPost(translator, page.post, {spoiler}) : {};
     return {
       description: post.above,
-      descriptionBelow: withPageText(post.below, pageText),
-      embedFooter: withPageFooter(post.footer, pageText),
+      descriptionBelow: post.below,
+      details: pageText,
+      embedFooter: post.footer,
       hideDetails: true,
       spoiler,
     };
   };
-  // a gallery's other pages are shown the same way. stop never deletes their post, it isn't a command
+  const galleryOptions = (gallery: GalleryPage, pageText?: string) => {
+    const options = replyOptions(gallery.responses[0], pageText);
+    return {...options, description: joinLines(options.description, galleryNotice(translator, gallery)), reupload: !pageText};
+  };
+  // a gallery's other tens (or pages) are shown the same way. stop never deletes their post, it isn't a command
   const reply = (hasPages(response)) ?
-    await replyWithPages(context, translator, response, fetchPage, (page, pageText) => {
-      return createMediaReplyPage(context, page, replyOptions(page, pageText));
-    }, {deleteContextMessage: false}) :
+    await replyWithPages(context, translator, response, fetchPage, {
+      gallery: (gallery, pageText) => createMediaReplyFilesPage(context, galleryEntries(gallery), galleryOptions(gallery, pageText)),
+      single: (page, pageText) => createMediaReplyPage(context, page, replyOptions(page, pageText)),
+    }, {deleteContextMessage: false, gallery: await getPostGallery(context, {autoEmbed: true})}) :
     await mediaReply(context, response, replyOptions(response));
   await suppressLinkEmbed(context);
   return reply;

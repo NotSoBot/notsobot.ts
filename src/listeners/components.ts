@@ -8,16 +8,18 @@ import {
   InteractionCallbackTypes,
   InteractionTypes,
 } from 'detritus-client/lib/constants';
-import { ComponentContext } from 'detritus-client/lib/utils';
+import { ComponentButton, ComponentContext, Components } from 'detritus-client/lib/utils';
+import { RequestTypes } from 'detritus-client-rest';
 import { EventSubscription, Timers } from 'detritus-utils';
 
-import { deleteFile, fetchFile } from '../api';
+import { deleteFile, fetchFile, fetchFileVanity } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import { log } from '../log';
 import { RedisPayloads } from '../types';
-import { I18n, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
+import { I18n, editOrReply, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
+import { createHostedExpiresText } from '../utils/tools';
 import {
   onGuildReportComponent,
   onGuildReportMessageCreate,
@@ -57,6 +59,13 @@ class ComponentsListener extends Listener {
         switch (interaction.type) {
           case InteractionTypes.MESSAGE_COMPONENT: {
             const context = new ComponentContext(interaction);
+            if (context.customId === MessageComponentCustomIds.MAKE_PERMANENT_GALLERY_USING_NITRO) {
+              try {
+                return await this.makeGalleryPermanentUsingNitro(context);
+              } catch(error) {
+                log.warn(`gallery reupload ${context.guildId}`, error);
+              }
+            }
             if (context.customId.startsWith(MessageComponentCustomIds.MAKE_PERMANENT_USING_NITRO)) {
               try {
                 const fileId = context.customId.split('.').pop()!;
@@ -227,21 +236,7 @@ class ComponentsListener extends Listener {
     // removed in the `finally`, or by this cluster's next start if the process is killed before it runs
     const filepath = await createTempFilePath(clusterId, 'reupload');
     try {
-      // one deadline for the whole download, a response that never answers or stalls mid-body would otherwise hold the
-      // file (and this button's lock) until the process restarts
-      const signal = AbortSignal.timeout(REUPLOAD_DOWNLOAD_TIMEOUT);
-      const response = await context.rest.get(storage.urls.cdn, {dataOnly: false, signal});
-      if (!response.body) {
-        throw new Error(`Reupload of ${storage.id} got an empty body`);
-      }
-      await pipeline(
-        Readable.fromWeb(response.body),
-        // discord would refuse anything bigger anyway, don't let a bad response keep writing to the disk
-        limitBytes(context.maxAttachmentSize),
-        fs.createWriteStream(filepath),
-        {signal},
-      );
-      const value = await fs.openAsBlob(filepath, {type: storage.metadata.mimetype});
+      const value = await downloadStorageToBlob(context, storage, filepath);
 
       await mediaReplyFromOptions(context, value, {
         content,
@@ -273,6 +268,227 @@ class ComponentsListener extends Listener {
       await deleteFile(context, storage.id);
     }
   }
+
+  // a gallery's button: every temporary item hosted on nsb.gg (too big to attach) that fits the clicker's upload limit is
+  // downloaded and attached in its place, the rest of the message stays as it was (its text, attachments, the others
+  // still hosted). the gallery is found on the message itself, one click per message at a time
+  async makeGalleryPermanentUsingNitro(context: ComponentContext) {
+    const translator = I18n.getCachedTranslator(context);
+    const message = context.interaction.message;
+    const key = `${context.customId}.${(message) ? message.id : context.interactionId}`;
+    if (this.componentsProcessing.has(key)) {
+      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+        description: translator.translate('media.reupload_in_progress'),
+      }));
+    }
+    this.componentsProcessing.add(key);
+    try {
+      return await this.makeGalleryPermanentUsingNitroLocked(context);
+    } finally {
+      this.componentsProcessing.delete(key);
+    }
+  }
+
+  async makeGalleryPermanentUsingNitroLocked(context: ComponentContext) {
+    const translator = I18n.getCachedTranslator(context);
+    const { translate } = translator;
+    const respondEphemeral = (description: string) => {
+      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {description}));
+    };
+
+    // the layout `mediaReplyFiles` sends: one container with the gallery in it
+    const message = context.interaction.message;
+    const container = (message) ? message.components.find((x) => x instanceof Structures.ComponentContainer) as Structures.ComponentContainer | undefined : undefined;
+    const gallery = (container) ? container.components.find((x) => x instanceof Structures.ComponentMediaGallery) as Structures.ComponentMediaGallery | undefined : undefined;
+    if (!message || !container || !gallery) {
+      return respondEphemeral(translate('media.reupload_missing'));
+    }
+    const items = gallery.items.toArray();
+
+    // which of them are hosted, and their files now (an expired or deleted one is left alone)
+    const storages: Array<RestResponsesRaw.FileResponseStorage | null> = await Promise.all(items.map(async (item) => {
+      const vanity = getHostedVanity(item.media.url);
+      if (!vanity) {
+        return null;
+      }
+      try {
+        return await fetchFileVanity(context, vanity);
+      } catch(error) {
+        return null;
+      }
+    }));
+    const temporary = storages.filter((storage): storage is RestResponsesRaw.FileResponseStorage => !!storage && storage.temporary);
+    const fits = temporary.filter((storage) => storage.metadata.size <= context.maxAttachmentSize);
+    if (!fits.length) {
+      return respondEphemeral(translate((temporary.length) ? 'media.reupload_too_big' : 'media.reupload_missing'));
+    }
+
+    // they're downloaded to disk first (see `downloadStorageToBlob`), don't fill it up
+    const clusterId = (context.cluster) ? context.cluster.clusterId : 0;
+    const totalSize = fits.reduce((total, storage) => total + storage.metadata.size, 0);
+    if (!(await hasTempDiskSpace(clusterId, totalSize))) {
+      log.warn(`Not enough disk space to re-upload a gallery (${fits.length} files, ${totalSize} bytes)`);
+      return respondEphemeral(translate('media.reupload_failed'));
+    }
+
+    await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+    await context.createMessage(renderEphemeralDisplay(context, translator, {description: translate('media.reupload_started')}));
+
+    const filepaths: Array<string> = [];
+    try {
+      // its attachments stay (and keep their names), the new ones get names none of them have
+      const usedFilenames = new Set(message.attachments.map((attachment) => attachment.filename.toLowerCase()));
+      const uploads = new Map<string, {file: RequestTypes.File, storage: RestResponsesRaw.FileResponseStorage}>();
+      await Promise.all(fits.map(async (storage) => {
+        const filepath = await createTempFilePath(clusterId, 'reupload');
+        filepaths.push(filepath);
+        const value = await downloadStorageToBlob(context, storage, filepath);
+        uploads.set(storage.id, {file: {contentType: storage.metadata.mimetype, filename: '', value}, storage});
+      }));
+      for (let storage of fits) {
+        uploads.get(storage.id)!.file.filename = uniqueFilename(storage.filename_safe, usedFilenames);
+      }
+
+      const kept: Array<{filename: string, id: string}> = [];
+      const findAttachment = (url: string) => {
+        const path = urlPath(url);
+        return (path) ? message.attachments.find((attachment) => urlPath(attachment.url) === path) : undefined;
+      };
+      // the hosted ones that are left: the ones too big for the clicker, their expiry line and the button stay
+      const remaining = items.map((item, i) => {
+        const storage = storages[i];
+        if (!storage || uploads.has(storage.id)) {
+          return {expiresAt: null, number: i + 1, url: ''};
+        }
+        return {expiresAt: storage.expires_at, number: i + 1, url: storage.urls.cdn};
+      });
+      const hasRemaining = remaining.some((item) => item.expiresAt);
+
+      const components = new Components();
+      const rebuilt = components.createContainer({accentColor: container.accentColor, spoiler: container.spoiler});
+      for (let child of container.components.values()) {
+        if (child instanceof Structures.ComponentTextDisplay) {
+          if (isHostedExpiresText(child.content)) {
+            const expires = createHostedExpiresText(context, translator, remaining);
+            if (expires) {
+              rebuilt.addTextDisplay({content: expires});
+            }
+          } else {
+            rebuilt.addTextDisplay({content: child.content});
+          }
+        } else if (child instanceof Structures.ComponentSeparator) {
+          rebuilt.addSeparator({divider: child.divider, spacing: child.spacing});
+        } else if (child instanceof Structures.ComponentMediaGallery) {
+          const rebuiltGallery = rebuilt.createMediaGallery();
+          items.forEach((item, i) => {
+            const storage = storages[i];
+            const upload = (storage) ? uploads.get(storage.id) : undefined;
+            let url = item.media.url;
+            if (upload) {
+              url = `attachment://${upload.file.filename}`;
+            } else {
+              const attachment = findAttachment(item.media.url);
+              if (attachment) {
+                kept.push({filename: attachment.filename, id: attachment.id});
+                url = `attachment://${attachment.filename}`;
+              }
+            }
+            rebuiltGallery.addItem({description: item.description, media: {url}, spoiler: item.spoiler});
+          });
+        } else if (child instanceof Structures.ComponentActionRow) {
+          // only this button is ever with a gallery (`mediaReplyFiles` leaves it out next to other rows)
+          if (hasRemaining) {
+            rebuilt.createActionRow().addButton(new ComponentButton({
+              customId: MessageComponentCustomIds.MAKE_PERMANENT_GALLERY_USING_NITRO,
+              label: translate('media.make_permanent'),
+            }));
+          }
+        } else {
+          throw new Error(`Gallery re-upload found an unexpected component (${child.type})`);
+        }
+      }
+
+      const files = fits.map((storage) => uploads.get(storage.id)!.file);
+      await editOrReply(context, {attachments: kept, components, files});
+    } catch(error) {
+      // they were told it started, without this the "re-uploading" message would be the last thing they see
+      log.warn(`Failed to re-upload a gallery (${fits.length} files, ${totalSize} bytes)`, error);
+      await context.createMessage(renderEphemeralDisplay(context, translator, {
+        description: translate('media.reupload_failed'),
+      })).catch(() => {});
+      return;
+    } finally {
+      await Promise.all(filepaths.map((filepath) => removeTempFile(filepath)));
+    }
+
+    await Promise.all(fits.map((storage) => deleteFile(context, storage.id).catch(() => {})));
+    // some were bigger than their limit, someone else's might fit them
+    if (fits.length < temporary.length) {
+      await context.createMessage(renderEphemeralDisplay(context, translator, {
+        description: translate('media.reupload_too_big'),
+      })).catch(() => {});
+    }
+  }
+}
+
+// a file on our cdn (`https://cdn.nsb.gg/{vanity}.{extension}`, not its `assets/`), its vanity for `fetchFileVanity`
+function getHostedVanity(url: string): null | string {
+  const match = /^https:\/\/cdn\.nsb\.gg\/([^/?#]+)\.[^./?#]+(?:[?#]|$)/i.exec(url);
+  return (match && match[1] !== 'assets') ? match[1] : null;
+}
+
+// the expiry line `createHostedExpiresText` made, it has the hosted ones' download links
+function isHostedExpiresText(content: string): boolean {
+  return content.includes('cdn.nsb.gg/') && content.includes('?download=true');
+}
+
+// a url without its query (discord's attachment urls are signed, the same file's can have different ones)
+function urlPath(url: string): null | string {
+  try {
+    const parsed = new URL(url);
+    return parsed.host + parsed.pathname;
+  } catch(error) {
+    return null;
+  }
+}
+
+// `name.ext`, or `name-2.ext` and on when it's taken (case insensitive, like discord's attachment names)
+function uniqueFilename(filename: string, used: Set<string>): string {
+  const dot = filename.lastIndexOf('.');
+  const base = (0 < dot) ? filename.slice(0, dot) : filename;
+  const extension = (0 < dot) ? filename.slice(dot) : '';
+  let unique = filename;
+  for (let i = 2; used.has(unique.toLowerCase()); i++) {
+    unique = `${base}-${i}${extension}`;
+  }
+  used.add(unique.toLowerCase());
+  return unique;
+}
+
+/**
+ * A hosted file downloaded to `filepath` and opened as a blob to upload from (they go up to 500 MB with nitro, held in
+ * memory they'd be copied over and over on a host with little memory to spare). Never more than the clicker's limit
+ */
+async function downloadStorageToBlob(
+  context: ComponentContext,
+  storage: RestResponsesRaw.FileResponseStorage,
+  filepath: string,
+): Promise<Blob> {
+  // one deadline for the whole download, a response that never answers or stalls mid-body would otherwise hold the
+  // file (and the button's lock) until the process restarts
+  const signal = AbortSignal.timeout(REUPLOAD_DOWNLOAD_TIMEOUT);
+  const response = await context.rest.get(storage.urls.cdn, {dataOnly: false, signal});
+  if (!response.body) {
+    throw new Error(`Reupload of ${storage.id} got an empty body`);
+  }
+  await pipeline(
+    Readable.fromWeb(response.body),
+    // discord would refuse anything bigger anyway, don't let a bad response keep writing to the disk
+    limitBytes(context.maxAttachmentSize),
+    fs.createWriteStream(filepath),
+    {signal},
+  );
+  return fs.openAsBlob(filepath, {type: storage.metadata.mimetype});
 }
 
 /**

@@ -12,7 +12,8 @@ import {
   displayReply,
   formatTime,
 } from '../../../utils';
-import { getTranslator } from '../../i18n';
+import { RestResponsesRaw } from '../../../api/types';
+import { Translator, getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'media.av.tools.identify';
@@ -34,85 +35,99 @@ export async function createMessage(
   });
 
   if (songs.length) {
-    const pageLimit = songs.length || 1;
-    const paginator = new Paginator(context, {
-      isEphemeral: args.isEphemeral,
-      pageLimit,
-      onPage: (page) => {
-        const song = songs[page - 1];
-
-        const payload: DisplayPayload = {};
-        payload.color = EmbedColors.DEFAULT;
-        payload.title = translate('media.identify.title', {artist: song.artists[0]!.name, title: song.title});
-
-        {
-          let footer: string;
-          if (pageLimit === 1) {
-            footer = translate('media.identify.footer');
-          } else {
-            footer = translate('media.identify.footer_paged', {page, total: pageLimit});
-          }
-          payload.footer = footer;
-          payload.footerIconUrl = EmbedBrands.NOTSOBOT;
-        }
-
-        let thumbnail: string | undefined;
-        for (let key in song.platforms) {
-          const platform = (song.platforms as any)[key];
-          if (platform && platform.album && platform.album.cover_url) {
-            thumbnail = platform.album.cover_url;
-            break;
-          }
-        }
-
-        if (thumbnail) {
-          payload.thumbnail = thumbnail;
-        }
-
-        // the artist and song are already the title
-        const lines: Array<string> = [];
-        lines.push(displayDetailsLine([
-          displayDetail(translate('activity.album'), song.album.name),
-          displayDetail(translate('media.identify.duration'), formatTime(song.duration)),
-          displayDetail(translate('media.identify.match'), `${song.score}%`),
-          (song.timestamp) && displayDetail(translate('media.identify.timestamp'), formatTime(song.timestamp)),
-        ]));
-        lines.push(displayDetailsLine([
-          (song.genres.length) && displayDetail(translate('media.identify.genres'), song.genres.join(', ')),
-          (song.label) && displayDetail(translate('media.identify.label'), song.label),
-          (song.release_date) && displayDetail(translate('media.identify.release_date'), song.release_date),
-        ]));
-
-        {
-          const { apple_music, deezer, musicbrainz, spotify, youtube } = song.platforms;
-          const links = displayLinks([
-            ['Apple Music', apple_music && apple_music.url],
-            ['Deezer', deezer && deezer.url],
-            ['MusicBrainz', musicbrainz && musicbrainz.url],
-            ['Spotify', spotify && spotify.url],
-            ['YouTube', youtube && youtube.url],
-          ]);
-          if (links) {
-            lines.push(links.replace('-# ', `-# ${translate('media.identify.platform_links')}: `));
-          }
-          const previews = displayLinks([
-            ['Apple Music', apple_music && apple_music.preview_url],
-            ['Deezer', deezer && deezer.preview_url],
-            ['Spotify', spotify && spotify.preview_url],
-          ]);
-          if (previews) {
-            lines.push(previews.replace('-# ', `-# ${translate('media.identify.preview_links')}: `));
-          }
-        }
-        payload.description = displayDetails(lines);
-
-        return {display: payload};
-      },
-    });
-    return await paginator.start();
+    return replySongs(context, translate, songs, {isEphemeral: args.isEphemeral});
   }
 
   return displayReply(context, {description: translate('media.identify.not_found'), ephemeral: true});
+}
+
+
+// the identified songs as pages (`music listen` shows what it heard the same way), `note` under each one
+export async function replySongs(
+  context: Command.Context | Interaction.InteractionContext,
+  translate: Translator['translate'],
+  songs: RestResponsesRaw.MediaAVToolsIdentify,
+  options: {isEphemeral?: boolean, note?: null | string} = {},
+) {
+  const pageLimit = songs.length || 1;
+  const paginator = new Paginator(context, {
+    isEphemeral: options.isEphemeral,
+    pageLimit,
+    onPage: (page) => {
+      const song = songs[page - 1];
+
+      const payload: DisplayPayload = {};
+      payload.color = EmbedColors.DEFAULT;
+      payload.title = translate('media.identify.title', {artist: song.artists[0]!.name, title: song.title});
+
+      {
+        let footer: string;
+        if (pageLimit === 1) {
+          footer = translate('media.identify.footer');
+        } else {
+          footer = translate('media.identify.footer_paged', {page, total: pageLimit});
+        }
+        payload.footer = footer;
+        payload.footerIconUrl = EmbedBrands.NOTSOBOT;
+      }
+
+      let thumbnail: string | undefined;
+      for (let key in song.platforms) {
+        const platform = (song.platforms as any)[key];
+        if (platform && platform.album && platform.album.cover_url) {
+          thumbnail = platform.album.cover_url;
+          break;
+        }
+      }
+
+      if (thumbnail) {
+        payload.thumbnail = thumbnail;
+      }
+
+      // the artist and song are already the title
+      const lines: Array<string> = [];
+      lines.push(displayDetailsLine([
+        displayDetail(translate('activity.album'), song.album.name),
+        displayDetail(translate('media.identify.duration'), formatTime(song.duration)),
+        displayDetail(translate('media.identify.match'), `${song.score}%`),
+        (song.timestamp) && displayDetail(translate('media.identify.timestamp'), formatTime(song.timestamp)),
+      ]));
+      lines.push(displayDetailsLine([
+        (song.genres.length) && displayDetail(translate('media.identify.genres'), song.genres.join(', ')),
+        (song.label) && displayDetail(translate('media.identify.label'), song.label),
+        (song.release_date) && displayDetail(translate('media.identify.release_date'), song.release_date),
+      ]));
+
+      {
+        const { apple_music, deezer, musicbrainz, spotify, youtube } = song.platforms;
+        const links = displayLinks([
+          ['Apple Music', apple_music && apple_music.url],
+          ['Deezer', deezer && deezer.url],
+          ['MusicBrainz', musicbrainz && musicbrainz.url],
+          ['Spotify', spotify && spotify.url],
+          ['YouTube', youtube && youtube.url],
+        ]);
+        if (links) {
+          lines.push(links.replace('-# ', `-# ${translate('media.identify.platform_links')}: `));
+        }
+        const previews = displayLinks([
+          ['Apple Music', apple_music && apple_music.preview_url],
+          ['Deezer', deezer && deezer.preview_url],
+          ['Spotify', spotify && spotify.preview_url],
+        ]);
+        if (previews) {
+          lines.push(previews.replace('-# ', `-# ${translate('media.identify.preview_links')}: `));
+        }
+      }
+      payload.description = displayDetails(lines);
+      if (options.note) {
+        payload.note = options.note;
+      }
+
+      return {display: payload};
+    },
+  });
+  return await paginator.start();
   /*
   const pages = [result.apple_music];
   const pageLimit = activities.length || 1;

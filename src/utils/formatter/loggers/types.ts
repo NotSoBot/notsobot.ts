@@ -244,6 +244,14 @@ export type GuildLoggingEventItem = {
   },
 } | GuildLoggingEventDecoy;
 
+export type GuildLoggingDecoyAction = 'ban' | 'exempt' | 'kept' | 'none' | 'softban';
+
+// exempt: owner, administrator, manage_messages or autowarn_exempt (the server's auto-warn exemption or the decoy rule's)
+// none: missing_permission (no Ban Members), role_hierarchy (their role is at or above mine) or ban_failed (Discord said no)
+// ban: unban_failed (a softban's unban didn't go through, they're still banned)
+export type GuildLoggingDecoyReason = 'administrator' | 'autowarn_exempt' | 'ban_failed' | 'manage_messages' |
+  'missing_permission' | 'owner' | 'role_hierarchy' | 'unban_failed';
+
 export type GuildLoggingEventDecoy = {
   audits?: GuildLoggingEventItemAudits,
   ignoreTargets?: GuildLoggingIgnoreTargets,
@@ -252,8 +260,9 @@ export type GuildLoggingEventDecoy = {
   name: GuildLoggingCustomEvents.DECOY_CATCH,
   payload: {
     // ban: the warning ladder reached a ban, softban: removed with their messages deleted, none: I couldn't remove them,
-    // kept: they pressed "I'm not a bot" in time, only their message went
-    action: 'ban' | 'kept' | 'none' | 'softban',
+    // kept: they pressed "I'm not a bot" in time, only their message went, exempt: someone the decoy skips, only their
+    // message went
+    action: GuildLoggingDecoyAction,
     attachments: number,
     channelId: string,
     // seconds of their messages deleted
@@ -262,6 +271,8 @@ export type GuildLoggingEventDecoy = {
     content: string,
     // how many accounts posted there within a minute when it skipped their minute to press "I'm not a bot", 0: it didn't
     raid: number,
+    // why they weren't removed (or why a softban stayed a ban), null otherwise
+    reason: GuildLoggingDecoyReason | null,
     user: Structures.User,
     warned: boolean,
   },

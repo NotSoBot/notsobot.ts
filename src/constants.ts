@@ -1372,6 +1372,8 @@ export enum GuildLoggerTypes {
   MODERATION = 7,
   // members' `report`s to the server's moderators, the bot posts these itself (one message each, with buttons)
   REPORTS = 8,
+  // decoy channel catches and notice deletions, the bot posts these itself (the warnings still go to MODERATION)
+  DECOY = 9,
 }
 
 // the logger types that can ignore channels (messages, voice, channels) or roles (roles), matches the api's
@@ -2155,6 +2157,9 @@ export enum MediaWordcloudThemes {
 
 export enum MessageComponentCustomIds {
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
+  // a gallery's one button for every hosted item that fits the clicker's upload limit, found from the message itself
+  // (ten file ids don't fit in a custom id)
+  MAKE_PERMANENT_GALLERY_USING_NITRO = 'make-permanent-gallery-using-nitro',
   // `music-controls.{control}`, the pause/resume and skip buttons on `music play` and `music info`
   MUSIC_CONTROLS = 'music-controls',
   // `guild-report.{action}.{reportId}`, the resolve/dismiss/reopen/respond buttons on a reports logger's message
@@ -3004,6 +3009,24 @@ export enum UserSettingsResponseDisplayTypes {
   LEGACY = 2,
 }
 
+// how a post with more than one media shows (`.embed`, `.download`, auto-embed): up to ten at a time in one media
+// gallery, or one per page. the same values on users and servers (and a server's auto-embeds), null falls back
+export enum PostGalleryTypes {
+  GALLERY = 0,
+  PAGES = 1,
+}
+
+// `.embed`/`.download`'s `-view`, over the user's and server's `PostGalleryTypes`
+export enum PostGalleryViews {
+  GALLERY = 'gallery',
+  PAGES = 'pages',
+}
+
+export const PostGalleryViewsToTypes: Readonly<Record<PostGalleryViews, PostGalleryTypes>> = Object.freeze({
+  [PostGalleryViews.GALLERY]: PostGalleryTypes.GALLERY,
+  [PostGalleryViews.PAGES]: PostGalleryTypes.PAGES,
+});
+
 
 // shared by the user and server settings, null falls back to the server's, then DuckDuckGo for web and Google for images
 export enum UserSettingsSearchProviders {
@@ -3178,6 +3201,7 @@ export const NotSoApiKeys = Object.freeze({
   ADMIN_BYPASS: 'admin_bypass',
   ACTION: 'action',
   AUTO_EMBED: 'auto_embed',
+  AUTO_EMBED_GALLERY: 'auto_embed_gallery',
   AUTO_EMBED_TEXT: 'auto_embed_text',
   AVATAR: 'avatar',
   BAN_CLEAN: 'ban_clean',
@@ -3229,6 +3253,7 @@ export const NotSoApiKeys = Object.freeze({
   MODERATION_DM_DISABLED: 'moderation_dm_disabled',
   MUSIC_DJ_ROLE_ID: 'music_dj_role_id',
   NAME: 'name',
+  POST_GALLERY: 'post_gallery',
   PREFIX: 'prefix',
   PREFIXES: 'prefixes',
   PREMIUM_TYPE: 'premium_type',
@@ -3279,6 +3304,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ADMIN_BYPASS]: 'adminBypass',
   [NotSoApiKeys.ACTION]: 'action',
   [NotSoApiKeys.AUTO_EMBED]: 'autoEmbed',
+  [NotSoApiKeys.AUTO_EMBED_GALLERY]: 'autoEmbedGallery',
   [NotSoApiKeys.AUTO_EMBED_TEXT]: 'autoEmbedText',
   [NotSoApiKeys.AVATAR]: 'avatar',
   [NotSoApiKeys.BLOCKED]: 'blocked',
@@ -3327,6 +3353,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ML_LLM_PERSONALITY]: 'mlLLMPersonality',
   [NotSoApiKeys.MUSIC_DJ_ROLE_ID]: 'musicDjRoleId',
   [NotSoApiKeys.NAME]: 'name',
+  [NotSoApiKeys.POST_GALLERY]: 'postGallery',
   [NotSoApiKeys.PREFIX]: 'prefix',
   [NotSoApiKeys.PREFIXES]: 'prefixes',
   [NotSoApiKeys.PREMIUM_TYPE]: 'premiumType',

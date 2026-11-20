@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, CommandRatelimits, DownloadQualities, Mimetypes, MimetypesToExtension, StatusEmojis } from '../../../constants';
+import { CommandCategories, CommandRatelimits, DownloadQualities, Mimetypes, MimetypesToExtension, PostGalleryViews, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -21,6 +21,8 @@ export default class EmbedCommand extends BaseCommand<Formatter.Commands.ToolsEm
         {name: 'position', aliases: ['p'], label: 'mediaPosition', type: Number},
         {name: 'quality', aliases: ['q'], type: Parameters.oneOf({choices: DownloadQualities})},
         {name: 'spoiler', aliases: ['s'], type: Boolean},
+        // a post with more than one media as a gallery or one per page, over their settings
+        {name: 'view', type: Parameters.oneOf({choices: PostGalleryViews})},
       ],
       default: DefaultParameters.lastUrl,
       label: 'url',
@@ -31,7 +33,7 @@ export default class EmbedCommand extends BaseCommand<Formatter.Commands.ToolsEm
           `${COMMAND_NAME} https://cdn.nsb.gg/assets/samples/video.mp4`,
         ],
         id: Formatter.Commands.ToolsEmbed.COMMAND_ID,
-        usage: '<url> (-format <choice>) (-locale <language>) (-position <number>) (-quality <choice>) (-spoiler)',
+        usage: '<url> (-format <choice>) (-locale <language>) (-position <number>) (-quality <choice>) (-spoiler) (-view <gallery|pages>)',
       },
       ratelimits: CommandRatelimits.BROWSER,
       type: Parameters.url,

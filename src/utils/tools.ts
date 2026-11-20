@@ -78,6 +78,7 @@ import {
   TimezoneSearchPreferences,
   TimezonesToAliases,
   TimezonesToText,
+  PostGalleryTypes,
   UserSettingsResponseDisplayTypes,
   UserSettingsSearchProviders,
   MAX_MEMBERS_FULL_REQUEST,
@@ -2487,6 +2488,37 @@ export async function getResponseDisplay(
   return UserSettingsResponseDisplayTypes.DEFAULT;
 }
 
+// if a post with more than one media shows up to ten at a time in one gallery (`PostGalleryTypes`), or one per page: the
+// command's own choice, then the server's auto-embed setting (auto-embeds only), the user's, the server's, then a gallery
+export async function getPostGallery(
+  context: Command.Context | Interaction.InteractionContext,
+  options: {autoEmbed?: boolean, view?: null | PostGalleryTypes} = {},
+): Promise<boolean> {
+  const isGallery = (value: PostGalleryTypes) => value !== PostGalleryTypes.PAGES;
+  if (typeof(options.view) === 'number') {
+    return isGallery(options.view);
+  }
+  let guildSettings: Awaited<ReturnType<typeof GuildSettingsStore.getOrFetch>> = null;
+  if (context.guildId) {
+    try {
+      guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+    } catch(error) {
+      // the bot might not be in this server (user installed commands)
+    }
+  }
+  if (options.autoEmbed && guildSettings && guildSettings.settings && typeof(guildSettings.settings.autoEmbedGallery) === 'number') {
+    return isGallery(guildSettings.settings.autoEmbedGallery);
+  }
+  const userSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+  if (userSettings && typeof(userSettings.post_gallery) === 'number') {
+    return isGallery(userSettings.post_gallery);
+  }
+  if (guildSettings && guildSettings.settings && typeof(guildSettings.settings.postGallery) === 'number') {
+    return isGallery(guildSettings.settings.postGallery);
+  }
+  return true;
+}
+
 // the same order from only what's cached, for a button press or modal that has to be answered right away
 export function getCachedResponseDisplay(
   context: ComponentContext | InteractionModalContext,
@@ -3201,6 +3233,8 @@ export interface MediaReplyResponseOptions {
   content?: string,
   description?: string,
   descriptionBelow?: string,
+  // in place of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
+  details?: string,
   embedFooter?: MediaReplyEmbedFooter,
   filename?: string,
   // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
@@ -3226,6 +3260,7 @@ function mediaReplyResponseOptions(
     content: options.content,
     description: options.description,
     descriptionBelow: options.descriptionBelow,
+    details: options.details,
     embedFooter: options.embedFooter,
     extension: response.file.metadata.extension,
     hideDetails: options.hideDetails,
@@ -3280,42 +3315,123 @@ export async function createMediaReplyPage(
 }
 
 
-// a job's several files as one result (like pixel art's sprites): one media gallery (components v2), embeds sharing
-// a url so discord shows their images as one embed's grid (legacy, up to 4), or plain attachments (no embeds, and
-// anything an embed can't show: spoilers, videos, more than 4)
+// a job's several files as one result (like pixel art's sprites, a post's gallery): one media gallery (components v2),
+// embeds sharing a url so discord shows their images as one embed's grid (legacy, up to 4), or plain attachments (no
+// embeds, and anything an embed can't show: spoilers, videos, more than 4). discord's upload limit is per file, so
+// any amount the api attached fits
 const MEDIA_REPLY_FILES_EMBED_URL = 'https://notsobot.com';
 const MEDIA_REPLY_FILES_EMBED_MAX = 4;
+// what one media gallery holds
+export const MEDIA_REPLY_FILES_MAX = 10;
+
+export interface MediaReplyFilesOptions {
+  actions?: MediaReplyActions,
+  description?: string,
+  descriptionBelow?: string,
+  // in place of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
+  details?: string,
+  embedFooter?: MediaReplyEmbedFooter,
+  // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
+  hideDetails?: boolean,
+  // false leaves out the make permanent button for its hosted ones (a paginator's page, paging would bring the hosted
+  // ones back)
+  reupload?: boolean,
+  spoiler?: boolean,
+  took?: number,
+}
+
+// the line under a gallery whose items are hosted on nsb.gg (too big to attach): when the soonest temporary one expires,
+// with their download links, numbered by their place in the gallery when there's more than one. empty without any
+export function createHostedExpiresText(
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+  translator: Pick<Translator, 'language' | 'translate'>,
+  items: Array<{expiresAt: null | string | undefined, number: number, url: string}>,
+): string {
+  const { language, translate } = translator;
+  const hosted = items.filter((item) => item.expiresAt);
+  if (!hosted.length) {
+    return '';
+  }
+  const soonest = Math.min(...hosted.map((item) => new Date(item.expiresAt!).getTime()));
+  const expiresAtText = Markup.timestamp(new Date(soonest), MarkupTimestampStyles.RELATIVE);
+  const downloadUrl = (url: string) => `<${url}?download=true>`;
+  const downloadText = (hosted.length === 1) ?
+    Markup.url(translate('media.download_it'), downloadUrl(hosted[0].url)) :
+    `${translate('media.download_it')} (${hosted.map((item) => Markup.url(item.number.toLocaleString(language), downloadUrl(item.url))).join(', ')})`;
+  const warning = [translate('media.expires', {download: downloadText, expires: expiresAtText})];
+  if (context instanceof Command.Context && userMaybeHasNitro(context)) {
+    warning.push(translate('media.nitro_upload_limits'));
+  }
+  return `-# **${warning.join(' ')}**`;
+}
 
 export async function mediaReplyFiles(
   context: Command.Context | Interaction.InteractionContext,
   entries: NonNullable<RestResponsesRaw.FileResponse['files']>,
-  options: {
-    actions?: MediaReplyActions,
-    description?: string,
-    descriptionBelow?: string,
-    embedFooter?: MediaReplyEmbedFooter,
-    spoiler?: boolean,
-    took?: number,
-  } = {},
+  options: MediaReplyFilesOptions = {},
 ) {
+  const { message } = await createMediaReplyFilesMessage(context, entries, options);
+  return editOrReply(context, message);
+}
+
+// several files as a paginator page (a gallery post's next ten), the same message `mediaReplyFiles` would send. the
+// paginator adds its buttons and sends it, so no `actions`
+export async function createMediaReplyFilesPage(
+  context: Command.Context | Interaction.InteractionContext,
+  entries: NonNullable<RestResponsesRaw.FileResponse['files']>,
+  options: Omit<MediaReplyFilesOptions, 'actions'> = {},
+): Promise<PageObject> {
+  const { isComponentsV2, message } = await createMediaReplyFilesMessage(context, entries, options);
+  if (isComponentsV2) {
+    return {components: [...message.components.components], files: message.files};
+  }
+  return {content: message.content || undefined, embeds: message.embeds, files: message.files};
+}
+
+// the same filename twice in one message would have both items show the first file (a post's pages can share a name),
+// so later ones get `-2`, `-3` before their extension
+function uniqueFilenames(filenames: Array<string>): Array<string> {
+  const used = new Set<string>();
+  return filenames.map((filename) => {
+    let unique = filename;
+    const dot = filename.lastIndexOf('.');
+    const base = (0 < dot) ? filename.slice(0, dot) : filename;
+    const extension = (0 < dot) ? filename.slice(dot) : '';
+    for (let i = 2; used.has(unique.toLowerCase()); i++) {
+      unique = `${base}-${i}${extension}`;
+    }
+    used.add(unique.toLowerCase());
+    return unique;
+  });
+}
+
+async function createMediaReplyFilesMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  entries: NonNullable<RestResponsesRaw.FileResponse['files']>,
+  options: MediaReplyFilesOptions,
+): Promise<{
+  isComponentsV2: boolean,
+  message: {components: Components, content?: string, embeds?: Array<Embed>, files: Array<RequestTypes.File>},
+}> {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const { language, translate } = await getTranslator(context);
   const spoiler = !!options.spoiler || entries.some((entry) => entry.file.has_nsfw);
 
   // the ones the api sent are attached, uploaded ones (too big, or the user's upload setting) are linked from storage
+  const filenames = uniqueFilenames(entries.map((entry) => entry.file.filename_safe));
   const files: Array<RequestTypes.File> = [];
-  const media = entries.map((entry) => {
+  const media = entries.map((entry, i) => {
     const { file, storage } = entry;
     if (storage) {
       return {mimetype: file.metadata.mimetype, storage, url: storage.urls.cdn};
     }
     files.push({
       contentType: file.metadata.mimetype,
-      filename: file.filename_safe,
+      filename: filenames[i],
       hasSpoiler: spoiler,
       value: (file.value) ? Buffer.from(file.value, 'base64') : Buffer.alloc(0),
     });
-    return {mimetype: file.metadata.mimetype, storage: null, url: `attachment://${file.filename_safe}`};
+    return {mimetype: file.metadata.mimetype, storage: null, url: `attachment://${filenames[i]}`};
   });
 
   // the first one's size (they're usually all the same), then all of them together
@@ -3329,7 +3445,19 @@ export async function mediaReplyFiles(
       footer = `${footer}, ${translate('media.took', {seconds})}`;
     }
   }
+  if (options.details !== undefined) {
+    footer = options.details;
+  } else if (options.hideDetails) {
+    footer = '';
+  }
   const invokedBy = (isFromInteraction) ? '' : `-# **${translate('media.invoked_by', {user: `<@${context.userId}>`})}**`;
+
+  // ones too big to attach are hosted on nsb.gg, a temporary one stops loading once it expires
+  const expires = createHostedExpiresText(context, {language, translate}, media.map((item, i) => ({
+    expiresAt: (item.storage) ? item.storage.expires_at : null,
+    number: i + 1,
+    url: (item.storage) ? item.storage.urls.cdn : '',
+  })));
 
   const actions = options.actions;
   const components = new Components((actions) ? {
@@ -3365,17 +3493,36 @@ export async function mediaReplyFiles(
     if (options.descriptionBelow) {
       container.addTextDisplay({content: options.descriptionBelow});
     }
-    container.addSeparator();
+    if (invokedBy || expires || footer) {
+      container.addSeparator();
+    }
     if (invokedBy) {
       container.addTextDisplay({content: invokedBy});
     }
-    container.addTextDisplay({content: `-# ${footer}`});
+    if (expires) {
+      container.addTextDisplay({content: expires});
+    }
+    if (footer) {
+      container.addTextDisplay({content: `-# ${footer}`});
+    }
     if (actions) {
       for (let row of actions.rows) {
         container.addActionRow(row);
       }
+    } else if (
+      options.reupload !== false && context instanceof Command.Context &&
+      media.some((item) => item.storage && item.storage.temporary)
+    ) {
+      // one button for all of the temporary hosted ones (`makeGalleryPermanentUsingNitro`), only like a single file's
+      // when it's a prefix command: a slash command already used the invoker's own limit. not with other rows, the
+      // click rebuilds the container and they'd lose their callbacks
+      const actionRow = container.createActionRow();
+      actionRow.addButton(new ComponentButton({
+        customId: MessageComponentCustomIds.MAKE_PERMANENT_GALLERY_USING_NITRO,
+        label: translate('media.make_permanent'),
+      }));
     }
-    return editOrReply(context, {components, files: files.map((file) => ({...file, hasSpoiler: undefined}))});
+    return {isComponentsV2: true, message: {components, files: files.map((file) => ({...file, hasSpoiler: undefined}))}};
   }
 
   if (actions) {
@@ -3397,23 +3544,30 @@ export async function mediaReplyFiles(
       embed.setImage(item.url);
       if (i === 0) {
         embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
-        const description = (embedFooter) ? options.description : [options.description, options.descriptionBelow].filter(Boolean).join('\n');
+        const description = [
+          options.description,
+          (embedFooter) ? undefined : options.descriptionBelow,
+          expires,
+        ].filter(Boolean).join('\n');
         if (description) {
           embed.setDescription(description);
         }
-        embed.setFooter([(embedFooter) ? embedFooter.text : undefined, footer].filter(Boolean).join(' • '), (embedFooter && embedFooter.iconUrl) || undefined);
+        const footerText = [(embedFooter) ? embedFooter.text : undefined, footer].filter(Boolean).join(' • ');
+        if (footerText) {
+          embed.setFooter(footerText, (embedFooter && embedFooter.iconUrl) || undefined);
+        }
         if (embedFooter && embedFooter.timestamp) {
           embed.setTimestamp(embedFooter.timestamp);
         }
       }
       return embed;
     });
-    return editOrReply(context, {components, content: '', embeds, files});
+    return {isComponentsV2: false, message: {components, content: '', embeds, files}};
   }
 
   const links = media.filter((x) => x.storage).map((x) => `> ${(spoiler) ? Markup.spoiler(x.url) : x.url}`);
-  const content = [options.description, options.descriptionBelow, ...links, invokedBy, `-# ${footer}`].filter(Boolean);
-  return editOrReply(context, {components, content: content.join('\n'), files});
+  const content = [options.description, options.descriptionBelow, ...links, invokedBy, expires, (footer) ? `-# ${footer}` : ''].filter(Boolean);
+  return {isComponentsV2: false, message: {components, content: content.join('\n'), files}};
 }
 
 
@@ -3459,6 +3613,8 @@ export interface MediaReplyOptions {
   description?: string,
   // under the media in components v2 (like a post's site and stats), the other displays add it after `description`
   descriptionBelow?: string,
+  // in place of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
+  details?: string,
   // the embed display shows this in its footer instead of `descriptionBelow`
   embedFooter?: MediaReplyEmbedFooter,
   extension?: string,
@@ -3578,6 +3734,12 @@ export async function createMediaReplyMessage(
       footer = `${footer}, ${translate('media.took', {seconds})}`;
     }
   }
+  // the details line, or what replaces it
+  const hasDetails = (options.details !== undefined);
+  if (hasDetails) {
+    footer = options.details!;
+  }
+  const showDetails = !!footer && (hasDetails || !options.hideDetails);
 
   let reuploadButton: ComponentButton | null = null;
   if (!options.reuploading && options.storage && options.storage.temporary && context instanceof Command.Context) {
@@ -3694,7 +3856,7 @@ export async function createMediaReplyMessage(
         }
         container.addTextDisplay({content: `-# **${warning.join(' ')}**`});
       }
-      if (!options.hideDetails) {
+      if (showDetails) {
         container.addTextDisplay({content: `-# ${footer}`});
       }
 
@@ -3732,7 +3894,7 @@ export async function createMediaReplyMessage(
     const embedFooter = options.embedFooter;
     const footerText = [
       (embedFooter) ? embedFooter.text : undefined,
-      (options.hideDetails) ? undefined : footer,
+      (showDetails) ? footer : undefined,
     ].filter(Boolean).join(' • ');
     if (footerText) {
       embed.setFooter(footerText, (embedFooter && embedFooter.iconUrl) || undefined);
@@ -3774,8 +3936,8 @@ export async function createMediaReplyMessage(
 
   if (options.storage) {
     // the embed has the dimensions/duration/filesize already, we just want to display the took
-    footer = '';
-    if (options.took && !options.hideDetails) {
+    footer = (hasDetails) ? options.details! : '';
+    if (!hasDetails && options.took && !options.hideDetails) {
       let took = options.took;
       if (context.metadata && context.metadata.started) {
         took = Date.now() - context.metadata.started;
@@ -3838,7 +4000,7 @@ export async function createMediaReplyMessage(
       options.content || '',
       descriptionWithBelow || '',
       (isFromInteraction && !replacesResponse) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
-      (options.hideDetails) ? '' : `-# ${footer}`,
+      (showDetails) ? `-# ${footer}` : '',
     ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, title, value},
     // the action rows (like pixel art's sprite buttons) and the reupload button, only when there are any so a reply

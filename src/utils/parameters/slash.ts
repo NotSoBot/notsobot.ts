@@ -5,13 +5,15 @@ import { regex as discordRegex } from 'detritus-client/lib/utils';
 import {
   GoogleLocales,
   GoogleLocalesText,
+  GuildSettingsResponseDisplayTypes,
   MLDiffusionModels,
+  PostGalleryTypes,
+  PostGalleryViews,
   SEARCH_PROVIDER_IMAGES_DEFAULT,
   SEARCH_PROVIDER_WEB_DEFAULT,
   TagDirectoryCategories,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
-  GuildSettingsResponseDisplayTypes,
   UserSettingsResponseDisplayTypes,
   UserSettingsSearchProviders,
   UserSettingsUploadThresholdTypes,
@@ -152,6 +154,26 @@ export const GUILD_SETTINGS_RESPONSE_DISPLAY = [
   createChoice('Latest', GuildSettingsResponseDisplayTypes.DEFAULT, {isDefault: true, localizationKey: 'choices.settings.response_display.default'}),
   createChoice('No Embeds (Text Only)', GuildSettingsResponseDisplayTypes.NO_EMBED, {localizationKey: 'choices.settings.response_display.no_embed'}),
   createChoice('Legacy (Embeds)', GuildSettingsResponseDisplayTypes.LEGACY, {localizationKey: 'choices.settings.response_display.legacy'}),
+];
+
+
+// a post with more than one media: `/settings set post-gallery`, `/server set post-gallery`
+export const POST_GALLERY = [
+  createChoice('Gallery', PostGalleryTypes.GALLERY, {isDefault: true, localizationKey: 'choices.settings.post_gallery.gallery'}),
+  createChoice('One per Page', PostGalleryTypes.PAGES, {localizationKey: 'choices.settings.post_gallery.pages'}),
+];
+
+// `/server set auto-embed`'s `gallery`, the default clears it so auto-embeds follow the poster's setting
+export const AUTO_EMBED_GALLERY = [
+  createChoice('Each Poster\'s Setting', 'default', {isDefault: true, localizationKey: 'choices.settings.post_gallery.poster'}),
+  createChoice('Gallery', PostGalleryViews.GALLERY, {localizationKey: 'choices.settings.post_gallery.gallery'}),
+  createChoice('One per Page', PostGalleryViews.PAGES, {localizationKey: 'choices.settings.post_gallery.pages'}),
+];
+
+// `/embed`, `/download`'s `view`, left out it's their setting
+export const POST_GALLERY_VIEWS = [
+  createChoice('Gallery', PostGalleryViews.GALLERY, {localizationKey: 'choices.settings.post_gallery.gallery'}),
+  createChoice('One per Page', PostGalleryViews.PAGES, {localizationKey: 'choices.settings.post_gallery.pages'}),
 ];
 
 

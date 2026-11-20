@@ -4,7 +4,15 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import { getServerPremiumUsers } from '../../../stores/premiumservers';
 import { editGuildSettings } from '../../../api';
 import { GuildSettingsChild } from '../../../api/structures/guildsettings';
-import { DiscordSkuIds, GuildAutoEmbedSites, GuildAutoEmbedSitesToText, StatusEmojis } from '../../../constants';
+import {
+  DiscordSkuIds,
+  GuildAutoEmbedSites,
+  GuildAutoEmbedSitesToText,
+  PostGalleryTypes,
+  PostGalleryViews,
+  PostGalleryViewsToTypes,
+  StatusEmojis,
+} from '../../../constants';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 import { displayDetailsLine, displayReply, linkPremiumSkuName } from '../../../utils';
 import { UserError } from '../../errors';
@@ -33,6 +41,8 @@ export const SITES: Array<{site: GuildAutoEmbedSites, values: Array<string>}> = 
 export interface CommandArgs {
   // turns auto-embed (for every site, or just `site`) on or off
   embed?: boolean,
+  // how posts with more than one media show, null: each poster's own setting (then the server's `post-gallery`)
+  gallery?: PostGalleryTypes | null,
   site?: GuildAutoEmbedSites,
   // posts the post's text (author, caption) with the media too
   text?: boolean,
@@ -68,6 +78,23 @@ export function textParser(value: string, context: Command.Context | Interaction
     return false;
   }
   throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_text'));
+}
+
+// `gallery`, `pages`, or `default` (each poster's setting), the prefixed command's `-gallery` and the slash choices
+export const GALLERY_DEFAULT_VALUE = 'default';
+
+export function galleryParser(value: string, context: Command.Context | Interaction.InteractionContext): PostGalleryTypes | null | undefined {
+  const text = value.trim().toLowerCase();
+  if (!text) {
+    return undefined;
+  }
+  if (text === GALLERY_DEFAULT_VALUE) {
+    return null;
+  }
+  if (text in PostGalleryViewsToTypes) {
+    return PostGalleryViewsToTypes[text as PostGalleryViews];
+  }
+  throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_gallery'));
 }
 
 export function siteParser(value: string, context: Command.Context | Interaction.InteractionContext): GuildAutoEmbedSites | undefined {
@@ -107,6 +134,11 @@ export function formatAutoEmbed(translator: Translator, settings: GuildSettingsC
     const lines = [
       translate('settings_server_autoembed.sites', {sites: displayDetailsLine(enabled.map((x) => GuildAutoEmbedSitesToText[x.site]))}),
       translate((settings.autoEmbedText) ? 'settings_server_autoembed.text_on' : 'settings_server_autoembed.text_off'),
+      translate(
+        (settings.autoEmbedGallery === PostGalleryTypes.GALLERY) ? 'settings_server_autoembed.gallery_gallery' :
+        (settings.autoEmbedGallery === PostGalleryTypes.PAGES) ? 'settings_server_autoembed.gallery_pages' :
+        'settings_server_autoembed.gallery_default',
+      ),
     ];
     return lines.join('\n-> ');
   }
@@ -124,7 +156,9 @@ export async function createMessage(
 
   const changingEmbed = args.embed !== undefined && args.embed !== null;
   const changingText = args.text !== undefined && args.text !== null;
-  const changing = changingEmbed || changingText;
+  // null is a change too, back to each poster's setting
+  const changingGallery = args.gallery !== undefined;
+  const changing = changingEmbed || changingText || changingGallery;
   if (args.site && !changingEmbed) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('settings_server_autoembed.site_without_embed')}`, ephemeral: true});
   }
@@ -135,7 +169,7 @@ export async function createMessage(
     // one site flips on top of what's there, so that needs the current sites too
     let sites: Array<string> | undefined;
     if (!changingEmbed) {
-      // only the text changes
+      // only the text or gallery changes
     } else if (args.site) {
       const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
       if (!guildSettings) {
@@ -150,6 +184,7 @@ export async function createMessage(
     }
     ({ settings } = await editGuildSettings(context, context.guildId!, {
       autoEmbed: sites,
+      autoEmbedGallery: (changingGallery) ? args.gallery : undefined,
       autoEmbedText: (changingText) ? args.text : undefined,
     }));
     title = translate('settings_server_autoembed.updated');

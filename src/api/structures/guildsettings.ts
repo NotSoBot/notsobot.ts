@@ -7,6 +7,7 @@ import {
   GuildRuleActions,
   GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
+  PostGalleryTypes,
   NotSoApiKeys,
   UserSettingsSearchProviders,
   WARNINGS_WINDOW_DEFAULT,
@@ -319,6 +320,7 @@ export class GuildSettingsPrefix extends BaseStructure {
 
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.AUTO_EMBED,
+  NotSoApiKeys.AUTO_EMBED_GALLERY,
   NotSoApiKeys.AUTO_EMBED_TEXT,
   NotSoApiKeys.BAN_CLEAN,
   NotSoApiKeys.MEDIA_FONT,
@@ -327,6 +329,7 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.ML_LLM_PERSONALITY,
   NotSoApiKeys.MODERATION_DM_DISABLED,
   NotSoApiKeys.MUSIC_DJ_ROLE_ID,
+  NotSoApiKeys.POST_GALLERY,
   NotSoApiKeys.RESPONSE_DISPLAY,
   NotSoApiKeys.RULES_ADMIN_BYPASS,
   NotSoApiKeys.SEARCH_PROVIDER_IMAGES,
@@ -343,6 +346,8 @@ export class GuildSettingsChild extends BaseStructure {
 
   // the `GuildAutoEmbedSites` whose links get auto-embedded (premium servers only), empty: off
   autoEmbed: Array<string> = [];
+  // `PostGalleryTypes` for auto-embeds, null: like a command would (the poster's, then `postGallery`)
+  autoEmbedGallery: PostGalleryTypes | null = null;
   // auto-embeds post the post's text (author, caption) with the media too
   autoEmbedText: boolean = false;
   // seconds of a member's messages `ban` deletes when the moderator doesn't pick (0: none)
@@ -356,6 +361,8 @@ export class GuildSettingsChild extends BaseStructure {
   moderationDmDisabled: number = 0;
   // the role that makes someone a music dj (with manage server), null falls back to roles named "notsomusic"
   musicDjRoleId: null | string = null;
+  // `PostGalleryTypes` for members without their own, null: gallery
+  postGallery: PostGalleryTypes | null = null;
   // null uses each user's preference, then our latest format
   responseDisplay: GuildSettingsResponseDisplayTypes | null = null;
   // if the server owner and admins skip the rules, rules can override it with their own `adminBypass`

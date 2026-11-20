@@ -34,7 +34,7 @@ import {
   formatDuration,
   formatUserTag,
 } from '../utils';
-import { GuildLoggingCustomEvents } from '../utils/formatter/loggers';
+import { GuildLoggingCustomEvents, GuildLoggingDecoyAction, GuildLoggingDecoyReason } from '../utils/formatter/loggers';
 
 import GuildLoggingListener from './guildlogging';
 import { Listener } from './listener';
@@ -53,12 +53,14 @@ const RAID_POSTERS = 3;
 const GRACE_JOIN_MAX_AGE = 5 * 60 * 1000;
 // my own notice is posted again when it's deleted, not more than this often (someone deleting it over and over)
 const NOTICE_REPOST_COOLDOWN = 5 * 1000;
+// a softban's unban, a second try after a short wait before they're left banned (a blip shouldn't keep them out)
+const UNBAN_ATTEMPTS = 2;
+const UNBAN_RETRY_DELAY = 3 * 1000;
 // message types a member sends themselves, anything else (pins, joins, boosts) is just deleted
 const MEMBER_MESSAGE_TYPES: Array<number> = [MessageTypes.DEFAULT, MessageTypes.REPLY];
 
 type DecoyContext = {client: ShardClient, guild: Structures.Guild, guildId: string, me: Structures.Member | null, rest: ShardClient['rest']};
 
-type DecoyAction = 'ban' | 'kept' | 'none' | 'softban';
 
 // expired: they didn't press it, unavailable: no reply to press it on (I can't post there), raid: no minute for them
 type GraceResult = {kind: 'expired' | 'kept' | 'unavailable'} | {kind: 'raid', posters: number};
@@ -307,8 +309,20 @@ class DecoyListener extends Listener {
 
     const AutoWarn = Formatter.Commands.ModerationAutowarn;
     const rule = (settings) ? AutoWarn.resolveGuildWarningAuto(settings, GuildWarningAutoTriggers.DECOY, null, null) : null;
-    if (member && this.isExempt(member, settings, rule)) {
+    const exempt = (member) ? this.getExemptReason(member, settings, rule) : null;
+    if (exempt) {
       await this.deleteMessage(message);
+      // logged so a deleted post with no removal isn't a mystery to the moderators
+      this.log(context, decoy, {
+        action: 'exempt',
+        attachments: message.attachments.size,
+        clean: 0,
+        content: message.content || '',
+        raid: 0,
+        reason: exempt,
+        user: message.author,
+        warned: false,
+      });
       return;
     }
 
@@ -327,22 +341,34 @@ class DecoyListener extends Listener {
     }
   }
 
-  isExempt(
+  // why the decoy skips them, null: it doesn't
+  getExemptReason(
     member: Structures.Member,
     settings: Awaited<ReturnType<typeof GuildSettingsStore.getOrFetch>>,
     rule: RestResponsesRaw.GuildWarningAuto | null,
-  ): boolean {
+  ): GuildLoggingDecoyReason | null {
     // the owner, admins and moderators who can delete messages anyway (testing it, or by mistake)
-    if (member.isOwner || member.canAdministrator || (member.permissions & Permissions.MANAGE_MESSAGES) === Permissions.MANAGE_MESSAGES) {
-      return true;
+    if (member.isOwner) {
+      return 'owner';
+    }
+    if (member.canAdministrator) {
+      return 'administrator';
+    }
+    if ((member.permissions & Permissions.MANAGE_MESSAGES) === Permissions.MANAGE_MESSAGES) {
+      return 'manage_messages';
     }
     if (!settings) {
-      return false;
+      return null;
     }
     const AutoWarn = Formatter.Commands.ModerationAutowarn;
     // the server's auto-warn exemption and the decoy rule's own skip the removal too, not only the warning
-    return AutoWarn.matchesGuildWarningAutoExempt(member, settings.settings.warningsAutoExempt) ||
-      (!!rule && AutoWarn.matchesGuildWarningAutoExempt(member, rule.exempt));
+    if (
+      AutoWarn.matchesGuildWarningAutoExempt(member, settings.settings.warningsAutoExempt) ||
+      (!!rule && AutoWarn.matchesGuildWarningAutoExempt(member, rule.exempt))
+    ) {
+      return 'autowarn_exempt';
+    }
+    return null;
   }
 
   async removeMember(
@@ -362,10 +388,15 @@ class DecoyListener extends Listener {
     const clean = (decoy.clean_seconds !== null) ? decoy.clean_seconds : (settings) ? settings.settings.banClean : BAN_CLEAN_DEFAULT;
     const channelName = (message.channel) ? message.channel.name : decoy.channel_id;
 
-    const canBan = !!me && me.can(Permissions.BAN_MEMBERS) && (!member || me.canEdit(member));
-    if (!canBan) {
+    let cannotBan: GuildLoggingDecoyReason | null = null;
+    if (!me || !me.can(Permissions.BAN_MEMBERS)) {
+      cannotBan = 'missing_permission';
+    } else if (member && !me.canEdit(member)) {
+      cannotBan = 'role_hierarchy';
+    }
+    if (cannotBan) {
       await this.deleteMessage(message);
-      this.log(context, decoy, {action: 'none', attachments, clean: 0, content, raid: 0, user, warned: false});
+      this.log(context, decoy, {action: 'none', attachments, clean: 0, content, raid: 0, reason: cannotBan, user, warned: false});
       return;
     }
 
@@ -374,7 +405,7 @@ class DecoyListener extends Listener {
     if (grace.kind === 'kept') {
       await this.deleteMessage(message);
       await this.deleteOthers(context, decoy, key);
-      this.log(context, decoy, {action: 'kept', attachments, clean: 0, content, raid: 0, user, warned: false});
+      this.log(context, decoy, {action: 'kept', attachments, clean: 0, content, raid: 0, reason: null, user, warned: false});
       return;
     }
     const raid = (grace.kind === 'raid') ? grace.posters : 0;
@@ -427,7 +458,7 @@ class DecoyListener extends Listener {
       audit.translate('moderation_ban.reason', {text: audit.translate('decoy.audit_reason', {channel: `#${channelName}`})}),
     ].filter(Boolean).join('\n').slice(0, 512);
 
-    let action: DecoyAction = 'softban';
+    let action: GuildLoggingDecoyAction = 'softban';
     try {
       if (step && step.action === 'ban') {
         // their warnings reached a ban, it stays
@@ -445,10 +476,18 @@ class DecoyListener extends Listener {
       } else {
         // a softban: banned for their messages to go, then let back in
         await context.rest.createGuildBan(guild.id, user.id, {deleteMessageSeconds: clean, reason: auditReason});
-        await context.rest.removeGuildBan(guild.id, user.id, {reason: auditReason});
       }
     } catch(error) {
+      // the permission and role checks passed, so this one is Discord's answer (or a cache that was out of date)
+      log.warn(`Decoy ban failed for ${user.id} in ${guild.id} (${decoy.channel_id})`, error);
       action = 'none';
+    }
+    // the ban went through, a failed unban leaves them banned: tried twice, then logged as a ban that stuck
+    let reason: GuildLoggingDecoyReason | null = (action === 'none') ? 'ban_failed' : null;
+    if (action === 'softban' && !(await this.unban(context, user.id, auditReason))) {
+      log.warn(`Decoy unban failed for ${user.id} in ${guild.id} (${decoy.channel_id}), they stay banned`);
+      action = 'ban';
+      reason = 'unban_failed';
     }
     // nothing cleaned (or it failed), their messages still go
     if (!clean || action === 'none') {
@@ -457,7 +496,31 @@ class DecoyListener extends Listener {
     }
 
     putGuildDecoyTrigger(context, guild.id, decoy.channel_id).catch(() => null);
-    this.log(context, decoy, {action, attachments, clean: (action === 'none') ? 0 : clean, content, raid, user, warned});
+    this.log(context, decoy, {
+      action,
+      attachments,
+      clean: (action === 'none') ? 0 : clean,
+      content,
+      raid,
+      reason,
+      user,
+      warned,
+    });
+  }
+
+  async unban(context: DecoyContext, userId: string, reason: string): Promise<boolean> {
+    for (let attempt = 0; attempt < UNBAN_ATTEMPTS; attempt++) {
+      if (attempt) {
+        await new Promise((resolve) => setTimeout(resolve, UNBAN_RETRY_DELAY));
+      }
+      try {
+        await context.rest.removeGuildBan(context.guildId, userId, {reason});
+        return true;
+      } catch(error) {
+        log.warn(`Decoy unban attempt ${attempt + 1} failed for ${userId} in ${context.guildId}`, error);
+      }
+    }
+    return false;
   }
 
   async deleteOthers(context: DecoyContext, decoy: RestResponsesRaw.GuildDecoy, key: string): Promise<void> {
@@ -527,7 +590,16 @@ class DecoyListener extends Listener {
   log(
     context: DecoyContext,
     decoy: RestResponsesRaw.GuildDecoy,
-    payload: {action: DecoyAction, attachments: number, clean: number, content: string, raid: number, user: Structures.User, warned: boolean},
+    payload: {
+      action: GuildLoggingDecoyAction,
+      attachments: number,
+      clean: number,
+      content: string,
+      raid: number,
+      reason: GuildLoggingDecoyReason | null,
+      user: Structures.User,
+      warned: boolean,
+    },
   ): void {
     GuildLoggingListener.logModeration(context.client, {
       guildId: context.guildId,

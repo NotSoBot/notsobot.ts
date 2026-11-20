@@ -658,6 +658,7 @@ import * as MusicFair from './music.fair';
 import * as MusicHistory from './music.history';
 import * as MusicInfo from './music.info';
 import * as MusicLeave from './music.leave';
+import * as MusicListen from './music.listen';
 import * as MusicLoop from './music.loop';
 import * as MusicPause from './music.pause';
 import * as MusicPlay from './music.play';
@@ -747,6 +748,7 @@ import * as SettingsServerSetBanClean from './settings.server.set.ban.clean';
 import * as SettingsServerSetDms from './settings.server.set.dms';
 import * as SettingsServerSetFont from './settings.server.set.font';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
+import * as SettingsServerSetPostGallery from './settings.server.set.post.gallery';
 import * as SettingsServerSetResponseDisplay from './settings.server.set.response.display';
 import * as SettingsServerSetSearchProvider from './settings.server.set.search.provider';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
@@ -764,6 +766,7 @@ import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetFont from './settings.set.font';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
+import * as SettingsSetPostGallery from './settings.set.post.gallery';
 import * as SettingsSetResponseDisplay from './settings.set.response.display';
 import * as SettingsSetSearchProvider from './settings.set.search.provider';
 import * as SettingsSetTimezone from './settings.set.timezone';
@@ -1503,6 +1506,7 @@ export {
   MusicHistory,
   MusicInfo,
   MusicLeave,
+  MusicListen,
   MusicLoop,
   MusicPause,
   MusicPlay,
@@ -1592,6 +1596,7 @@ export {
   SettingsServerSetDms,
   SettingsServerSetFont,
   SettingsServerSetLocale,
+  SettingsServerSetPostGallery,
   SettingsServerSetResponseDisplay,
   SettingsServerSetSearchProvider,
   SettingsServerSetTimezone,
@@ -1609,6 +1614,7 @@ export {
   SettingsSetFont,
   SettingsSetLocale,
   SettingsSetMLImagineModel,
+  SettingsSetPostGallery,
   SettingsSetResponseDisplay,
   SettingsSetSearchProvider,
   SettingsSetTimezone,

@@ -28,6 +28,13 @@ export class ServerSetAutoEmbedCommand extends BaseInteractionCommandOption {
           type: Boolean,
         },
         {
+          name: 'gallery',
+          description: 'How posts with more than one media show (Default: each poster\'s setting)',
+          ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.gallery'),
+          choices: Parameters.Slash.AUTO_EMBED_GALLERY,
+          value: Formatter.Commands.SettingsServerSetAutoEmbed.galleryParser,
+        },
+        {
           name: 'site',
           description: 'Only turn this site on or off (Default: all of them)',
           ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.site'),

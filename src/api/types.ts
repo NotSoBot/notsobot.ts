@@ -10,6 +10,7 @@ import {
   GuildRuleActions,
   GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
+  PostGalleryTypes,
   GuildWarningAutoTriggers,
   MeasurementUnits,
   MediaAudioBitcrushModes,
@@ -186,6 +187,8 @@ export namespace RestOptions {
   export interface EditGuildSettings {
     // replaces the `GuildAutoEmbedSites` that get auto-embedded, empty or null turns it off
     autoEmbed?: Array<string> | null,
+    // `PostGalleryTypes` for auto-embeds, null: like a command would (the poster's, then `postGallery`)
+    autoEmbedGallery?: PostGalleryTypes | null,
     // null resets it to off
     autoEmbedText?: boolean | null,
     // seconds, null resets it to 1 day
@@ -201,6 +204,8 @@ export namespace RestOptions {
     mlLLMPersonality?: string | null,
     // `GuildModerationDmFlags` members don't get, null resets it to 0 (every dm)
     moderationDmDisabled?: number | null,
+    // `PostGalleryTypes` for members without their own, null: gallery
+    postGallery?: PostGalleryTypes | null,
     prefixes?: Array<string>,
     responseDisplay?: GuildSettingsResponseDisplayTypes | null,
     // null resets it to on
@@ -301,6 +306,8 @@ export namespace RestOptions {
     mlLLMMemoryDisabled?: boolean,
     mlLLMModel?: null | string,
     mlLLMPersonality?: null | string,
+    // `PostGalleryTypes`, null follows the server's
+    postGallery?: null | PostGalleryTypes,
     responseDisplay?: null | UserSettingsResponseDisplayTypes,
     searchProviderImages?: null | UserSettingsSearchProviders,
     searchProviderWeb?: null | UserSettingsSearchProviders,
@@ -3590,6 +3597,7 @@ export namespace RestResponsesRaw {
     rules: Array<GuildRule>,
     settings: {
       auto_embed: Array<string>,
+      auto_embed_gallery: number | null,
       auto_embed_text: boolean,
       ban_clean: number,
       media_font: string | null,
@@ -3597,6 +3605,7 @@ export namespace RestResponsesRaw {
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
       moderation_dm_disabled: number,
+      post_gallery: number | null,
       response_display: number | null,
       rules_admin_bypass: boolean,
       search_provider_images: number | null,
@@ -4912,6 +4921,7 @@ export namespace RestResponsesRaw {
     ml_llm_memory_disabled: boolean,
     ml_llm_model: string | null,
     ml_llm_personality: string | null,
+    post_gallery: number | null,
     response_display: number | null,
     search_provider_images: number | null,
     search_provider_web: number | null,

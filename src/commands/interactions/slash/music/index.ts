@@ -8,8 +8,10 @@ import { MusicCrossfadeCommand } from './crossfade';
 import { MusicDjGroupCommand } from './dj';
 import { MusicFairCommand } from './fair';
 import { MusicHistoryCommand } from './history';
+import { MusicIdentifyCommand } from './identify';
 import { MusicInfoCommand } from './info';
 import { MusicLeaveCommand } from './leave';
+import { MusicListenCommand } from './listen';
 import { MusicLoopCommand } from './loop';
 import { MusicPauseCommand } from './pause';
 import { MusicPlayCommand } from './play';
@@ -50,8 +52,10 @@ export default class MusicCommand extends BaseSlashCommand {
         new MusicDjGroupCommand(),
         new MusicFairCommand(),
         new MusicHistoryCommand(),
+        new MusicIdentifyCommand(),
         new MusicInfoCommand(),
         new MusicLeaveCommand(),
+        new MusicListenCommand(),
         new MusicLoopCommand(),
         new MusicPauseCommand(),
         new MusicPlayCommand(),

@@ -8,6 +8,7 @@ import { ServerSetBanCleanCommand } from './set.ban-clean';
 import { ServerSetDmsCommand } from './set.dms';
 import { ServerSetFontCommand } from './set.font';
 import { ServerSetLocaleCommand } from './set.locale';
+import { ServerSetPostGalleryCommand } from './set.post-gallery';
 import { ServerSetResponseDisplayCommand } from './set.response-display';
 import { ServerSetSearchProviderCommand } from './set.search-provider';
 import { ServerSetTimezoneCommand } from './set.timezone';
@@ -29,6 +30,7 @@ export class ServerSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new ServerSetDmsCommand(),
         new ServerSetFontCommand(),
         new ServerSetLocaleCommand(),
+        new ServerSetPostGalleryCommand(),
         new ServerSetResponseDisplayCommand(),
         new ServerSetSearchProviderCommand(),
         new ServerSetTimezoneCommand(),

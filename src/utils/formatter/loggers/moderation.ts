@@ -8,6 +8,7 @@ import { createTimestampStringFromGuild, createUserEmbed, createUserString, disp
 import type { TranslationKey, Translator } from '../../i18n';
 import { addContainerFooter, addContainerHeader, createContainerTitle, createFooterTimestamp, createUserHeaderLines } from './tools';
 import {
+  GuildLoggingDecoyReason,
   GuildLoggingEventDecoyCatch,
   GuildLoggingEventDecoyNoticeDelete,
   GuildLoggingEventGuildWarningAdd,
@@ -258,22 +259,37 @@ export function formatGuildWarningsClearComponents(
 }
 
 
+// why the decoy left them in the server (exempt, or it couldn't remove them), their message went either way
+function getDecoyNotRemovedText(reason: GuildLoggingDecoyReason | null, translator: Translator): string {
+  const { translate } = translator;
+  switch (reason) {
+    case 'owner': return translate('logger.decoy_exempt_owner');
+    case 'administrator': return translate('logger.decoy_exempt_permission', {permission: translate('permissions.administrator')});
+    case 'manage_messages': return translate('logger.decoy_exempt_permission', {permission: translate('permissions.manage_messages')});
+    case 'autowarn_exempt': return translate('logger.decoy_exempt_autowarn');
+    case 'missing_permission': return translate('logger.decoy_not_removed_permission', {permission: translate('permissions.ban_members')});
+    case 'role_hierarchy': return translate('logger.decoy_not_removed_role');
+  }
+  return translate('logger.decoy_not_removed_failed');
+}
+
+
 // where, what they posted, and what happened to them
 function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Translator): Array<string> {
   const { language, translate } = translator;
-  const { action, attachments, channelId, clean, content, raid, warned } = event.payload;
+  const { action, attachments, channelId, clean, content, raid, reason, warned } = event.payload;
   const lines: Array<string> = [`**${translate('logger.decoy_caught_in')}**: <#${channelId}>`];
   if (content) {
     lines.push(`**${translate('logger.decoy_posted')}**:`, Markup.codeblock(content.slice(0, 900)));
   }
   let actionText: string;
   switch (action) {
-    case 'ban': actionText = translate('logger.decoy_banned'); break;
+    case 'ban': actionText = (reason === 'unban_failed') ? translate('logger.decoy_unban_failed') : translate('logger.decoy_banned'); break;
     case 'softban': actionText = (clean) ? translate('logger.decoy_softbanned', {
       duration: formatDuration(clean * 1000, language),
     }) : translate('logger.decoy_softbanned_no_clean'); break;
     case 'kept': actionText = translate('logger.decoy_kept', {button: translate('decoy.grace_button_keep')}); break;
-    default: actionText = translate('logger.decoy_not_removed');
+    default: actionText = getDecoyNotRemovedText(reason, translator);
   }
   lines.push(displayDetailsLine([
     actionText,
@@ -295,7 +311,7 @@ export function formatDecoyCatch(
   const { user } = event.payload;
   setUserEmbed(user.id, user, embed, translator);
   formatEmbed(embed, {
-    color: (event.payload.action === 'none') ? EmbedColors.LOG_UPDATE : EmbedColors.LOG_DELETION,
+    color: (event.payload.action === 'none' || event.payload.action === 'exempt') ? EmbedColors.LOG_UPDATE : EmbedColors.LOG_DELETION,
     footer: translator.translate('logger.footer.decoy_catch'),
     guildId,
     happened,
@@ -314,7 +330,7 @@ export function formatDecoyCatchComponents(
   const { happened } = event;
   const { user } = event.payload;
   formatContainer(container, user.id, user, {
-    color: (event.payload.action === 'none') ? EmbedColors.LOG_UPDATE : EmbedColors.LOG_DELETION,
+    color: (event.payload.action === 'none' || event.payload.action === 'exempt') ? EmbedColors.LOG_UPDATE : EmbedColors.LOG_DELETION,
     footer: translator.translate('logger.footer.decoy_catch'),
     happened,
     moderation: getDecoyCatchLines(event, translator),

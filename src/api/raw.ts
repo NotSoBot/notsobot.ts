@@ -921,6 +921,7 @@ export async function editGuildSettings(
 ): Promise<RestResponsesRaw.EditGuildSettings> {
   const body = {
     auto_embed: options.autoEmbed,
+    auto_embed_gallery: options.autoEmbedGallery,
     auto_embed_text: options.autoEmbedText,
     ban_clean: options.banClean,
     blocked: options.blocked,
@@ -932,6 +933,7 @@ export async function editGuildSettings(
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
     moderation_dm_disabled: options.moderationDmDisabled,
+    post_gallery: options.postGallery,
     prefixes: options.prefixes,
     response_display: options.responseDisplay,
     rules_admin_bypass: options.rulesAdminBypass,
@@ -1193,6 +1195,7 @@ export async function editUserSettings(
     ml_llm_memory_disabled: options.mlLLMMemoryDisabled,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
+    post_gallery: options.postGallery,
     response_display: options.responseDisplay,
     search_provider_images: options.searchProviderImages,
     search_provider_web: options.searchProviderWeb,

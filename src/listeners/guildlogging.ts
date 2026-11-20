@@ -428,10 +428,13 @@ class GuildLoggingListener extends Listener {
         }; break;
         case GuildLoggingCustomEvents.GUILD_WARNING_ADD:
         case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE:
-        case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR:
+        case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: {
+          loggerType = GuildLoggerTypes.MODERATION;
+        }; break;
+        // its own type, a busy decoy would bury the warnings (a decoy warning is still a GUILD_WARNING_ADD, so it's in both)
         case GuildLoggingCustomEvents.DECOY_CATCH:
         case GuildLoggingCustomEvents.DECOY_NOTICE_DELETE: {
-          loggerType = GuildLoggerTypes.MODERATION;
+          loggerType = GuildLoggerTypes.DECOY;
         }; break;
       }
       if (loggerType !== null) {

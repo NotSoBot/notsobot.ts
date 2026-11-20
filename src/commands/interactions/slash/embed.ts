@@ -66,6 +66,12 @@ export default class EmbedCommand extends BaseSlashCommand {
           type: Boolean,
         },
         {
+          name: 'view',
+          description: 'Gallery or one per page for posts with more than one media (Default: Your Setting)',
+          ...I18n.optionLocalizations('commands.download.view'),
+          choices: Parameters.Slash.POST_GALLERY_VIEWS,
+        },
+        {
           name: 'locale',
           description: 'Language to Fetch the Page in',
           ...I18n.optionLocalizations('commands.download.locale'),

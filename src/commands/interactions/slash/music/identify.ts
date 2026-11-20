@@ -7,7 +7,9 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'identify';
 
-export class MediaAVToolsIdentifyCommand extends BaseInteractionAudioOrVideoCommandOption {
+// moved here from `/media-av-tools identify`, its id stays `media.av.tools.identify`. `/music listen` finds a song
+// someone plays in voice
+export class MusicIdentifyCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Identify a song in an audio or video file';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.identify.description');
   metadata = {
@@ -17,16 +19,16 @@ export class MediaAVToolsIdentifyCommand extends BaseInteractionAudioOrVideoComm
   nameLocalizations = I18n.localizations('commands.media_av.audio.identify.name');
 
   constructor() {
-	  super({
-	    options: [
-		    {
-		      name: 'start',
-		      description: 'Starting Timestamp',
-		      ...I18n.optionLocalizations('commands.media_av.audio.identify.start'),
-		      value: Parameters.secondsWithOptions({negatives: true}),
-		    },
-	    ],
-	  });
+    super({
+      options: [
+        {
+          name: 'start',
+          description: 'Starting Timestamp',
+          ...I18n.optionLocalizations('commands.media_av.audio.identify.start'),
+          value: Parameters.secondsWithOptions({negatives: true}),
+        },
+      ],
+    });
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVToolsIdentify.CommandArgs) {
