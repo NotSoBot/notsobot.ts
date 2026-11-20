@@ -2438,13 +2438,21 @@ async function withAIMemoryNotFound<T>(position: number, callback: () => Promise
 // themselves since those get sent to code execution
 const storageResponses = new WeakMap<TagVariables, Record<string, RestResponsesRaw.FileResponse>>();
 
-// the file response without its base64 value, the file's data is kept in `buffer` already
-function stripFileResponse(response: RestResponsesRaw.FileResponse): RestResponsesRaw.FileResponse {
-  return Object.assign({}, response, {file: Object.assign({}, response.file, {value: null})});
+// the file response with only the item a tag file holds (the main one by default) and without its base64 value, the
+// file's data is kept in `buffer` already. readers take `items[0]`, so a list response's other items never sit on a
+// file they aren't
+function stripFileResponse(
+  response: RestResponsesRaw.FileResponse,
+  item: RestResponsesRaw.FileResponseItem = response.items[0],
+): RestResponsesRaw.FileResponse {
+  return Object.assign({}, response, {
+    items: [Object.assign({}, item, {file: Object.assign({}, item.file, {value: null})})],
+  });
 }
 
 function addStorageUrlToTag(tag: TagResult, response: RestResponsesRaw.FileResponse): void {
-  if (!response.storage) {
+  const { storage } = response.items[0];
+  if (!storage) {
     return;
   }
   let responses = storageResponses.get(tag.variables);
@@ -2453,9 +2461,9 @@ function addStorageUrlToTag(tag: TagResult, response: RestResponsesRaw.FileRespo
     storageResponses.set(tag.variables, responses);
   }
   const stripped = stripFileResponse(response);
-  responses[response.storage.urls.cdn] = stripped;
-  responses[response.storage.urls.vanity] = stripped;
-  tag.text += response.storage.urls.cdn;
+  responses[storage.urls.cdn] = stripped;
+  responses[storage.urls.vanity] = stripped;
+  tag.text += storage.urls.cdn;
 }
 
 export function getStorageResponse(tag: TagResult, url: string): RestResponsesRaw.FileResponse | null {
@@ -2467,7 +2475,7 @@ export function getStorageResponse(tag: TagResult, url: string): RestResponsesRa
 // would, so embeds/components can link to it as is. any other nsb.gg link still gets downloaded
 function isTagStorageMediaUrl(tag: TagResult, url: string): boolean {
   const response = getStorageResponse(tag, url.trim());
-  return !!response && !response.file.has_nsfw;
+  return !!response && !response.items[0].file.has_nsfw;
 }
 
 function isAllowedTagMediaUrl(tag: TagResult, url: string): boolean {
@@ -2570,7 +2578,7 @@ function addFileResponseToTag(
     throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
   }
 
-  const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+  const data = (response.items[0].file.value) ? Buffer.from(response.items[0].file.value, 'base64') : Buffer.alloc(0);
   if (context.maxAttachmentSize < data.length) {
     throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: context.maxAttachmentSize}));
   }
@@ -2579,7 +2587,7 @@ function addFileResponseToTag(
 
   tag.files.push({
     buffer: data,
-    filename: response.file.filename_safe,
+    filename: response.items[0].file.filename_safe,
     response: stripFileResponse(response),
     spoiler: false,
     url: '',
@@ -2591,8 +2599,8 @@ function addFileResponseToTag(
 // one the tag renamed (or made unique, `image_2.png`) keeps its own
 export function getTagFileTitle(file: TagResult['files'][number]): string | undefined {
   const response = file.response;
-  if (response && file.filename === response.file.filename_safe && response.file.filename !== file.filename) {
-    return response.file.filename;
+  if (response && file.filename === response.items[0].file.filename_safe && response.items[0].file.filename !== file.filename) {
+    return response.items[0].file.filename;
   }
   return undefined;
 }
@@ -2641,20 +2649,20 @@ async function attachFileFromUrl(
         url,
       }).then((x) => jobWaitForResponse(context, x, signal)));
       cached = {
-        data: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
+        data: (response.items[0].file.value) ? Buffer.from(response.items[0].file.value, 'base64') : Buffer.alloc(0),
         response: stripFileResponse(response),
       };
       cachedResults.set(url, cached);
     }
     const { response } = cached;
 
-    let filename = options.filename || response.file.filename_safe;
+    let filename = options.filename || response.items[0].file.filename_safe;
     if (options.uniqueFilename) {
       filename = getUniqueFilename(tag, filename);
     }
 
     let data: Buffer | string = cached.data;
-    if (response.file.metadata.mimetype.startsWith('text/')) {
+    if (response.items[0].file.metadata.mimetype.startsWith('text/')) {
       data = data.toString();
     }
 
@@ -3615,7 +3623,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    const { result } = await withDeadline(context, tag, () => utilitiesCodeRun(context, {
+    const codeRun = await withDeadline(context, tag, () => utilitiesCodeRun(context, {
       code,
       files,
       language,
@@ -3625,6 +3633,7 @@ const ScriptTags = Object.freeze({
       urls: Object.values(urls).filter((x) => x.url),
       version: version || undefined,
     }));
+    const { result } = codeRun;
 
     if (result.error) {
       // stderr is the tag's own code failing (or a `console.error` on purpose, thousands of tags stop with one and exit 0,
@@ -3634,7 +3643,7 @@ const ScriptTags = Object.freeze({
       // missing from an older api/notsocode, the files decide alone then
       const exitedWithError = (typeof(result.exit_code) === 'number' && result.exit_code !== 0);
       if (!exitedWithError && (CODE_EXECUTION_FFMPEG_STDERR_BANNER.test(result.error) || result.error.includes('Input'))) {
-        if (result.files.every((x) => x.file.filename === '__internals__.json')) {
+        if (result.items.every((x) => x.file.filename === '__internals__.json')) {
           throw new TagError(result.error);
         }
       } else {
@@ -3642,11 +3651,11 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    if (result.files.length) {
+    if (result.items.length) {
       const maxFileSize = context.maxAttachmentSize;
-      for (let fileResponse of result.files) {
-        const { filename, value } = fileResponse.file;
-        const { size } = fileResponse.file.metadata;
+      for (let output of result.items) {
+        const { filename, value } = output.file;
+        const { size } = output.file.metadata;
         // oversized output files used to be skipped here without a word, the error further down was unreachable.
         // only the internal state file is still skipped when it's too big
         if (maxFileSize < size && filename === '__internals__.json') {
@@ -4108,7 +4117,8 @@ const ScriptTags = Object.freeze({
         tag.files.push({
           buffer: Buffer.from(value || '', 'base64'),
           filename,
-          response: stripFileResponse(fileResponse),
+          // outputs have no response of their own, the run's took stands in for theirs
+          response: stripFileResponse({arguments: null, items: [output], took: codeRun.took}),
           url: '',
         });
 
@@ -5558,10 +5568,10 @@ const ScriptTags = Object.freeze({
         url,
         waveform: true,
       }));
-      const filename = filenameArg || response.file.filename_safe;
+      const filename = filenameArg || response.items[0].file.filename_safe;
       const waveform = response.arguments && response.arguments.waveform;
 
-      const data: Buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+      const data: Buffer = (response.items[0].file.value) ? Buffer.from(response.items[0].file.value, 'base64') : Buffer.alloc(0);
       if (maxFileSize < data.length) {
         throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
@@ -5571,7 +5581,7 @@ const ScriptTags = Object.freeze({
 
       tag.files.push({
         buffer: data,
-        durationSecs: 2147483647, //response.file.metadata.duration / 1000,
+        durationSecs: 2147483647, //response.items[0].file.metadata.duration / 1000,
         filename,
         response: stripFileResponse(response),
         spoiler: false,
@@ -7400,9 +7410,9 @@ const ScriptTags = Object.freeze({
     }
 
     const response = job.result.response;
-    const filename = response.file.filename_safe;
+    const filename = response.items[0].file.filename_safe;
 
-    const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+    const data = (response.items[0].file.value) ? Buffer.from(response.items[0].file.value, 'base64') : Buffer.alloc(0);
     if (maxFileSize < data.length) {
       throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
     }
@@ -7480,7 +7490,7 @@ const ScriptTags = Object.freeze({
     }
 
     const response = job.result.response;
-    if (response.storage) {
+    if (response.items[0].storage) {
       addStorageUrlToTag(tag, response);
     }
 
@@ -7519,9 +7529,9 @@ const ScriptTags = Object.freeze({
     }
 
     const response = job.result.response;
-    const filename = response.file.filename_safe;
+    const filename = response.items[0].file.filename_safe;
 
-    const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+    const data = (response.items[0].file.value) ? Buffer.from(response.items[0].file.value, 'base64') : Buffer.alloc(0);
     if (maxFileSize < data.length) {
       throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
     }
@@ -7564,7 +7574,7 @@ const ScriptTags = Object.freeze({
     }
 
     const response = job.result.response;
-    if (response.storage) {
+    if (response.items[0].storage) {
       addStorageUrlToTag(tag, response);
     }
 
@@ -8027,10 +8037,10 @@ const ScriptTags = Object.freeze({
         }
       }
 
-      const filename = response.file.filename_safe;
+      const filename = response.items[0].file.filename_safe;
       
-      let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-      if (response.file.metadata.mimetype.startsWith('text/')) {
+      let data: Buffer | string = (response.items[0].file.value) ? Buffer.from(response.items[0].file.value, 'base64') : Buffer.alloc(0);
+      if (response.items[0].file.metadata.mimetype.startsWith('text/')) {
         data = data.toString();
       }
 
@@ -8123,7 +8133,7 @@ const ScriptTags = Object.freeze({
         }
       }
 
-      if (response.storage) {
+      if (response.items[0].storage) {
         addStorageUrlToTag(tag, response);
       } else {
         // the other file functions check this before they start, this only knows it's adding a file now
@@ -8131,10 +8141,10 @@ const ScriptTags = Object.freeze({
           throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
         }
         const maxFileSize = context.maxAttachmentSize;
-        const filename = response.file.filename_safe;
+        const filename = response.items[0].file.filename_safe;
 
-        let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-        if (response.file.metadata.mimetype.startsWith('text/')) {
+        let data: Buffer | string = (response.items[0].file.value) ? Buffer.from(response.items[0].file.value, 'base64') : Buffer.alloc(0);
+        if (response.items[0].file.metadata.mimetype.startsWith('text/')) {
           data = data.toString();
         }
 
@@ -8221,7 +8231,7 @@ const ScriptTags = Object.freeze({
       }
 
       const response = job.result.response;
-      if (response.storage) {
+      if (response.items[0].storage) {
         addStorageUrlToTag(tag, response);
       }
 

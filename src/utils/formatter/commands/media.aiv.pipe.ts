@@ -257,7 +257,7 @@ export async function createMessage(
         }));
         if (job.result.response) {
           if (fileResponse) {
-            job.result.response.file_old = fileResponse.file_old;
+            job.result.response.items[0].source = fileResponse.items[0].source;
             job.result.response.took += fileResponse.took;
           }
           fileResponse = job.result.response;
@@ -272,7 +272,7 @@ export async function createMessage(
           safe, ...commandArgs,
         }, signal));
         if (fileResponse) {
-          response.file_old = fileResponse.file_old;
+          response.items[0].source = fileResponse.items[0].source;
           response.took += fileResponse.took;
         }
         fileResponse = response;
@@ -297,9 +297,10 @@ export async function createMessage(
     }
 
     if (fileResponse) {
-      const buffer = (fileResponse.file.value) ? Buffer.from(fileResponse.file.value, 'base64') : Buffer.alloc(0);
+      const piped = fileResponse.items[0].file;
+      const buffer = (piped.value) ? Buffer.from(piped.value, 'base64') : Buffer.alloc(0);
       file = {
-        filename: `piped-media.${fileResponse.file.metadata.extension || 'png'}`,
+        filename: `piped-media.${piped.metadata.extension || 'png'}`,
         value: buffer,
       };
     }

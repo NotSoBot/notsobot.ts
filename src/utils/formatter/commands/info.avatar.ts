@@ -47,9 +47,10 @@ export async function createMessage(
         maxFileSize,
         url: avatarUrl,
       }).then((x) => jobWaitForResponse(context, x));
+      const fetched = response.items[0].file;
       file = {
-        filename: response.file.filename,
-        value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
+        filename: fetched.filename,
+        value: (fetched.value) ? Buffer.from(fetched.value, 'base64') : Buffer.alloc(0),
       };
     } catch(error) {
       

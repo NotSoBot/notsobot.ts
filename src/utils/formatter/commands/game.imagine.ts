@@ -179,11 +179,12 @@ function createPlayer(userId: string): GamePlayer {
 
 
 function imageFromResponse(response: RestResponsesRaw.FileResponse, prompt: string): GameImage {
+  const { file } = response.items[0];
   return {
-    extension: response.file.metadata.extension || 'png',
+    extension: file.metadata.extension || 'png',
     prompt,
-    spoiler: response.file.has_nsfw,
-    value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
+    spoiler: file.has_nsfw,
+    value: (file.value) ? Buffer.from(file.value, 'base64') : Buffer.alloc(0),
   };
 }
 

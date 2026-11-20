@@ -2199,8 +2199,8 @@ export async function jobReply(
       response = options.show(response);
     }
     // several files (like pixel art's sprites) are all posted together
-    const reply = (options.send) ? await options.send(response) : (response.files && 1 < response.files.length) ?
-      await mediaReplyFiles(context, response.files, {...replyOptions(response), took: response.took}) :
+    const reply = (options.send) ? await options.send(response) : (1 < response.items.length) ?
+      await mediaReplyFiles(context, response.items, {...replyOptions(response), took: response.took}) :
       await mediaReply(context, response, replyOptions(response));
     if (options.onSuccess) {
       try {
@@ -2451,10 +2451,11 @@ export function createPaginatorMediaCache(
         upload: false,
         url,
       }).then((x) => jobWaitForResponse(context, x)).then((response) => {
-        if (!response.file.value) {
+        const { file } = response.items[0];
+        if (!file.value) {
           throw new Error('Couldn\'t fetch the media');
         }
-        return {filename: response.file.filename_safe, value: Buffer.from(response.file.value, 'base64')};
+        return {filename: file.filename_safe, value: Buffer.from(file.value, 'base64')};
       });
       promise.catch(() => cache.delete(page));
       cache.set(page, promise);
@@ -3244,19 +3245,20 @@ export interface MediaReplyResponseOptions {
   spoiler?: boolean,
 }
 
-// a file response as `createMediaReplyMessage`'s value and options
+// a file response's main media (`items[0]`) as `createMediaReplyMessage`'s value and options
 function mediaReplyResponseOptions(
   response: RestResponsesRaw.FileResponse,
   options: MediaReplyResponseOptions,
 ): [Buffer, MediaReplyOptions] {
+  const { file, storage } = response.items[0];
   // discord sanitizes upload filenames like `filename_safe` does, the title shows the original (unicode, spaces) instead
   let filename = options.filename;
   let title: string | undefined;
   if (!filename) {
-    filename = response.file.filename_safe_base;
-    title = response.file.filename;
+    filename = file.filename_safe_base;
+    title = file.filename;
   }
-  const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+  const buffer = (file.value) ? Buffer.from(file.value, 'base64') : Buffer.alloc(0);
   return [buffer, {
     actions: options.actions,
     buttons: options.buttons,
@@ -3265,19 +3267,19 @@ function mediaReplyResponseOptions(
     descriptionBelow: options.descriptionBelow,
     details: options.details,
     embedFooter: options.embedFooter,
-    extension: response.file.metadata.extension,
+    extension: file.metadata.extension,
     hideDetails: options.hideDetails,
     filename,
-    framecount: response.file.metadata.framecount,
-    height: response.file.metadata.height,
-    mimetype: response.file.metadata.mimetype,
-    size: response.file.metadata.size,
-    spoiler: response.file.has_nsfw || options.spoiler,
-    storage: response.storage,
+    framecount: file.metadata.framecount,
+    height: file.metadata.height,
+    mimetype: file.metadata.mimetype,
+    size: file.metadata.size,
+    spoiler: file.has_nsfw || options.spoiler,
+    storage,
     title,
     took: response.took,
-    variableFrameSizes: response.file.metadata.variable_frame_sizes,
-    width: response.file.metadata.width,
+    variableFrameSizes: file.metadata.variable_frame_sizes,
+    width: file.metadata.width,
   }];
 }
 
@@ -3372,7 +3374,7 @@ export function createHostedExpiresText(
 
 export async function mediaReplyFiles(
   context: Command.Context | Interaction.InteractionContext,
-  entries: NonNullable<RestResponsesRaw.FileResponse['files']>,
+  entries: Array<RestResponsesRaw.FileResponseItem>,
   options: MediaReplyFilesOptions = {},
 ) {
   const { message } = await createMediaReplyFilesMessage(context, entries, options);
@@ -3383,7 +3385,7 @@ export async function mediaReplyFiles(
 // paginator adds its buttons and sends it, so no `actions`
 export async function createMediaReplyFilesPage(
   context: Command.Context | Interaction.InteractionContext,
-  entries: NonNullable<RestResponsesRaw.FileResponse['files']>,
+  entries: Array<RestResponsesRaw.FileResponseItem>,
   options: Omit<MediaReplyFilesOptions, 'actions'> = {},
 ): Promise<PageObject> {
   const { isComponentsV2, message } = await createMediaReplyFilesMessage(context, entries, options);
@@ -3414,7 +3416,7 @@ function uniqueFilenames(filenames: Array<string>): Array<string> {
 
 async function createMediaReplyFilesMessage(
   context: Command.Context | Interaction.InteractionContext,
-  entries: NonNullable<RestResponsesRaw.FileResponse['files']>,
+  entries: Array<RestResponsesRaw.FileResponseItem>,
   options: MediaReplyFilesOptions,
 ): Promise<{
   isComponentsV2: boolean,

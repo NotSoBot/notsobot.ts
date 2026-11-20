@@ -126,10 +126,11 @@ async function createMediaMessage(
   const { translate } = translator;
   // the api only says when the cap picked the quality, so they don't have the tier that gets `best` (1440p is plus)
   const describeQuality = (response: RestResponsesRaw.FileResponse): string | undefined => {
-    if (!response.download_quality) {
+    const quality = response.items[0].download_quality;
+    if (!quality) {
       return undefined;
     }
-    const { best, capped, tier } = response.download_quality;
+    const { best, capped, tier } = quality;
     if (tier === 'premium_plus') {
       const text = translate('tools_download.quality_upsell_plus', {best, quality: capped});
       return `-# ${linkPremiumSkuName(context, text, DiscordSkuIds.USER_NOTSOPREMIUM_PLUS)}`;
@@ -139,16 +140,16 @@ async function createMediaMessage(
   };
   const describe = (response: RestResponsesRaw.FileResponse) => {
     const lines = [
-      (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).above : undefined,
+      (options.post && response.items[0].post) ? formatPost(translator, response.items[0].post, {spoiler: !!args.spoiler}).above : undefined,
       describeQuality(response),
     ].filter(Boolean);
     return (lines.length) ? lines.join('\n') : undefined;
   };
   const describeBelow = (response: RestResponsesRaw.FileResponse) => {
-    return (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).below : undefined;
+    return (options.post && response.items[0].post) ? formatPost(translator, response.items[0].post, {spoiler: !!args.spoiler}).below : undefined;
   };
   const describeEmbedFooter = (response: RestResponsesRaw.FileResponse) => {
-    return (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).footer : undefined;
+    return (options.post && response.items[0].post) ? formatPost(translator, response.items[0].post, {spoiler: !!args.spoiler}).footer : undefined;
   };
   // the same text on every page, which page it is replaces the size line when it's one of a post's. `.embed` has no
   // size line at all (it's the post, like auto-embed), only the page
@@ -163,7 +164,7 @@ async function createMediaMessage(
   // a post's ten: the post's text from the first, the quality upsell from any that has one
   const galleryOptions = (page: GalleryPage, pageText?: string) => {
     const [ first ] = page.responses;
-    const quality = page.responses.find((response) => response.download_quality) || first;
+    const quality = page.responses.find((response) => response.items[0].download_quality) || first;
     return {
       ...replyOptions(first, pageText),
       description: joinLines(describe(quality), galleryNotice(translator, page)),
@@ -206,29 +207,20 @@ const GALLERY_SIZE = MEDIA_REPLY_FILES_MAX;
 
 // how a post's other pages are downloaded
 interface PageFetchers {
-  // the ten starting at `start` in one request, as `files` with `gallery`
+  // the ten starting at `start` in one request, as `items` (each with its `position`) with `gallery`
   gallery: (start: number) => Promise<RestResponsesRaw.FileResponse>,
   // one media, at its position
   page: (position: number) => Promise<RestResponsesRaw.FileResponse>,
 }
 
-// a response's media by their position: a gallery request's `files` (`gallery.positions` says which each is, the first
-// is the response's own `file`), or only itself
+// a post's media in a response by their `position` (one, or a gallery request's ten), each as its own response
 function galleryResponses(response: RestResponsesRaw.FileResponse): Array<[number, RestResponsesRaw.FileResponse]> {
-  const { files, gallery, pages } = response;
-  if (!pages) {
-    return [];
-  }
-  if (!gallery || !files) {
-    return [[pages.position, response]];
-  }
   const entries: Array<[number, RestResponsesRaw.FileResponse]> = [];
-  gallery.positions.forEach((position, index) => {
-    const file = files[index];
-    if (file) {
-      entries.push([position, {...response, ...file, files: undefined, gallery: undefined, pages: {count: pages.count, position}}]);
+  for (const item of response.items) {
+    if (typeof(item.position) === 'number') {
+      entries.push([item.position, {...response, items: [item]}]);
     }
-  });
+  }
   return entries;
 }
 
@@ -247,13 +239,13 @@ interface PageRenderers {
 
 // what a media gallery item can show: a picture, or a video that has one (one without is only audio)
 function isGalleryMedia(response: RestResponsesRaw.FileResponse): boolean {
-  const { metadata } = response.file;
+  const { metadata } = response.items[0].file;
   const mimetype = metadata.mimetype || '';
   return (mimetype.startsWith('image/') || mimetype.startsWith('video/')) && !!(metadata.width && metadata.height);
 }
 
-function galleryEntries(gallery: GalleryPage): NonNullable<RestResponsesRaw.FileResponse['files']> {
-  return gallery.responses.map((response) => ({file: response.file, file_old: response.file_old, storage: response.storage}));
+function galleryEntries(gallery: GalleryPage): Array<RestResponsesRaw.FileResponseItem> {
+  return gallery.responses.map((response) => response.items[0]);
 }
 
 // "took" is the command's, only on the ten it started with (the others' are zeroed by `replyWithPages`)
@@ -284,11 +276,10 @@ function replyWithPages(
 ) {
   const { language, translate } = translator;
   const pages = response.pages!;
+  // the page that was asked for (the site's last when it was past the end)
+  const askedPosition = response.items[0].position || 0;
   // what came through by position, failed ones aren't kept so they can be tried again
   const responses = new Map<number, RestResponsesRaw.FileResponse>(galleryResponses(response));
-  // the first response brought its ten (`gallery`), the others come the same way. without it (an api from before it)
-  // every position is its own request
-  const batched = !!response.gallery;
   const fetching = new Map<number, Promise<RestResponsesRaw.FileResponse>>();
   const fetchCached = (position: number): Promise<RestResponsesRaw.FileResponse> => {
     const page = responses.get(position);
@@ -341,7 +332,7 @@ function replyWithPages(
   const fetchGallery = async (index: number): Promise<GalleryPage> => {
     const missing = galleryPositions(index).filter((position) => !responses.has(position));
     let error: any;
-    if (batched && missing.length && missing.length === galleryPositions(index).length) {
+    if (missing.length && missing.length === galleryPositions(index).length) {
       // none of it yet, the whole ten in one request
       try {
         await fetchGalleryRequest(index);
@@ -349,7 +340,7 @@ function replyWithPages(
         error = fetchError;
       }
     } else if (missing.length) {
-      // the ones that failed before (or every one without `batched`)
+      // the ones that failed before, one by one
       const results = await Promise.allSettled(missing.map(fetchCached));
       for (let result of results) {
         if (result.status === 'rejected' && error === undefined) {
@@ -377,11 +368,11 @@ function replyWithPages(
   };
 
   return (async () => {
-    const firstIndex = Math.floor(pages.position / GALLERY_SIZE);
+    const firstIndex = Math.floor(askedPosition / GALLERY_SIZE);
     // the first ten came with the response (its failed ones aren't tried again right away)
     let first: GalleryPage | null = null;
     if (options.gallery !== false) {
-      first = (batched) ? collectGallery(firstIndex) : await fetchGallery(firstIndex);
+      first = collectGallery(firstIndex);
     }
     if (first && 2 <= first.responses.length && first.responses.every(isGalleryMedia)) {
       const pageLimit = Math.ceil(pages.count / GALLERY_SIZE);
@@ -400,7 +391,7 @@ function replyWithPages(
     }
 
     // one at a time, the ten's downloads stay in the cache for paging to them
-    const paginator = createPaginator(pages.position + 1, pages.count, async (pageNumber) => {
+    const paginator = createPaginator(askedPosition + 1, pages.count, async (pageNumber) => {
       const page = await fetchCached(pageNumber - 1);
       return render.single(page, createPageText(pageNumber, pages.count));
     });
@@ -450,7 +441,7 @@ async function autoEmbedReply(
   const buttons = [createAutoEmbedUndoButton(context, translator)];
   // no size line, which page it is still shows in its place
   const replyOptions = (page: RestResponsesRaw.FileResponse, pageText?: string) => {
-    const post: FormattedPost = (isAutoEmbedTextOn(context) && page.post) ? formatPost(translator, page.post, {spoiler}) : {};
+    const post: FormattedPost = (isAutoEmbedTextOn(context) && page.items[0].post) ? formatPost(translator, page.items[0].post, {spoiler}) : {};
     return {
       buttons,
       description: post.above,

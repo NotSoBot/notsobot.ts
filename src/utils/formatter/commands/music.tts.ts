@@ -35,8 +35,9 @@ export async function createMessage(
     voice: args.use && args.use.voice,
     voiceId: args.use && args.use.voiceId,
   });
-  if (!response.storage) {
+  const { storage } = response.items[0];
+  if (!storage) {
     throw new Error('Text to Speech wasn\'t uploaded, try again');
   }
-  return MusicPlay.createMessage(context, {query: response.storage.urls.cdn});
+  return MusicPlay.createMessage(context, {query: storage.urls.cdn});
 }

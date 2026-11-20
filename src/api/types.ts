@@ -2546,17 +2546,18 @@ export namespace RestResponsesRaw {
     arguments: null | Record<string, any>,
     // text to speech with a cloned voice, see `GenerateTag`
     credits_alert?: CreditsAlert,
-    // a fetch (`.download`) without (enough) premium whose video had a better quality than their cap, `tier` is the
-    // lowest one that downloads `best`
-    download_quality?: {best: string, capped: string, tier: 'premium' | 'premium_plus'},
-    // a fetch (`.download`) of a social media post: its text and who posted it, whatever the site gave (auto-embed's text)
-    post?: FetchMediaPost | null,
-    // a fetch of a post with more than one media (a gallery/carousel): how many and which one this is (0 based, the
-    // position the site picked when the asked one was past the end). each is the same url at another `media_position`
-    pages?: {count: number, position: number},
-    // a fetch with `mediaGallerySize` of a post with more than one media: which position each of `files` is (the first
-    // is `pages.position`, the asked one) and the group's ones that couldn't be downloaded or were left out
-    gallery?: {failed: Array<number>, positions: Array<number>},
+    // a fetch of a post with more than one media (a gallery/carousel): how many it has (each item says which one it is,
+    // its `position`, the ones of a `mediaGallerySize` group that couldn't be downloaded are left out). each is the same
+    // url at another `media_position`
+    pages?: {count: number},
+    // every media of the response, never empty: the first is the main one (a job that made several, like pixel art's
+    // sprites or a post's gallery, has them all here in order)
+    items: Array<FileResponseItem>,
+    took: number,
+  }
+
+  // one media of a `FileResponse` (or a code run's output)
+  export interface FileResponseItem {
     file: {
       filename: string,
       filename_base: string,
@@ -2576,8 +2577,12 @@ export namespace RestResponsesRaw {
       has_nsfw: boolean,
       value: null | string,
     },
-    // null when nothing was edited (a code run's output)
-    file_old: null | {
+    // a fetch (`.download`) without (enough) premium whose video had a better quality than their cap, `tier` is the
+    // lowest one that downloads `best`
+    download_quality?: {best: string, capped: string, tier: 'premium' | 'premium_plus'},
+    // what it was made from (the input before the edit, a download before it was converted), null when nothing was
+    // edited (a code run's output)
+    source: null | {
       metadata: {
         duration: number,
         extension: string,
@@ -2588,10 +2593,13 @@ export namespace RestResponsesRaw {
         width: number,
       },
     },
-    // a job that made several files (like pixel art's sprites): each of them, `file`/`file_old`/`storage` are the first's
-    files?: Array<Pick<FileResponse, 'file' | 'file_old' | 'storage'>>,
+    // a fetch (`.download`) of a social media post: its text and who posted it, whatever the site gave (auto-embed's
+    // text). per item since a page can have its own (a reddit gallery image's caption and link are in its text)
+    post?: FetchMediaPost | null,
+    // a fetch of a post with more than one media (`pages`): which of them this is (0 based, the one the site picked when
+    // the asked one was past the end)
+    position?: number,
     storage: null | FileResponseStorage,
-    took: number,
   }
 
   export interface FileResponseStorage {
@@ -4641,8 +4649,8 @@ export namespace RestResponsesRaw {
       // the run's exit status (the compile step's when that failed), 128 + the signal when the kernel killed it. missing
       // from an older api/notsocode, null when docker didn't give one
       exit_code?: number | null,
-      // `file.filename` is the output's own name
-      files: Array<FileResponse>,
+      // its output files, `file.filename` is the output's own name
+      items: Array<FileResponseItem>,
       output: string,
     },
     took: number,

@@ -407,7 +407,8 @@ export async function getMediaReplyOptions(
     const extension = file.filename.slice(dot + 1);
     const value = (typeof(file.buffer) === 'string') ? Buffer.from(file.buffer) : file.buffer;
     const { response } = file;
-    const metadata = (response) ? response.file.metadata : null;
+    const item = (response) ? response.items[0] : null;
+    const metadata = (item) ? item.file.metadata : null;
     return {
       options: {
         altText: file.description,
@@ -418,7 +419,7 @@ export async function getMediaReplyOptions(
         height: (metadata) ? metadata.height : undefined,
         mimetype: (metadata) ? metadata.mimetype : getMimetypeFromExtension(extension),
         size: value.length,
-        spoiler: file.spoiler || (!!response && response.file.has_nsfw),
+        spoiler: file.spoiler || (!!item && item.file.has_nsfw),
         took: (response) ? response.took : undefined,
         width: (metadata) ? metadata.width : undefined,
       },
@@ -432,7 +433,8 @@ export async function getMediaReplyOptions(
       const [ , url, vanity ] = match;
       // uploads from the tag's own functions are saved, anything else gets looked up
       const response = TagFormatter.getStorageResponse(parsedTag, url);
-      let storage = (response) ? response.storage : null;
+      const item = (response) ? response.items[0] : null;
+      let storage = (item) ? item.storage : null;
       if (!storage) {
         try {
           storage = await fetchFileVanity(context, vanity);
@@ -449,7 +451,7 @@ export async function getMediaReplyOptions(
           height: storage.metadata.height,
           mimetype: storage.metadata.mimetype,
           size: storage.metadata.size,
-          spoiler: !!response && response.file.has_nsfw,
+          spoiler: !!item && item.file.has_nsfw,
           storage,
           took: (response) ? response.took : undefined,
           width: storage.metadata.width,

@@ -16,7 +16,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await funAsciiArtFromText(context, args);
-  const file = response.file;
+  const { file } = response.items[0];
   const text = response.arguments?.text;
 
   let content: string | undefined;
@@ -24,7 +24,7 @@ export async function createMessage(
     content = Markup.codeblock(text, {language: 'fix'});
   }
 
-  const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+  const value = (file.value) ? Buffer.from(file.value, 'base64') : Buffer.alloc(0);
   return mediaReplyFromOptions(context, value, {
     content,
     extension: file.metadata.extension,

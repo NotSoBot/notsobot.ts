@@ -97,18 +97,18 @@ export async function createMessage(
     } else {
       payload.description = Markup.codeblock(result.output, {language: languageMarkupString}); 
     }
-  } else if (result.files.length) {
-    payload.description = translate('tools_code.file_outputted', {files_count: result.files.length.toLocaleString(locale)});
-  } else if (!result.files.length) {
+  } else if (result.items.length) {
+    payload.description = translate('tools_code.file_outputted', {files_count: result.items.length.toLocaleString(locale)});
+  } else if (!result.items.length) {
     payload.description = translate('tools_code.no_content');
   }
 
-  if (result.files.length) {
+  if (result.items.length) {
     let currentFileSize = 0;
     const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE);
-    for (let fileResponse of result.files) {
-      const { filename, value } = fileResponse.file;
-      const { size } = fileResponse.file.metadata;
+    for (let item of result.items) {
+      const { filename, value } = item.file;
+      const { size } = item.file.metadata;
       if (filename === '__internals__.json') {
         continue;
       }

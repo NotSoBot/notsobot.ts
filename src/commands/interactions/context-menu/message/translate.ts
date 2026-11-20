@@ -65,12 +65,13 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
     const to = await DefaultParameters.locale(context);
     if (args.url) {
       const response = await utilitiesFetchMedia(context, {url: args.url}).then((x) => jobWaitForResponse(context, x));
+      const fetched = response.items[0].file;
       const file = {
-        filename: response.file.filename,
-        value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
+        filename: fetched.filename,
+        value: (fetched.value) ? Buffer.from(fetched.value, 'base64') : Buffer.alloc(0),
       };
 
-      const { mimetype } = response.file.metadata;
+      const { mimetype } = fetched.metadata;
       if (mimetype.startsWith('audio/') || mimetype.startsWith('video/')) {
         // transcribe
         return Formatter.Commands.ToolsTranscribeTranslate.createMessage(context, {

@@ -2035,9 +2035,9 @@ export function mediaUrl(
                 if (!job.result.response) {
                   throw new Error('Imagine did not return a response (Should not happen, report this)');
                 }
-                const response = job.result.response;
-                if (response.storage) {
-                  return response.storage.urls.cdn;
+                const { storage } = job.result.response.items[0];
+                if (storage) {
+                  return storage.urls.cdn;
                 }
               }; break;
               case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
@@ -2334,9 +2334,9 @@ export function mediaUrls(
                 if (!job.result.response) {
                   throw new Error('Imagine did not return a response (Should not happen, report this)');
                 }
-                const response = job.result.response;
-                if (response.storage) {
-                  urls.push(response.storage.urls.cdn);
+                const { storage } = job.result.response.items[0];
+                if (storage) {
+                  urls.push(storage.urls.cdn);
                 }
               }; break;
               case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {

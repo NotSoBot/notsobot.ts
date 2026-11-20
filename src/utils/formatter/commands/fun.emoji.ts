@@ -133,9 +133,10 @@ export async function createMessage(
         try {
           const job = await MediaIVManipulationResize.createJob(context, {size, url}).then((x) => jobWaitForResult(context, x));
           if (job.result.response) {
+            const { file } = job.result.response.items[0];
             resolve({
-              filename: job.result.response.file.filename,
-              value: (job.result.response.file.value) ? Buffer.from(job.result.response.file.value, 'base64') : Buffer.alloc(0),
+              filename: file.filename,
+              value: (file.value) ? Buffer.from(file.value, 'base64') : Buffer.alloc(0),
             });
           } else if (job.result.error) {
             throw new Error(`Emoji Resize Job Failed: ${job.result.error}`);

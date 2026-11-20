@@ -122,12 +122,13 @@ export async function createMessage(
     describeBelow: () => descriptionBelow,
     describeEmbedFooter: () => embedFooter,
     show: (response) => {
-      // the first file is the grid (`response.file`), the rest each sprite. Shown again later they have no "took",
-      // it would count from when the command was run
-      const files = response.files || [];
-      grid = {...response, files: undefined, took: 0};
-      sprites = files.slice(1).map((entry) => ({...response, ...entry, files: undefined, took: 0}));
-      return {...response, files: undefined};
+      // the first item is the grid, the rest each sprite. Shown again later they have no "took", it would count from
+      // when the command was run
+      const [ first, ...rest ] = response.items;
+      grid = {...response, items: [first], took: 0};
+      sprites = rest.map((item) => ({...response, items: [item], took: 0}));
+      // only the grid, several items would be posted as a gallery
+      return {...response, items: [first]};
     },
   });
 }
