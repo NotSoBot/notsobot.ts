@@ -6143,6 +6143,8 @@ export const Czech: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} zhlédnutí',
   'tools_embed.media_failed': 'Média tohoto příspěvku se nepodařilo získat',
   'tools_embed.gallery_failed': 'Nepodařilo se získat {count} médií z tohoto příspěvku',
+  'tools_embed.undo': 'Vrátit',
+  'tools_embed.undo_not_allowed': 'Vrátit to může jen ten, kdo odkaz poslal, nebo někdo, kdo tu může spravovat zprávy',
   'tools_exif.media_exif_information': 'Exif informace o médiu',
   'tools_exif.color_profile': '**Barevný profil**: {interpretation}',
   'tools_exif.dimensions_x': '**Rozměry**: {width}x{height}',

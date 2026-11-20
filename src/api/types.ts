@@ -2348,6 +2348,9 @@ export namespace RestOptions {
     locale?: string,
     maxFileSize?: number,
     mediaFormat?: string,
+    // a post with more than one media also brings the rest of its group of this many (0-9, 10-19, ..) holding
+    // `mediaPosition`, as `files` with `gallery`, in one request
+    mediaGallerySize?: number,
     mediaPosition?: number,
     url: string,
   }
@@ -2551,6 +2554,9 @@ export namespace RestResponsesRaw {
     // a fetch of a post with more than one media (a gallery/carousel): how many and which one this is (0 based, the
     // position the site picked when the asked one was past the end). each is the same url at another `media_position`
     pages?: {count: number, position: number},
+    // a fetch with `mediaGallerySize` of a post with more than one media: which position each of `files` is (the first
+    // is `pages.position`, the asked one) and the group's ones that couldn't be downloaded or were left out
+    gallery?: {failed: Array<number>, positions: Array<number>},
     file: {
       filename: string,
       filename_base: string,

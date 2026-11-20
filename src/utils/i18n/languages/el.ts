@@ -6143,6 +6143,8 @@ export const Greek: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} προβολές',
   'tools_embed.media_failed': 'Δεν ήταν δυνατή η λήψη των πολυμέσων αυτής της ανάρτησης',
   'tools_embed.gallery_failed': 'Δεν ήταν δυνατή η λήψη {count} πολυμέσων αυτής της ανάρτησης',
+  'tools_embed.undo': 'Αναίρεση',
+  'tools_embed.undo_not_allowed': 'Μόνο όποιος δημοσίευσε τον σύνδεσμο ή κάποιος που μπορεί να διαχειρίζεται μηνύματα εδώ μπορεί να το αναιρέσει',
   'tools_exif.media_exif_information': 'Πληροφορίες Exif πολυμέσου',
   'tools_exif.color_profile': '**Προφίλ χρώματος**: {interpretation}',
   'tools_exif.dimensions_x': '**Διαστάσεις**: {width}x{height}',

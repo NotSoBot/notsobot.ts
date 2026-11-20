@@ -6143,6 +6143,8 @@ export const Japanese: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} 回再生',
   'tools_embed.media_failed': 'この投稿のメディアを取得できませんでした',
   'tools_embed.gallery_failed': 'この投稿のメディアのうち {count} 件を取得できませんでした',
+  'tools_embed.undo': '元に戻す',
+  'tools_embed.undo_not_allowed': '元に戻せるのはリンクを投稿した人か、ここでメッセージを管理できる人だけです',
   'tools_exif.media_exif_information': 'メディアのExif情報',
   'tools_exif.color_profile': '**カラープロファイル**: {interpretation}',
   'tools_exif.dimensions_x': '**解像度**: {width}x{height}',

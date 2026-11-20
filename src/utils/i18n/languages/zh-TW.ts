@@ -6143,6 +6143,8 @@ export const ChineseTraditional: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} 次觀看',
   'tools_embed.media_failed': '無法取得此貼文的媒體',
   'tools_embed.gallery_failed': '無法取得此貼文的 {count} 個媒體',
+  'tools_embed.undo': '復原',
+  'tools_embed.undo_not_allowed': '只有發布連結的人或能在這裡管理訊息的人才能復原',
   'tools_exif.media_exif_information': '媒體 Exif 資訊',
   'tools_exif.color_profile': '**色彩描述檔**：{interpretation}',
   'tools_exif.dimensions_x': '**尺寸**：{width}x{height}',

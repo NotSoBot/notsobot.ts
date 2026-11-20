@@ -6143,6 +6143,8 @@ export const Russian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} просмотров',
   'tools_embed.media_failed': 'Не удалось получить медиа этого поста',
   'tools_embed.gallery_failed': 'Не удалось получить {count} медиа из этого поста',
+  'tools_embed.undo': 'Отменить',
+  'tools_embed.undo_not_allowed': 'Отменить это может только тот, кто отправил ссылку, или тот, кто может управлять сообщениями здесь',
   'tools_exif.media_exif_information': 'Exif-информация файла',
   'tools_exif.color_profile': '**Цветовой профиль**: {interpretation}',
   'tools_exif.dimensions_x': '**Размеры**: {width}x{height}',

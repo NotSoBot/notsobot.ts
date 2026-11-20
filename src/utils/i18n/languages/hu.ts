@@ -6143,6 +6143,8 @@ export const Hungarian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} megtekintés',
   'tools_embed.media_failed': 'Nem sikerült lekérni a bejegyzés médiáját',
   'tools_embed.gallery_failed': 'A bejegyzés médiái közül {count} nem tölthető le',
+  'tools_embed.undo': 'Visszavonás',
+  'tools_embed.undo_not_allowed': 'Ezt csak a link beküldője vagy valaki, aki itt kezelheti az üzeneteket, vonhatja vissza',
   'tools_exif.media_exif_information': 'Média Exif-információi',
   'tools_exif.color_profile': '**Színprofil**: {interpretation}',
   'tools_exif.dimensions_x': '**Méretek**: {width}x{height}',

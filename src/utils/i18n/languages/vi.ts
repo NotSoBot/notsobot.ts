@@ -6143,6 +6143,8 @@ export const Vietnamese: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} lượt xem',
   'tools_embed.media_failed': 'Không thể lấy nội dung đa phương tiện của bài đăng này',
   'tools_embed.gallery_failed': 'Không thể lấy {count} nội dung đa phương tiện của bài đăng này',
+  'tools_embed.undo': 'Hoàn tác',
+  'tools_embed.undo_not_allowed': 'Chỉ người đã đăng liên kết hoặc người có thể quản lý tin nhắn ở đây mới hoàn tác được',
   'tools_exif.media_exif_information': 'Thông tin Exif của tệp',
   'tools_exif.color_profile': '**Hồ sơ màu**: {interpretation}',
   'tools_exif.dimensions_x': '**Kích thước**: {width}x{height}',

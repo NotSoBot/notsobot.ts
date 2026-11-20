@@ -6143,6 +6143,8 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} visualizações',
   'tools_embed.media_failed': 'Não foi possível obter o conteúdo multimédia desta publicação',
   'tools_embed.gallery_failed': 'Não foi possível obter {count} dos conteúdos multimédia desta publicação',
+  'tools_embed.undo': 'Anular',
+  'tools_embed.undo_not_allowed': 'Só quem publicou a ligação ou alguém que possa gerir mensagens aqui pode anular isto',
   'tools_exif.media_exif_information': 'Informações Exif do conteúdo multimédia',
   'tools_exif.color_profile': '**Perfil de cor**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensões**: {width}x{height}',

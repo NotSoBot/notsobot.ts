@@ -6143,6 +6143,8 @@ export const Finnish: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} katselukertaa',
   'tools_embed.media_failed': 'Tämän julkaisun mediaa ei saatu haettua',
   'tools_embed.gallery_failed': '{count} tämän julkaisun mediasta ei saatu haettua',
+  'tools_embed.undo': 'Kumoa',
+  'tools_embed.undo_not_allowed': 'Vain linkin lähettäjä tai joku, joka voi hallita viestejä täällä, voi kumota tämän',
   'tools_exif.media_exif_information': 'Median Exif-tiedot',
   'tools_exif.color_profile': '**Väriprofiili**: {interpretation}',
   'tools_exif.dimensions_x': '**Mitat**: {width}x{height}',

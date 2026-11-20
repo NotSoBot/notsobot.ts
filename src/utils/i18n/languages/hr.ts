@@ -6143,6 +6143,8 @@ export const Croatian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} pregleda',
   'tools_embed.media_failed': 'Nije moguće dohvatiti medij ove objave',
   'tools_embed.gallery_failed': 'Nije moguće dohvatiti {count} medija ove objave',
+  'tools_embed.undo': 'Poništi',
+  'tools_embed.undo_not_allowed': 'Ovo može poništiti samo onaj tko je objavio poveznicu ili netko tko ovdje može upravljati porukama',
   'tools_exif.media_exif_information': 'Exif informacije medija',
   'tools_exif.color_profile': '**Profil boja**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimenzije**: {width}x{height}',

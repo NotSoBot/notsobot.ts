@@ -29,6 +29,7 @@ import {
 } from '../utils/formatter/commands/guild.report';
 import { onGuildWarningLogComponent } from '../utils/formatter/commands/moderation.warn';
 import { onMusicControl } from '../utils/formatter/commands/music.controls';
+import { onAutoEmbedUndo } from '../utils/formatter/commands/tools.download';
 import {
   MUSIC_QUEUE_CONTROL,
   findMusicQueueRefresh,
@@ -59,6 +60,15 @@ class ComponentsListener extends Listener {
         switch (interaction.type) {
           case InteractionTypes.MESSAGE_COMPONENT: {
             const context = new ComponentContext(interaction);
+            if (context.customId.startsWith(MessageComponentCustomIds.AUTO_EMBED_UNDO + '.')) {
+              try {
+                // `auto-embed-undo.{userId}.{messageId}`, on an auto-embed
+                const [ , userId, messageId ] = context.customId.split('.');
+                return await onAutoEmbedUndo(context, userId, messageId);
+              } catch(error) {
+                log.warn(`auto-embed undo ${context.customId} ${context.guildId}`, error);
+              }
+            }
             if (context.customId === MessageComponentCustomIds.MAKE_PERMANENT_GALLERY_USING_NITRO) {
               try {
                 return await this.makeGalleryPermanentUsingNitro(context);
@@ -239,6 +249,7 @@ class ComponentsListener extends Listener {
       const value = await downloadStorageToBlob(context, storage, filepath);
 
       await mediaReplyFromOptions(context, value, {
+        buttons: findKeptButtons(context.interaction.message),
         content,
         context,
         description,
@@ -396,12 +407,19 @@ class ComponentsListener extends Listener {
             rebuiltGallery.addItem({description: item.description, media: {url}, spoiler: item.spoiler});
           });
         } else if (child instanceof Structures.ComponentActionRow) {
-          // only this button is ever with a gallery (`mediaReplyFiles` leaves it out next to other rows)
+          // only this button and static ones are ever with a gallery (`mediaReplyFiles` leaves it out next to other rows)
+          const buttons = findKeptButtons(message);
           if (hasRemaining) {
-            rebuilt.createActionRow().addButton(new ComponentButton({
+            buttons.unshift(new ComponentButton({
               customId: MessageComponentCustomIds.MAKE_PERMANENT_GALLERY_USING_NITRO,
               label: translate('media.make_permanent'),
             }));
+          }
+          if (buttons.length) {
+            const row = rebuilt.createActionRow();
+            for (let button of buttons) {
+              row.addButton(button);
+            }
           }
         } else {
           throw new Error(`Gallery re-upload found an unexpected component (${child.type})`);
@@ -432,6 +450,40 @@ class ComponentsListener extends Listener {
 }
 
 // a file on our cdn (`https://cdn.nsb.gg/{vanity}.{extension}`, not its `assets/`), its vanity for `fetchFileVanity`
+// the static buttons a re-upload keeps (auto-embed's Undo), the rebuilt message would leave them out otherwise. they're
+// at the top level (embeds/text) or in the components v2 container
+const KEPT_BUTTON_CUSTOM_IDS = [MessageComponentCustomIds.AUTO_EMBED_UNDO + '.'];
+
+function findKeptButtons(message?: Structures.Message | null): Array<ComponentButton> {
+  const buttons: Array<ComponentButton> = [];
+  if (!message) {
+    return buttons;
+  }
+  const fromRow = (row: Structures.ComponentActionRow) => {
+    for (let component of row.components.values()) {
+      if (!(component instanceof Structures.ComponentButton) || !component.customId) {
+        continue;
+      }
+      const customId = component.customId;
+      if (KEPT_BUTTON_CUSTOM_IDS.some((prefix) => customId.startsWith(prefix))) {
+        buttons.push(new ComponentButton({customId, label: component.label || undefined}));
+      }
+    }
+  };
+  for (let component of message.components.values()) {
+    if (component instanceof Structures.ComponentActionRow) {
+      fromRow(component);
+    } else if (component instanceof Structures.ComponentContainer) {
+      for (let child of component.components.values()) {
+        if (child instanceof Structures.ComponentActionRow) {
+          fromRow(child);
+        }
+      }
+    }
+  }
+  return buttons;
+}
+
 function getHostedVanity(url: string): null | string {
   const match = /^https:\/\/cdn\.nsb\.gg\/([^/?#]+)\.[^./?#]+(?:[?#]|$)/i.exec(url);
   return (match && match[1] !== 'assets') ? match[1] : null;

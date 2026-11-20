@@ -6143,6 +6143,8 @@ export const Thai: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} การดู',
   'tools_embed.media_failed': 'ไม่สามารถดึงสื่อของโพสต์นี้ได้',
   'tools_embed.gallery_failed': 'ไม่สามารถดึงสื่อ {count} รายการของโพสต์นี้ได้',
+  'tools_embed.undo': 'เลิกทำ',
+  'tools_embed.undo_not_allowed': 'เฉพาะผู้ที่โพสต์ลิงก์หรือผู้ที่จัดการข้อความในที่นี้ได้เท่านั้นที่เลิกทำได้',
   'tools_exif.media_exif_information': 'ข้อมูล Exif ของสื่อ',
   'tools_exif.color_profile': '**โปรไฟล์สี**: {interpretation}',
   'tools_exif.dimensions_x': '**ขนาด**: {width}x{height}',

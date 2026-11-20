@@ -6143,6 +6143,8 @@ export const Lithuanian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} peržiūrų',
   'tools_embed.media_failed': 'Nepavyko gauti šio įrašo medijos',
   'tools_embed.gallery_failed': 'Nepavyko gauti {count} šio įrašo medijos',
+  'tools_embed.undo': 'Atšaukti',
+  'tools_embed.undo_not_allowed': 'Tai atšaukti gali tik nuorodą paskelbęs asmuo arba tas, kas čia gali tvarkyti žinutes',
   'tools_exif.media_exif_information': 'Medijos Exif informacija',
   'tools_exif.color_profile': '**Spalvų profilis**: {interpretation}',
   'tools_exif.dimensions_x': '**Matmenys**: {width}x{height}',

@@ -6143,6 +6143,8 @@ export const Hindi: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} व्यू',
   'tools_embed.media_failed': 'इस पोस्ट का मीडिया नहीं मिल सका',
   'tools_embed.gallery_failed': 'इस पोस्ट के {count} मीडिया नहीं मिल सके',
+  'tools_embed.undo': 'पूर्ववत करें',
+  'tools_embed.undo_not_allowed': 'इसे केवल लिंक पोस्ट करने वाला या यहाँ संदेश प्रबंधित कर सकने वाला कोई व्यक्ति ही पूर्ववत कर सकता है',
   'tools_exif.media_exif_information': 'मीडिया Exif जानकारी',
   'tools_exif.color_profile': '**कलर प्रोफ़ाइल**: {interpretation}',
   'tools_exif.dimensions_x': '**डाइमेंशन**: {width}x{height}',

@@ -6143,6 +6143,8 @@ export const Spanish: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} vistas',
   'tools_embed.media_failed': 'No se pudo obtener el contenido multimedia de esta publicación',
   'tools_embed.gallery_failed': 'No se pudo obtener {count} del contenido multimedia de esta publicación',
+  'tools_embed.undo': 'Deshacer',
+  'tools_embed.undo_not_allowed': 'Solo quien publicó el enlace o alguien que pueda gestionar mensajes aquí puede deshacer esto',
   'tools_exif.media_exif_information': 'Información EXIF del archivo',
   'tools_exif.color_profile': '**Perfil de color**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensiones**: {width}x{height}',

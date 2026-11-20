@@ -15637,6 +15637,7 @@ export async function utilitiesFetchMedia(
     locale: options.locale,
     max_file_size: maxFileSize,
     media_format: options.mediaFormat,
+    media_gallery_size: options.mediaGallerySize,
     media_position: options.mediaPosition,
     safe: options.safe,
     upload: options.upload,

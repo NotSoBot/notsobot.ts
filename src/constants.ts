@@ -2156,6 +2156,9 @@ export enum MediaWordcloudThemes {
 
 
 export enum MessageComponentCustomIds {
+  // `auto-embed-undo.{userId}.{messageId}`, the Undo button on an auto-embed: deletes it and brings back the link's own
+  // preview on their message
+  AUTO_EMBED_UNDO = 'auto-embed-undo',
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
   // a gallery's one button for every hosted item that fits the clicker's upload limit, found from the message itself
   // (ten file ids don't fit in a custom id)

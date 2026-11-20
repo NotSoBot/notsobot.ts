@@ -6143,6 +6143,8 @@ export const Arabic: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} مشاهدة',
   'tools_embed.media_failed': 'تعذّر جلب وسائط هذا المنشور',
   'tools_embed.gallery_failed': 'تعذر الحصول على {count} من وسائط هذا المنشور',
+  'tools_embed.undo': 'تراجع',
+  'tools_embed.undo_not_allowed': 'يمكن فقط لمن نشر الرابط أو لمن يستطيع إدارة الرسائل هنا التراجع عن هذا',
   'tools_exif.media_exif_information': 'معلومات Exif للوسائط',
   'tools_exif.color_profile': '**ملف تعريف الألوان**: {interpretation}',
   'tools_exif.dimensions_x': '**الأبعاد**: {width}x{height}',

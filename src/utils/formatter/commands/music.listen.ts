@@ -29,7 +29,7 @@ const LISTEN_DURATION = 2 * 60 * 1000;
 const STOP_BUTTON_PADDING = 30 * 1000;
 // someone can start another listen this long after their last one ended (a listen asks the api up to ~23 times). Kept
 // here, not as the commands' ratelimits, so `/music listen` and `.music listen` share it (their clients keep their own)
-const LISTEN_COOLDOWN = 60 * 1000;
+const LISTEN_COOLDOWN = 2 * 1000;
 // by user id, when they can listen again (this cluster's, where the server's music is). While one runs it's when it
 // would end at the latest plus the cooldown, so they can't start one in another server meanwhile
 const cooldowns = new Map<string, number>();

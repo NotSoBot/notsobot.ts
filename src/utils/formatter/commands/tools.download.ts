@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
-import { MarkupTimestampStyles, MessageFlags } from 'detritus-client/lib/constants';
-import { ComponentContext, InteractionModalContext, Markup } from 'detritus-client/lib/utils';
+import { InteractionCallbackTypes, MarkupTimestampStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { ComponentButton, ComponentContext, Components, InteractionModalContext, Markup } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -15,6 +15,7 @@ import {
   DiscordReactionEmojis,
   DiscordSkuIds,
   EmbedColors,
+  MessageComponentCustomIds,
   PostGalleryViews,
   PostGalleryViewsToTypes,
   UserSettingsResponseDisplayTypes,
@@ -34,7 +35,7 @@ import {
 } from '../../../utils/tools';
 import { getAutoEmbedLink } from '../../autoembed';
 import { Page, Paginator } from '../../paginator';
-import { Translator, getTranslator } from '../../i18n';
+import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'tools.download';
@@ -78,7 +79,7 @@ export async function createMessage(
           }
           return;
         }
-        return postTextReply(context, textOnly, (autoEmbed) ? autoEmbed.spoiler : !!args.spoiler);
+        return postTextReply(context, textOnly, (autoEmbed) ? autoEmbed.spoiler : !!args.spoiler, !!autoEmbed);
       }
     }
     throw error;
@@ -99,13 +100,26 @@ async function createMediaMessage(
     safe: DefaultParameters.safe(context),
     url: args.url,
   };
-  const job = await utilitiesFetchMedia(context, {...fetchOptions, mediaPosition: args.mediaPosition});
-  // another page of the post (`response.pages`) is the same download at its position
-  const fetchPage = async (position: number) => {
-    return jobWaitForResponse(context, await utilitiesFetchMedia(context, {...fetchOptions, mediaPosition: position}));
+  // a post with more than one media shown as one gallery: the first request brings the whole ten holding the asked page
+  // with it (one job on the api, not one for each). their setting or `-view pages` asks for that one page only
+  const view = (args.view) ? PostGalleryViewsToTypes[args.view as PostGalleryViews] : undefined;
+  const gallery = await getPostGallery(context, (autoEmbed) ? {autoEmbed: true} : {view});
+  const job = await utilitiesFetchMedia(context, {
+    ...fetchOptions,
+    mediaGallerySize: (gallery) ? GALLERY_SIZE : undefined,
+    mediaPosition: args.mediaPosition,
+  });
+  // another page of the post (`response.pages`) is the same download at its position, another ten is one request too
+  const fetchers: PageFetchers = {
+    gallery: async (start: number) => {
+      return jobWaitForResponse(context, await utilitiesFetchMedia(context, {...fetchOptions, mediaGallerySize: GALLERY_SIZE, mediaPosition: start}));
+    },
+    page: async (position: number) => {
+      return jobWaitForResponse(context, await utilitiesFetchMedia(context, {...fetchOptions, mediaPosition: position}));
+    },
   };
   if (autoEmbed) {
-    return autoEmbedReply(context as Command.Context, job, autoEmbed.spoiler, fetchPage);
+    return autoEmbedReply(context as Command.Context, job, autoEmbed.spoiler, fetchers, gallery);
   }
 
   const translator = await getTranslator(context);
@@ -147,25 +161,24 @@ async function createMediaMessage(
     spoiler: args.spoiler,
   });
   // a post's ten: the post's text from the first, the quality upsell from any that has one
-  const galleryOptions = (gallery: GalleryPage, pageText?: string) => {
-    const [ first ] = gallery.responses;
-    const quality = gallery.responses.find((response) => response.download_quality) || first;
+  const galleryOptions = (page: GalleryPage, pageText?: string) => {
+    const [ first ] = page.responses;
+    const quality = page.responses.find((response) => response.download_quality) || first;
     return {
       ...replyOptions(first, pageText),
-      description: joinLines(describe(quality), galleryNotice(translator, gallery)),
+      description: joinLines(describe(quality), galleryNotice(translator, page)),
       // a paginator's page would bring the hosted ones back when paged to again
       reupload: !pageText,
-      took: galleryTook(gallery),
+      took: galleryTook(page),
     };
   };
   return jobReply(context, job, {
     send: async (response) => {
       if (hasPages(response)) {
-        const view = (args.view) ? PostGalleryViewsToTypes[args.view as PostGalleryViews] : undefined;
-        return replyWithPages(context, translator, response, fetchPage, {
-          gallery: (gallery, pageText) => createMediaReplyFilesPage(context, galleryEntries(gallery), galleryOptions(gallery, pageText)),
+        return replyWithPages(context, translator, response, fetchers, {
+          gallery: (page, pageText) => createMediaReplyFilesPage(context, galleryEntries(page), galleryOptions(page, pageText)),
           single: (page, pageText) => createMediaReplyPage(context, page, replyOptions(page, pageText)),
-        }, {gallery: await getPostGallery(context, {view})});
+        }, {gallery});
       }
       return mediaReply(context, response, replyOptions(response));
     },
@@ -185,10 +198,39 @@ function hasPages(response: RestResponsesRaw.FileResponse): boolean {
 // a post with more than one media (`response.pages`, a gallery or carousel) is shown up to ten at a time, in one media
 // gallery (discord's upload limit is per file, so every one the api attached fits). more than ten is a paginator of
 // tens, starting on the ten with the asked for page (`-position 12` starts on 11-20). each media is that position of
-// the same link, all of a ten downloaded at once the first time it's shown and kept for paging back. ones that fail are
-// left out with a note (and tried again when their ten comes back). a first ten that can't be one gallery (audio, or
-// only one of them came through) pages one media at a time instead, starting on the page that was asked for
+// the same link, a ten is one request (`media_gallery_size`, the command's own brings the first) and kept for paging
+// back. ones that fail are left out with a note (and tried again, one by one, when their ten comes back). a first ten
+// that can't be one gallery (audio, or only one of them came through) pages one media at a time instead, starting on
+// the page that was asked for
 const GALLERY_SIZE = MEDIA_REPLY_FILES_MAX;
+
+// how a post's other pages are downloaded
+interface PageFetchers {
+  // the ten starting at `start` in one request, as `files` with `gallery`
+  gallery: (start: number) => Promise<RestResponsesRaw.FileResponse>,
+  // one media, at its position
+  page: (position: number) => Promise<RestResponsesRaw.FileResponse>,
+}
+
+// a response's media by their position: a gallery request's `files` (`gallery.positions` says which each is, the first
+// is the response's own `file`), or only itself
+function galleryResponses(response: RestResponsesRaw.FileResponse): Array<[number, RestResponsesRaw.FileResponse]> {
+  const { files, gallery, pages } = response;
+  if (!pages) {
+    return [];
+  }
+  if (!gallery || !files) {
+    return [[pages.position, response]];
+  }
+  const entries: Array<[number, RestResponsesRaw.FileResponse]> = [];
+  gallery.positions.forEach((position, index) => {
+    const file = files[index];
+    if (file) {
+      entries.push([position, {...response, ...file, files: undefined, gallery: undefined, pages: {count: pages.count, position}}]);
+    }
+  });
+  return entries;
+}
 
 export interface GalleryPage {
   // how many of its positions couldn't be downloaded
@@ -235,44 +277,87 @@ function replyWithPages(
   context: Command.Context | Interaction.InteractionContext,
   translator: Translator,
   response: RestResponsesRaw.FileResponse,
-  fetchPage: (position: number) => Promise<RestResponsesRaw.FileResponse>,
+  fetchers: PageFetchers,
   render: PageRenderers,
   // false pages one media at a time right away (their setting or `-view pages`), without downloading ten at once
   options: {deleteContextMessage?: boolean, gallery?: boolean} = {},
 ) {
   const { language, translate } = translator;
   const pages = response.pages!;
-  // failed downloads aren't kept so they can be tried again
-  const cache = new Map<number, Promise<RestResponsesRaw.FileResponse>>([[pages.position, Promise.resolve(response)]]);
-  const fetchCached = (position: number) => {
-    let promise = cache.get(position);
+  // what came through by position, failed ones aren't kept so they can be tried again
+  const responses = new Map<number, RestResponsesRaw.FileResponse>(galleryResponses(response));
+  // the first response brought its ten (`gallery`), the others come the same way. without it (an api from before it)
+  // every position is its own request
+  const batched = !!response.gallery;
+  const fetching = new Map<number, Promise<RestResponsesRaw.FileResponse>>();
+  const fetchCached = (position: number): Promise<RestResponsesRaw.FileResponse> => {
+    const page = responses.get(position);
+    if (page) {
+      return Promise.resolve(page);
+    }
+    let promise = fetching.get(position);
     if (!promise) {
       // no "took", it would count from when the command was run
-      promise = fetchPage(position).then((page) => ({...page, took: 0}));
-      promise.catch(() => cache.delete(position));
-      cache.set(position, promise);
+      promise = fetchers.page(position).then((fetched) => {
+        const page = {...fetched, took: 0};
+        responses.set(position, page);
+        return page;
+      }).finally(() => fetching.delete(position));
+      fetching.set(position, promise);
     }
     return promise;
   };
-  // a ten (0 based) all at once, in order. only throws when none of them came through
-  const fetchGallery = async (index: number): Promise<GalleryPage> => {
+  // a ten's one request, pressing to it again while it runs waits on the same one
+  const galleryFetching = new Map<number, Promise<void>>();
+  const fetchGalleryRequest = (index: number): Promise<void> => {
+    let promise = galleryFetching.get(index);
+    if (!promise) {
+      promise = fetchers.gallery(index * GALLERY_SIZE).then((fetched) => {
+        for (const [position, page] of galleryResponses({...fetched, took: 0})) {
+          if (!responses.has(position)) {
+            responses.set(position, page);
+          }
+        }
+      }).finally(() => galleryFetching.delete(index));
+      galleryFetching.set(index, promise);
+    }
+    return promise;
+  };
+  const galleryPositions = (index: number): Array<number> => {
     const start = index * GALLERY_SIZE;
     const end = Math.min(start + GALLERY_SIZE, pages.count);
-    const positions = Array.from({length: end - start}, (_, i) => start + i);
-    const results = await Promise.allSettled(positions.map(fetchCached));
-    const responses: Array<RestResponsesRaw.FileResponse> = [];
+    return Array.from({length: end - start}, (_, i) => start + i);
+  };
+  // a ten (0 based) from what's already here, in order
+  const collectGallery = (index: number, error?: any): GalleryPage => {
+    const positions = galleryPositions(index);
+    const collected = positions.map((position) => responses.get(position)).filter(Boolean) as Array<RestResponsesRaw.FileResponse>;
+    if (!collected.length) {
+      throw error || new Error('None of this part of the post could be downloaded');
+    }
+    return {failed: positions.length - collected.length, responses: collected};
+  };
+  // a ten (0 based), downloading what isn't here yet. only throws when none of them came through
+  const fetchGallery = async (index: number): Promise<GalleryPage> => {
+    const missing = galleryPositions(index).filter((position) => !responses.has(position));
     let error: any;
-    for (let result of results) {
-      if (result.status === 'fulfilled') {
-        responses.push(result.value);
-      } else if (error === undefined) {
-        error = result.reason;
+    if (batched && missing.length && missing.length === galleryPositions(index).length) {
+      // none of it yet, the whole ten in one request
+      try {
+        await fetchGalleryRequest(index);
+      } catch(fetchError) {
+        error = fetchError;
+      }
+    } else if (missing.length) {
+      // the ones that failed before (or every one without `batched`)
+      const results = await Promise.allSettled(missing.map(fetchCached));
+      for (let result of results) {
+        if (result.status === 'rejected' && error === undefined) {
+          error = result.reason;
+        }
       }
     }
-    if (!responses.length) {
-      throw error;
-    }
-    return {failed: results.length - responses.length, responses};
+    return collectGallery(index, error);
   };
   const createPageText = (pageNumber: number, pageLimit: number): string => {
     return translate('paginator.page', {
@@ -293,7 +378,11 @@ function replyWithPages(
 
   return (async () => {
     const firstIndex = Math.floor(pages.position / GALLERY_SIZE);
-    let first: GalleryPage | null = (options.gallery === false) ? null : await fetchGallery(firstIndex);
+    // the first ten came with the response (its failed ones aren't tried again right away)
+    let first: GalleryPage | null = null;
+    if (options.gallery !== false) {
+      first = (batched) ? collectGallery(firstIndex) : await fetchGallery(firstIndex);
+    }
     if (first && 2 <= first.responses.length && first.responses.every(isGalleryMedia)) {
       const pageLimit = Math.ceil(pages.count / GALLERY_SIZE);
       const paginator = createPaginator(firstIndex + 1, pageLimit, async (pageNumber) => {
@@ -353,14 +442,17 @@ async function autoEmbedReply(
   context: Command.Context,
   job: Parameters<typeof jobWaitForResponse>[1],
   spoiler: boolean,
-  fetchPage: (position: number) => Promise<RestResponsesRaw.FileResponse>,
+  fetchers: PageFetchers,
+  gallery: boolean,
 ) {
   const response = await jobWaitForResponse(context, job);
   const translator = await getTranslator(context);
+  const buttons = [createAutoEmbedUndoButton(context, translator)];
   // no size line, which page it is still shows in its place
   const replyOptions = (page: RestResponsesRaw.FileResponse, pageText?: string) => {
     const post: FormattedPost = (isAutoEmbedTextOn(context) && page.post) ? formatPost(translator, page.post, {spoiler}) : {};
     return {
+      buttons,
       description: post.above,
       descriptionBelow: post.below,
       details: pageText,
@@ -369,16 +461,16 @@ async function autoEmbedReply(
       spoiler,
     };
   };
-  const galleryOptions = (gallery: GalleryPage, pageText?: string) => {
-    const options = replyOptions(gallery.responses[0], pageText);
-    return {...options, description: joinLines(options.description, galleryNotice(translator, gallery)), reupload: !pageText};
+  const galleryOptions = (page: GalleryPage, pageText?: string) => {
+    const options = replyOptions(page.responses[0], pageText);
+    return {...options, description: joinLines(options.description, galleryNotice(translator, page)), reupload: !pageText};
   };
   // a gallery's other tens (or pages) are shown the same way. stop never deletes their post, it isn't a command
   const reply = (hasPages(response)) ?
-    await replyWithPages(context, translator, response, fetchPage, {
-      gallery: (gallery, pageText) => createMediaReplyFilesPage(context, galleryEntries(gallery), galleryOptions(gallery, pageText)),
+    await replyWithPages(context, translator, response, fetchers, {
+      gallery: (page, pageText) => createMediaReplyFilesPage(context, galleryEntries(page), galleryOptions(page, pageText)),
       single: (page, pageText) => createMediaReplyPage(context, page, replyOptions(page, pageText)),
-    }, {deleteContextMessage: false, gallery: await getPostGallery(context, {autoEmbed: true})}) :
+    }, {deleteContextMessage: false, gallery}) :
     await mediaReply(context, response, replyOptions(response));
   await suppressLinkEmbed(context);
   return reply;
@@ -419,11 +511,17 @@ async function postTextReply(
   context: Command.Context | Interaction.InteractionContext,
   { mediaFailed, post }: TextOnlyPost,
   spoiler: boolean,
+  autoEmbed: boolean = false,
 ) {
   const translator = await getTranslator(context);
   const formatted = formatPost(translator, post, {spoiler});
   const notice = (mediaFailed) ? `-# ${translator.translate('tools_embed.media_failed')}` : undefined;
   const display = await getResponseDisplayForReply(context);
+  let components: Components | undefined;
+  if (autoEmbed && context instanceof Command.Context) {
+    components = new Components();
+    components.addButton(createAutoEmbedUndoButton(context, translator));
+  }
   const payload: DisplayPayload = (display === UserSettingsResponseDisplayTypes.LEGACY && formatted.footer) ? {
     description: [formatted.above, notice].filter(Boolean).join('\n'),
     footer: formatted.footer.text,
@@ -432,6 +530,10 @@ async function postTextReply(
   } : {
     description: [formatted.above, notice, formatted.below].filter(Boolean).join('\n'),
   };
+  if (components) {
+    payload.components = components;
+    payload.componentsInside = true;
+  }
   const reply = await displayReply(context, payload);
   if (context instanceof Command.Context) {
     await suppressLinkEmbed(context);
@@ -623,6 +725,57 @@ async function suppressLinkEmbed(context: Command.Context): Promise<void> {
     await context.rest.editMessage(context.channelId, context.messageId, {flags: message.flags | MessageFlags.SUPPRESS_EMBEDS});
   } catch(error) {
 
+  }
+}
+
+
+// auto-embed's Undo, on every auto-embed (each of a gallery's pages too). static so it still works after a restart:
+// whose link it was and their message are in the custom id (`onAutoEmbedUndo`)
+function createAutoEmbedUndoButton(context: Command.Context, translator: Translator): ComponentButton {
+  return new ComponentButton({
+    customId: [MessageComponentCustomIds.AUTO_EMBED_UNDO, context.userId, context.messageId].join('.'),
+    label: translator.translate('tools_embed.undo'),
+  });
+}
+
+// the Undo press: our reply goes and the link's own preview comes back on their message (`suppressLinkEmbed` in
+// reverse). only whoever posted the link, or someone who could delete it anyway (manage messages there)
+export async function onAutoEmbedUndo(context: ComponentContext, userId: string, messageId: string): Promise<void> {
+  // cached only, the press has to be answered quickly
+  const translator = getCachedTranslator(context);
+  const canUndo = (
+    context.userId === userId ||
+    context.user.isClientOwner ||
+    // an interaction's member has discord's permissions for the channel
+    (!!context.member && context.member.can(Permissions.MANAGE_MESSAGES))
+  );
+  if (!canUndo) {
+    await context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+      color: EmbedColors.ERROR,
+      description: translator.translate('tools_embed.undo_not_allowed'),
+    }));
+    return;
+  }
+  await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+
+  // their preview first, so it's back as ours goes. gone already (deleted, or nothing to undo) is fine
+  try {
+    const cached = context.messages.get(messageId);
+    const flags: number = (cached) ? cached.flags : (await context.rest.fetchMessage(context.channelId, messageId)).flags;
+    if ((flags & MessageFlags.SUPPRESS_EMBEDS) === MessageFlags.SUPPRESS_EMBEDS) {
+      await context.rest.editMessage(context.channelId, messageId, {flags: flags & ~MessageFlags.SUPPRESS_EMBEDS});
+    }
+  } catch(error) {
+
+  }
+
+  const message = context.interaction.message;
+  if (message && !message.deleted) {
+    try {
+      await context.rest.deleteMessage(context.channelId, message.id);
+    } catch(error) {
+
+    }
   }
 }
 

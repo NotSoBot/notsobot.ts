@@ -6141,6 +6141,8 @@ export const English = Object.freeze({
   'tools_embed.stat_views': '{count} views',
   'tools_embed.media_failed': 'Couldn\'t get this post\'s media',
   'tools_embed.gallery_failed': 'Couldn\'t get {count} of this post\'s media',
+  'tools_embed.undo': 'Undo',
+  'tools_embed.undo_not_allowed': 'Only whoever posted the link or someone who can manage messages here can undo this',
   'tools_exif.media_exif_information': 'Media Exif Information',
   'tools_exif.color_profile': '**Color Profile**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensions**: {width}x{height}',

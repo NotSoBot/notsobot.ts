@@ -6143,6 +6143,8 @@ export const French: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} vues',
   'tools_embed.media_failed': 'Impossible de récupérer le média de cette publication',
   'tools_embed.gallery_failed': 'Impossible de récupérer {count} des médias de cette publication',
+  'tools_embed.undo': 'Annuler',
+  'tools_embed.undo_not_allowed': 'Seule la personne qui a publié le lien ou quelqu\'un qui peut gérer les messages ici peut annuler ceci',
   'tools_exif.media_exif_information': 'Infos Exif du média',
   'tools_exif.color_profile': '**Profil colorimétrique** : {interpretation}',
   'tools_exif.dimensions_x': '**Dimensions** : {width}x{height}',

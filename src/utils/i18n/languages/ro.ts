@@ -6143,6 +6143,8 @@ export const Romanian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} vizualizări',
   'tools_embed.media_failed': 'Nu s-au putut obține fișierele media ale acestei postări',
   'tools_embed.gallery_failed': 'Nu s-au putut obține {count} dintre fișierele media ale acestei postări',
+  'tools_embed.undo': 'Anulează',
+  'tools_embed.undo_not_allowed': 'Doar cine a postat linkul sau cineva care poate gestiona mesajele aici poate anula asta',
   'tools_exif.media_exif_information': 'Informații Exif media',
   'tools_exif.color_profile': '**Profil de culoare**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensiuni**: {width}x{height}',

@@ -6143,6 +6143,8 @@ export const ChineseSimplified: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} 次观看',
   'tools_embed.media_failed': '无法获取此帖子的媒体',
   'tools_embed.gallery_failed': '无法获取此帖子的 {count} 个媒体',
+  'tools_embed.undo': '撤销',
+  'tools_embed.undo_not_allowed': '只有发布链接的人或能在这里管理消息的人才能撤销',
   'tools_exif.media_exif_information': '媒体 Exif 信息',
   'tools_exif.color_profile': '**色彩配置**：{interpretation}',
   'tools_exif.dimensions_x': '**尺寸**：{width}x{height}',

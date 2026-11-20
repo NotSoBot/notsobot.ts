@@ -6143,6 +6143,8 @@ export const Dutch: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} weergaven',
   'tools_embed.media_failed': 'Kon de media van dit bericht niet ophalen',
   'tools_embed.gallery_failed': 'Kon {count} van de media van deze post niet ophalen',
+  'tools_embed.undo': 'Ongedaan maken',
+  'tools_embed.undo_not_allowed': 'Alleen wie de link plaatste of iemand die hier berichten kan beheren, kan dit ongedaan maken',
   'tools_exif.media_exif_information': 'Exif-informatie van de media',
   'tools_exif.color_profile': '**Kleurprofiel**: {interpretation}',
   'tools_exif.dimensions_x': '**Afmetingen**: {width}x{height}',

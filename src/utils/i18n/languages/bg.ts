@@ -6143,6 +6143,8 @@ export const Bulgarian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} гледания',
   'tools_embed.media_failed': 'Медията на тази публикация не можа да бъде взета',
   'tools_embed.gallery_failed': 'Не успяхме да вземем {count} от медията на тази публикация',
+  'tools_embed.undo': 'Отмени',
+  'tools_embed.undo_not_allowed': 'Само този, който е публикувал линка, или някой, който може да управлява съобщенията тук, може да отмени това',
   'tools_exif.media_exif_information': 'Exif информация за медията',
   'tools_exif.color_profile': '**Цветови профил**: {interpretation}',
   'tools_exif.dimensions_x': '**Размери**: {width}x{height}',

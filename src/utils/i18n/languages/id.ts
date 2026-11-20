@@ -6143,6 +6143,8 @@ export const Indonesian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} tayangan',
   'tools_embed.media_failed': 'Tidak dapat mengambil media postingan ini',
   'tools_embed.gallery_failed': 'Tidak bisa mengambil {count} media dari postingan ini',
+  'tools_embed.undo': 'Urungkan',
+  'tools_embed.undo_not_allowed': 'Hanya pengirim tautan atau seseorang yang bisa mengelola pesan di sini yang bisa mengurungkan ini',
   'tools_exif.media_exif_information': 'Informasi Exif Media',
   'tools_exif.color_profile': '**Profil Warna**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensi**: {width}x{height}',

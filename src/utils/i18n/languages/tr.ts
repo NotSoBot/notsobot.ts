@@ -6143,6 +6143,8 @@ export const Turkish: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} görüntülenme',
   'tools_embed.media_failed': 'Bu gönderinin medyası alınamadı',
   'tools_embed.gallery_failed': 'Bu gönderinin medyasından {count} tanesi alınamadı',
+  'tools_embed.undo': 'Geri al',
+  'tools_embed.undo_not_allowed': 'Bunu yalnızca bağlantıyı paylaşan kişi ya da burada mesajları yönetebilen biri geri alabilir',
   'tools_exif.media_exif_information': 'Medya Exif Bilgisi',
   'tools_exif.color_profile': '**Renk Profili**: {interpretation}',
   'tools_exif.dimensions_x': '**Boyutlar**: {width}x{height}',

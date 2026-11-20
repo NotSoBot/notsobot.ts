@@ -6143,6 +6143,8 @@ export const Swedish: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} visningar',
   'tools_embed.media_failed': 'Kunde inte hämta inläggets media',
   'tools_embed.gallery_failed': 'Kunde inte hämta {count} av inläggets media',
+  'tools_embed.undo': 'Ångra',
+  'tools_embed.undo_not_allowed': 'Bara den som skickade länken eller någon som kan hantera meddelanden här kan ångra detta',
   'tools_exif.media_exif_information': 'Exif-information för mediet',
   'tools_exif.color_profile': '**Färgprofil**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensioner**: {width}x{height}',

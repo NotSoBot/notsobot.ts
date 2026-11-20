@@ -6143,6 +6143,8 @@ export const Polish: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} wyświetleń',
   'tools_embed.media_failed': 'Nie udało się pobrać multimediów tego posta',
   'tools_embed.gallery_failed': 'Nie udało się pobrać {count} multimediów z tego posta',
+  'tools_embed.undo': 'Cofnij',
+  'tools_embed.undo_not_allowed': 'Cofnąć to może tylko osoba, która wysłała link, albo ktoś, kto może tu zarządzać wiadomościami',
   'tools_exif.media_exif_information': 'Informacje Exif pliku',
   'tools_exif.color_profile': '**Profil kolorów**: {interpretation}',
   'tools_exif.dimensions_x': '**Wymiary**: {width}x{height}',

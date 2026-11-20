@@ -6143,6 +6143,8 @@ export const Ukrainian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} переглядів',
   'tools_embed.media_failed': 'Не вдалося отримати медіа цього допису',
   'tools_embed.gallery_failed': 'Не вдалося отримати {count} медіа з цього допису',
+  'tools_embed.undo': 'Скасувати',
+  'tools_embed.undo_not_allowed': 'Скасувати це може лише той, хто надіслав посилання, або той, хто може керувати повідомленнями тут',
   'tools_exif.media_exif_information': 'Exif-інформація файлу',
   'tools_exif.color_profile': '**Колірний профіль**: {interpretation}',
   'tools_exif.dimensions_x': '**Розміри**: {width}x{height}',

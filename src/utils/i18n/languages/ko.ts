@@ -6143,6 +6143,8 @@ export const Korean: Translations = Object.freeze({
   'tools_embed.stat_views': '조회수 {count}',
   'tools_embed.media_failed': '이 게시물의 미디어를 가져올 수 없었습니다',
   'tools_embed.gallery_failed': '이 게시물의 미디어 중 {count}개를 가져오지 못했어요',
+  'tools_embed.undo': '되돌리기',
+  'tools_embed.undo_not_allowed': '링크를 올린 사람이나 이곳에서 메시지를 관리할 수 있는 사람만 되돌릴 수 있어요',
   'tools_exif.media_exif_information': '미디어 Exif 정보',
   'tools_exif.color_profile': '**색상 프로필**: {interpretation}',
   'tools_exif.dimensions_x': '**해상도**: {width}x{height}',

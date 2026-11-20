@@ -6143,6 +6143,8 @@ export const Hebrew: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} צפיות',
   'tools_embed.media_failed': 'לא ניתן היה להשיג את המדיה של הפוסט הזה',
   'tools_embed.gallery_failed': 'לא הצלחנו להביא {count} מהמדיה של הפוסט הזה',
+  'tools_embed.undo': 'ביטול',
+  'tools_embed.undo_not_allowed': 'רק מי שפרסם את הקישור או מי שיכול לנהל הודעות כאן יכול לבטל את זה',
   'tools_exif.media_exif_information': 'מידע Exif של המדיה',
   'tools_exif.color_profile': '**פרופיל צבע**: {interpretation}',
   'tools_exif.dimensions_x': '**מידות**: {width}x{height}',

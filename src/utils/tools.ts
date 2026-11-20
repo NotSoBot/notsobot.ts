@@ -3230,6 +3230,8 @@ export async function displayReply(
 
 export interface MediaReplyResponseOptions {
   actions?: MediaReplyActions,
+  // buttons answered by the components listener (static custom ids, like auto-embed's Undo), next to the reupload one
+  buttons?: Array<ComponentButton>,
   content?: string,
   description?: string,
   descriptionBelow?: string,
@@ -3257,6 +3259,7 @@ function mediaReplyResponseOptions(
   const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return [buffer, {
     actions: options.actions,
+    buttons: options.buttons,
     content: options.content,
     description: options.description,
     descriptionBelow: options.descriptionBelow,
@@ -3326,6 +3329,8 @@ export const MEDIA_REPLY_FILES_MAX = 10;
 
 export interface MediaReplyFilesOptions {
   actions?: MediaReplyActions,
+  // buttons answered by the components listener (static custom ids, like auto-embed's Undo), next to the reupload one
+  buttons?: Array<ComponentButton>,
   description?: string,
   descriptionBelow?: string,
   // in place of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
@@ -3385,7 +3390,9 @@ export async function createMediaReplyFilesPage(
   if (isComponentsV2) {
     return {components: [...message.components.components], files: message.files};
   }
-  return {content: message.content || undefined, embeds: message.embeds, files: message.files};
+  // the static buttons (like auto-embed's Undo), above the page buttons
+  const rows = [...message.components.components];
+  return {content: message.content || undefined, embeds: message.embeds, files: message.files, rows};
 }
 
 // the same filename twice in one message would have both items show the first file (a post's pages can share a name),
@@ -3505,6 +3512,7 @@ async function createMediaReplyFilesMessage(
     if (footer) {
       container.addTextDisplay({content: `-# ${footer}`});
     }
+    const buttons = [...(options.buttons || [])];
     if (actions) {
       for (let row of actions.rows) {
         container.addActionRow(row);
@@ -3515,16 +3523,24 @@ async function createMediaReplyFilesMessage(
     ) {
       // one button for all of the temporary hosted ones (`makeGalleryPermanentUsingNitro`), only like a single file's
       // when it's a prefix command: a slash command already used the invoker's own limit. not with other rows, the
-      // click rebuilds the container and they'd lose their callbacks
-      const actionRow = container.createActionRow();
-      actionRow.addButton(new ComponentButton({
+      // click rebuilds the container and they'd lose their callbacks (static `buttons` are kept by the rebuild)
+      buttons.unshift(new ComponentButton({
         customId: MessageComponentCustomIds.MAKE_PERMANENT_GALLERY_USING_NITRO,
         label: translate('media.make_permanent'),
       }));
     }
+    if (buttons.length) {
+      const actionRow = container.createActionRow();
+      for (let button of buttons) {
+        actionRow.addButton(button);
+      }
+    }
     return {isComponentsV2: true, message: {components, files: files.map((file) => ({...file, hasSpoiler: undefined}))}};
   }
 
+  for (let button of options.buttons || []) {
+    components.addButton(button);
+  }
   if (actions) {
     for (let row of actions.rows) {
       components.addActionRow(row);
@@ -3606,6 +3622,8 @@ export interface MediaReplyEmbedFooter {
 
 export interface MediaReplyOptions {
   actions?: MediaReplyActions,
+  // buttons answered by the components listener (static custom ids, like auto-embed's Undo), next to the reupload one
+  buttons?: Array<ComponentButton>,
   // alt text for the media, `description` is shown as text above it
   altText?: string,
   content?: string,
@@ -3865,9 +3883,12 @@ export async function createMediaReplyMessage(
           container.addActionRow(row);
         }
       }
-      if (reuploadButton) {
+      const buttons = [reuploadButton, ...(options.buttons || [])].filter((x): x is ComponentButton => !!x);
+      if (buttons.length) {
         const actionRow = container.createActionRow();
-        actionRow.addButton(reuploadButton);
+        for (let button of buttons) {
+          actionRow.addButton(button);
+        }
       }
 
       return {isComponentsV2: true, message: {components, file}, replacesResponse: false};
@@ -3877,7 +3898,10 @@ export async function createMediaReplyMessage(
   if (reuploadButton) {
     components.addButton(reuploadButton);
   }
-  // after the button, `addButton` would otherwise look for room in a select menu's row
+  for (let button of options.buttons || []) {
+    components.addButton(button);
+  }
+  // after the buttons, `addButton` would otherwise look for room in a select menu's row
   if (actions) {
     for (let row of actions.rows) {
       components.addActionRow(row);

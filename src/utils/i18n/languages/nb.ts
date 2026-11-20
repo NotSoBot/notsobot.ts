@@ -6143,6 +6143,8 @@ export const Norwegian: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} visninger',
   'tools_embed.media_failed': 'Kunne ikke hente innleggets medier',
   'tools_embed.gallery_failed': 'Klarte ikke å hente {count} av mediene i dette innlegget',
+  'tools_embed.undo': 'Angre',
+  'tools_embed.undo_not_allowed': 'Bare den som delte lenken eller noen som kan administrere meldinger her, kan angre dette',
   'tools_exif.media_exif_information': 'Exif-informasjon for mediet',
   'tools_exif.color_profile': '**Fargeprofil**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensjoner**: {width}x{height}',

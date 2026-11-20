@@ -6143,6 +6143,8 @@ export const Danish: Translations = Object.freeze({
   'tools_embed.stat_views': '{count} visninger',
   'tools_embed.media_failed': 'Kunne ikke hente opslagets medie',
   'tools_embed.gallery_failed': 'Kunne ikke hente {count} af dette opslags medier',
+  'tools_embed.undo': 'Fortryd',
+  'tools_embed.undo_not_allowed': 'Kun den, der delte linket, eller nogen, der kan administrere beskeder her, kan fortryde dette',
   'tools_exif.media_exif_information': 'Mediets Exif-information',
   'tools_exif.color_profile': '**Farveprofil**: {interpretation}',
   'tools_exif.dimensions_x': '**Dimensioner**: {width}x{height}',
