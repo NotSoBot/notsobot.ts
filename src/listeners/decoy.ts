@@ -15,6 +15,7 @@ import { RestResponsesRaw } from '../api/types';
 import { ApiEventsSpewer } from '../apievents';
 import {
   BAN_CLEAN_DEFAULT,
+  DECOY_GRACE_TIME,
   DateMomentLogFormat,
   DiscordReactionEmojis,
   GuildModerationDmFlags,
@@ -41,7 +42,7 @@ import { Listener } from './listener';
 
 // one removal per member at a time, a spam account posts in the decoy and everywhere else at once (and the ban cleans
 // up the rest of what it sent). It covers their minute to press "I'm not a bot" too
-const IN_PROGRESS_EXPIRE = Formatter.Commands.ServerDecoy.GRACE_TIME + 60 * 1000;
+const IN_PROGRESS_EXPIRE = DECOY_GRACE_TIME + 60 * 1000;
 // the buttons outlive the reply a little, a click right at the end gets "too late" instead of "interaction failed"
 const GRACE_COMPONENTS_PADDING = 5 * 1000;
 // a mistake is one person at a time, this many different accounts posting within a minute is a raid: from this one on
@@ -92,9 +93,8 @@ class GracePrompt {
 
   add(userId: string): Promise<boolean> {
     return new Promise((resolve) => {
-      const { GRACE_TIME } = Formatter.Commands.ServerDecoy;
-      const timeout = setTimeout(() => this.finish(userId, false), GRACE_TIME);
-      this.entries.set(userId, {deadline: Date.now() + GRACE_TIME, resolve, timeout});
+      const timeout = setTimeout(() => this.finish(userId, false), DECOY_GRACE_TIME);
+      this.entries.set(userId, {deadline: Date.now() + DECOY_GRACE_TIME, resolve, timeout});
       if (this.message) {
         this.render();
       } else {
@@ -154,7 +154,7 @@ class GracePrompt {
 
   async post(): Promise<Structures.Message | null> {
     const { translate } = this.translator;
-    const components = new Components({timeout: GRACE_JOIN_MAX_AGE + Formatter.Commands.ServerDecoy.GRACE_TIME + GRACE_COMPONENTS_PADDING});
+    const components = new Components({timeout: GRACE_JOIN_MAX_AGE + DECOY_GRACE_TIME + GRACE_COMPONENTS_PADDING});
     components.createButton({
       label: translate('decoy.grace_button_keep'),
       style: MessageComponentButtonStyles.SUCCESS,
@@ -475,7 +475,7 @@ class DecoyListener extends Listener {
       this.posters.set(channelId, recent);
     }
     for (let [id, at] of recent) {
-      if (Formatter.Commands.ServerDecoy.GRACE_TIME <= now - at) {
+      if (DECOY_GRACE_TIME <= now - at) {
         recent.delete(id);
       }
     }

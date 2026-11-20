@@ -1232,6 +1232,10 @@ export const WARNINGS_EXPIRE_MAX = 5 * 365 * 24 * 60 * 60;
 // seconds of messages `ban` deletes when the moderator doesn't pick (the server's `ban_clean`), up to discord's limit
 export const BAN_CLEAN_DEFAULT = 24 * 60 * 60;
 export const BAN_CLEAN_MAX = 7 * 24 * 60 * 60;
+// whoever posts in a decoy channel gets this long (ms) to press "I'm not a bot" before they're removed: a person who
+// posted by mistake can stay, a spam account doesn't press anything. Here (not the decoy formatter) so the listener can
+// use it while loading, `utils` is still half-loaded then (listeners <-> utils import cycle)
+export const DECOY_GRACE_TIME = 60 * 1000;
 // a server's warning ladder: its steps, and how far back a kick/ban step can delete messages (discord's limit)
 export const MAX_GUILD_WARNING_ACTIONS = 10;
 export const WARNING_ACTION_CLEAN_MAX = 7 * 24 * 60 * 60;

@@ -6,7 +6,7 @@ import { deleteGuildDecoy, editGuildDecoy, fetchGuildDecoy, putGuildDecoy } from
 import { RestOptions, RestResponsesRaw } from '../../../api/types';
 import DecoyStore from '../../../stores/decoys';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { BAN_CLEAN_DEFAULT, BAN_CLEAN_MAX, EmbedColors, GuildWarningAutoTriggers, StatusEmojis } from '../../../constants';
+import { BAN_CLEAN_DEFAULT, BAN_CLEAN_MAX, DECOY_GRACE_TIME, EmbedColors, GuildWarningAutoTriggers, StatusEmojis } from '../../../constants';
 import { createDecoyWebhookName, generateDecoyChannelName, pickDecoyNotice } from '../../decoy';
 import { Translator, getCachedTranslator, getGuildTranslator, getTranslator } from '../../i18n';
 import { Parameters, displayDetailsLine, displayReply, displayTimestamp, formatDuration, formatUserTag } from '../../../utils';
@@ -28,9 +28,7 @@ export const BAIT_INTERVAL_MIN = 10 * 60;
 export const BAIT_INTERVAL_MAX = 24 * 60 * 60;
 // the bot's own notice, a message's limit
 export const NOTICE_MAX_LENGTH = 2000;
-// whoever posts gets this long to press "I'm not a bot" before they're removed: a person who posted by mistake can stay,
-// a spam account doesn't press anything
-export const GRACE_TIME = 60 * 1000;
+export const GRACE_TIME = DECOY_GRACE_TIME;
 export const TOPIC_MAX_LENGTH = 1024;
 // discord lets a channel be renamed twice every 10 minutes, a third waits out the rest (longer than an interaction lasts)
 const RENAME_LIMIT = 2;
