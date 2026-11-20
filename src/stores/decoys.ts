@@ -12,8 +12,10 @@ import { RedisPayloads } from '../types';
 import { LoadOnce } from '../utils/loadonce';
 
 
-// a failed load is tried again on the next message after this long
+// a failed load is tried again after this long, on a timer (and on the next message after it)
 const RETRY_LOAD_AFTER = 30 * 1000;
+// the timer fires a little after the loader's own window, it'd refuse to start before it's over
+const RETRY_TIMER_PADDING = 1000;
 // the api's page size for `GET /decoys`
 const FETCH_LIMIT = 1000;
 
@@ -30,6 +32,8 @@ class DecoyStore extends Store<string, RestResponsesRaw.GuildDecoy> {
   // listeners waiting on changes (the bait scheduler), guild id and the decoy now (null: gone)
   updateListeners = new Set<(guildId: string, decoy: RestResponsesRaw.GuildDecoy | null) => void>();
   cluster: ClusterClient | null = null;
+  // the timed retry after a failed load, one at a time
+  retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
   getByChannel(channelId: string): RestResponsesRaw.GuildDecoy | null {
     const guildId = this.channelIds.get(channelId);
@@ -80,14 +84,22 @@ class DecoyStore extends Store<string, RestResponsesRaw.GuildDecoy> {
     return this.loader.load(async () => {
       const decoys: Array<RestResponsesRaw.GuildDecoy> = [];
       let after: string | undefined;
-      while (true) {
-        const response = await fetchDecoys({client}, {after, limit: FETCH_LIMIT});
-        decoys.push(...response.decoys);
-        if (response.decoys.length < FETCH_LIMIT) {
-          break;
+      try {
+        while (true) {
+          const response = await fetchDecoys({client}, {after, limit: FETCH_LIMIT});
+          decoys.push(...response.decoys);
+          if (response.decoys.length < FETCH_LIMIT) {
+            break;
+          }
+          after = response.decoys[response.decoys.length - 1].guild_id;
         }
-        after = response.decoys[response.decoys.length - 1].guild_id;
+      } catch(error) {
+        // the loader keeps the error to itself, and until this works every decoy on the cluster lets posts through
+        log.warn(`Failed to load decoys, trying again in ${RETRY_LOAD_AFTER / 1000}s`, error);
+        this.scheduleRetry();
+        throw error;
       }
+      log.info(`Loaded ${decoys.length} decoys`);
       return decoys;
     }, (decoys, updatedWhileLoading) => {
       const loaded = new Map(decoys.map((decoy) => [decoy.guild_id, decoy]));
@@ -102,6 +114,18 @@ class DecoyStore extends Store<string, RestResponsesRaw.GuildDecoy> {
         }
       }
     });
+  }
+
+  // a quiet cluster gets messages rarely, it doesn't wait on one to try again
+  scheduleRetry(): void {
+    if (this.retryTimeout) {
+      return;
+    }
+    this.retryTimeout = setTimeout(() => {
+      this.retryTimeout = null;
+      this.load().catch((error) => log.error('Failed to load decoys', error));
+    }, RETRY_LOAD_AFTER + RETRY_TIMER_PADDING);
+    this.retryTimeout.unref();
   }
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {

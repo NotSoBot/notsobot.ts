@@ -93,6 +93,8 @@ import {
 } from '../constants';
 
 import * as Formatter from './formatter';
+// types only, paginator.ts imports this file
+import type { PageObject } from './paginator';
 import { getPremiumUpsellSku } from './premium';
 
 
@@ -2175,6 +2177,8 @@ export async function jobReply(
     describeEmbedFooter?: (response: RestResponsesRaw.FileResponse) => MediaReplyEmbedFooter | undefined,
     // after the result is posted (not for errors), its failures are ignored, the result is already there
     onSuccess?: () => Promise<void> | void,
+    // posts the result itself in place of `mediaReply` (like a gallery's paginator), the other reply options are unused
+    send?: (response: RestResponsesRaw.FileResponse) => Promise<Structures.Message | void>,
     // the response to post in place of the job's (like pixel art posting its grid and keeping the sprites for its
     // buttons), what the other options get too
     show?: (response: RestResponsesRaw.FileResponse) => RestResponsesRaw.FileResponse,
@@ -2194,7 +2198,7 @@ export async function jobReply(
       response = options.show(response);
     }
     // several files (like pixel art's sprites) are all posted together
-    const reply = (response.files && 1 < response.files.length) ?
+    const reply = (options.send) ? await options.send(response) : (response.files && 1 < response.files.length) ?
       await mediaReplyFiles(context, response.files, {...replyOptions(response), took: response.took}) :
       await mediaReply(context, response, replyOptions(response));
     if (options.onSuccess) {
@@ -3192,32 +3196,32 @@ export async function displayReply(
 }
 
 
-export async function mediaReply(
-  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+export interface MediaReplyResponseOptions {
+  actions?: MediaReplyActions,
+  content?: string,
+  description?: string,
+  descriptionBelow?: string,
+  embedFooter?: MediaReplyEmbedFooter,
+  filename?: string,
+  // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
+  hideDetails?: boolean,
+  spoiler?: boolean,
+}
+
+// a file response as `createMediaReplyMessage`'s value and options
+function mediaReplyResponseOptions(
   response: RestResponsesRaw.FileResponse,
-  options: {
-    actions?: MediaReplyActions,
-    content?: string,
-    description?: string,
-    descriptionBelow?: string,
-    embedFooter?: MediaReplyEmbedFooter,
-    filename?: string,
-    // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
-    hideDetails?: boolean,
-    spoiler?: boolean,
-  } | string = {},
-) {
-  if (typeof(options) === 'string') {
-    options = {filename: options};
-  }
+  options: MediaReplyResponseOptions,
+): [Buffer, MediaReplyOptions] {
   // discord sanitizes upload filenames like `filename_safe` does, the title shows the original (unicode, spaces) instead
+  let filename = options.filename;
   let title: string | undefined;
-  if (!options.filename) {
-    options.filename = response.file.filename_safe_base;
+  if (!filename) {
+    filename = response.file.filename_safe_base;
     title = response.file.filename;
   }
   const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-  return mediaReplyFromOptions(context, buffer, {
+  return [buffer, {
     actions: options.actions,
     content: options.content,
     description: options.description,
@@ -3225,7 +3229,7 @@ export async function mediaReply(
     embedFooter: options.embedFooter,
     extension: response.file.metadata.extension,
     hideDetails: options.hideDetails,
-    filename: options.filename,
+    filename,
     framecount: response.file.metadata.framecount,
     height: response.file.metadata.height,
     mimetype: response.file.metadata.mimetype,
@@ -3236,7 +3240,43 @@ export async function mediaReply(
     took: response.took,
     variableFrameSizes: response.file.metadata.variable_frame_sizes,
     width: response.file.metadata.width,
-  });
+  }];
+}
+
+export async function mediaReply(
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+  response: RestResponsesRaw.FileResponse,
+  options: MediaReplyResponseOptions | string = {},
+) {
+  if (typeof(options) === 'string') {
+    options = {filename: options};
+  }
+  const [buffer, replyOptions] = mediaReplyResponseOptions(response, options);
+  return mediaReplyFromOptions(context, buffer, replyOptions);
+}
+
+// a file response as a paginator page (like a gallery post's pages), the same message `mediaReply` would send. the
+// paginator adds its buttons and sends it, so no `actions`
+export async function createMediaReplyPage(
+  context: Command.Context | Interaction.InteractionContext,
+  response: RestResponsesRaw.FileResponse,
+  options: Omit<MediaReplyResponseOptions, 'actions'> = {},
+): Promise<PageObject> {
+  const [buffer, replyOptions] = mediaReplyResponseOptions(response, options);
+  const { isComponentsV2, message } = await createMediaReplyMessage(context, buffer, replyOptions);
+  const files = (message.file) ? [message.file] : undefined;
+  const rows = (message.components) ? [...message.components.components] : [];
+  if (isComponentsV2) {
+    // the reupload button is already in the container
+    return {components: rows, files};
+  }
+  return {
+    content: message.content || undefined,
+    embeds: (message.embed) ? [message.embed] : undefined,
+    files,
+    // the reupload button, above the page buttons
+    rows,
+  };
 }
 
 
@@ -3410,40 +3450,68 @@ export interface MediaReplyEmbedFooter {
   timestamp?: number,
 }
 
+export interface MediaReplyOptions {
+  actions?: MediaReplyActions,
+  // alt text for the media, `description` is shown as text above it
+  altText?: string,
+  content?: string,
+  context?: ComponentContext,
+  description?: string,
+  // under the media in components v2 (like a post's site and stats), the other displays add it after `description`
+  descriptionBelow?: string,
+  // the embed display shows this in its footer instead of `descriptionBelow`
+  embedFooter?: MediaReplyEmbedFooter,
+  extension?: string,
+  filename?: string,
+  framecount?: number,
+  height?: number,
+  // leaves out the size/dimensions/took line in every display
+  hideDetails?: boolean,
+  mimetype?: string,
+  reuploading?: ReuploadStatuses,
+  size: number,
+  spoiler?: boolean,
+  storage?: null | RestResponsesRaw.FileResponseStorage,
+  storageUserId?: string,
+  // shown by discord instead of the (sanitized) filename, left out when it's the same as the upload's
+  title?: string,
+  took?: number,
+  // a bouncing webm, discord's player keeps every frame at the first one's size and only a pasted link shows them
+  variableFrameSizes?: boolean,
+  width?: number,
+}
+
+// what `mediaReplyFromOptions` sends: `isComponentsV2` when it's a components v2 layout, `replacesResponse` when it has to
+// replace a slash command's components v2 response instead of editing it (the default display's attached audio)
+export interface MediaReplyMessage {
+  isComponentsV2: boolean,
+  message: {
+    components?: Components,
+    content?: string,
+    embed?: Embed,
+    file?: RequestTypes.File,
+  },
+  replacesResponse: boolean,
+}
+
 export async function mediaReplyFromOptions(
   context: ComponentContext | Command.Context | Interaction.InteractionContext,
   value: any,
-  options: {
-    actions?: MediaReplyActions,
-    // alt text for the media, `description` is shown as text above it
-    altText?: string,
-    content?: string,
-    context?: ComponentContext,
-    description?: string,
-    // under the media in components v2 (like a post's site and stats), the other displays add it after `description`
-    descriptionBelow?: string,
-    // the embed display shows this in its footer instead of `descriptionBelow`
-    embedFooter?: MediaReplyEmbedFooter,
-    extension?: string,
-    filename?: string,
-    framecount?: number,
-    height?: number,
-    // leaves out the size/dimensions/took line in every display
-    hideDetails?: boolean,
-    mimetype?: string,
-    reuploading?: ReuploadStatuses,
-    size: number,
-    spoiler?: boolean,
-    storage?: null | RestResponsesRaw.FileResponseStorage,
-    storageUserId?: string,
-    // shown by discord instead of the (sanitized) filename, left out when it's the same as the upload's
-    title?: string,
-    took?: number,
-    // a bouncing webm, discord's player keeps every frame at the first one's size and only a pasted link shows them
-    variableFrameSizes?: boolean,
-    width?: number,
-  },
+  options: MediaReplyOptions,
 ) {
+  const { message, replacesResponse } = await createMediaReplyMessage(context, value, options);
+  if (replacesResponse) {
+    return replaceInteractionResponse(context as Interaction.InteractionContext, message);
+  }
+  return editOrReply(options.context || context, message);
+}
+
+// the message `mediaReplyFromOptions` sends, without sending it (like a paginator's page)
+export async function createMediaReplyMessage(
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+  value: any,
+  options: MediaReplyOptions,
+): Promise<MediaReplyMessage> {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const isFromPrefix = (context instanceof Command.Context);
   const { language, translate } = await getTranslator(context);
@@ -3640,7 +3708,7 @@ export async function mediaReplyFromOptions(
         actionRow.addButton(reuploadButton);
       }
 
-      return editOrReply(options.context || context, {components, file});
+      return {isComponentsV2: true, message: {components, file}, replacesResponse: false};
     }
   }
 
@@ -3701,7 +3769,7 @@ export async function mediaReplyFromOptions(
       file = {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, title, value};
     }
 
-    return editOrReply(options.context || context, {components, content: options.content || '', embed, file});
+    return {isComponentsV2: false, message: {components, content: options.content || '', embed, file}, replacesResponse: false};
   }
 
   if (options.storage) {
@@ -3750,10 +3818,11 @@ export async function mediaReplyFromOptions(
         content.unshift(options.content.slice(0, remaining));
       }
     }
-    return editOrReply(options.context || context, {
-      components,
-      content: content.filter(Boolean).join('\n'),
-    });
+    return {
+      isComponentsV2: false,
+      message: {components, content: content.filter(Boolean).join('\n')},
+      replacesResponse: false,
+    };
   }
 
   // the default display's audio (attached for discord's player) can't be an edit of a response that's already
@@ -3776,10 +3845,7 @@ export async function mediaReplyFromOptions(
     // without them doesn't send an empty list
     components: (components.components.length) ? components : undefined,
   };
-  if (replacesResponse) {
-    return replaceInteractionResponse(context as Interaction.InteractionContext, message);
-  }
-  return editOrReply(options.context || context, message);
+  return {isComponentsV2: false, message, replacesResponse};
 }
 
 

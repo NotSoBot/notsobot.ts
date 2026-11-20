@@ -28,6 +28,9 @@ export const BAIT_INTERVAL_MIN = 10 * 60;
 export const BAIT_INTERVAL_MAX = 24 * 60 * 60;
 // the bot's own notice, a message's limit
 export const NOTICE_MAX_LENGTH = 2000;
+// whoever posts gets this long to press "I'm not a bot" before they're removed: a person who posted by mistake can stay,
+// a spam account doesn't press anything
+export const GRACE_TIME = 60 * 1000;
 export const TOPIC_MAX_LENGTH = 1024;
 // discord lets a channel be renamed twice every 10 minutes, a third waits out the rest (longer than an interaction lasts)
 const RENAME_LIMIT = 2;
@@ -39,8 +42,9 @@ const CREATE_PERMISSIONS = [Permissions.MANAGE_CHANNELS, Permissions.MANAGE_WEBH
 const EVERYONE_ALLOW = Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.ATTACH_FILES | Permissions.READ_MESSAGE_HISTORY;
 const EVERYONE_DENY = Permissions.ADD_REACTIONS | Permissions.CREATE_PUBLIC_THREADS | Permissions.CREATE_PRIVATE_THREADS |
   Permissions.SEND_MESSAGES_IN_THREADS;
+// reactions and external emojis for the warning I react to a post with (an app emoji), everyone else's are denied
 const BOT_ALLOW = Permissions.VIEW_CHANNEL | Permissions.SEND_MESSAGES | Permissions.READ_MESSAGE_HISTORY |
-  Permissions.MANAGE_WEBHOOKS | Permissions.MANAGE_MESSAGES;
+  Permissions.MANAGE_WEBHOOKS | Permissions.MANAGE_MESSAGES | Permissions.ADD_REACTIONS | Permissions.USE_EXTERNAL_EMOJIS;
 
 // channel id -> when it was renamed
 const renames = new Map<string, Array<number>>();
@@ -170,6 +174,7 @@ export async function createCreateMessage(context: Context, args: CreateArgs) {
   const description = [
     translate('decoy.created', {channel: `<#${channel.id}>`}),
     (clean) ? translate('decoy.what_it_does', {duration: formatDuration(clean * 1000, translator.language)}) : translate('decoy.what_it_does_no_clean'),
+    translate('decoy.grace_hint', {button: translate('decoy.grace_button_keep'), duration: formatDuration(GRACE_TIME, translator.language)}),
     `-# ${translate('decoy.who_is_skipped')}`,
     '',
   ];
@@ -402,9 +407,19 @@ export async function createStatusMessage(context: Context, known?: RestResponse
   const translator = await getTranslator(context);
   const { language, translate } = translator;
   const guild = context.guild!;
-  const decoy = known || await getGuildDecoy(context, guild.id);
+  // the api's copy, not the store's: a store that missed it would answer "no decoy" while it's there
+  const decoy = known || (await fetchGuildDecoy(context, guild.id)).decoy;
   if (!decoy) {
     return displayReply(context, {description: translate('decoy.none'), ephemeral: true});
+  }
+  // this cluster wasn't watching it (its list of decoys didn't load, or it missed the change), it is from now on
+  let rearmed = false;
+  if (!DecoyStore.getByChannel(decoy.channel_id)) {
+    DecoyStore.apply(decoy, guild.id);
+    rearmed = !!DecoyStore.getByChannel(decoy.channel_id);
+    if (!DecoyStore.loader.isLoaded) {
+      DecoyStore.load(context.client).catch(() => null);
+    }
   }
   const settings = await GuildSettingsStore.getOrFetch(context, guild.id);
   const rule = (settings) ? resolveGuildWarningAuto(settings, GuildWarningAutoTriggers.DECOY, null, null) : null;
@@ -432,6 +447,7 @@ export async function createStatusMessage(context: Context, known?: RestResponse
 
   const description = [
     translate('decoy.status_channel', {channel: `<#${decoy.channel_id}>`}),
+    (rearmed) ? `${StatusEmojis.WARNING} ${translate('decoy.status_rearmed')}` : null,
     `-> ${notice}`,
     // mine is easier to spot than a member's, steer them to their own
     (decoy.notice_message_id && !decoy.notice_user_id) ? `-# ${translate('decoy.bot_notice_hint')}` : null,

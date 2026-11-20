@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
-import { InteractionCallbackTypes, MarkupTimestampStyles, MessageComponentButtonStyles, MessageFlags } from 'detritus-client/lib/constants';
-import { ComponentActionRow, ComponentContext, Markup } from 'detritus-client/lib/utils';
+import { MarkupTimestampStyles, MessageFlags } from 'detritus-client/lib/constants';
+import { ComponentContext, InteractionModalContext, Markup } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -20,15 +20,15 @@ import {
 import { DefaultParameters, jobReply, jobWaitForResponse, linkPremiumSkuName, mediaReply } from '../../../utils';
 import {
   DisplayPayload,
-  MediaReplyActions,
   MediaReplyEmbedFooter,
+  createMediaReplyPage,
   displayReply,
   getMediaReplyActionsTimeout,
   getResponseDisplayForReply,
   renderEphemeralDisplay,
 } from '../../../utils/tools';
 import { getAutoEmbedLink } from '../../autoembed';
-import { PageButtonNames, PageButtons } from '../../paginator';
+import { Page, Paginator } from '../../paginator';
 import { Translator, getTranslator } from '../../i18n';
 
 
@@ -129,20 +129,24 @@ async function createMediaMessage(
   const describeEmbedFooter = (response: RestResponsesRaw.FileResponse) => {
     return (options.post && response.post) ? formatPost(translator, response.post, {spoiler: !!args.spoiler}).footer : undefined;
   };
+  // the same text on every page, with which page it is under the media when it's one of a gallery's
+  const replyOptions = (response: RestResponsesRaw.FileResponse, pageText?: PageText) => ({
+    description: describe(response),
+    descriptionBelow: withPageText(describeBelow(response), pageText),
+    embedFooter: withPageFooter(describeEmbedFooter(response), pageText),
+    spoiler: args.spoiler,
+  });
   return jobReply(context, job, {
-    actions: (response) => createPageActions(context, translator, response, fetchPage, (page, actions) => mediaReply(context, page, {
-      actions,
-      description: describe(page),
-      descriptionBelow: describeBelow(page),
-      embedFooter: describeEmbedFooter(page),
-      spoiler: args.spoiler,
-    })),
-    describe,
-    describeBelow,
-    describeEmbedFooter,
+    send: (response) => {
+      if (hasPages(response)) {
+        return replyWithPages(context, translator, response, fetchPage, (page, pageText) => {
+          return createMediaReplyPage(context, page, replyOptions(page, pageText));
+        });
+      }
+      return mediaReply(context, response, replyOptions(response));
+    },
     // `.embed` replaces the link's preview like auto-embed does (slash commands have no message of theirs to change)
     onSuccess: (options.post && context instanceof Command.Context) ? () => suppressLinkEmbed(context) : undefined,
-    spoiler: args.spoiler,
   });
 }
 
@@ -150,109 +154,80 @@ async function createMediaMessage(
 // how long a post's page buttons keep working, a slash reply's go sooner (`getMediaReplyActionsTimeout`)
 const PAGES_TIMEOUT = 10 * 60 * 1000;
 
-type DownloadPages = NonNullable<RestResponsesRaw.FileResponse['pages']>;
+// which page of a gallery it is, under the media like the post's site and stats (`below`), the embed display has it
+// in its footer
+interface PageText {
+  below: string,
+  footer: string,
+}
 
-// a post with more than one media (`response.pages`, a gallery or carousel) gets the paginator's previous/next buttons
-// under it with the page it's on between them, starting on the one that was asked for (`-position 1` is page 2). a
-// press downloads that position of the same link and shows it in place of the last, the same way (`render`). only
-// whoever ran it can press them like the paginator, and a page that fails tells them why and leaves the last one up
-function createPageActions(
+function hasPages(response: RestResponsesRaw.FileResponse): boolean {
+  return !!response.pages && 1 < response.pages.count;
+}
+
+function withPageText(below: string | undefined, pageText?: PageText): string | undefined {
+  if (!pageText) {
+    return below;
+  }
+  // the post's `-# site • time • stats` line gets it last, otherwise it's its own small line
+  return (below) ? `${below} • ${pageText.footer}` : pageText.below;
+}
+
+function withPageFooter(footer: MediaReplyEmbedFooter | undefined, pageText?: PageText): MediaReplyEmbedFooter | undefined {
+  if (!pageText || !footer) {
+    // without a footer the embed shows `descriptionBelow`, which has it
+    return footer;
+  }
+  return {...footer, text: [footer.text, pageText.footer].filter(Boolean).join(' • ')};
+}
+
+// a post with more than one media (`response.pages`, a gallery or carousel) is a paginator, starting on the page that
+// was asked for (`-position 1` is page 2). a page is that position of the same link, downloaded the first time it's
+// shown and kept for paging back. a page that fails tells whoever pressed it why and the last one stays up
+function replyWithPages(
   context: Command.Context | Interaction.InteractionContext,
   translator: Translator,
   response: RestResponsesRaw.FileResponse,
   fetchPage: (position: number) => Promise<RestResponsesRaw.FileResponse>,
-  render: (response: RestResponsesRaw.FileResponse, actions: MediaReplyActions | undefined) => Promise<unknown>,
-): MediaReplyActions | undefined {
-  if (!response.pages) {
-    return undefined;
-  }
-  const { language } = translator;
-  // the pages on the reply, set once a press's edit lands: only the shown one's buttons time out (and go), and a failed
-  // edit leaves the old one (and its buttons) up so they still go
-  let shown: DownloadPages = response.pages;
-  // a page is being downloaded, the other presses are ignored until it's shown
-  let swapping = false;
-  // the shown page's buttons timed out mid swap, they go if the swap doesn't land (a landed one brings its own)
-  let stripAfterSwap: (() => Promise<void>) | null = null;
-
-  const createActions = (pages: DownloadPages): MediaReplyActions => {
-    const row = new ComponentActionRow();
-    row.createButton({
-      ...PageButtons[PageButtonNames.PREVIOUS],
-      disabled: pages.position <= 0,
-      run: (ctx) => onPress(ctx, pages.position - 1),
-    });
-    // where it is, never pressed
-    row.createButton({
-      disabled: true,
-      label: `${(pages.position + 1).toLocaleString(language)}/${pages.count.toLocaleString(language)}`,
-      style: MessageComponentButtonStyles.SECONDARY,
-    });
-    row.createButton({
-      ...PageButtons[PageButtonNames.NEXT],
-      disabled: pages.count - 1 <= pages.position,
-      run: (ctx) => onPress(ctx, pages.position + 1),
-    });
-    return {
-      rows: [row],
-      get timeout() {
-        return getMediaReplyActionsTimeout(context, PAGES_TIMEOUT);
-      },
-      onTimeout: (strip) => {
-        if (shown !== pages) {
-          return;
-        }
-        if (swapping) {
-          stripAfterSwap = strip;
-          return;
-        }
-        return strip().catch(() => {});
-      },
-    };
-  };
-
-  const onPress = async (ctx: ComponentContext, position: number) => {
-    if (ctx.userId !== context.userId || swapping) {
-      return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
+  createPage: (response: RestResponsesRaw.FileResponse, pageText: PageText) => Promise<Page>,
+  options: {deleteContextMessage?: boolean} = {},
+) {
+  const { language, translate } = translator;
+  const pages = response.pages!;
+  // failed downloads aren't kept so they can be tried again
+  const cache = new Map<number, Promise<RestResponsesRaw.FileResponse>>([[pages.position, Promise.resolve(response)]]);
+  const fetchCached = (position: number) => {
+    let promise = cache.get(position);
+    if (!promise) {
+      // no "took", it would count from when the command was run
+      promise = fetchPage(position).then((page) => ({...page, took: 0}));
+      promise.catch(() => cache.delete(position));
+      cache.set(position, promise);
     }
-    swapping = true;
-    let swapped = false;
-    try {
-      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      let page: RestResponsesRaw.FileResponse;
-      try {
-        // no "took", it would count from when the command was run
-        page = {...await fetchPage(position), took: 0};
-      } catch(error) {
-        await replyPageError(ctx, context, translator, error);
-        return;
-      }
-      // the api's pages, it moves a position past the end back to the last one (and a post can lose some)
-      const pages = page.pages || null;
-      await render(page, (pages) ? createActions(pages) : undefined);
-      swapped = true;
-      if (pages) {
-        shown = pages;
-      }
-    } catch(error) {
-
-    } finally {
-      swapping = false;
-      const strip = stripAfterSwap;
-      stripAfterSwap = null;
-      if (strip && !swapped) {
-        await strip().catch(() => {});
-      }
-    }
+    return promise;
   };
-
-  return createActions(shown);
+  const paginator = new Paginator(context, {
+    deleteContextMessage: options.deleteContextMessage,
+    expire: getMediaReplyActionsTimeout(context, PAGES_TIMEOUT),
+    page: pages.position + 1,
+    pageLimit: pages.count,
+    onError: (error, paginator, ctx) => (ctx) ? replyPageError(ctx, context, translator, error) : undefined,
+    onPage: async (pageNumber) => {
+      const page = await fetchCached(pageNumber - 1);
+      const text = translate('paginator.page', {
+        page: pageNumber.toLocaleString(language),
+        total: paginator.pageLimit.toLocaleString(language),
+      });
+      return createPage(page, {below: `-# ${text}`, footer: text});
+    },
+  });
+  return paginator.start();
 }
 
 
 // why a page couldn't be shown, only to whoever pressed it (the reply keeps the last page)
 async function replyPageError(
-  ctx: ComponentContext,
+  ctx: ComponentContext | InteractionModalContext,
   context: Command.Context | Interaction.InteractionContext,
   translator: Translator,
   error: any,
@@ -287,19 +262,22 @@ async function autoEmbedReply(
 ) {
   const response = await jobWaitForResponse(context, job);
   const translator = await getTranslator(context);
-  // a gallery's other pages are shown the same way
-  const render = (page: RestResponsesRaw.FileResponse, actions: MediaReplyActions | undefined) => {
+  const replyOptions = (page: RestResponsesRaw.FileResponse, pageText?: PageText) => {
     const post: FormattedPost = (isAutoEmbedTextOn(context) && page.post) ? formatPost(translator, page.post, {spoiler}) : {};
-    return mediaReply(context, page, {
-      actions,
+    return {
       description: post.above,
-      descriptionBelow: post.below,
-      embedFooter: post.footer,
+      descriptionBelow: withPageText(post.below, pageText),
+      embedFooter: withPageFooter(post.footer, pageText),
       hideDetails: true,
       spoiler,
-    });
+    };
   };
-  const reply = await render(response, createPageActions(context, translator, response, fetchPage, render));
+  // a gallery's other pages are shown the same way. stop never deletes their post, it isn't a command
+  const reply = (hasPages(response)) ?
+    await replyWithPages(context, translator, response, fetchPage, (page, pageText) => {
+      return createMediaReplyPage(context, page, replyOptions(page, pageText));
+    }, {deleteContextMessage: false}) :
+    await mediaReply(context, response, replyOptions(response));
   await suppressLinkEmbed(context);
   return reply;
 }

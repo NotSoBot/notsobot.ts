@@ -50,7 +50,6 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
               store.delete(paginator);
 
               paginator.message = null;
-              paginator.custom.message = null;
               await paginator.stop(false);
             }
           }
@@ -72,28 +71,11 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
                   store.delete(paginator);
     
                   paginator.message = null;
-                  paginator.custom.message = null;
                   await paginator.stop(false);
                 }
               }
             }
             this.delete(channel.id);
-          }
-        }
-      });
-      subscriptions.push(subscription);
-    }
-    {
-      const subscription = cluster.subscribe(ClientEvents.MESSAGE_CREATE, async (event) => {
-        const { message } = event;
-        if (!message.fromBot && this.has(message.channelId)) {
-          const stored = this.get(message.channelId)!;
-          for (let store of Object.values(stored)) {
-            for (let paginator of store) {
-              if (paginator.custom.state !== 'closed') {
-                await paginator.onMessage(message);
-              }
-            }
           }
         }
       });
@@ -106,22 +88,11 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
           const stored = this.get(channelId)!;
           // we dont get message deletes for ephemeral messages
           for (let paginator of stored.normal) {
-            if (paginator.message) {
-              if (paginator.message.id === messageId) {
-                stored.normal.delete(paginator);
+            if (paginator.message && paginator.message.id === messageId) {
+              stored.normal.delete(paginator);
 
-                paginator.message = null;
-                paginator.custom.message = null;
-                await paginator.stop(false);
-                continue;
-              }
-            }
-            if (paginator.custom.message) {
-              if (paginator.custom.message.id === messageId) {
-                paginator.custom.message = null;
-                await paginator.clearCustomMessage();
-                continue;
-              }
+              paginator.message = null;
+              await paginator.stop(false);
             }
           }
           if (!stored.ephemeral.length && !stored.normal.length) {

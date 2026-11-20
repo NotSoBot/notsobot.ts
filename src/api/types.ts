@@ -4623,6 +4623,9 @@ export namespace RestResponsesRaw {
     },
     result: {
       error: string,
+      // the run's exit status (the compile step's when that failed), 128 + the signal when the kernel killed it. missing
+      // from an older api/notsocode, null when docker didn't give one
+      exit_code?: number | null,
       // `file.filename` is the output's own name
       files: Array<FileResponse>,
       output: string,

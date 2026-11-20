@@ -537,6 +537,8 @@ export const DiscordReactionEmojis = Object.freeze({
   // the red thinking stop sign that took over from stopthonk, on prefixed commands a server's rules block
   NOT_ALLOWED: {id: '1571271466404544654', name: 'not_allowed'},
   WAIT: {id: '1571271467323101416', name: 'ratelimited'},
+  // a post in the decoy channel, until they press "I'm not a bot" or get removed
+  WARNING: {id: '1571271469319717024', name: 'warning'},
 });
 
 

@@ -546,6 +546,7 @@ export enum TagFunctions {
   COMPONENT_JSON = 'COMPONENT_JSON',
   COMPONENTS_ON_TIMEOUT = 'COMPONENTS_ON_TIMEOUT',
   EMBED_JSON = 'EMBED_JSON',
+  ERROR = 'ERROR',
   EVAL = 'EVAL',
   EVAL_SILENT = 'EVAL_SILENT',
   EXIT = 'EXIT',
@@ -769,6 +770,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.COMPONENT_JSON]: ['componentjson'],
   [TagFunctions.COMPONENTS_ON_TIMEOUT]: ['componentsontimeout'],
   [TagFunctions.EMBED_JSON]: ['embedjson'],
+  [TagFunctions.ERROR]: ['error'],
   [TagFunctions.EVAL]: ['eval'],
   [TagFunctions.EVAL_SILENT]: ['evalsilent'],
   [TagFunctions.EXIT]: ['exit'],
@@ -3625,9 +3627,13 @@ const ScriptTags = Object.freeze({
     }));
 
     if (result.error) {
-      // stderr is the tag's own code failing (or a `console.error` on purpose), not ours
-      // if it starts with ffmpeg error, check if its only 1 or less files to throw error
-      if (CODE_EXECUTION_FFMPEG_STDERR_BANNER.test(result.error) || result.error.includes('Input')) {
+      // stderr is the tag's own code failing (or a `console.error` on purpose, thousands of tags stop with one and exit 0,
+      // so stderr stays an error whatever the exit status), not ours.
+      // ffmpeg logs to stderr even when it works, so ffmpeg-looking stderr is let through when files came back. not when
+      // the code exited non-zero though, that hid a failed ffmpeg behind the files that did get made. `exit_code` is
+      // missing from an older api/notsocode, the files decide alone then
+      const exitedWithError = (typeof(result.exit_code) === 'number' && result.exit_code !== 0);
+      if (!exitedWithError && (CODE_EXECUTION_FFMPEG_STDERR_BANNER.test(result.error) || result.error.includes('Input'))) {
         if (result.files.every((x) => x.file.filename === '__internals__.json')) {
           throw new TagError(result.error);
         }
@@ -5788,6 +5794,16 @@ const ScriptTags = Object.freeze({
     }
     // outside of the try, a bad `$FILE_n` or a blocked download should error instead of printing the raw function
     await resolveEmbedMediaUrls(context, tag.embeds[tag.embeds.length - 1]!, tag);
+
+    return true;
+  },
+
+  [TagFunctions.ERROR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {error:text}
+    // stops the tag with `text` as its error, what `{js:console.error(`text`)}` was used for without running any code.
+    // a plain TagError like the code's stderr, so {iferror} catches it (unlike {exit}). trimmed like stderr is
+
+    throw new TagError(arg.trim());
 
     return true;
   },

@@ -251,14 +251,17 @@ export type GuildLoggingEventDecoy = {
   happened: number,
   name: GuildLoggingCustomEvents.DECOY_CATCH,
   payload: {
-    // ban: the warning ladder reached a ban, softban: removed with their messages deleted, none: I couldn't remove them
-    action: 'ban' | 'none' | 'softban',
+    // ban: the warning ladder reached a ban, softban: removed with their messages deleted, none: I couldn't remove them,
+    // kept: they pressed "I'm not a bot" in time, only their message went
+    action: 'ban' | 'kept' | 'none' | 'softban',
     attachments: number,
     channelId: string,
     // seconds of their messages deleted
     clean: number,
     // what they posted, empty without it (attachments only, or no message content)
     content: string,
+    // how many accounts posted there within a minute when it skipped their minute to press "I'm not a bot", 0: it didn't
+    raid: number,
     user: Structures.User,
     warned: boolean,
   },

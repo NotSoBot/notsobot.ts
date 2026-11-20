@@ -7,16 +7,26 @@ import {
 import {
   InteractionCallbackTypes,
   MessageComponentButtonStyles,
+  MessageComponentInputTextStyles,
   MessageComponentTypes,
   MessageFlags,
 } from 'detritus-client/lib/constants';
-import { Components, ComponentContainer, ComponentContext, ComponentSeparator } from 'detritus-client/lib/utils';
+import {
+  Components,
+  ComponentContainer,
+  ComponentContext,
+  ComponentSeparator,
+  InteractionModal,
+  InteractionModalArgs,
+  InteractionModalContext,
+} from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
+import { StatusEmojis } from '../constants';
 import PaginatorsStore from '../stores/paginators';
 
-import { getTranslator } from './i18n';
+import { getTranslator, Translator } from './i18n';
 import {
   DISPLAY_BLOCKS_SEPARATOR_ID,
   DISPLAY_FOOTER_SECTION_ID,
@@ -67,6 +77,9 @@ export type PageObject = {
   content?: string,
   embeds?: Array<Utils.Embed>,
   files?: Array<RequestTypes.File>,
+  // the page's own action rows (like media's reupload button), above the page buttons. their clicks are handled
+  // elsewhere (no `run`)
+  rows?: Array<any>,
 };
 
 // rendered with the user's response display setting (components v2, embed, or text) like `displayReply`
@@ -158,15 +171,20 @@ export function isPageComponentsV2(page: Page): boolean {
   );
 }
 
-export type OnErrorCallback = (error: any, paginator: Paginator) => Promise<any> | any;
+// `context` is the press (or go to page submit) that failed (like a page that couldn't be made), to tell whoever pressed it why
+export type PageContext = ComponentContext | InteractionModalContext;
+export type OnErrorCallback = (error: any, paginator: Paginator, context?: PageContext) => Promise<any> | any;
 export type OnExpireCallback = (paginator: Paginator) => Promise<any> | any;
 export type OnPageCallback = (page: number) => Promise<Page> | Page;
+// turns what was typed into the go to page modal into a page number (NaN for none), a plain number by default
 export type OnPageNumberCallback = (content: string) => Promise<number> | number;
 
 export type PaginatorButtons = Partial<Record<PageButtonNames, PageButton>>;
 
 export interface PaginatorOptions {
   buttons?: PaginatorButtons,
+  // stop also deletes the message that ran it (prefix), off when that message isn't a command (auto-embed's link post)
+  deleteContextMessage?: boolean,
   expire?: number,
   isEphemeral?: boolean,
   message?: Structures.Message,
@@ -185,19 +203,6 @@ export interface PaginatorOptions {
 
 export class Paginator {
   readonly context: Command.Context | Interaction.InteractionContext | Structures.Message;
-  // the "which page?" prompt. `opening` is while it's being posted: closing it then (a second press, a typed page, the
-  // paginator stopping) leaves the opening press to delete it once it's posted
-  readonly custom: {
-    expire: number,
-    message?: null | Structures.Message,
-    state: 'closed' | 'opening' | 'open',
-    timeout: Timers.Timeout,
-    userId?: null | string,
-  } = {
-    expire: 10000,
-    state: 'closed',
-    timeout: new Timers.Timeout(),
-  };
   _isEphemeral?: boolean;
   _message: null | Structures.Message = null;
   // set once a components v2 page is sent, the message can't go back to content/embeds after
@@ -206,7 +211,10 @@ export class Paginator {
   pageRows: Array<any> = [];
 
   buttons: Record<PageButtonNames, PageButton> = Object.assign({}, PageButtons);
+  deleteContextMessage: boolean = true;
   expires: number = 1 * (60 * 1000);
+  // a page is being made and sent (a slow `onPage`, like a download), page presses are ignored until it's up
+  loading: boolean = false;
   page: number = MIN_PAGE;
   pageLimit: number = MAX_PAGE;
   pageSkipAmount: number = 10;
@@ -247,6 +255,9 @@ export class Paginator {
     if (options.expire !== undefined) {
       this.expires = options.expire;
     }
+    if (options.deleteContextMessage !== undefined) {
+      this.deleteContextMessage = options.deleteContextMessage;
+    }
     this.pageSkipAmount = Math.max(2, options.pageSkipAmount || this.pageSkipAmount);
 
     if (Array.isArray(options.targets)) {
@@ -283,7 +294,6 @@ export class Paginator {
       _message: {enumerable: false},
       buttons: {enumerable: false},
       context: {enumerable: false},
-      custom: {enumerable: false},
       onError: {enumerable: false},
       onExpire: {enumerable: false},
       onPage: {enumerable: false},
@@ -338,7 +348,7 @@ export class Paginator {
     });
     components.createButton({
       customId: PageButtonNames.CUSTOM,
-      style: (this.custom.state !== 'closed') ? MessageComponentButtonStyles.DANGER : MessageComponentButtonStyles.PRIMARY,
+      style: MessageComponentButtonStyles.PRIMARY,
       ...this.buttons[PageButtonNames.CUSTOM],
     });
     components.createButton({
@@ -435,42 +445,11 @@ export class Paginator {
   }
 
   reset() {
-    this.custom.timeout.stop();
     this.ratelimitTimeout.stop();
   }
 
   stop(clearButtons: boolean = true, context?: ComponentContext) {
     return this.onStop(null, clearButtons, context);
-  }
-
-  async clearCustomMessage(context?: ComponentContext): Promise<void> {
-    this.custom.timeout.stop();
-    if (this.custom.state === 'closed') {
-      return;
-    }
-    // closed before the delete's awaited, so a press or typed page in the meantime sees it closed
-    const message = this.custom.message;
-    this.custom.message = null;
-    this.custom.state = 'closed';
-    if (message) {
-      await this.deleteCustomMessage(message);
-    }
-    await this.updateButtons(context);
-  }
-
-  private async deleteCustomMessage(message: Structures.Message): Promise<void> {
-    if (message.deleted) {
-      return;
-    }
-    try {
-      if (this.context instanceof Interaction.InteractionContext) {
-        await this.context.deleteMessage(message.id);
-      } else {
-        await message.delete();
-      }
-    } catch(error) {
-
-    }
   }
 
   async resolvePage(pageNumber: number): Promise<Page> {
@@ -524,6 +503,7 @@ export class Paginator {
     let embeds: Array<Utils.Embed> = [];
     let files: Array<RequestTypes.File> | undefined;
     let layout: Array<any> = [];
+    let rows: Array<any> = [];
     if (Array.isArray(page) && page.length === 2) {
       embeds.push(page[0]);
       files = page[1];
@@ -541,6 +521,9 @@ export class Paginator {
       }
       if ('components' in page && Array.isArray(page.components)) {
         layout = page.components;
+      }
+      if ('rows' in page && Array.isArray(page.rows)) {
+        rows = page.rows;
       }
     } else {
       throw new Error(`Page ${pageNumber} is invalid (2)`);
@@ -566,8 +549,10 @@ export class Paginator {
       for (let component of layout) {
         addLayoutComponent(pageRoot, component);
       }
-      (root.components as Array<any>).unshift(...pageRoot.components);
-      moveButtonsIntoContainer(root, buttonRows);
+      // the page's own rows go into its container with the page buttons under them
+      this.pageRows = rows;
+      (root.components as Array<any>).unshift(...pageRoot.components, ...rows);
+      moveButtonsIntoContainer(root, [...rows, ...buttonRows], rows);
       return {
         allowedMentions: {parse: []},
         components: root,
@@ -576,16 +561,23 @@ export class Paginator {
       };
     }
 
+    // the page's own rows stay when only the page buttons change (`getButtonsMessage`)
+    this.pageRows = rows;
+    let components: Components | undefined = buttons;
+    if (rows.length) {
+      components = components || new Components();
+      (components.components as Array<any>).unshift(...rows);
+    }
     return {
       allowedMentions: {parse: []},
-      components: buttons || [],
+      components: components || [],
       content: content || '',
       embeds,
       files,
     };
   }
 
-  async setPage(pageNumber: number, context?: ComponentContext): Promise<void> {
+  async setPage(pageNumber: number, context?: PageContext): Promise<void> {
     pageNumber = Math.max(MIN_PAGE, Math.min(pageNumber, this.pageLimit));
     if (pageNumber === this.page) {
       if (context) {
@@ -593,17 +585,27 @@ export class Paginator {
       }
       return;
     }
+    const previous = this.page;
     this.page = pageNumber;
 
     // todo: put this on a timer
     if (context) {
       await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
-    await this.renderPage(context);
+    this.loading = true;
+    try {
+      await this.renderPage(context);
+    } catch(error) {
+      // the page couldn't be made or sent, the message still shows the last one (and its buttons)
+      this.page = previous;
+      throw error;
+    } finally {
+      this.loading = false;
+    }
   }
 
   // sends the current page again, for a page turn or when what the page shows changed (a responded to `context`)
-  async renderPage(context?: ComponentContext): Promise<void> {
+  async renderPage(context?: PageContext): Promise<void> {
     if (this.stopped) {
       return;
     }
@@ -617,10 +619,11 @@ export class Paginator {
       }
       return;
     }
+    // `editOrReply` uploads big files separately first, like every other reply
     if (context) {
-      await context.editOrRespond({...message, attachments: []});
+      await editOrReply(context, {...message, attachments: []});
     } else if (this.context instanceof Interaction.InteractionContext) {
-      await this.context.editOrRespond({...message, attachments: []});
+      await editOrReply(this.context, {...message, attachments: []});
     } else if (this.message) {
       await this.message.edit({...message, attachments: []});
     }
@@ -673,7 +676,9 @@ export class Paginator {
       await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       return;
     }
-    if (this.ratelimitTimeout.hasStarted) {
+    // stop still works while a page loads, the page is dropped when it's done (`renderPage`)
+    const isLoading = this.loading && context.customId !== PageButtonNames.STOP;
+    if (this.ratelimitTimeout.hasStarted || isLoading) {
       await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       return;
     }
@@ -681,38 +686,8 @@ export class Paginator {
     try {
       switch (context.customId) {
         case PageButtonNames.CUSTOM: {
-          if (this.custom.state !== 'closed') {
-            await this.clearCustomMessage(context);
-          } else {
-            this.custom.state = 'opening';
-            let prompt: null | Structures.Message;
-            try {
-              await this.updateButtons(context);
-              const { translate } = await getTranslator(context);
-              const message = await renderDisplay(context, {description: translate('paginator.which_page')});
-              if (this.isEphemeral) {
-                message.flags = (message.flags || 0) | MessageFlags.EPHEMERAL;
-              }
-              prompt = await context.createMessage(message);
-            } catch(error) {
-              if (this.custom.state === 'opening') {
-                this.custom.state = 'closed';
-              }
-              throw error;
-            }
-            if (this.custom.state !== 'opening') {
-              // closed while it was being posted
-              if (prompt) {
-                await this.deleteCustomMessage(prompt);
-              }
-            } else {
-              this.custom.message = prompt;
-              this.custom.state = 'open';
-              this.custom.timeout.start(this.custom.expire, async () => {
-                await this.clearCustomMessage();
-              });
-            }
-          }
+          // a modal has to be the press's first response, so it isn't deferred like the others
+          await context.respond(await this.createPageModal(context));
         }; break;
         case PageButtonNames.NEXT: {
           await this.setPage(this.page + 1, context);
@@ -737,7 +712,7 @@ export class Paginator {
         }; break;
         case PageButtonNames.STOP: {
           await this.onStop(null, true, context, true);
-          if (this.context instanceof Command.Context) {
+          if (this.context instanceof Command.Context && this.deleteContextMessage) {
             const message = this.context.message;
             if (!message.deleted && message.canDelete) {
               try {
@@ -756,25 +731,65 @@ export class Paginator {
       this.ratelimitTimeout.start(this.ratelimit, () => {});
     } catch(error) {
       if (typeof(this.onError) === 'function') {
-        await Promise.resolve(this.onError(error, this));
+        await Promise.resolve(this.onError(error, this, context));
       }
     }
   }
 
-  async onMessage(message: Structures.Message): Promise<void> {
-    if (this.custom.state === 'closed' || !this.canInteract(message.author.id)) {
+  // go to page asks in a modal, only the presser sees it and nothing gets posted in (or read from) the chat
+  async createPageModal(context: ComponentContext): Promise<InteractionModal> {
+    const { translate } = await getTranslator(context);
+    const hasLimit = this.pageLimit !== MAX_PAGE;
+    const modal = new InteractionModal({
+      timeout: this.expires,
+      title: translate('paginator.go_to_page'),
+      run: (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+        return this.onPageModal(modalContext, String(args.page || ''), translate);
+      },
+    });
+    modal.createLabel({
+      label: translate('paginator.page_number'),
+    }).createInputText({
+      customId: 'page',
+      // room for a `#` in front
+      maxLength: (hasLimit) ? String(this.pageLimit).length + 1 : 16,
+      minLength: 1,
+      placeholder: (hasLimit) ? `${this.page} / ${this.pageLimit}` : String(this.page),
+      required: true,
+      style: MessageComponentInputTextStyles.SHORT,
+    });
+    return modal;
+  }
+
+  // `translate` is the presser's, a modal submit can't look the language up itself
+  async onPageModal(context: InteractionModalContext, value: string, translate: Translator['translate']): Promise<void> {
+    // stopped, or another page is loading, since the modal opened
+    if (this.stopped || this.loading || !this.canInteract(context.userId)) {
+      await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       return;
     }
-    const page = parseInt(message.content);
-    if (!isNaN(page)) {
-      await this.clearCustomMessage();
-      await this.setPage(page);
-      if (message.canDelete) {
-        try {
-          await message.delete();
-        } catch(error) {
-
-        }
+    try {
+      let page: number;
+      if (typeof(this.onPageNumber) === 'function') {
+        page = await Promise.resolve(this.onPageNumber(value));
+      } else {
+        // `#5` and `5` both work, past the last page goes to the last page (`setPage`)
+        const match = value.trim().match(/^#?\s*(\d+)$/);
+        page = (match) ? parseInt(match[1]) : NaN;
+      }
+      if (isNaN(page)) {
+        await context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+          allowedMentions: {parse: []},
+          content: `${StatusEmojis.WARNING} ${translate('paginator.invalid_page')}`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+        return;
+      }
+      await this.setPage(page, context);
+      this.ratelimitTimeout.start(this.ratelimit, () => {});
+    } catch(error) {
+      if (typeof(this.onError) === 'function') {
+        await Promise.resolve(this.onError(error, this, context));
       }
     }
   }
@@ -862,14 +877,10 @@ export class Paginator {
           }
         }
       }
-      try {
-        await this.clearCustomMessage();
-      } finally {
-        this.onError = undefined;
-        this.onExpire = undefined;
-        this.onPage = undefined;
-        this.onPageNumber = undefined;
-      }
+      this.onError = undefined;
+      this.onExpire = undefined;
+      this.onPage = undefined;
+      this.onPageNumber = undefined;
     }
   }
 
@@ -893,7 +904,7 @@ export class Paginator {
       if (this.isEphemeral) {
         pageMessage.flags = (pageMessage.flags || 0) | MessageFlags.EPHEMERAL;
       }
-      await this.context.editOrRespond(pageMessage);
+      await editOrReply(this.context, pageMessage);
       message = this.message;
     } else if (this.message) {
       message = this.message;

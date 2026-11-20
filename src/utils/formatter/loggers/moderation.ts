@@ -261,7 +261,7 @@ export function formatGuildWarningsClearComponents(
 // where, what they posted, and what happened to them
 function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Translator): Array<string> {
   const { language, translate } = translator;
-  const { action, attachments, channelId, clean, content, warned } = event.payload;
+  const { action, attachments, channelId, clean, content, raid, warned } = event.payload;
   const lines: Array<string> = [`**${translate('logger.decoy_caught_in')}**: <#${channelId}>`];
   if (content) {
     lines.push(`**${translate('logger.decoy_posted')}**:`, Markup.codeblock(content.slice(0, 900)));
@@ -272,11 +272,13 @@ function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Tran
     case 'softban': actionText = (clean) ? translate('logger.decoy_softbanned', {
       duration: formatDuration(clean * 1000, language),
     }) : translate('logger.decoy_softbanned_no_clean'); break;
+    case 'kept': actionText = translate('logger.decoy_kept', {button: translate('decoy.grace_button_keep')}); break;
     default: actionText = translate('logger.decoy_not_removed');
   }
   lines.push(displayDetailsLine([
     actionText,
     (warned) && translate('logger.decoy_warned'),
+    (raid) && translate('logger.decoy_raid', {button: translate('decoy.grace_button_keep'), count: raid.toLocaleString(language)}),
     (attachments) && translate('logger.decoy_attachments', {count: attachments.toLocaleString(language)}),
   ], true));
   return lines;

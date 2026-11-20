@@ -67,16 +67,23 @@ export async function createMessage(
     const seconds = (took / 1000).toFixed(1);
     footer = translate('tools_code.took_seconds', {footer: footer, seconds: seconds});
   }
+  // missing from an older api/notsocode
+  const exitCode = (typeof(result.exit_code) === 'number') ? result.exit_code : null;
+  if (exitCode) {
+    footer = translate('tools_code.exited_with_code', {code: exitCode.toLocaleString(locale), footer});
+  }
   payload.footer = footer;
   payload.footerIconUrl = EmbedBrands.NOTSOBOT;
 
   const files: Array<{filename: string, value: Buffer}> = [];
 
   const languageMarkupString = language.extension;
-  if (result.error) {
-    // the command worked, the code didn't
+  if (result.error || exitCode) {
+    // the command worked, the code didn't. a non-zero exit with nothing on stderr counts too, it shows its output red
     setCommandResult(context, CommandResults.SCRIPT_ERROR);
     payload.color = EmbedColors.ERROR;
+  }
+  if (result.error) {
     if (1990 < result.error.length) {
       files.push({filename: 'error.txt', value: Buffer.from(result.error)});
       payload.description = translate('tools_code.uploaded_the_error_log_to_a_txt');
