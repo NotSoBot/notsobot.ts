@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
-import { InteractionCallbackTypes, MarkupTimestampStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
-import { ComponentButton, ComponentContext, Components, InteractionModalContext, Markup } from 'detritus-client/lib/utils';
+import { InteractionCallbackTypes, MarkupTimestampStyles, MessageComponentButtonStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { ComponentButton, ComponentContext, InteractionModalContext, Markup } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -101,9 +101,12 @@ async function createMediaMessage(
     url: args.url,
   };
   // a post with more than one media shown as one gallery: the first request brings the whole ten holding the asked page
-  // with it (one job on the api, not one for each). their setting or `-view pages` asks for that one page only
+  // with it (one job on the api, not one for each). their setting or `-view pages` asks for that one page only, and so
+  // does `-position` (they asked for that one) unless `-view` says otherwise. a position in the link keeps the gallery
   const view = (args.view) ? PostGalleryViewsToTypes[args.view as PostGalleryViews] : undefined;
-  const gallery = await getPostGallery(context, (autoEmbed) ? {autoEmbed: true} : {view});
+  const gallery = (!autoEmbed && view === undefined && typeof(args.mediaPosition) === 'number') ?
+    false :
+    await getPostGallery(context, (autoEmbed) ? {autoEmbed: true} : {view});
   const job = await utilitiesFetchMedia(context, {
     ...fetchOptions,
     mediaGallerySize: (gallery) ? getGallerySize() : undefined,
@@ -442,17 +445,18 @@ async function autoEmbedReply(
 ) {
   const response = await jobWaitForResponse(context, job);
   const translator = await getTranslator(context);
-  const buttons = [createAutoEmbedUndoButton(context, translator)];
+  // beside the invoked by line, out of the way of the media
+  const invokerButton = createAutoEmbedUndoButton(context, translator);
   // no size line, which page it is still shows in its place
   const replyOptions = (page: RestResponsesRaw.FileResponse, pageText?: string) => {
     const post: FormattedPost = (isAutoEmbedTextOn(context) && page.items[0].post) ? formatPost(translator, page.items[0].post, {spoiler}) : {};
     return {
-      buttons,
       description: post.above,
       descriptionBelow: post.below,
       details: pageText,
       embedFooter: post.footer,
       hideDetails: true,
+      invokerButton,
       spoiler,
     };
   };
@@ -512,11 +516,6 @@ async function postTextReply(
   const formatted = formatPost(translator, post, {spoiler});
   const notice = (mediaFailed) ? `-# ${translator.translate('tools_embed.media_failed')}` : undefined;
   const display = await getResponseDisplayForReply(context);
-  let components: Components | undefined;
-  if (autoEmbed && context instanceof Command.Context) {
-    components = new Components();
-    components.addButton(createAutoEmbedUndoButton(context, translator));
-  }
   const payload: DisplayPayload = (display === UserSettingsResponseDisplayTypes.LEGACY && formatted.footer) ? {
     description: [formatted.above, notice].filter(Boolean).join('\n'),
     footer: formatted.footer.text,
@@ -525,9 +524,9 @@ async function postTextReply(
   } : {
     description: [formatted.above, notice, formatted.below].filter(Boolean).join('\n'),
   };
-  if (components) {
-    payload.components = components;
-    payload.componentsInside = true;
+  if (autoEmbed && context instanceof Command.Context) {
+    const { customId, label } = createAutoEmbedUndoButton(context, translator);
+    payload.invokerButton = {customId: customId!, label: label!};
   }
   const reply = await displayReply(context, payload);
   if (context instanceof Command.Context) {
@@ -730,6 +729,7 @@ function createAutoEmbedUndoButton(context: Command.Context, translator: Transla
   return new ComponentButton({
     customId: [MessageComponentCustomIds.AUTO_EMBED_UNDO, context.userId, context.messageId].join('.'),
     label: translator.translate('tools_embed.undo'),
+    style: MessageComponentButtonStyles.SECONDARY,
   });
 }
 

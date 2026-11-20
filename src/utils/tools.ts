@@ -2627,6 +2627,9 @@ export interface DisplayPayload {
   // a heading above the title (like "Now playing"), lined off from it in components v2 (the title gets smaller under it)
   header?: null | string,
   image?: null | string,
+  // components v2: the button beside the invoker line (auto-embed's Undo on a text post), with the footer line in the same
+  // block. Embeds and text show it as a row like `footerButton`'s, its click goes to the components listener
+  invokerButton?: {customId: string, label: string},
   // components v2/text: the invoker line under the footer (the very last line) instead of above it
   invokerLast?: boolean,
   // the invoker line's text instead of `media.invoked_by` (`{user}` is their mention), for responses where who ran it is
@@ -2774,6 +2777,12 @@ export interface DisplayReplyOptions {
   uploadFilename?: string,
 }
 
+// `addInvokerLine` with a display payload's button
+function addDisplayInvokerLine(container: ComponentContainer, content: string, button?: {customId: string, label: string}): void {
+  const accessory = (button) ? new ComponentButton({...button, style: MessageComponentButtonStyles.SECONDARY}) : undefined;
+  addInvokerLine(container, content, accessory);
+}
+
 function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, rows: Array<ComponentActionRow> = []): DisplayRendered {
   const components = new Components();
   const container = components.createContainer();
@@ -2888,16 +2897,16 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, row
       label: payload.footerButton.label,
       style: MessageComponentButtonStyles.SECONDARY,
     });
-    if (invokedBy) {
+    if (invokedBy || payload.invokerButton) {
       container.addSeparator();
-      container.addTextDisplay({content: invokedBy});
+      addDisplayInvokerLine(container, invokedBy, payload.invokerButton);
     }
   } else {
     const footerLine = (footerText) ? displaySubtext(footerText) : '';
     footer = ((payload.invokerLast) ? [footerLine, invokedBy] : [invokedBy, footerLine]).filter(Boolean).join('\n');
-    if (footer) {
+    if (footer || payload.invokerButton) {
       container.addSeparator();
-      container.addTextDisplay({content: footer});
+      addDisplayInvokerLine(container, footer, payload.invokerButton);
     }
   }
 
@@ -3164,7 +3173,7 @@ function renderDisplayAs(
     message.components = payload.components || [];
     // a footer's/block's button joins the row of the caller's buttons from the same listener (like refresh beside the music
     // controls) when it has room, a row of its own above the rest otherwise (above a paginator's page buttons)
-    const buttons = [payload.footerButton, ...(payload.blocks || []).map((block) => block.button)].filter(Boolean);
+    const buttons = [payload.footerButton, ...(payload.blocks || []).map((block) => block.button), payload.invokerButton].filter(Boolean);
     if (buttons.length) {
       const root = (message.components instanceof Components) ? message.components : new Components();
       const rows = root.components as Array<any>;
@@ -3242,6 +3251,8 @@ export interface MediaReplyResponseOptions {
   filename?: string,
   // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
   hideDetails?: boolean,
+  // components v2: beside the invoked by line (auto-embed's Undo), the other displays put it with `buttons`
+  invokerButton?: ComponentButton,
   spoiler?: boolean,
 }
 
@@ -3270,6 +3281,7 @@ function mediaReplyResponseOptions(
     extension: file.metadata.extension,
     hideDetails: options.hideDetails,
     filename,
+    invokerButton: options.invokerButton,
     framecount: file.metadata.framecount,
     height: file.metadata.height,
     mimetype: file.metadata.mimetype,
@@ -3340,6 +3352,8 @@ export interface MediaReplyFilesOptions {
   embedFooter?: MediaReplyEmbedFooter,
   // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
   hideDetails?: boolean,
+  // components v2: beside the invoked by line (auto-embed's Undo), the other displays put it with `buttons`
+  invokerButton?: ComponentButton,
   // false leaves out the make permanent button for its hosted ones (a paginator's page, paging would bring the hosted
   // ones back)
   reupload?: boolean,
@@ -3502,12 +3516,10 @@ async function createMediaReplyFilesMessage(
     if (options.descriptionBelow) {
       container.addTextDisplay({content: options.descriptionBelow});
     }
-    if (invokedBy || expires || footer) {
+    if (invokedBy || options.invokerButton || expires || footer) {
       container.addSeparator();
     }
-    if (invokedBy) {
-      container.addTextDisplay({content: invokedBy});
-    }
+    addInvokerLine(container, invokedBy, options.invokerButton);
     if (expires) {
       container.addTextDisplay({content: expires});
     }
@@ -3540,8 +3552,10 @@ async function createMediaReplyFilesMessage(
     return {isComponentsV2: true, message: {components, files: files.map((file) => ({...file, hasSpoiler: undefined}))}};
   }
 
-  for (let button of options.buttons || []) {
-    components.addButton(button);
+  for (let button of [...(options.buttons || []), options.invokerButton]) {
+    if (button) {
+      components.addButton(button);
+    }
   }
   if (actions) {
     for (let row of actions.rows) {
@@ -3586,6 +3600,19 @@ async function createMediaReplyFilesMessage(
   const links = media.filter((x) => x.storage).map((x) => `> ${(spoiler) ? Markup.spoiler(x.url) : x.url}`);
   const content = [options.description, options.descriptionBelow, ...links, invokedBy, expires, (footer) ? `-# ${footer}` : ''].filter(Boolean);
   return {isComponentsV2: false, message: {components, content: content.join('\n'), files}};
+}
+
+
+// the invoked by line, with the button beside it when there is one. a section needs text, so a zero width one stands in
+// when there's no line (an interaction's reply)
+function addInvokerLine(container: ComponentContainer, invokedBy: string, button?: ComponentButton): void {
+  if (button) {
+    const section = container.createSection();
+    section.addTextDisplay({content: invokedBy || '\u200b'});
+    section.setAccessoryButton(button);
+  } else if (invokedBy) {
+    container.addTextDisplay({content: invokedBy});
+  }
 }
 
 
@@ -3643,6 +3670,8 @@ export interface MediaReplyOptions {
   height?: number,
   // leaves out the size/dimensions/took line in every display
   hideDetails?: boolean,
+  // components v2: beside the invoked by line (auto-embed's Undo), the other displays put it with `buttons`
+  invokerButton?: ComponentButton,
   mimetype?: string,
   reuploading?: ReuploadStatuses,
   size: number,
@@ -3862,9 +3891,8 @@ export async function createMediaReplyMessage(
         container.addTextDisplay({content: descriptionBelow});
       }
       container.addSeparator();
-      if (!isFromInteraction) {
-        container.addTextDisplay({content: `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`});
-      }
+      const invokedBy = (isFromInteraction) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`;
+      addInvokerLine(container, invokedBy, options.invokerButton);
       if (options.storage && options.storage.expires_at) {
         const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
         const downloadText = Markup.url(translate('media.download_it'), `<${options.storage.urls.cdn}?download=true>`);
@@ -3900,8 +3928,10 @@ export async function createMediaReplyMessage(
   if (reuploadButton) {
     components.addButton(reuploadButton);
   }
-  for (let button of options.buttons || []) {
-    components.addButton(button);
+  for (let button of [...(options.buttons || []), options.invokerButton]) {
+    if (button) {
+      components.addButton(button);
+    }
   }
   // after the buttons, `addButton` would otherwise look for room in a select menu's row
   if (actions) {

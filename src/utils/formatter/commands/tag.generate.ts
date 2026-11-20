@@ -227,9 +227,13 @@ async function generateAndRunTag(
           if (UNTRUSTED_RESPONSES.get(parentId) !== false) {
             isUntrusted = true;
           }
+          // the tagscript runs on this reply, so a lookup that found the earlier turn's media finds the result now. one
+          // link back to that media instead of its urls (10 cdn urls were ~1k tokens on every turn)
+          const earlierLink = await findEarlierMediaLink(context, message);
           promptExtra.push([
             `Message Reply Context ${chain}`,
             '-> Your previous reply in this conversation',
+            (earlierLink) ? `-> Media lookups ({media}, {medialist}, ...) find this reply's media now. The media your earlier turn used is in ${earlierLink}, \`{medialist:TYPE|MAX|${earlierLink}}\` starts there (then older media until MAX)` : null,
             (replyText) ? `-> Text File: ${replyText}` : null,
             (mediaIsFromHere && !reply!.isText) ? '-> Media is from here' : null,
           ].filter(Boolean).join('\n'));
@@ -701,6 +705,32 @@ function findMediaForAI(message: Structures.Message): null | {isText: boolean, u
   const textUrl = findMediaUrlInMessage(message);
   if (textUrl) {
     return {isText: true, url: textUrl};
+  }
+  return null;
+}
+
+
+// the message an earlier NotSoAI turn got its media from: the command message NotSoAI's reply answered, or the first
+// media going up from there (like that turn's own lookup did). null when it had none
+async function findEarlierMediaLink(
+  context: Command.Context | Interaction.InteractionContext,
+  aiReply: Structures.Message,
+): Promise<null | string> {
+  let message = aiReply;
+  for (let chain = 0; chain < 5 && message.messageReference && message.messageReference.messageId; chain++) {
+    const { messageReference } = message;
+    try {
+      message = messageReference.message || await context.rest.fetchMessage(
+        messageReference.channelId,
+        messageReference.messageId!,
+      );
+    } catch(error) {
+      return null;
+    }
+    const media = findMediaForAI(message);
+    if (media && !media.isText) {
+      return message.jumpLink;
+    }
   }
   return null;
 }

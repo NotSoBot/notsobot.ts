@@ -250,6 +250,7 @@ class ComponentsListener extends Listener {
 
       await mediaReplyFromOptions(context, value, {
         buttons: findKeptButtons(context.interaction.message),
+        invokerButton: findKeptInvokerButton(context.interaction.message),
         content,
         context,
         description,
@@ -406,6 +407,18 @@ class ComponentsListener extends Listener {
             }
             rebuiltGallery.addItem({description: item.description, media: {url}, spoiler: item.spoiler});
           });
+        } else if (child instanceof Structures.ComponentSection) {
+          // the invoked by line with its button (auto-embed's Undo)
+          const section = rebuilt.createSection();
+          for (let text of child.components.values()) {
+            if (text instanceof Structures.ComponentTextDisplay) {
+              section.addTextDisplay({content: text.content});
+            }
+          }
+          const button = keptButtonFrom(child.accessory);
+          if (button) {
+            section.setAccessoryButton(button);
+          }
         } else if (child instanceof Structures.ComponentActionRow) {
           // only this button and static ones are ever with a gallery (`mediaReplyFiles` leaves it out next to other rows)
           const buttons = findKeptButtons(message);
@@ -461,12 +474,9 @@ function findKeptButtons(message?: Structures.Message | null): Array<ComponentBu
   }
   const fromRow = (row: Structures.ComponentActionRow) => {
     for (let component of row.components.values()) {
-      if (!(component instanceof Structures.ComponentButton) || !component.customId) {
-        continue;
-      }
-      const customId = component.customId;
-      if (KEPT_BUTTON_CUSTOM_IDS.some((prefix) => customId.startsWith(prefix))) {
-        buttons.push(new ComponentButton({customId, label: component.label || undefined}));
+      const button = keptButtonFrom(component);
+      if (button) {
+        buttons.push(button);
       }
     }
   };
@@ -482,6 +492,34 @@ function findKeptButtons(message?: Structures.Message | null): Array<ComponentBu
     }
   }
   return buttons;
+}
+
+// the one beside the invoked by line in components v2 (a section's accessory), `invokerButton` puts it back there
+function findKeptInvokerButton(message?: Structures.Message | null): ComponentButton | undefined {
+  const container = (message) ? message.components.find((x) => x instanceof Structures.ComponentContainer) as Structures.ComponentContainer | undefined : undefined;
+  if (!container) {
+    return undefined;
+  }
+  for (let child of container.components.values()) {
+    if (child instanceof Structures.ComponentSection) {
+      const button = keptButtonFrom(child.accessory);
+      if (button) {
+        return button;
+      }
+    }
+  }
+  return undefined;
+}
+
+function keptButtonFrom(component: unknown): ComponentButton | null {
+  if (!(component instanceof Structures.ComponentButton) || !component.customId) {
+    return null;
+  }
+  const customId = component.customId;
+  if (!KEPT_BUTTON_CUSTOM_IDS.some((prefix) => customId.startsWith(prefix))) {
+    return null;
+  }
+  return new ComponentButton({customId, label: component.label || undefined, style: component.style});
 }
 
 function getHostedVanity(url: string): null | string {

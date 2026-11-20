@@ -3,12 +3,13 @@ import * as vm from 'vm';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import {
+  DiscordRegexNames,
   MarkupTimestampStyles,
   MessageComponentButtonStyles,
   MessageComponentTypes,
   Permissions,
 } from 'detritus-client/lib/constants';
-import { Embed, isValidAttachmentUrl, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { Embed, isValidAttachmentUrl, Markup, Snowflake, regex as discordRegex } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
 
@@ -124,6 +125,7 @@ import {
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_STDERR_BANNER,
   MAX_MEMBERS_SAFE,
+  MEDIA_HISTORY_LIMIT,
 } from '../../constants';
 
 import { ReminderInterval } from '../../listeners';
@@ -148,6 +150,8 @@ import * as Parameters from '../parameters';
 import {
   bigIntGenerateBetween,
   checkNSFW,
+  fetchMessageFromJumpLink,
+  findMediaUrlsInMessage,
   generateCodeFromLanguage,
   generateCodeStdin,
   getCodeLanguage,
@@ -7624,6 +7628,66 @@ const ScriptTags = Object.freeze({
     }
 
     increaseNetworkRequests(tag);
+
+    // a message link starts the list at that message instead: all of its media, then the media sent before it in its
+    // channel until `max`, without the message's own or the reply's (`{medialist:video|10|LINK}`, NotSoAI uses it to go
+    // back to an earlier turn's media)
+    const parts = Parameters.stringArguments((text || '').trim(), true);
+    const links = parts.map((part) => {
+      const { matches } = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, part) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+      return (matches.length) ? matches[0] : null;
+    });
+    if (links.some(Boolean)) {
+      const options = MEDIA_LIST_TYPES[typeString];
+      const urls = new Set<string>();
+      let start: Structures.Message | null = null;
+      for (let link of links) {
+        if (link && link.channelId && link.messageId) {
+          let message: Structures.Message | null = null;
+          try {
+            message = await fetchMessageFromJumpLink(context, link.guildId, link.channelId, link.messageId);
+          } catch(error) {
+
+          }
+          if (message) {
+            start = message;
+            for (let url of findMediaUrlsInMessage(message, options)) {
+              urls.add(url);
+            }
+          }
+        }
+      }
+      // mentions, urls and emoji next to the links
+      const rest = parts.filter((part, i) => !links[i]);
+      if (rest.length && urls.size < maxAmount) {
+        const parseContent = Parameters.mediaUrlsFromContent(maxAmount - urls.size, options);
+        for (let url of await parseContent(rest.join(' '), context)) {
+          urls.add(url);
+        }
+      }
+      // the rest from before the (last) linked message, newest first, as deep as `^` looks
+      if (start && urls.size < maxAmount) {
+        increaseNetworkRequests(tag);
+        try {
+          const messages = await context.rest.fetchMessages(start.channelId, {before: start.id, limit: MEDIA_HISTORY_LIMIT});
+          for (let message of messages.values()) {
+            if (maxAmount <= urls.size) {
+              break;
+            }
+            if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+              continue;
+            }
+            for (let url of findMediaUrlsInMessage(message, options)) {
+              urls.add(url);
+            }
+          }
+        } catch(error) {
+          // no history access, the linked message's media is still there
+        }
+      }
+      tag.text += JSON.stringify(Array.from(urls).slice(0, maxAmount));
+      return true;
+    }
 
     // `minAmount` stays 0, at 1 it would run the user's image search fallback and look through the channel's history
     const parse = Parameters.mediaUrls({...MEDIA_LIST_TYPES[typeString], maxAmount});
