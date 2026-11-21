@@ -1,5 +1,6 @@
-import { Collections, Command, Interaction, Structures } from 'detritus-client';
+import { Collections, Command, GatewayClientEvents, Interaction, Structures } from 'detritus-client';
 import {
+  ClientEvents,
   DiscordAbortCodes,
   InteractionCallbackTypes,
   MarkupTimestampStyles,
@@ -7,7 +8,7 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 import { ComponentContext, Components, InteractionModalContext, Markup, Snowflake } from 'detritus-client/lib/utils';
-import { Timers } from 'detritus-utils';
+import { EventSubscription, Timers } from 'detritus-utils';
 
 import { formatPermissions, replyWarning } from '../../../commands/errors';
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -187,6 +188,10 @@ export async function createMessage(
     if (options.filter && !options.filter(message)) {
       return false;
     }
+    // in DMs only our own messages can be deleted, counting theirs would end in a partial delete
+    if (context.inDm && message.author.id !== context.client.userId) {
+      return false;
+    }
     if (shouldDelete(message, args)) {
       return true;
     }
@@ -206,10 +211,15 @@ export async function createMessage(
     return (options.replyTo) ? [options.replyTo] : messagesToClear(context, ...messages);
   };
 
-  const isExecuting = ServerExecutionsStore.getOrCreate((context.guildId || context.channelId)!);
-  if (isExecuting.prune) {
+  const lockKey = (context.guildId || context.channelId)!;
+  const lease = ServerExecutionsStore.acquirePrune(lockKey);
+  if (!lease) {
     return displayReply(context, {description: translate('prune.in_progress')}, {replyTo: options.replyTo});
   }
+  const release = () => ServerExecutionsStore.releasePrune(lockKey, lease);
+  const renew = () => {
+    lease.renewedAt = Date.now();
+  };
 
   // set when we walk back far enough to hit the `until` message, meaning everything in the range was found
   let reachedUntil = false;
@@ -224,7 +234,6 @@ export async function createMessage(
   // the filters this prune was given, listed on the confirmation
   let filters = '';
 
-  isExecuting.prune = true;
   try {
     if (args.since && !args.until) {
       args.until = snowflakeFromTimestamp(args.since);
@@ -337,7 +346,7 @@ export async function createMessage(
       }
     }
   } catch(error) {
-    isExecuting.prune = false;
+    release();
     throw error;
   }
 
@@ -359,7 +368,7 @@ export async function createMessage(
     if (skipConfirmation) {
       try {
         const message = await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})}, {replyTo: options.replyTo});
-        const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
+        const deletedTotal = await deleteMessages(context, channelId, bulk, manual, renew);
         // edits the starting response
         if (deletedTotal === total) {
           await displayReply(context, {description: translate('prune.deleted', {count: deletedTotal.toLocaleString(language)})}, {replyTo: options.replyTo});
@@ -370,16 +379,33 @@ export async function createMessage(
       } catch(error) {
         await displayReply(context, {description: translate('prune.errored', {error: String(error)})}, {replyTo: options.replyTo});
       } finally {
-        isExecuting.prune = false;
+        release();
       }
     } else {
       // keep holding the prune lock until continue/cancel is pressed (or nobody answers), otherwise another large prune
       // could be started while this one is waiting on confirmation
       const confirmer = new Confirmer();
+      // detritus drops the buttons of a deleted message without calling `onTimeout`, so watch for it ourselves: deleting
+      // the confirmation (or its trigger, which takes our reply with it) answers it like nobody pressing anything
+      let confirmationId: string | undefined;
+      const subscriptions: Array<EventSubscription> = [];
+      const unsubscribe = () => {
+        while (subscriptions.length) {
+          subscriptions.pop()!.remove();
+        }
+      };
+      const onDeleted = (messageIds: Array<string>) => {
+        if (confirmationId && messageIds.includes(confirmationId) && confirmer.transition('pending', 'expired')) {
+          timeout.stop();
+          unsubscribe();
+          release();
+        }
+      };
       const components = new Components({
         timeout: MAX_TIME_TO_RESPOND,
         onTimeout: () => confirmer.expire(async () => {
-          isExecuting.prune = false;
+          unsubscribe();
+          release();
         }),
       });
       components.createButton({
@@ -391,10 +417,11 @@ export async function createMessage(
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
           timeout.stop();
+          unsubscribe();
 
           try {
             await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})}, {replyTo: ctx});
-            const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
+            const deletedTotal = await deleteMessages(context, channelId, bulk, manual, renew);
             if (deletedTotal === total) {
               await displayReply(context, {description: translate('prune.deleted', {count: deletedTotal.toLocaleString(language)})}, {replyTo: ctx});
             } else {
@@ -403,7 +430,7 @@ export async function createMessage(
           } catch(error) {
             await displayReply(context, {description: translate('prune.errored', {error: String(error)})}, {replyTo: ctx});
           } finally {
-            isExecuting.prune = false;
+            release();
             confirmer.transition('running', 'done');
           }
 
@@ -419,8 +446,9 @@ export async function createMessage(
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
           timeout.stop();
+          unsubscribe();
 
-          isExecuting.prune = false;
+          release();
           await displayReply(context, {description: translate('prune.canceled', {count: total.toLocaleString(language)})}, {replyTo: ctx});
           // the command's message right away, then the confirmation. With `replyTo` there's only the confirmation
           if (options.replyTo) {
@@ -446,19 +474,30 @@ export async function createMessage(
         content += `\n${filters}`;
       }
 
+      subscriptions.push(
+        context.client.subscribe(ClientEvents.MESSAGE_DELETE, (event: GatewayClientEvents.MessageDelete) => {
+          onDeleted([event.messageId]);
+        }),
+        context.client.subscribe(ClientEvents.MESSAGE_DELETE_BULK, (event: GatewayClientEvents.MessageDeleteBulk) => {
+          onDeleted(Array.from(event.messages.keys()));
+        }),
+      );
       const message = await displayReply(context, {components, description: content}, {replyTo: options.replyTo}).catch((error) => {
-        isExecuting.prune = false;
+        unsubscribe();
+        release();
         throw error;
       });
+      confirmationId = getConfirmationId(context, message, options.replyTo);
       clearMessages(timeout, toClear(message), MAX_TIME_TO_RESPOND).then(() => {
         // the confirmation expired without an answer
         if (confirmer.transition('pending', 'expired')) {
-          isExecuting.prune = false;
+          unsubscribe();
+          release();
         }
       });
     }
   } else {
-    isExecuting.prune = false;
+    release();
     // say how far we looked when the search stopped (fetch limit or 2 week mark) before covering the whole range
     const description = (isComplete || reachedStart) ? translate('prune.none') : translate('prune.none_partial', {
       count: checked.toLocaleString(language),
@@ -474,6 +513,8 @@ export async function deleteMessages(
   channelId: string,
   bulk: Collections.BaseCollection<string, Structures.Message>,
   manual: Collections.BaseCollection<string, Structures.Message>,
+  // after every request, keeps a long manual delete's prune lock from looking stale
+  onProgress?: () => void,
 ): Promise<number> {
   const bulkToDelete = bulk.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
   const manualToDelete = manual.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
@@ -499,6 +540,7 @@ export async function deleteMessages(
       // unknown (already deleted) ids are ignored here
       await context.rest.bulkDeleteMessages(channelId, messageIds, {reason});
       deletedTotal += messageIds.length;
+      onProgress && onProgress();
     }
   }
 
@@ -506,6 +548,7 @@ export async function deleteMessages(
     try {
       await context.rest.deleteMessage(channelId, messageId, {reason});
       deletedTotal++;
+      onProgress && onProgress();
     } catch(error) {
       // fetched messages aren't cached, so one deleted while waiting on the confirmation only shows up here
       if (!error || error.code !== DiscordAbortCodes.UNKNOWN_MESSAGE) {
@@ -515,6 +558,26 @@ export async function deleteMessages(
   }
 
   return deletedTotal;
+}
+
+// the confirmation's message id, to notice it being deleted. A button press answered through `replyTo` edits the
+// pressed message, so that's the one
+function getConfirmationId(
+  context: Command.Context | Interaction.InteractionContext,
+  message: Structures.Message | void | null,
+  replyTo?: ComponentContext | InteractionModalContext,
+): string | undefined {
+  if (message) {
+    return message.id;
+  }
+  if (replyTo) {
+    const { message } = replyTo.interaction;
+    return (message) ? message.id : (replyTo.responseId || undefined);
+  }
+  if (context instanceof Interaction.InteractionContext) {
+    return context.responseId || undefined;
+  }
+  return undefined;
 }
 
 // a message, or the response of the interaction answered through `replyTo`

@@ -28,7 +28,9 @@ export default class PruneCommand extends BaseCommand {
         {name: 'embeds', type: Boolean},
         {name: 'from', aliases: ['user'], type: Parameters.membersOrUsers()},
         {name: 'images', type: Boolean},
-        {name: 'in', default: DefaultParameters.channel, type: Parameters.channel({
+        // DM channels usually aren't cached, a missing default would read as `-in` not resolving below. Leaving it unset
+        // prunes the channel the command was used in
+        {name: 'in', default: (context: Command.Context) => DefaultParameters.channel(context) || undefined, type: Parameters.channel({
           types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS],
         })},
         {name: 'until', type: Parameters.snowflake},

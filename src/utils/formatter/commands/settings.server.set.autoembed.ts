@@ -43,6 +43,8 @@ export interface CommandArgs {
   embed?: boolean,
   // how posts with more than one media show, null: each poster's own setting (then the server's `post-gallery`)
   gallery?: PostGalleryTypes | null,
+  // members with premium can auto-embed their own links for the sites the server doesn't (on by default)
+  members?: boolean,
   site?: GuildAutoEmbedSites,
   // posts the post's text (author, caption) with the media too
   text?: boolean,
@@ -78,6 +80,20 @@ export function textParser(value: string, context: Command.Context | Interaction
     return false;
   }
   throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_text'));
+}
+
+export function membersParser(value: string, context: Command.Context | Interaction.InteractionContext): boolean | undefined {
+  const text = value.trim().toLowerCase();
+  if (!text) {
+    return undefined;
+  }
+  if (EMBED_ON_VALUES.includes(text)) {
+    return true;
+  }
+  if (EMBED_OFF_VALUES.includes(text)) {
+    return false;
+  }
+  throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_members'));
 }
 
 // `gallery`, `pages`, or `default` (each poster's setting), the prefixed command's `-gallery` and the slash choices
@@ -130,6 +146,8 @@ export function siteSlashParser(value: string): GuildAutoEmbedSites | undefined 
 export function formatAutoEmbed(translator: Translator, settings: GuildSettingsChild): string {
   const { translate } = translator;
   const enabled = SITES.filter((x) => settings.autoEmbed.includes(x.site));
+  // members' own auto-embed works without the server's sites (or a slot), so it's always shown
+  const members = translate((settings.autoEmbedMembers) ? 'settings_server_autoembed.members_on' : 'settings_server_autoembed.members_off');
   if (enabled.length) {
     const lines = [
       translate('settings_server_autoembed.sites', {sites: displayDetailsLine(enabled.map((x) => GuildAutoEmbedSitesToText[x.site]))}),
@@ -139,10 +157,11 @@ export function formatAutoEmbed(translator: Translator, settings: GuildSettingsC
         (settings.autoEmbedGallery === PostGalleryTypes.PAGES) ? 'settings_server_autoembed.gallery_pages' :
         'settings_server_autoembed.gallery_default',
       ),
+      members,
     ];
     return lines.join('\n-> ');
   }
-  return translate('settings_server_autoembed.sites_none');
+  return [translate('settings_server_autoembed.sites_none'), members].join('\n-> ');
 }
 
 // shows the sites with nothing given, otherwise turns all of them (or `site`) on or off. it's saved without premium
@@ -156,9 +175,10 @@ export async function createMessage(
 
   const changingEmbed = args.embed !== undefined && args.embed !== null;
   const changingText = args.text !== undefined && args.text !== null;
+  const changingMembers = args.members !== undefined && args.members !== null;
   // null is a change too, back to each poster's setting
   const changingGallery = args.gallery !== undefined;
-  const changing = changingEmbed || changingText || changingGallery;
+  const changing = changingEmbed || changingText || changingMembers || changingGallery;
   if (args.site && !changingEmbed) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('settings_server_autoembed.site_without_embed')}`, ephemeral: true});
   }
@@ -169,7 +189,7 @@ export async function createMessage(
     // one site flips on top of what's there, so that needs the current sites too
     let sites: Array<string> | undefined;
     if (!changingEmbed) {
-      // only the text or gallery changes
+      // only the text, gallery or members setting changes
     } else if (args.site) {
       const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
       if (!guildSettings) {
@@ -185,6 +205,7 @@ export async function createMessage(
     ({ settings } = await editGuildSettings(context, context.guildId!, {
       autoEmbed: sites,
       autoEmbedGallery: (changingGallery) ? args.gallery : undefined,
+      autoEmbedMembers: (changingMembers) ? args.members : undefined,
       autoEmbedText: (changingText) ? args.text : undefined,
     }));
     title = translate('settings_server_autoembed.updated');

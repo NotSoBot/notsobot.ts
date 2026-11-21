@@ -14,6 +14,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../stores/guildsettings';
 import CommandResponsesStore from '../../stores/commandresponses';
+import DecoyStore from '../../stores/decoys';
 import { getServerPremiumUsers } from '../../stores/premiumservers';
 import ServerSettingsStore from '../../stores/serversettings';
 import UserStore from '../../stores/users';
@@ -160,6 +161,13 @@ export async function isBlockedUserInstallRun(context: Interaction.InteractionCo
   return contextMetadata.blockedUserInstallRun = blocked;
 }
 
+// the server's decoy channel: anything posted there should be a spam account's, so a slash run (which never goes
+// through the decoy, it's the bot's message) answers privately instead of leaving public replies in it. still loading
+// counts as not one
+export function isDecoyChannelRun(context: Interaction.InteractionContext): boolean {
+  return !!context.guildId && !!context.channelId && !!DecoyStore.getByChannel(context.channelId);
+}
+
 
 export class BaseInteractionCommand extends Interaction.InteractionCommand {
   _commandIds?: Collections.BaseSet<string>;
@@ -242,8 +250,14 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         const message = warning(translate('errors.channel_turned_off_public', {command: Markup.codestring(context.name)}));
         return setCommandGate(context, {kind: 'channel_turned_off', message});
       }
+      const decoy = !respondsWithModal && isDecoyChannelRun(context);
+      if (decoy && ignoresEphemeralSetting) {
+        const { translate } = await I18n.getTranslator(context);
+        const message = warning(translate('errors.decoy_channel_public', {command: Markup.codestring(context.name)}));
+        return setCommandGate(context, {kind: 'channel_turned_off', message});
+      }
       if (!context.responded && !respondsWithModal) {
-        let ephemeral = blocked;
+        let ephemeral = blocked || decoy;
         if (!ephemeral && !ignoresEphemeralSetting && UserSettingsStore.has(context.userId)) {
           const settings = UserSettingsStore.get(context.userId)!;
           ephemeral = settings.application_command_response_type === UserSettingsApplicationCommandResponseTypes.EPHEMERAL;

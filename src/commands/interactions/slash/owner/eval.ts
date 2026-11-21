@@ -29,7 +29,7 @@ export class OwnerEvalCommand extends BaseInteractionCommandOption {
       options: [
         {name: 'code', description: 'Code to evaluate', ...I18n.optionLocalizations('commands.owner.eval.code'), required: true},
         {name: 'async', type: Boolean, description: 'Wrap the code in an async block', ...I18n.optionLocalizations('commands.owner.eval.async')},
-        {name: 'jsonspacing', type: Number, description: 'Spacing for the JSON encoder', ...I18n.optionLocalizations('commands.owner.eval.jsonspacing')},
+        {name: 'jsonspacing', default: 2, type: Number, description: 'Spacing for the JSON encoder', ...I18n.optionLocalizations('commands.owner.eval.jsonspacing')},
         {name: 'noreply', type: Boolean, description: 'Do not reply', ...I18n.optionLocalizations('commands.owner.eval.noreply')},
         {name: 'upload', type: Boolean, description: 'Upload as text file', ...I18n.optionLocalizations('commands.owner.eval.upload')},
       ],

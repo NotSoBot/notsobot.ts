@@ -4,6 +4,7 @@ import { ComponentButton, ComponentContext, InteractionModalContext, Markup } fr
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import UserSettingsStore from '../../../stores/usersettings';
 
 import { utilitiesFetchMedia } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -33,7 +34,7 @@ import {
   getResponseDisplayForReply,
   renderEphemeralDisplay,
 } from '../../../utils/tools';
-import { getAutoEmbedLink } from '../../autoembed';
+import { AutoEmbedSources, getAutoEmbedLink } from '../../autoembed';
 import { Page, Paginator } from '../../paginator';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
@@ -106,7 +107,7 @@ async function createMediaMessage(
   const view = (args.view) ? PostGalleryViewsToTypes[args.view as PostGalleryViews] : undefined;
   const gallery = (!autoEmbed && view === undefined && typeof(args.mediaPosition) === 'number') ?
     false :
-    await getPostGallery(context, (autoEmbed) ? {autoEmbed: true} : {view});
+    await getPostGallery(context, (autoEmbed) ? {autoEmbed: autoEmbed.source === AutoEmbedSources.SERVER} : {view});
   const job = await utilitiesFetchMedia(context, {
     ...fetchOptions,
     mediaGallerySize: (gallery) ? getGallerySize() : undefined,
@@ -476,10 +477,16 @@ async function autoEmbedReply(
 }
 
 
-// the server's auto-embed text setting (post text and author with the media)
+// the auto-embed text setting (post text and author with the media) of whoever's auto-embed it is, the server's or the
+// poster's own (both cached by `findAutoEmbedLink`). on when it's somehow not cached, that's the default
 function isAutoEmbedTextOn(context: Command.Context): boolean {
+  const autoEmbed = getAutoEmbedLink(context);
+  if (autoEmbed && autoEmbed.source === AutoEmbedSources.USER) {
+    const userSettings = UserSettingsStore.get(context.userId);
+    return !userSettings || userSettings.auto_embed_text !== false;
+  }
   const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
-  return !!(settings && settings.settings && settings.settings.autoEmbedText);
+  return !settings || !settings.settings || settings.settings.autoEmbedText;
 }
 
 

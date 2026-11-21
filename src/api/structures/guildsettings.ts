@@ -321,6 +321,7 @@ export class GuildSettingsPrefix extends BaseStructure {
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.AUTO_EMBED,
   NotSoApiKeys.AUTO_EMBED_GALLERY,
+  NotSoApiKeys.AUTO_EMBED_MEMBERS,
   NotSoApiKeys.AUTO_EMBED_TEXT,
   NotSoApiKeys.BAN_CLEAN,
   NotSoApiKeys.MEDIA_FONT,
@@ -348,8 +349,10 @@ export class GuildSettingsChild extends BaseStructure {
   autoEmbed: Array<string> = [];
   // `PostGalleryTypes` for auto-embeds, null: like a command would (the poster's, then `postGallery`)
   autoEmbedGallery: PostGalleryTypes | null = null;
+  // members with premium can auto-embed their own links (`UserSettings.auto_embed`) for the sites the server doesn't
+  autoEmbedMembers: boolean = true;
   // auto-embeds post the post's text (author, caption) with the media too
-  autoEmbedText: boolean = false;
+  autoEmbedText: boolean = true;
   // seconds of a member's messages `ban` deletes when the moderator doesn't pick (0: none)
   banClean: number = BAN_CLEAN_DEFAULT;
   // a `MediaMemeFonts` name, caption/meme/recaption use it after the user's own (the api picks)

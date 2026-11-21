@@ -189,7 +189,9 @@ export namespace RestOptions {
     autoEmbed?: Array<string> | null,
     // `PostGalleryTypes` for auto-embeds, null: like a command would (the poster's, then `postGallery`)
     autoEmbedGallery?: PostGalleryTypes | null,
-    // null resets it to off
+    // members with premium can auto-embed their own links for the sites the server doesn't, null resets it to on
+    autoEmbedMembers?: boolean | null,
+    // null resets it to on
     autoEmbedText?: boolean | null,
     // seconds, null resets it to 1 day
     banClean?: number | null,
@@ -296,6 +298,10 @@ export namespace RestOptions {
 
   export interface EditUserSettings {
     applicationCommandResponseType?: null | UserSettingsApplicationCommandResponseTypes,
+    // replaces the `GuildAutoEmbedSites` their own links get auto-embedded for, empty or null turns it off
+    autoEmbed?: Array<string> | null,
+    // null resets it to on
+    autoEmbedText?: boolean | null,
     downloadQuality?: null | string,
     fallbacksMediaImage?: null | UserSettingsFallbacksMediaImageTypes,
     fileUploadThreshold?: null | UserSettingsUploadThresholdTypes,
@@ -3618,6 +3624,7 @@ export namespace RestResponsesRaw {
     settings: {
       auto_embed: Array<string>,
       auto_embed_gallery: number | null,
+      auto_embed_members: boolean,
       auto_embed_text: boolean,
       ban_clean: number,
       media_font: string | null,
@@ -4929,6 +4936,9 @@ export namespace RestResponsesRaw {
 
   export interface UserSettings {
     application_command_response_type: number,
+    // the `GuildAutoEmbedSites` their own links get auto-embedded for (a premium perk), empty: off
+    auto_embed: Array<string>,
+    auto_embed_text: boolean,
     download_quality: string | null,
     fallbacks_media_image: number,
     file_upload_name: string | null,

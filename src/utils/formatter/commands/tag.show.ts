@@ -207,7 +207,9 @@ export async function parseTag(
   const startedAt = Date.now();
   const thinking = new ThinkingReply(context, (translate) => tagTimeLimitText(context, translate, startedAt, tagContext));
   try {
-    return await TagFormatter.parse(context, tagContent, args, undefined, tagContext);
+    const parsedTag = await TagFormatter.parse(context, tagContent, args, undefined, tagContext);
+    await TagFormatter.attachLoneMediaUrl(context, parsedTag, tagContent);
+    return parsedTag;
   } finally {
     await thinking.stop();
   }

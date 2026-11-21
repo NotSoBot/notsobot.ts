@@ -2490,7 +2490,8 @@ export async function getResponseDisplay(
 }
 
 // if a post with more than one media shows up to ten at a time in one gallery (`PostGalleryTypes`), or one per page: the
-// command's own choice, then the server's auto-embed setting (auto-embeds only), the user's, the server's, then a gallery
+// command's own choice, then the server's auto-embed setting (the server's own auto-embeds only, not a member's), the
+// user's, the server's, then a gallery
 export async function getPostGallery(
   context: Command.Context | Interaction.InteractionContext,
   options: {autoEmbed?: boolean, view?: null | PostGalleryTypes} = {},

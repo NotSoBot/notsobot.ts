@@ -6,6 +6,7 @@ import { SettingsSetAIMemoryCommand } from './ai-memory';
 import { SettingsSetAIModelCommand } from './ai-model';
 import { SettingsSetAIPersonalityCommand } from './ai-personality';
 import { SettingsSetApplicationCommandResponseTypeCommand } from './app-command-response-type';
+import { SettingsSetAutoEmbedCommand } from './auto-embed';
 import { SettingsSetDownloadQualityCommand } from './download-quality';
 import { SettingsSetFallbacksMediaImageCommand } from './fallbacks-media-image';
 import { SettingsSetFileUploadThresholdCommand } from './file-upload-threshold';
@@ -35,6 +36,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new SettingsSetAIModelCommand(),
         new SettingsSetAIPersonalityCommand(),
         new SettingsSetApplicationCommandResponseTypeCommand(),
+        new SettingsSetAutoEmbedCommand(),
         new SettingsSetDownloadQualityCommand(),
         new SettingsSetFallbacksMediaImageCommand(),
         new SettingsSetFileUploadThresholdCommand(),

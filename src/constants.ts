@@ -1236,6 +1236,8 @@ export const BAN_CLEAN_MAX = 7 * 24 * 60 * 60;
 // posted by mistake can stay, a spam account doesn't press anything. Here (not the decoy formatter) so the listener can
 // use it while loading, `utils` is still half-loaded then (listeners <-> utils import cycle)
 export const DECOY_GRACE_TIME = 60 * 1000;
+// after pressing "I'm not a bot", posting in the decoy again this soon is on purpose: removed with no minute to press it
+export const DECOY_KEPT_REPEAT_TIME = 5 * 60 * 1000;
 // a server's warning ladder: its steps, and how far back a kick/ban step can delete messages (discord's limit)
 export const MAX_GUILD_WARNING_ACTIONS = 10;
 export const WARNING_ACTION_CLEAN_MAX = 7 * 24 * 60 * 60;
@@ -1261,8 +1263,8 @@ export enum GuildWarningAutoTriggers {
 
 
 // the sites a server can have the bot auto-embed (`settings.autoEmbed`, the api's `GuildAutoEmbedSites`): a message
-// that's only a link to one of them gets a download of it, like `.dl`. A premium server perk, their links are matched by
-// `utils/autoembed.ts`
+// whose only link is to a post on one of them gets a download of it, like `.dl`. A premium server perk (and a premium user one for
+// their own links, `UserSettings.auto_embed`), their links are matched by `utils/autoembed.ts`
 export enum GuildAutoEmbedSites {
   BLUESKY = 'bluesky',
   FACEBOOK = 'facebook',
@@ -3217,6 +3219,7 @@ export const NotSoApiKeys = Object.freeze({
   ACTION: 'action',
   AUTO_EMBED: 'auto_embed',
   AUTO_EMBED_GALLERY: 'auto_embed_gallery',
+  AUTO_EMBED_MEMBERS: 'auto_embed_members',
   AUTO_EMBED_TEXT: 'auto_embed_text',
   AVATAR: 'avatar',
   BAN_CLEAN: 'ban_clean',
@@ -3320,6 +3323,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ACTION]: 'action',
   [NotSoApiKeys.AUTO_EMBED]: 'autoEmbed',
   [NotSoApiKeys.AUTO_EMBED_GALLERY]: 'autoEmbedGallery',
+  [NotSoApiKeys.AUTO_EMBED_MEMBERS]: 'autoEmbedMembers',
   [NotSoApiKeys.AUTO_EMBED_TEXT]: 'autoEmbedText',
   [NotSoApiKeys.AVATAR]: 'avatar',
   [NotSoApiKeys.BLOCKED]: 'blocked',

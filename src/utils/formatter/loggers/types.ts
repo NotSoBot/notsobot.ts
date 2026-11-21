@@ -273,6 +273,8 @@ export type GuildLoggingEventDecoy = {
     raid: number,
     // why they weren't removed (or why a softban stayed a ban), null otherwise
     reason: GuildLoggingDecoyReason | null,
+    // they pressed "I'm not a bot" a moment before and posted again, so no minute this time
+    repeat: boolean,
     user: Structures.User,
     warned: boolean,
   },

@@ -2627,6 +2627,67 @@ function getUniqueFilename(tag: TagResult, filename: string): string {
   }
 }
 
+// tag replies suppress embeds now, which broke the old tags that are nothing but a link that used to embed. a tag
+// whose whole content is one discord cdn link, klipy gif page (the api's klipy service downloads those) or direct media
+// file link, `||spoilered||` or not, runs as if it was `{attach:link}`. `<link>` is left alone, its author never
+// wanted the embed
+const REGEX_LONE_MEDIA_URL = /^(\|\|)?\s*(https?:\/\/[^\s<>|{}]+)\s*\1$/i;
+// links from these attach whatever their path ends with
+const REGEX_LONE_MEDIA_URL_HOST = /^(?:cdn\.discordapp\.(?:com|net)|media\.discordapp\.net|images-ext-[0-9]+\.discordapp\.net|(?:www\.)?klipy\.com)$/i;
+// links to a .txt stay links, an attached text file isn't what those tags showed
+const LONE_MEDIA_URL_EXTENSIONS = new Set(ATTACHMENT_EXTENSIONS.filter((extension) => extension !== 'txt'));
+
+export function getLoneMediaUrl(content: string): {spoiler: boolean, url: string} | null {
+  const match = content.trim().match(REGEX_LONE_MEDIA_URL);
+  if (!match) {
+    return null;
+  }
+  const [ , spoiler, url ] = match;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch(error) {
+    return null;
+  }
+  if (!REGEX_LONE_MEDIA_URL_HOST.test(parsed.hostname)) {
+    const filename = parsed.pathname.slice(parsed.pathname.lastIndexOf('/') + 1);
+    const dot = filename.lastIndexOf('.');
+    if (dot <= 0 || !LONE_MEDIA_URL_EXTENSIONS.has(filename.slice(dot + 1).toLowerCase())) {
+      return null;
+    }
+  }
+  return {spoiler: !!spoiler, url};
+}
+
+// `content` is the tag's stored content, the check runs on it so only tags that are literally just the link count
+// (not ones that build a link). the parsed text is what gets attached, it holds the refreshed url if discord's expired
+export async function attachLoneMediaUrl(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  content: string,
+): Promise<void> {
+  if (
+    tag.files.length ||
+    tag.embeds.length ||
+    tag.pages.length ||
+    (tag.components && tag.components.components.length) ||
+    !getLoneMediaUrl(content)
+  ) {
+    return;
+  }
+  const lone = getLoneMediaUrl(tag.text);
+  if (!lone) {
+    return;
+  }
+  try {
+    await attachFileFromUrl(context, tag, lone.url, {spoiler: lone.spoiler});
+  } catch(error) {
+    // deleted, too big, timed out... the tag just shows its link like it did before
+    return;
+  }
+  tag.text = '';
+}
+
 // downloads a url into the tag's files (`{attach}`, and media urls in embeds/components)
 async function attachFileFromUrl(
   context: Command.Context | Interaction.InteractionContext,

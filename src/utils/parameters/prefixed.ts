@@ -235,6 +235,13 @@ export async function channelMetadata(
 
   if (channelId === context.channelId) {
     payload.channel = context.channel;
+    // DM channels usually aren't cached, it's still the one they're in
+    if (!payload.channel) {
+      try {
+        payload.channel = await context.rest.fetchChannel(channelId);
+      } catch(error) {
+      }
+    }
   } else {
     payload.channel = null;
 

@@ -11,6 +11,7 @@ import { CommandMetadata } from './commands/prefixed/basecommand';
 import { runWithCommandContext } from './sentry';
 
 import CommandResponsesStore from './stores/commandresponses';
+import DecoyStore from './stores/decoys';
 import GuildSettingsStore from './stores/guildsettings';
 import PremiumServersStore, { getServerPremiumUsers } from './stores/premiumservers';
 import PremiumUsersStore from './stores/premiumusers';
@@ -39,7 +40,7 @@ import {
   trackCommandRun,
   untrackCommandRun,
 } from './utils';
-import { AutoEmbedLink, findAutoEmbedLink, getAutoEmbedLink } from './utils/autoembed';
+import { AutoEmbedLink, AutoEmbedSources, findAutoEmbedLink, getAutoEmbedLink } from './utils/autoembed';
 import { fillApplicationCommandPermissions } from './utils/commandpermissions';
 
 
@@ -144,7 +145,7 @@ export class NotSoCommandClient extends CommandClient {
         return {content: context.message.content.trim(), prefix: ''};
       }
     }
-    // just a link to one of the server's auto-embed sites, `getCommand` sends it to `download`
+    // the only link in it is to a post on an auto-embed site, `getCommand` sends that link (not the text) to `download`
     const autoEmbed = await this.findAutoEmbedLink(context);
     if (autoEmbed) {
       const contextMetadata = context.metadata = context.metadata || {};
@@ -154,9 +155,10 @@ export class NotSoCommandClient extends CommandClient {
     return null;
   }
 
-  // auto-embed (a premium server perk): the link a message is made of, if it's to one of the sites the server turned on,
-  // it has a premium server slot and we can post the download there. it runs for every message without a prefix, so the
-  // link check (no awaits) goes first and the settings and premium slots come from what's already loaded
+  // auto-embed (a premium server perk): the message's only link, if it's to a post on one of the sites the server turned on,
+  // it has a premium server slot and we can post the download there. Or the poster has premium and turned the site on for
+  // their own links, and the server allows that. it runs for every message without a prefix, so the link check (no
+  // awaits) goes first and the settings and premium slots/users come from what's already loaded
   async findAutoEmbedLink(context: Command.Context): Promise<AutoEmbedLink | null> {
     const { channel, message } = context;
     if (!context.guildId || !channel || message.attachments.length || message.stickerItems.length) {
@@ -172,15 +174,18 @@ export class NotSoCommandClient extends CommandClient {
     }
     // already loaded by the prefix check
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
-    if (!settings || settings.isBlocked || !settings.settings || !settings.settings.autoEmbed.includes(link.site)) {
+    if (!settings || settings.isBlocked || !settings.settings) {
       return null;
     }
-    // the slots aren't loaded or nobody gave it one, skip looking up the users
-    if (!(await PremiumServersStore.load(context)) || !PremiumServersStore.has(context.guildId)) {
-      return null;
+    // the server's own setting first (its text setting goes with it), then the poster's. a server that has the site on but
+    // lost its slot still lets the poster's own setting do it
+    let source: AutoEmbedSources | null = null;
+    if (settings.settings.autoEmbed.includes(link.site) && await this.hasAutoEmbedServerSlot(context, context.guildId)) {
+      source = AutoEmbedSources.SERVER;
+    } else if (settings.settings.autoEmbedMembers && await this.hasAutoEmbedUserSite(context, link.site)) {
+      source = AutoEmbedSources.USER;
     }
-    // whoever gave the slot still has premium plus
-    if (!(await getServerPremiumUsers(context)).length) {
+    if (!source) {
       return null;
     }
     // it's on for this link but we can't do it properly: no file to post, or the link's own preview would stay under ours
@@ -191,7 +196,27 @@ export class NotSoCommandClient extends CommandClient {
       }
       return null;
     }
-    return link;
+    return {...link, source};
+  }
+
+  // someone gave the server a premium server slot and still has premium plus
+  async hasAutoEmbedServerSlot(context: Command.Context, guildId: string): Promise<boolean> {
+    // the slots aren't loaded or nobody gave it one, skip looking up the users
+    if (!(await PremiumServersStore.load(context)) || !PremiumServersStore.has(guildId)) {
+      return false;
+    }
+    return !!(await getServerPremiumUsers(context)).length;
+  }
+
+  // the poster has premium (any tier) and turned the site on for their own links. the premium check is in memory, so only
+  // premium users posting a matching link get their settings looked up (cached for hours after). when the premium users
+  // couldn't be loaded it's skipped rather than looking up everyone's settings
+  async hasAutoEmbedUserSite(context: Command.Context, site: string): Promise<boolean> {
+    if (!(await PremiumUsersStore.isPremium(context, context.userId))) {
+      return false;
+    }
+    const userSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+    return !!(userSettings && userSettings.auto_embed && userSettings.auto_embed.includes(site));
   }
 
   async getCommand(attributes: CommandAttributes, context?: Command.Context): Promise<Command.Command | null> {
@@ -456,6 +481,12 @@ export class NotSoCommandClient extends CommandClient {
   async onMessageCheck(context: Command.Context) {
     // ignore bots for automod
     if (context.user.bot) {
+      return false;
+    }
+
+    // the server's decoy channel handles its own posts, no command, ai reply, auto-embed or mention auto-warn there:
+    // anything I post in it would stay up after the poster is removed (and moderators testing it get nothing either)
+    if (context.guildId && DecoyStore.getByChannel(context.channelId)) {
       return false;
     }
 

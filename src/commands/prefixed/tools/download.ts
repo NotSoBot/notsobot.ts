@@ -11,7 +11,7 @@ import { BaseCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'download';
 
-// a server's auto-embed (`NotSoCommandClient.findAutoEmbedLink`) runs this command for a message that's only a link.
+// auto-embed (`NotSoCommandClient.findAutoEmbedLink`) runs this command for a message whose only link is to a post.
 // those never reply with an error, every way it can fail reacts to the link instead
 export default class DownloadCommand extends BaseCommand<Formatter.Commands.ToolsDownload.CommandArgs> {
   constructor(client: CommandClient) {

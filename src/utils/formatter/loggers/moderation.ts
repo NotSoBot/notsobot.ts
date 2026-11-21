@@ -2,7 +2,7 @@ import { Structures } from 'detritus-client';
 import { MessageComponentButtonStyles } from 'detritus-client/lib/constants';
 import { ComponentActionRow, ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
-import { EmbedColors, MessageComponentCustomIds } from '../../../constants';
+import { DECOY_KEPT_REPEAT_TIME, EmbedColors, MessageComponentCustomIds } from '../../../constants';
 import { createTimestampStringFromGuild, createUserEmbed, createUserString, displayDetailsLine, displayTimestamp, formatDuration } from '../../../utils';
 
 import type { TranslationKey, Translator } from '../../i18n';
@@ -277,7 +277,7 @@ function getDecoyNotRemovedText(reason: GuildLoggingDecoyReason | null, translat
 // where, what they posted, and what happened to them
 function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Translator): Array<string> {
   const { language, translate } = translator;
-  const { action, attachments, channelId, clean, content, raid, reason, warned } = event.payload;
+  const { action, attachments, channelId, clean, content, raid, reason, repeat, warned } = event.payload;
   const lines: Array<string> = [`**${translate('logger.decoy_caught_in')}**: <#${channelId}>`];
   if (content) {
     lines.push(`**${translate('logger.decoy_posted')}**:`, Markup.codeblock(content.slice(0, 900)));
@@ -294,6 +294,10 @@ function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Tran
   lines.push(displayDetailsLine([
     actionText,
     (warned) && translate('logger.decoy_warned'),
+    (repeat) && translate('logger.decoy_repeat', {
+      button: translate('decoy.grace_button_keep'),
+      duration: formatDuration(DECOY_KEPT_REPEAT_TIME, language),
+    }),
     (raid) && translate('logger.decoy_raid', {button: translate('decoy.grace_button_keep'), count: raid.toLocaleString(language)}),
     (attachments) && translate('logger.decoy_attachments', {count: attachments.toLocaleString(language)}),
   ], true));

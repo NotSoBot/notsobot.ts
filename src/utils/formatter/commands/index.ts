@@ -768,6 +768,7 @@ import * as SettingsSetFont from './settings.set.font';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
 import * as SettingsSetPostGallery from './settings.set.post.gallery';
+import * as SettingsSetAutoEmbed from './settings.set.autoembed';
 import * as SettingsSetResponseDisplay from './settings.set.response.display';
 import * as SettingsSetSearchProvider from './settings.set.search.provider';
 import * as SettingsSetTimezone from './settings.set.timezone';
@@ -1617,6 +1618,7 @@ export {
   SettingsSetLocale,
   SettingsSetMLImagineModel,
   SettingsSetPostGallery,
+  SettingsSetAutoEmbed,
   SettingsSetResponseDisplay,
   SettingsSetSearchProvider,
   SettingsSetTimezone,

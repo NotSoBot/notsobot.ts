@@ -922,6 +922,7 @@ export async function editGuildSettings(
   const body = {
     auto_embed: options.autoEmbed,
     auto_embed_gallery: options.autoEmbedGallery,
+    auto_embed_members: options.autoEmbedMembers,
     auto_embed_text: options.autoEmbedText,
     ban_clean: options.banClean,
     blocked: options.blocked,
@@ -1185,6 +1186,8 @@ export async function editUserSettings(
 ): Promise<RestResponsesRaw.EditUserSettings> {
   const body = {
     application_command_response_type: options.applicationCommandResponseType,
+    auto_embed: options.autoEmbed,
+    auto_embed_text: options.autoEmbedText,
     download_quality: options.downloadQuality,
     fallbacks_media_image: options.fallbacksMediaImage,
     file_upload_threshold: options.fileUploadThreshold,

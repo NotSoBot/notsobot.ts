@@ -16,6 +16,7 @@ import { ApiEventsSpewer } from '../apievents';
 import {
   BAN_CLEAN_DEFAULT,
   DECOY_GRACE_TIME,
+  DECOY_KEPT_REPEAT_TIME,
   DateMomentLogFormat,
   DiscordReactionEmojis,
   GuildModerationDmFlags,
@@ -62,8 +63,9 @@ const MEMBER_MESSAGE_TYPES: Array<number> = [MessageTypes.DEFAULT, MessageTypes.
 type DecoyContext = {client: ShardClient, guild: Structures.Guild, guildId: string, me: Structures.Member | null, rest: ShardClient['rest']};
 
 
-// expired: they didn't press it, unavailable: no reply to press it on (I can't post there), raid: no minute for them
-type GraceResult = {kind: 'expired' | 'kept' | 'unavailable'} | {kind: 'raid', posters: number};
+// expired: they didn't press it, unavailable: no reply to press it on (I can't post there), raid: no minute for them,
+// repeat: they pressed it a moment ago and posted again
+type GraceResult = {kind: 'expired' | 'kept' | 'repeat' | 'unavailable'} | {kind: 'raid', posters: number};
 
 
 /**
@@ -185,11 +187,14 @@ class GracePrompt {
 
   async onKeep(ctx: ComponentContext): Promise<void> {
     // their own language, they pressed it themselves
-    const { translate } = await I18n.getTranslator(ctx);
+    const { language, translate } = await I18n.getTranslator(ctx);
     if (this.entries.has(ctx.userId) || this.finished.get(ctx.userId)) {
       // claimed before anything is awaited, their timer can't remove them after this
       this.finish(ctx.userId, true);
-      await respondEphemeral(ctx, `${StatusEmojis.YES} ${translate('decoy.grace_kept')}`);
+      await respondEphemeral(ctx, [
+        `${StatusEmojis.YES} ${translate('decoy.grace_kept')}`,
+        translate('decoy.grace_kept_repeat', {duration: formatDuration(DECOY_KEPT_REPEAT_TIME, language)}),
+      ].join('\n'));
     } else if (this.finished.has(ctx.userId)) {
       await respondEphemeral(ctx, `${StatusEmojis.WARNING} ${translate('decoy.grace_too_late')}`);
     } else {
@@ -225,6 +230,9 @@ class DecoyListener extends Listener {
   reposted = new Collections.BaseCollection<string, number>({expire: NOTICE_REPOST_COOLDOWN});
   // decoy channel id -> the reply new posters join
   prompts = new Map<string, GracePrompt>();
+  // `guild id.user id` -> when they pressed "I'm not a bot", see `DECOY_KEPT_REPEAT_TIME`. in memory: a server's
+  // messages always reach this cluster, a restart forgets it like it forgets the minute
+  kept = new Collections.BaseCollection<string, number>({expire: DECOY_KEPT_REPEAT_TIME});
   // decoy channel id -> user id -> when they last posted there, for the raid count
   posters = new Map<string, Map<string, number>>();
 
@@ -320,6 +328,7 @@ class DecoyListener extends Listener {
         content: message.content || '',
         raid: 0,
         reason: exempt,
+        repeat: false,
         user: message.author,
         warned: false,
       });
@@ -396,7 +405,7 @@ class DecoyListener extends Listener {
     }
     if (cannotBan) {
       await this.deleteMessage(message);
-      this.log(context, decoy, {action: 'none', attachments, clean: 0, content, raid: 0, reason: cannotBan, user, warned: false});
+      this.log(context, decoy, {action: 'none', attachments, clean: 0, content, raid: 0, reason: cannotBan, repeat: false, user, warned: false});
       return;
     }
 
@@ -405,10 +414,12 @@ class DecoyListener extends Listener {
     if (grace.kind === 'kept') {
       await this.deleteMessage(message);
       await this.deleteOthers(context, decoy, key);
-      this.log(context, decoy, {action: 'kept', attachments, clean: 0, content, raid: 0, reason: null, user, warned: false});
+      this.kept.set(key, Date.now());
+      this.log(context, decoy, {action: 'kept', attachments, clean: 0, content, raid: 0, reason: null, repeat: false, user, warned: false});
       return;
     }
     const raid = (grace.kind === 'raid') ? grace.posters : 0;
+    const repeat = grace.kind === 'repeat';
 
     const audit = await I18n.getGuildTranslator(context as unknown as I18n.LanguageContext);
     const languageContext = context as unknown as I18n.LanguageContext;
@@ -503,6 +514,7 @@ class DecoyListener extends Listener {
       content,
       raid,
       reason,
+      repeat,
       user,
       warned,
     });
@@ -552,6 +564,11 @@ class DecoyListener extends Listener {
    * deletes the messages and they stay.
    */
   async waitForPerson(context: DecoyContext, message: Structures.Message): Promise<GraceResult> {
+    // still one of the posters for the raid count
+    if (this.kept.has(`${context.guildId}.${message.author.id}`)) {
+      this.countPosters(message.channelId, message.author.id);
+      return {kind: 'repeat'};
+    }
     const channel = message.channel;
     if (!channel || !channel.canMessage) {
       return {kind: 'unavailable'};
@@ -597,6 +614,7 @@ class DecoyListener extends Listener {
       content: string,
       raid: number,
       reason: GuildLoggingDecoyReason | null,
+      repeat: boolean,
       user: Structures.User,
       warned: boolean,
     },

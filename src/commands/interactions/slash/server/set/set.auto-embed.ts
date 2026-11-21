@@ -23,7 +23,7 @@ export class ServerSetAutoEmbedCommand extends BaseInteractionCommandOption {
       options: [
         {
           name: 'embed',
-          description: 'Post the media of links sent on their own, like download (Default: off)',
+          description: 'Post the media of links to posts, like download (Default: off)',
           ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.embed'),
           type: Boolean,
         },
@@ -33,6 +33,12 @@ export class ServerSetAutoEmbedCommand extends BaseInteractionCommandOption {
           ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.gallery'),
           choices: Parameters.Slash.AUTO_EMBED_GALLERY,
           value: Formatter.Commands.SettingsServerSetAutoEmbed.galleryParser,
+        },
+        {
+          name: 'members',
+          description: 'Let premium members auto-embed their own links (Default: on)',
+          ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.members'),
+          type: Boolean,
         },
         {
           name: 'site',
@@ -46,7 +52,7 @@ export class ServerSetAutoEmbedCommand extends BaseInteractionCommandOption {
         },
         {
           name: 'text',
-          description: 'Post the post\'s text and author with the media too (Default: off)',
+          description: 'Post the post\'s text and author with the media too (Default: on)',
           ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.text'),
           type: Boolean,
         },
