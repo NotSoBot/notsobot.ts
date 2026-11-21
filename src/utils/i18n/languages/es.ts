@@ -5853,7 +5853,7 @@ export const Spanish: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Tus mensajes con un enlace a una publicación publican su contenido para: {sites}',
   'settings_set_autoembed.sites_none': 'Auto-incrustar para tus enlaces está desactivado',
   'settings_set_autoembed.error_fetching': 'No se pudieron obtener tus ajustes, inténtalo de nuevo en un rato',
-  'settings_set_autoembed.where_note': 'Solo en servidores con NotSoBot que lo permitan, y los ajustes de auto-incrustar del propio servidor van primero para los sitios que activó',
+  'settings_set_autoembed.where_note': 'En tus MD con NotSoBot y en servidores con NotSoBot que lo permitan, y los ajustes de auto-incrustar del propio servidor van primero para los sitios que activó',
   'settings_set_autoembed.premium_note': 'Auto-incrustar para tus propios enlaces requiere NotSoPremium',
   'settings_server_autoembed.current': 'Ajustes de auto-incrustar de este servidor:',
   'settings_server_autoembed.updated': 'Se actualizaron los ajustes de auto-incrustar de este servidor:',

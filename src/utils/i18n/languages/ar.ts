@@ -5853,7 +5853,7 @@ export const Arabic: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'رسائلك التي فيها رابط منشور تُنشر وسائطه من: {sites}',
   'settings_set_autoembed.sites_none': 'التضمين التلقائي لروابطك متوقف',
   'settings_set_autoembed.error_fetching': 'تعذّر جلب إعداداتك، حاول مرة أخرى بعد قليل',
-  'settings_set_autoembed.where_note': 'فقط في الخوادم التي فيها NotSoBot وتسمح بذلك، وإعدادات التضمين التلقائي للخادم نفسه تأتي أولًا للمواقع التي فعّلها',
+  'settings_set_autoembed.where_note': 'في رسائلك الخاصة مع NotSoBot وفي الخوادم التي فيها NotSoBot وتسمح بذلك، وإعدادات التضمين التلقائي للخادم نفسه تأتي أولًا للمواقع التي فعّلها',
   'settings_set_autoembed.premium_note': 'التضمين التلقائي لروابطك الخاصة يحتاج إلى NotSoPremium',
   'settings_server_autoembed.current': 'إعدادات التضمين التلقائي لهذا الخادم:',
   'settings_server_autoembed.updated': 'تم تحديث إعدادات التضمين التلقائي لهذا الخادم:',

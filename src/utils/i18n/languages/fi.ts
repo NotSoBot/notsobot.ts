@@ -5853,7 +5853,7 @@ export const Finnish: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Viestiesi julkaisulinkkien media julkaistaan sivustoille: {sites}',
   'settings_set_autoembed.sites_none': 'Linkkiesi automaattiupotus on pois päältä',
   'settings_set_autoembed.error_fetching': 'Asetuksiasi ei saatu haettua, yritä hetken päästä uudelleen',
-  'settings_set_autoembed.where_note': 'Vain palvelimilla, joilla NotSoBot on ja jotka sallivat sen, ja palvelimen omat automaattiupotuksen asetukset menevät edelle sen päälle kytkemillä sivustoilla',
+  'settings_set_autoembed.where_note': 'Yksityisviesteissäsi NotSoBotin kanssa ja palvelimilla, joilla NotSoBot on ja jotka sallivat sen, ja palvelimen omat automaattiupotuksen asetukset menevät edelle sen päälle kytkemillä sivustoilla',
   'settings_set_autoembed.premium_note': 'Omien linkkiesi automaattiupotukseen tarvitaan NotSoPremium',
   'settings_server_autoembed.current': 'Tämän palvelimen automaattiupotuksen asetukset:',
   'settings_server_autoembed.updated': 'Tämän palvelimen automaattiupotuksen asetukset päivitetty:',

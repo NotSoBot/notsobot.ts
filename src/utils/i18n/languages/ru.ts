@@ -5853,7 +5853,7 @@ export const Russian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Для твоих сообщений со ссылкой на пост публикуются медиа с: {sites}',
   'settings_set_autoembed.sites_none': 'Автовставка для твоих ссылок выключена',
   'settings_set_autoembed.error_fetching': 'Не удалось получить твои настройки, попробуй чуть позже',
-  'settings_set_autoembed.where_note': 'Только на серверах с NotSoBot, которые это разрешают, а собственные настройки автовставки сервера идут первыми для сайтов, которые он включил',
+  'settings_set_autoembed.where_note': 'В твоих личных сообщениях с NotSoBot и на серверах с NotSoBot, которые это разрешают, а собственные настройки автовставки сервера идут первыми для сайтов, которые он включил',
   'settings_set_autoembed.premium_note': 'Для автовставки своих ссылок нужен NotSoPremium',
   'settings_server_autoembed.current': 'Настройки автовставки этого сервера:',
   'settings_server_autoembed.updated': 'Настройки автовставки этого сервера обновлены:',

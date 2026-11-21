@@ -157,15 +157,26 @@ export class NotSoCommandClient extends CommandClient {
 
   // auto-embed (a premium server perk): the message's only link, if it's to a post on one of the sites the server turned on,
   // it has a premium server slot and we can post the download there. Or the poster has premium and turned the site on for
-  // their own links, and the server allows that. it runs for every message without a prefix, so the link check (no
+  // their own links, and the server allows that (or it's their DM with us). it runs for every message without a prefix, so the link check (no
   // awaits) goes first and the settings and premium slots/users come from what's already loaded
   async findAutoEmbedLink(context: Command.Context): Promise<AutoEmbedLink | null> {
     const { channel, message } = context;
-    if (!context.guildId || !channel || message.attachments.length || message.stickerItems.length) {
+    if (message.attachments.length || message.stickerItems.length) {
       return null;
     }
     const link = findAutoEmbedLink(message.content);
     if (!link) {
+      return null;
+    }
+    // their DM with us: only their own setting counts. nobody can hide the link's preview on someone else's message in a
+    // DM (no manage messages there), so ours goes under it like `.dl` would
+    if (!context.guildId) {
+      if (await this.hasAutoEmbedUserSite(context, link.site)) {
+        return {...link, source: AutoEmbedSources.USER};
+      }
+      return null;
+    }
+    if (!channel) {
       return null;
     }
     // can't talk here at all, the server muted us in this channel on purpose, say nothing

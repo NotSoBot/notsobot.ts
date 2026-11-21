@@ -5853,7 +5853,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'settings_set_autoembed.sites': '你的訊息含貼文連結時會發佈媒體的網站：{sites}',
   'settings_set_autoembed.sites_none': '你的連結的自動嵌入已關閉',
   'settings_set_autoembed.error_fetching': '無法取得你的設定，請稍後再試',
-  'settings_set_autoembed.where_note': '僅在有 NotSoBot 且允許的伺服器中生效，對於伺服器已開啟的網站，伺服器自己的自動嵌入設定優先',
+  'settings_set_autoembed.where_note': '在你與 NotSoBot 的私訊以及有 NotSoBot 且允許的伺服器中生效，對於伺服器已開啟的網站，伺服器自己的自動嵌入設定優先',
   'settings_set_autoembed.premium_note': '為你自己的連結自動嵌入需要 NotSoPremium',
   'settings_server_autoembed.current': '此伺服器的自動嵌入設定：',
   'settings_server_autoembed.updated': '已更新此伺服器的自動嵌入設定：',

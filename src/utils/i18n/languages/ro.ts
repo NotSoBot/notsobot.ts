@@ -5853,7 +5853,7 @@ export const Romanian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Mesajele tale cu un link către o postare primesc media postată pentru: {sites}',
   'settings_set_autoembed.sites_none': 'Încorporarea automată pentru linkurile tale e oprită',
   'settings_set_autoembed.error_fetching': 'Nu am putut obține setările tale, încearcă din nou puțin mai târziu',
-  'settings_set_autoembed.where_note': 'Doar în serverele cu NotSoBot care permit asta, iar setările de încorporare automată ale serverului au prioritate pentru site-urile pe care le-a pornit',
+  'settings_set_autoembed.where_note': 'În mesajele tale directe cu NotSoBot și în serverele cu NotSoBot care permit asta, iar setările de încorporare automată ale serverului au prioritate pentru site-urile pe care le-a pornit',
   'settings_set_autoembed.premium_note': 'Încorporarea automată pentru propriile linkuri necesită NotSoPremium',
   'settings_server_autoembed.current': 'Setările de încorporare automată ale acestui server:',
   'settings_server_autoembed.updated': 'Setările de încorporare automată ale acestui server au fost actualizate:',

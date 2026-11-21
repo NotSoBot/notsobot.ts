@@ -5851,7 +5851,7 @@ export const English = Object.freeze({
   'settings_set_autoembed.sites': 'Your messages with a link to a post get its media posted for: {sites}',
   'settings_set_autoembed.sites_none': 'Auto-embed for your links is off',
   'settings_set_autoembed.error_fetching': 'Couldn\'t get your settings, try again in a bit',
-  'settings_set_autoembed.where_note': 'Only in servers NotSoBot is in that allow it, a server\'s own auto-embed settings go first for the sites it turned on',
+  'settings_set_autoembed.where_note': 'In your DMs with NotSoBot and in servers NotSoBot is in that allow it, a server\'s own auto-embed settings go first for the sites it turned on',
   'settings_set_autoembed.premium_note': 'Auto-embed for your own links needs NotSoPremium',
   'settings_server_autoembed.current': 'This server\'s auto-embed settings:',
   'settings_server_autoembed.updated': 'Updated this server\'s auto-embed settings:',

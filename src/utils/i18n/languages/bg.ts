@@ -5853,7 +5853,7 @@ export const Bulgarian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Твоите съобщения с линк към пост получават публикувана медия за: {sites}',
   'settings_set_autoembed.sites_none': 'Автоматичното вграждане за твоите линкове е изключено',
   'settings_set_autoembed.error_fetching': 'Не успях да взема настройките ти, опитай пак след малко',
-  'settings_set_autoembed.where_note': 'Само в сървъри с NotSoBot, които го позволяват, като собствените настройки за автоматично вграждане на сървъра са с предимство за сайтовете, които е включил',
+  'settings_set_autoembed.where_note': 'В личните ти съобщения с NotSoBot и в сървъри с NotSoBot, които го позволяват, като собствените настройки за автоматично вграждане на сървъра са с предимство за сайтовете, които е включил',
   'settings_set_autoembed.premium_note': 'Автоматичното вграждане за твоите линкове изисква NotSoPremium',
   'settings_server_autoembed.current': 'Настройки за автоматично вграждане на този сървър:',
   'settings_server_autoembed.updated': 'Обновени настройки за автоматично вграждане на този сървър:',

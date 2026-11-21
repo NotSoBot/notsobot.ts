@@ -5853,7 +5853,7 @@ export const PortugueseBrazil: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Suas mensagens com link para uma publicação têm a mídia postada para: {sites}',
   'settings_set_autoembed.sites_none': 'Auto-incorporar para os seus links está desligado',
   'settings_set_autoembed.error_fetching': 'Não deu para pegar suas configurações, tente de novo daqui a pouco',
-  'settings_set_autoembed.where_note': 'Só em servidores com o NotSoBot que permitem, e as configurações de auto-incorporar do próprio servidor vêm primeiro para os sites que ele ligou',
+  'settings_set_autoembed.where_note': 'Nas suas DMs com o NotSoBot e em servidores com o NotSoBot que permitem, e as configurações de auto-incorporar do próprio servidor vêm primeiro para os sites que ele ligou',
   'settings_set_autoembed.premium_note': 'Auto-incorporar para os seus próprios links precisa de NotSoPremium',
   'settings_server_autoembed.current': 'Configurações de auto-incorporar deste servidor:',
   'settings_server_autoembed.updated': 'Configurações de auto-incorporar deste servidor atualizadas:',

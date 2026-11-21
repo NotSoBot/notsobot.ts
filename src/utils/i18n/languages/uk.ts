@@ -5853,7 +5853,7 @@ export const Ukrainian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Для твоїх повідомлень з посиланням на допис публікуються медіа з: {sites}',
   'settings_set_autoembed.sites_none': 'Автовбудовування для твоїх посилань вимкнено',
   'settings_set_autoembed.error_fetching': 'Не вдалося отримати твої налаштування, спробуй трохи згодом',
-  'settings_set_autoembed.where_note': 'Лише на серверах із NotSoBot, які це дозволяють, а власні налаштування автовбудовування сервера йдуть першими для сайтів, які він увімкнув',
+  'settings_set_autoembed.where_note': 'У твоїх особистих повідомленнях із NotSoBot і на серверах із NotSoBot, які це дозволяють, а власні налаштування автовбудовування сервера йдуть першими для сайтів, які він увімкнув',
   'settings_set_autoembed.premium_note': 'Для автовбудовування своїх посилань потрібен NotSoPremium',
   'settings_server_autoembed.current': 'Налаштування автовбудовування цього сервера:',
   'settings_server_autoembed.updated': 'Налаштування автовбудовування цього сервера оновлено:',

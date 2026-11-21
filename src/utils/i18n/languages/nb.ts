@@ -5853,7 +5853,7 @@ export const Norwegian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Meldingene dine med en lenke til et innlegg får mediene lagt ut for: {sites}',
   'settings_set_autoembed.sites_none': 'Auto-innebygging for lenkene dine er av',
   'settings_set_autoembed.error_fetching': 'Klarte ikke å hente innstillingene dine, prøv igjen om litt',
-  'settings_set_autoembed.where_note': 'Bare på servere med NotSoBot som tillater det, og serverens egne innstillinger for auto-innebygging går først for sidene den har slått på',
+  'settings_set_autoembed.where_note': 'I DM-ene dine med NotSoBot og på servere med NotSoBot som tillater det, og serverens egne innstillinger for auto-innebygging går først for sidene den har slått på',
   'settings_set_autoembed.premium_note': 'Auto-innebygging for dine egne lenker krever NotSoPremium',
   'settings_server_autoembed.current': 'Serverens innstillinger for auto-innebygging:',
   'settings_server_autoembed.updated': 'Oppdaterte serverens innstillinger for auto-innebygging:',

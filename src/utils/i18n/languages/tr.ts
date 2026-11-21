@@ -5853,7 +5853,7 @@ export const Turkish: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Mesajındaki gönderi linkinin medyası şunlar için paylaşılır: {sites}',
   'settings_set_autoembed.sites_none': 'Linklerin için otomatik yerleştirme kapalı',
   'settings_set_autoembed.error_fetching': 'Ayarların alınamadı, biraz sonra tekrar dene',
-  'settings_set_autoembed.where_note': 'Sadece NotSoBot\'un olduğu ve buna izin veren sunucularda; sunucunun açtığı siteler için sunucunun kendi otomatik yerleştirme ayarları önce gelir',
+  'settings_set_autoembed.where_note': 'NotSoBot ile özel mesajlarında ve NotSoBot\'un olduğu, buna izin veren sunucularda; sunucunun açtığı siteler için sunucunun kendi otomatik yerleştirme ayarları önce gelir',
   'settings_set_autoembed.premium_note': 'Kendi linklerin için otomatik yerleştirme NotSoPremium gerektirir',
   'settings_server_autoembed.current': 'Bu sunucunun otomatik yerleştirme ayarları:',
   'settings_server_autoembed.updated': 'Bu sunucunun otomatik yerleştirme ayarları güncellendi:',

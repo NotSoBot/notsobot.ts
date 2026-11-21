@@ -5853,7 +5853,7 @@ export const Thai: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'ข้อความของคุณที่มีลิงก์ไปยังโพสต์ จะมีการโพสต์สื่อสำหรับ: {sites}',
   'settings_set_autoembed.sites_none': 'ฝังอัตโนมัติสำหรับลิงก์ของคุณปิดอยู่',
   'settings_set_autoembed.error_fetching': 'ดึงการตั้งค่าของคุณไม่ได้ ลองใหม่อีกครั้งในอีกสักครู่',
-  'settings_set_autoembed.where_note': 'เฉพาะในเซิร์ฟเวอร์ที่มี NotSoBot และอนุญาตเท่านั้น และการตั้งค่าฝังอัตโนมัติของเซิร์ฟเวอร์เองจะมาก่อนสำหรับเว็บไซต์ที่เซิร์ฟเวอร์เปิดไว้',
+  'settings_set_autoembed.where_note': 'ในข้อความส่วนตัวของคุณกับ NotSoBot และในเซิร์ฟเวอร์ที่มี NotSoBot และอนุญาต และการตั้งค่าฝังอัตโนมัติของเซิร์ฟเวอร์เองจะมาก่อนสำหรับเว็บไซต์ที่เซิร์ฟเวอร์เปิดไว้',
   'settings_set_autoembed.premium_note': 'ฝังอัตโนมัติสำหรับลิงก์ของคุณเองต้องมี NotSoPremium',
   'settings_server_autoembed.current': 'การตั้งค่าฝังอัตโนมัติของเซิร์ฟเวอร์นี้:',
   'settings_server_autoembed.updated': 'อัปเดตการตั้งค่าฝังอัตโนมัติของเซิร์ฟเวอร์นี้แล้ว:',

@@ -5853,7 +5853,7 @@ export const French: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Tes messages avec un lien vers un post ont son média publié pour : {sites}',
   'settings_set_autoembed.sites_none': 'L\'intégration auto de tes liens est désactivée',
   'settings_set_autoembed.error_fetching': 'Impossible de récupérer tes réglages, réessaie dans un instant',
-  'settings_set_autoembed.where_note': 'Seulement dans les serveurs avec NotSoBot qui l\'autorisent, et les réglages d\'intégration auto du serveur passent en premier pour les sites qu\'il a activés',
+  'settings_set_autoembed.where_note': 'Dans tes MP avec NotSoBot et dans les serveurs avec NotSoBot qui l\'autorisent, et les réglages d\'intégration auto du serveur passent en premier pour les sites qu\'il a activés',
   'settings_set_autoembed.premium_note': 'L\'intégration auto de tes propres liens nécessite NotSoPremium',
   'settings_server_autoembed.current': 'Les réglages d\'intégration auto de ce serveur :',
   'settings_server_autoembed.updated': 'Réglages d\'intégration auto de ce serveur mis à jour :',

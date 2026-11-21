@@ -5853,7 +5853,7 @@ export const Greek: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Τα μηνύματά σου με σύνδεσμο προς ανάρτηση δημοσιεύουν τα μέσα της για: {sites}',
   'settings_set_autoembed.sites_none': 'Η αυτόματη ενσωμάτωση για τους συνδέσμους σου είναι κλειστή',
   'settings_set_autoembed.error_fetching': 'Δεν μπόρεσα να πάρω τις ρυθμίσεις σου, δοκίμασε ξανά σε λίγο',
-  'settings_set_autoembed.where_note': 'Μόνο σε servers με το NotSoBot που το επιτρέπουν, και οι ρυθμίσεις αυτόματης ενσωμάτωσης του ίδιου του server προηγούνται για τους ιστότοπους που έχει ανοίξει',
+  'settings_set_autoembed.where_note': 'Στα προσωπικά σου μηνύματα με το NotSoBot και σε servers με το NotSoBot που το επιτρέπουν, και οι ρυθμίσεις αυτόματης ενσωμάτωσης του ίδιου του server προηγούνται για τους ιστότοπους που έχει ανοίξει',
   'settings_set_autoembed.premium_note': 'Η αυτόματη ενσωμάτωση για τους δικούς σου συνδέσμους χρειάζεται NotSoPremium',
   'settings_server_autoembed.current': 'Οι ρυθμίσεις αυτόματης ενσωμάτωσης αυτού του server:',
   'settings_server_autoembed.updated': 'Ενημερώθηκαν οι ρυθμίσεις αυτόματης ενσωμάτωσης αυτού του server:',

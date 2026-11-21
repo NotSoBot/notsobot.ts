@@ -5853,7 +5853,7 @@ export const Polish: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Twoje wiadomości z linkiem do posta mają publikowane jego media dla: {sites}',
   'settings_set_autoembed.sites_none': 'Automatyczne osadzanie twoich linków jest wyłączone',
   'settings_set_autoembed.error_fetching': 'Nie udało się pobrać twoich ustawień, spróbuj ponownie za chwilę',
-  'settings_set_autoembed.where_note': 'Tylko na serwerach z NotSoBotem, które na to pozwalają, a własne ustawienia automatycznego osadzania serwera mają pierwszeństwo dla stron, które włączył',
+  'settings_set_autoembed.where_note': 'W twoich wiadomościach prywatnych z NotSoBotem i na serwerach z NotSoBotem, które na to pozwalają, a własne ustawienia automatycznego osadzania serwera mają pierwszeństwo dla stron, które włączył',
   'settings_set_autoembed.premium_note': 'Automatyczne osadzanie własnych linków wymaga NotSoPremium',
   'settings_server_autoembed.current': 'Ustawienia automatycznego osadzania na tym serwerze:',
   'settings_server_autoembed.updated': 'Zaktualizowano ustawienia automatycznego osadzania na tym serwerze:',

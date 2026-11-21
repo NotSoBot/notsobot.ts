@@ -5853,7 +5853,7 @@ export const Hungarian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Ha az üzeneted posztra mutató linket tartalmaz, a poszt médiája posztolva lesz ezeknél: {sites}',
   'settings_set_autoembed.sites_none': 'A linkjeid automatikus beágyazása ki van kapcsolva',
   'settings_set_autoembed.error_fetching': 'Nem sikerült lekérni a beállításaidat, próbáld újra kicsit később',
-  'settings_set_autoembed.where_note': 'Csak olyan szervereken, ahol a NotSoBot jelen van és engedélyezik, és a szerver saját automatikus beágyazási beállításai az elsők az általa bekapcsolt oldalaknál',
+  'settings_set_autoembed.where_note': 'A NotSoBottal folytatott privát üzeneteidben és olyan szervereken, ahol a NotSoBot jelen van és engedélyezik, és a szerver saját automatikus beágyazási beállításai az elsők az általa bekapcsolt oldalaknál',
   'settings_set_autoembed.premium_note': 'A saját linkjeid automatikus beágyazásához NotSoPremium kell',
   'settings_server_autoembed.current': 'A szerver automatikus beágyazási beállításai:',
   'settings_server_autoembed.updated': 'A szerver automatikus beágyazási beállításai frissítve:',

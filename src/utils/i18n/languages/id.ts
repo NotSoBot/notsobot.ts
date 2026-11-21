@@ -5853,7 +5853,7 @@ export const Indonesian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Pesanmu dengan tautan ke postingan mendapat medianya untuk: {sites}',
   'settings_set_autoembed.sites_none': 'Sematkan otomatis untuk tautanmu mati',
   'settings_set_autoembed.error_fetching': 'Tidak bisa mengambil pengaturanmu, coba lagi sebentar lagi',
-  'settings_set_autoembed.where_note': 'Hanya di server yang ada NotSoBot dan mengizinkannya, dan pengaturan sematkan otomatis milik server didahulukan untuk situs yang dinyalakannya',
+  'settings_set_autoembed.where_note': 'Di DM kamu dengan NotSoBot dan di server yang ada NotSoBot dan mengizinkannya, dan pengaturan sematkan otomatis milik server didahulukan untuk situs yang dinyalakannya',
   'settings_set_autoembed.premium_note': 'Sematkan otomatis untuk tautanmu sendiri butuh NotSoPremium',
   'settings_server_autoembed.current': 'Pengaturan sematkan otomatis server ini:',
   'settings_server_autoembed.updated': 'Pengaturan sematkan otomatis server ini diperbarui:',

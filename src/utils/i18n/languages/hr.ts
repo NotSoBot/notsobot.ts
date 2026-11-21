@@ -5853,7 +5853,7 @@ export const Croatian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Tvoje poruke s poveznicom na objavu dobivaju objavljene medije za: {sites}',
   'settings_set_autoembed.sites_none': 'Automatska ugradnja tvojih poveznica je isključena',
   'settings_set_autoembed.error_fetching': 'Nije moguće dohvatiti tvoje postavke, pokušaj ponovno malo kasnije',
-  'settings_set_autoembed.where_note': 'Samo na serverima s NotSoBotom koji to dopuštaju, a vlastite postavke automatske ugradnje servera imaju prednost za stranice koje je uključio',
+  'settings_set_autoembed.where_note': 'U tvojim privatnim porukama s NotSoBotom i na serverima s NotSoBotom koji to dopuštaju, a vlastite postavke automatske ugradnje servera imaju prednost za stranice koje je uključio',
   'settings_set_autoembed.premium_note': 'Automatska ugradnja vlastitih poveznica zahtijeva NotSoPremium',
   'settings_server_autoembed.current': 'Postavke automatske ugradnje ovog servera:',
   'settings_server_autoembed.updated': 'Ažurirane postavke automatske ugradnje ovog servera:',

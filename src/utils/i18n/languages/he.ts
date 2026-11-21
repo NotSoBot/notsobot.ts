@@ -5853,7 +5853,7 @@ export const Hebrew: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'ההודעות שלך עם קישור לפוסט מקבלות את המדיה שלו עבור: {sites}',
   'settings_set_autoembed.sites_none': 'ההטמעה האוטומטית לקישורים שלך כבויה',
   'settings_set_autoembed.error_fetching': 'לא הצלחתי לקבל את ההגדרות שלך, נסה שוב עוד מעט',
-  'settings_set_autoembed.where_note': 'רק בשרתים ש-NotSoBot נמצא בהם ומאפשרים את זה, והגדרות ההטמעה האוטומטית של השרת עצמו קודמות עבור האתרים שהוא הפעיל',
+  'settings_set_autoembed.where_note': 'בהודעות הפרטיות שלך עם NotSoBot ובשרתים ש-NotSoBot נמצא בהם ומאפשרים את זה, והגדרות ההטמעה האוטומטית של השרת עצמו קודמות עבור האתרים שהוא הפעיל',
   'settings_set_autoembed.premium_note': 'הטמעה אוטומטית לקישורים שלך דורשת NotSoPremium',
   'settings_server_autoembed.current': 'הגדרות ההטמעה האוטומטית של השרת הזה:',
   'settings_server_autoembed.updated': 'הגדרות ההטמעה האוטומטית של השרת הזה עודכנו:',

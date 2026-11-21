@@ -5853,7 +5853,7 @@ export const Danish: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Dine beskeder med et link til et opslag får dets medier sendt for: {sites}',
   'settings_set_autoembed.sites_none': 'Auto-indlejring for dine links er slået fra',
   'settings_set_autoembed.error_fetching': 'Kunne ikke hente dine indstillinger, prøv igen om lidt',
-  'settings_set_autoembed.where_note': 'Kun på servere med NotSoBot, der tillader det, og en servers egne indstillinger for auto-indlejring går først for de sider, den har slået til',
+  'settings_set_autoembed.where_note': 'I dine DM\'er med NotSoBot og på servere med NotSoBot, der tillader det, og en servers egne indstillinger for auto-indlejring går først for de sider, den har slået til',
   'settings_set_autoembed.premium_note': 'Auto-indlejring for dine egne links kræver NotSoPremium',
   'settings_server_autoembed.current': 'Serverens indstillinger for auto-indlejring:',
   'settings_server_autoembed.updated': 'Opdaterede serverens indstillinger for auto-indlejring:',

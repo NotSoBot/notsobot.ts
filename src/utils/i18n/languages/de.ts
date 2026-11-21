@@ -5853,7 +5853,7 @@ export const German: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Deine Nachrichten mit einem Link zu einem Beitrag bekommen dessen Medien gepostet für: {sites}',
   'settings_set_autoembed.sites_none': 'Auto-Einbetten für deine Links ist aus',
   'settings_set_autoembed.error_fetching': 'Konnte deine Einstellungen nicht abrufen, versuch es gleich nochmal',
-  'settings_set_autoembed.where_note': 'Nur auf Servern mit NotSoBot, die es erlauben, und die eigenen Auto-Einbetten-Einstellungen eines Servers gehen bei den Seiten vor, die er eingeschaltet hat',
+  'settings_set_autoembed.where_note': 'In deinen DMs mit NotSoBot und auf Servern mit NotSoBot, die es erlauben, und die eigenen Auto-Einbetten-Einstellungen eines Servers gehen bei den Seiten vor, die er eingeschaltet hat',
   'settings_set_autoembed.premium_note': 'Auto-Einbetten für deine eigenen Links braucht NotSoPremium',
   'settings_server_autoembed.current': 'Die Auto-Einbetten-Einstellungen dieses Servers:',
   'settings_server_autoembed.updated': 'Auto-Einbetten-Einstellungen dieses Servers aktualisiert:',

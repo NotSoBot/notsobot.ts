@@ -5853,7 +5853,7 @@ export const Lithuanian: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Kai tavo žinutėje yra nuoroda į įrašą, jo medija skelbiama šioms svetainėms: {sites}',
   'settings_set_autoembed.sites_none': 'Automatinis tavo nuorodų įterpimas išjungtas',
   'settings_set_autoembed.error_fetching': 'Nepavyko gauti tavo nustatymų, pabandyk netrukus dar kartą',
-  'settings_set_autoembed.where_note': 'Tik serveriuose su NotSoBot, kurie tai leidžia, o paties serverio automatinio įterpimo nustatymai galioja pirmiau jo įjungtoms svetainėms',
+  'settings_set_autoembed.where_note': 'Tavo asmeninėse žinutėse su NotSoBot ir serveriuose su NotSoBot, kurie tai leidžia, o paties serverio automatinio įterpimo nustatymai galioja pirmiau jo įjungtoms svetainėms',
   'settings_set_autoembed.premium_note': 'Automatiniam savo nuorodų įterpimui reikia NotSoPremium',
   'settings_server_autoembed.current': 'Šio serverio automatinio įterpimo nustatymai:',
   'settings_server_autoembed.updated': 'Atnaujinti šio serverio automatinio įterpimo nustatymai:',

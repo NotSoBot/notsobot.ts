@@ -5853,7 +5853,7 @@ export const Czech: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Tvoje zprávy s odkazem na příspěvek dostanou jeho média pro: {sites}',
   'settings_set_autoembed.sites_none': 'Automatické vkládání tvých odkazů je vypnuté',
   'settings_set_autoembed.error_fetching': 'Nepodařilo se načíst tvoje nastavení, zkus to za chvíli znovu',
-  'settings_set_autoembed.where_note': 'Jen na serverech s NotSoBotem, které to povolují, a vlastní nastavení automatického vkládání serveru má přednost u webů, které zapnul',
+  'settings_set_autoembed.where_note': 'V tvých soukromých zprávách s NotSoBotem a na serverech s NotSoBotem, které to povolují, a vlastní nastavení automatického vkládání serveru má přednost u webů, které zapnul',
   'settings_set_autoembed.premium_note': 'Automatické vkládání tvých odkazů vyžaduje NotSoPremium',
   'settings_server_autoembed.current': 'Nastavení automatického vkládání tohoto serveru:',
   'settings_server_autoembed.updated': 'Nastavení automatického vkládání tohoto serveru aktualizováno:',

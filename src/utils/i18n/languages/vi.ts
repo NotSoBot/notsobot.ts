@@ -5853,7 +5853,7 @@ export const Vietnamese: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Tin nhắn của bạn có liên kết đến bài sẽ được đăng nội dung cho: {sites}',
   'settings_set_autoembed.sites_none': 'Tự động nhúng cho liên kết của bạn đang tắt',
   'settings_set_autoembed.error_fetching': 'Không lấy được cài đặt của bạn, thử lại sau một lát',
-  'settings_set_autoembed.where_note': 'Chỉ ở các máy chủ có NotSoBot và cho phép điều đó, và cài đặt tự động nhúng riêng của máy chủ được ưu tiên cho các trang mà máy chủ đã bật',
+  'settings_set_autoembed.where_note': 'Trong tin nhắn riêng của bạn với NotSoBot và ở các máy chủ có NotSoBot và cho phép điều đó, và cài đặt tự động nhúng riêng của máy chủ được ưu tiên cho các trang mà máy chủ đã bật',
   'settings_set_autoembed.premium_note': 'Tự động nhúng cho liên kết của chính bạn cần NotSoPremium',
   'settings_server_autoembed.current': 'Cài đặt tự động nhúng của máy chủ này:',
   'settings_server_autoembed.updated': 'Đã cập nhật cài đặt tự động nhúng của máy chủ này:',

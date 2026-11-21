@@ -5853,7 +5853,7 @@ export const Dutch: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Je berichten met een link naar een post krijgen de media geplaatst voor: {sites}',
   'settings_set_autoembed.sites_none': 'Automatisch insluiten voor je links staat uit',
   'settings_set_autoembed.error_fetching': 'Kon je instellingen niet ophalen, probeer het zo nog eens',
-  'settings_set_autoembed.where_note': 'Alleen in servers met NotSoBot die het toestaan, en de eigen instellingen voor automatisch insluiten van een server gaan voor bij de sites die die aanzette',
+  'settings_set_autoembed.where_note': 'In je DM\'s met NotSoBot en in servers met NotSoBot die het toestaan, en de eigen instellingen voor automatisch insluiten van een server gaan voor bij de sites die die aanzette',
   'settings_set_autoembed.premium_note': 'Automatisch insluiten voor je eigen links vereist NotSoPremium',
   'settings_server_autoembed.current': 'De instellingen voor automatisch insluiten van deze server:',
   'settings_server_autoembed.updated': 'Instellingen voor automatisch insluiten van deze server bijgewerkt:',

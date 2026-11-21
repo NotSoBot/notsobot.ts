@@ -5853,7 +5853,7 @@ export const Korean: Translations = Object.freeze({
   'settings_set_autoembed.sites': '내 메시지에 게시물 링크가 있으면 미디어가 올라오는 사이트: {sites}',
   'settings_set_autoembed.sites_none': '내 링크의 자동 임베드가 꺼져 있어요',
   'settings_set_autoembed.error_fetching': '설정을 가져오지 못했어요, 잠시 후 다시 시도해 주세요',
-  'settings_set_autoembed.where_note': 'NotSoBot이 있고 허용하는 서버에서만 작동하며, 서버가 켠 사이트는 서버 자체의 자동 임베드 설정이 먼저 적용돼요',
+  'settings_set_autoembed.where_note': 'NotSoBot과의 DM과 NotSoBot이 있고 허용하는 서버에서 작동하며, 서버가 켠 사이트는 서버 자체의 자동 임베드 설정이 먼저 적용돼요',
   'settings_set_autoembed.premium_note': '내 링크를 자동 임베드하려면 NotSoPremium이 필요해요',
   'settings_server_autoembed.current': '이 서버의 자동 임베드 설정:',
   'settings_server_autoembed.updated': '이 서버의 자동 임베드 설정을 업데이트했어요:',

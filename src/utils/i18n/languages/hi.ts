@@ -5853,7 +5853,7 @@ export const Hindi: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'पोस्ट के लिंक वाले आपके मैसेज का मीडिया इनके लिए पोस्ट होता है: {sites}',
   'settings_set_autoembed.sites_none': 'आपके लिंक के लिए ऑटो-एम्बेड बंद है',
   'settings_set_autoembed.error_fetching': 'आपकी सेटिंग्स नहीं मिल सकीं, थोड़ी देर में फिर कोशिश करें',
-  'settings_set_autoembed.where_note': 'सिर्फ़ उन सर्वरों में जहाँ NotSoBot है और जो इसकी इजाज़त देते हैं, और जिन साइटों को सर्वर ने चालू किया है उनके लिए सर्वर की अपनी ऑटो-एम्बेड सेटिंग्स पहले लागू होती हैं',
+  'settings_set_autoembed.where_note': 'NotSoBot के साथ आपके DM में और उन सर्वरों में जहाँ NotSoBot है और जो इसकी इजाज़त देते हैं, और जिन साइटों को सर्वर ने चालू किया है उनके लिए सर्वर की अपनी ऑटो-एम्बेड सेटिंग्स पहले लागू होती हैं',
   'settings_set_autoembed.premium_note': 'अपने लिंक ऑटो-एम्बेड करने के लिए NotSoPremium चाहिए',
   'settings_server_autoembed.current': 'इस सर्वर की ऑटो-एम्बेड सेटिंग्स:',
   'settings_server_autoembed.updated': 'इस सर्वर की ऑटो-एम्बेड सेटिंग्स अपडेट हो गईं:',

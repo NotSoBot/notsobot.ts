@@ -5853,7 +5853,7 @@ export const Swedish: Translations = Object.freeze({
   'settings_set_autoembed.sites': 'Dina meddelanden med en länk till ett inlägg får dess media upplagd för: {sites}',
   'settings_set_autoembed.sites_none': 'Auto-inbäddning för dina länkar är av',
   'settings_set_autoembed.error_fetching': 'Kunde inte hämta dina inställningar, försök igen om en stund',
-  'settings_set_autoembed.where_note': 'Bara i servrar med NotSoBot som tillåter det, och en servers egna inställningar för auto-inbäddning går först för webbplatserna den slagit på',
+  'settings_set_autoembed.where_note': 'I dina DM:s med NotSoBot och i servrar med NotSoBot som tillåter det, och en servers egna inställningar för auto-inbäddning går först för webbplatserna den slagit på',
   'settings_set_autoembed.premium_note': 'Auto-inbäddning för dina egna länkar kräver NotSoPremium',
   'settings_server_autoembed.current': 'Serverns inställningar för auto-inbäddning:',
   'settings_server_autoembed.updated': 'Uppdaterade serverns inställningar för auto-inbäddning:',

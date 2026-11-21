@@ -5853,7 +5853,7 @@ export const Japanese: Translations = Object.freeze({
   'settings_set_autoembed.sites': '投稿へのリンクを含むあなたのメッセージでメディアを投稿するサイト：{sites}',
   'settings_set_autoembed.sites_none': 'あなたのリンクの自動埋め込みはオフです',
   'settings_set_autoembed.error_fetching': '設定を取得できませんでした。少し待ってからもう一度試してください',
-  'settings_set_autoembed.where_note': 'NotSoBotがいて許可しているサーバーでのみ動作します。サーバーがオンにしたサイトでは、サーバー自身の自動埋め込み設定が優先されます',
+  'settings_set_autoembed.where_note': 'NotSoBotとのDMと、NotSoBotがいて許可しているサーバーで動作します。サーバーがオンにしたサイトでは、サーバー自身の自動埋め込み設定が優先されます',
   'settings_set_autoembed.premium_note': '自分のリンクの自動埋め込みには NotSoPremium が必要です',
   'settings_server_autoembed.current': 'このサーバーの自動埋め込み設定：',
   'settings_server_autoembed.updated': 'このサーバーの自動埋め込み設定を更新しました：',
