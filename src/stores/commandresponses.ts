@@ -25,6 +25,11 @@ class CommandResponsesStore extends Store<string, string> {
   // response message ids that got deleted, so deleting their trigger later doesn't try deleting them again (detritus
   // drops deleted messages from its cache, so `shard.messages` can't tell us)
   deletedResponses = new Collections.BaseCollection<string, true>({expire: TRACK_DURATION});
+  // trigger message id -> more messages its run sent besides its response (each `.ai listen` turn's reply), they go
+  // when the trigger does. always in the trigger's channel
+  extraResponses = new Collections.BaseCollection<string, Array<string>>({expire: TRACK_DURATION});
+  // triggers whose response the api stored with the extras known then, later ones are added to it on their own
+  recordedTriggers = new Collections.BaseCollection<string, true>({expire: TRACK_DURATION});
   // response message id -> the NotSoAI response it holds and who asked, prefixed and slash commands both
   llmResponses = new Collections.BaseCollection<string, {id: string, userId: string}>({expire: TRACK_DURATION});
   // shard id -> when we started seeing its messages
@@ -37,6 +42,43 @@ class CommandResponsesStore extends Store<string, string> {
   insert(triggerId: string, responseId: string, commandId: string): void {
     this.set(triggerId, responseId);
     this.responses.set(responseId, commandId);
+  }
+
+  // false when it was already one of the trigger's
+  insertExtraResponse(triggerId: string, responseId: string, commandId: string): boolean {
+    let responseIds = this.extraResponses.get(triggerId);
+    if (responseIds && responseIds.includes(responseId)) {
+      return false;
+    }
+    if (!responseIds) {
+      responseIds = [];
+    }
+    responseIds.push(responseId);
+    // set again, so it's remembered for as long as the run keeps sending
+    this.extraResponses.set(triggerId, responseIds);
+    this.responses.set(responseId, commandId);
+    return true;
+  }
+
+  getExtraResponses(triggerId: string): Array<string> {
+    return (this.extraResponses.get(triggerId) || []).slice();
+  }
+
+  // the trigger got deleted, its extras are being deleted now
+  takeExtraResponses(triggerId: string): Array<string> {
+    const responseIds = this.getExtraResponses(triggerId);
+    this.extraResponses.delete(triggerId);
+    this.recordedTriggers.delete(triggerId);
+    return responseIds;
+  }
+
+  // the delete paths overlap (detritus' stored reply, these extras, the api's rows), only the first one to ask deletes it
+  claimDeletion(responseId: string): boolean {
+    if (this.deletedResponses.has(responseId)) {
+      return false;
+    }
+    this.deletedResponses.set(responseId, true);
+    return true;
   }
 
   insertLLMResponse(responseId: string, llmResponseId: string, userId: string): void {

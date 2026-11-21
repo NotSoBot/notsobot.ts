@@ -71,6 +71,8 @@ const LISTEN_END_GRACE = 15 * 1000;
 const LISTEN_STOP_WAIT = 5 * 1000;
 // speech held for NotSoAI's answer (`speechTurns`) goes out after this long anyway, a turn that never ended
 const SPEECH_HOLD_MAX = 60 * 1000;
+// a clip the node never said ended (`isSpeaking`), past a whole held turn and the longest clip after it
+const SPEECH_UNENDED_MAX = 3 * 60 * 1000;
 
 export type MoveReason =
   // the node was disabled, between tracks (the old player is still there to ask and destroy)
@@ -938,6 +940,9 @@ export class VoiceNodeClient extends EventSpewer {
   // play`) is held until then, it goes right after the answer's clips instead of between its sentences (the node plays
   // clips in the order they're sent, `playerOp` keeps that order)
   speechTurns = new Map<string, {held: Array<{audio: string, id: string}>, timeout: null | ReturnType<typeof setTimeout>}>();
+  // the clips sent to the node and not ended yet (`SPEAK_END`), by guild then id, with when they were sent. One whose end
+  // never came (a node failover) stops counting after `SPEECH_UNENDED_MAX`
+  private speechSent = new Map<string, Map<string, number>>();
   // by queue item id (oldest first), told the node's error when it couldn't play that item (until the item ends, we
   // leave or `TRACK_ERROR_LISTEN_FOR`)
   trackErrorListeners = new Map<string, {addedAt: number, guildId: string, listener: (error: string) => void}>();
@@ -1180,8 +1185,9 @@ export class VoiceNodeClient extends EventSpewer {
 
   // joins `channelId` for a new guild in `phase`, or for one we're already in (reconnecting after being disconnected),
   // which keeps its phase. Leaves if our voice state and server don't come in time
-  // `selfDeaf` false for joining to listen (discord sends a deafened bot no audio)
-  private join(shard: ShardClient, guildId: string, channelId: string, node: NodeConnection, phase: GuildPhase, selfDeaf: boolean = true): GuildVoice | null {
+  // deafened unless we're listening there (discord sends a deafened bot no audio), a join while one runs (a reconnect,
+  // a restore) keeps hearing them
+  private join(shard: ShardClient, guildId: string, channelId: string, node: NodeConnection, phase: GuildPhase, selfDeaf: boolean = !this.listens.has(guildId)): GuildVoice | null {
     // reloaded, something still running from before (a restore) doesn't join for the old instance
     if (this.detached) {
       return null;
@@ -1942,6 +1948,7 @@ export class VoiceNodeClient extends EventSpewer {
       return null;
     }
     this.guilds.delete(guildId);
+    this.speechSent.delete(guildId);
     this.resolveNextTrack(guildId, 'left');
     // out of `guilds` first, ending it doesn't deafen us again in a channel we're leaving
     this.endListen(guildId, 'left');
@@ -2200,13 +2207,23 @@ export class VoiceNodeClient extends EventSpewer {
         }
       }; break;
       case 'SPEAK_END': {
+        const sent = this.speechSent.get(guildId);
+        if (sent) {
+          sent.delete(event.data.id);
+          if (!sent.size) {
+            this.speechSent.delete(guildId);
+          }
+        }
         if (event.data.reason !== 'finished') {
           log.debug(`voice node speech ${guildId} ${event.data.id} ${event.data.reason}`);
         }
       }; break;
       case 'LISTEN_END': {
         const listen = this.listens.get(guildId);
-        if (listen && listen.userId === event.data.userId) {
+        // `replaced` is the node's older listen ending because ours started (we only send one when we have none, so it's
+        // one we already let go of, a give-up or a restart), never the one we have now. With the same user it'd end ours
+        // right as it starts
+        if (listen && event.data.reason !== 'replaced' && listen.userId === event.data.userId) {
           this.endListen(guildId, event.data.reason as ListenEndReason);
         }
       }; break;
@@ -2255,7 +2272,7 @@ export class VoiceNodeClient extends EventSpewer {
         if (this.listens.get(guildId) !== listen || this.guilds.has(guildId) || this.detached) {
           throw new Error('Music changed while joining, try again');
         }
-        const joined = this.join(shard, guildId, channelId, node, {name: 'idle', leaveTimeout: null}, false);
+        const joined = this.join(shard, guildId, channelId, node, {name: 'idle', leaveTimeout: null});
         if (!joined) {
           throw new Error('Music was just reloaded, try again');
         }
@@ -2308,8 +2325,8 @@ export class VoiceNodeClient extends EventSpewer {
   // says `audio` (a base64 ogg opus file, it goes to the node as it is) in the guild's voice channel: over the music if
   // it's playing (the music ducked under it), otherwise on its own. Clips play in the order they're sent. Not in a
   // channel, it's dropped. `turn` is a sentence of NotSoAI's answer (`.ai listen`), anything else waits while one's
-  // being said (`speechTurns`)
-  async speak(guildId: string, id: string, audio: string, options: {turn?: boolean} = {}): Promise<void> {
+  // being said (`speechTurns`). Resolves `held` when it waits for that answer, `sent` when it went to the node
+  async speak(guildId: string, id: string, audio: string, options: {turn?: boolean} = {}): Promise<'held' | 'sent'> {
     const turn = this.speechTurns.get(guildId);
     if (options.turn) {
       if (!turn) {
@@ -2320,9 +2337,10 @@ export class VoiceNodeClient extends EventSpewer {
       if (!turn.timeout) {
         turn.timeout = setTimeout(() => this.endSpeechTurn(guildId), SPEECH_HOLD_MAX);
       }
-      return;
+      return 'held';
     }
-    return this.sendSpeech(guildId, id, audio);
+    await this.sendSpeech(guildId, id, audio);
+    return 'sent';
   }
 
   // NotSoAI's answer has all been sent (its turn's over, or it was stopped): the speech held for it goes after it
@@ -2348,8 +2366,34 @@ export class VoiceNodeClient extends EventSpewer {
     await this.playerOp(guild, async () => {
       if (this.guilds.get(guildId) === guild) {
         await guild.node.updatePlayer(guildId, {speak: {audio, id}});
+        let sent = this.speechSent.get(guildId);
+        if (!sent) {
+          sent = new Map();
+          this.speechSent.set(guildId, sent);
+        }
+        sent.set(id, Date.now());
       }
     });
+  }
+
+  // a clip whose id starts with `prefix` is still being said (or waiting its turn), as far as the node's told us
+  isSpeaking(guildId: string, prefix: string = ''): boolean {
+    const sent = this.speechSent.get(guildId);
+    if (!sent) {
+      return false;
+    }
+    const now = Date.now();
+    for (const [id, at] of sent) {
+      if (SPEECH_UNENDED_MAX < now - at) {
+        sent.delete(id);
+      } else if (id.startsWith(prefix)) {
+        return true;
+      }
+    }
+    if (!sent.size) {
+      this.speechSent.delete(guildId);
+    }
+    return false;
   }
 
   // stops what NotSoAI's saying and drops the clips after it. Speech held for its answer goes then
@@ -2360,6 +2404,7 @@ export class VoiceNodeClient extends EventSpewer {
       const stopping = this.playerOp(guild, async () => {
         if (this.guilds.get(guildId) === guild) {
           await guild.node.updatePlayer(guildId, {speak: null});
+          this.speechSent.delete(guildId);
         }
       });
       this.endSpeechTurn(guildId);
@@ -2454,7 +2499,8 @@ export class VoiceNodeClient extends EventSpewer {
       }
       rejoin.stage = 'awaitingVoice';
       this.awaitRejoinVoice(guildId, guild);
-      guild.shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: true});
+      // a listen carries on through the rejoin, it'd hear nothing deafened
+      guild.shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: !this.listens.has(guildId)});
     }, REJOIN_DELAY);
   }
 

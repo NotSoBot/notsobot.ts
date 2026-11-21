@@ -20,6 +20,7 @@ import { BaseSlashCommand, getSlashCommandIds, isBlockedUserInstallRun } from '.
 import {
   fillApplicationCommandPermissions,
   getApplicationCommandPermissionsLoaded,
+  isPrefixCommandBlockedByCommandPermissions,
 } from '../../../utils/commandpermissions';
 
 
@@ -156,9 +157,9 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
             description.push(`-> ${translate('permcheck.bypass_admin_partial')}`);
           } else if (channel && member) {
             // same check as `NotSoCommandClient.onCommandCheck`, the server's discord command permissions (Integrations)
+            // that the server has prefix commands follow
             const applicationCommandIds = getSlashCommandIds(context.interactionCommandClient, commandId, guild!.id);
-            await fillApplicationCommandPermissions(context, guild!.id).catch(() => null);
-            if (!context.client.applicationCommandPermissions.isAllowed(guild!.id, applicationCommandIds, channel, member)) {
+            if (await isPrefixCommandBlockedByCommandPermissions(context, guild!.id, applicationCommandIds, channel, member, settings.prefixCommandPermissions)) {
               description.push(`-> ${translate('permcheck.command_permissions_block')}: ${StatusEmojis.NOT_ALLOWED}`);
               willPrefixCommandsWork = false;
             }

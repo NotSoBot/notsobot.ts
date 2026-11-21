@@ -1,4 +1,6 @@
-import { Collections, Command, Interaction } from 'detritus-client';
+import { Collections, Command, Interaction, Structures } from 'detritus-client';
+
+import { GuildPrefixCommandPermissions } from '../constants';
 
 
 // the server's discord command permissions (Server Settings > Integrations), loaded on first use per server
@@ -32,4 +34,51 @@ export function getApplicationCommandPermissionsLoaded(context: AnyContext, guil
     return true;
   }
   return (failures.has(guildId)) ? false : null;
+}
+
+
+// if the loaded command permissions stop this member using a command (`applicationCommandIds`, its slash version's ids)
+// in this channel. `ALL` is discord's own rule for slash commands: the command's own overwrites, or the app-wide ones.
+// `COMMANDS` only looks at the command's own overwrites, `OFF` never blocks. nothing loaded never blocks
+export function isBlockedByCommandPermissions(
+  context: AnyContext,
+  guildId: string,
+  applicationCommandIds: Array<string>,
+  channel: Structures.Channel,
+  member: Structures.Member,
+  mode: GuildPrefixCommandPermissions,
+): boolean {
+  const permissions = context.client.applicationCommandPermissions;
+  switch (mode) {
+    case GuildPrefixCommandPermissions.OFF: return false;
+    case GuildPrefixCommandPermissions.COMMANDS: {
+      const guildPermissions = permissions.get(guildId);
+      if (!guildPermissions) {
+        return false;
+      }
+      return applicationCommandIds.some((id) => {
+        const entry = guildPermissions.get(id);
+        return !!entry && !entry.isAllowed(channel, member);
+      });
+    };
+  }
+  return !permissions.isAllowed(guildId, applicationCommandIds, channel, member);
+}
+
+
+// the server's `prefixCommandPermissions` for a prefix command, loads them first unless the mode can't block it
+// (off, or only single commands and it has no slash version)
+export async function isPrefixCommandBlockedByCommandPermissions(
+  context: AnyContext,
+  guildId: string,
+  applicationCommandIds: Array<string>,
+  channel: Structures.Channel,
+  member: Structures.Member,
+  mode: GuildPrefixCommandPermissions,
+): Promise<boolean> {
+  if (mode === GuildPrefixCommandPermissions.OFF || (mode === GuildPrefixCommandPermissions.COMMANDS && !applicationCommandIds.length)) {
+    return false;
+  }
+  await fillApplicationCommandPermissions(context, guildId).catch(() => null);
+  return isBlockedByCommandPermissions(context, guildId, applicationCommandIds, channel, member, mode);
 }

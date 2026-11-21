@@ -7,6 +7,7 @@ import {
   GoogleLocales,
   GuildLoggerTypes,
   GuildReportTypes,
+  GuildPrefixCommandPermissions,
   GuildRuleActions,
   GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
@@ -104,6 +105,8 @@ export namespace RestOptions {
     guildId?: string,
     // the NotSoAI response the reply holds, so replying to it continues the conversation
     llmResponseId?: string,
+    // what else the run sent besides `messageResponseId` (known by now), deleted with it
+    extraResponseIds?: Array<string>,
     messageResponseId?: string,
     messageTriggerId?: string,
     result?: string,
@@ -131,6 +134,12 @@ export namespace RestOptions {
   export interface DeleteCommandsResponses {
     channelId?: string,
     triggerIds: Array<string>,
+  }
+
+  // messages a command sent on top of its recorded response
+  export interface CreateCommandResponseExtra {
+    channelId: string,
+    responseIds: Array<string>,
   }
 
   // channels and roles the server doesn't have anymore
@@ -208,6 +217,8 @@ export namespace RestOptions {
     moderationDmDisabled?: number | null,
     // `PostGalleryTypes` for members without their own, null: gallery
     postGallery?: PostGalleryTypes | null,
+    // which of the server's discord command permissions (Integrations) prefix commands follow, null resets it to COMMANDS
+    prefixCommandPermissions?: GuildPrefixCommandPermissions | null,
     prefixes?: Array<string>,
     responseDisplay?: GuildSettingsResponseDisplayTypes | null,
     // null resets it to on
@@ -712,6 +723,10 @@ export namespace RestOptions {
     used_prefix?: string,
     // the voice channel they're in
     voice_channel_id?: string,
+    // a voice turn's (`.ai listen`) others in their voice channel, at most `MAX_AI_VOICE_MEMBERS` (people, not bots or
+    // us), and how many there are in all
+    voice_members?: Array<{deaf?: boolean, id: string, name: string}>,
+    voice_members_count?: number,
   }
 
   export interface GenerateTag extends MediaBaseOptionsMultiple {
@@ -2493,6 +2508,7 @@ export namespace RestResponses {
   export type CreateGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type CreateGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
+  export type CreateCommandResponseExtra = RestResponsesRaw.CreateCommandResponseExtra;
   export type DeleteCommandsResponses = RestResponsesRaw.DeleteCommandsResponses;
   export type DeleteGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
@@ -2766,6 +2782,10 @@ export namespace RestResponsesRaw {
   export type CreateVoiceClone = Voice;
 
   export type SweepGuild = null;
+  export interface CreateCommandResponseExtra {
+    // 0 when the trigger's response isn't stored (yet) or it has too many already
+    updated: number,
+  }
   export interface DeleteCommandsResponses {
     deleted: number,
   }
@@ -2795,6 +2815,8 @@ export namespace RestResponsesRaw {
     results: Array<{
       channel_id: string,
       command_id: string | null,
+      // more messages the run sent, deleted along with `message_response_id`
+      extra_response_ids: Array<string>,
       last_touched: string,
       llm_response_id: string | null,
       message_response_id: string,
@@ -3647,6 +3669,7 @@ export namespace RestResponsesRaw {
       ml_llm_personality: string | null,
       moderation_dm_disabled: number,
       post_gallery: number | null,
+      prefix_command_permissions: number,
       response_display: number | null,
       rules_admin_bypass: boolean,
       search_provider_images: number | null,

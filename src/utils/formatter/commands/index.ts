@@ -634,6 +634,7 @@ import * as ModerationRulesAdd from './moderation.rules.add';
 import * as ModerationRulesAdminBypass from './moderation.rules.adminbypass';
 import * as ModerationRulesCheck from './moderation.rules.check';
 import * as ModerationRulesClear from './moderation.rules.clear';
+import * as ModerationRulesIntegrations from './moderation.rules.integrations';
 import * as ModerationRulesRemove from './moderation.rules.remove';
 import * as ModerationUnban from './moderation.unban';
 import * as ModerationUnmute from './moderation.unmute';
@@ -1486,6 +1487,7 @@ export {
   ModerationRulesAdminBypass,
   ModerationRulesCheck,
   ModerationRulesClear,
+  ModerationRulesIntegrations,
   ModerationRulesRemove,
   ModerationUnban,
   ModerationUnmute,

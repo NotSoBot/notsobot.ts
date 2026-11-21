@@ -18,6 +18,7 @@ import { RestOptions, RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
 import { getRunErrorResult, setCommandResult } from '../../../commandresults';
 import { captureCommandError, captureError } from '../../../sentry';
+import { detachReply } from '../../commandresponses';
 import { UserError } from '../../errors';
 import {
   Paginator,
@@ -97,9 +98,9 @@ export interface AIVoiceTurn {
 }
 
 // `prompt` is what they said (transcribed). The command's reply isn't edited, each turn sends its own (replying to one
-// continues the conversation in text)
+// continues the conversation in text). The one before stays grouped with the command, deleting it deletes them all
 export async function createVoiceMessage(context: Command.Context, prompt: string, voice: AIVoiceTurn) {
-  context.commandClient.replies.delete(context.messageId);
+  detachReply(context);
   const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate));
   try {
     return await generateAndRunTag(context, {prompt}, thinking, undefined, voice);
@@ -379,7 +380,7 @@ async function generateAndRunTag(
   };
   let response: RestResponsesRaw.GenerateTag;
   if (voice) {
-    generateOptions.situation = {...generateOptions.situation!, invoked: 'voice'};
+    generateOptions.situation = {...generateOptions.situation!, invoked: 'voice', ...getAIVoiceMembers(context)};
     response = await generateTagVoice(context, generateOptions, (line) => {
       voice.onSpeech(line.audio, line.text);
     });
@@ -471,8 +472,14 @@ async function generateAndRunTag(
       const { translate } = await getTranslator(context);
       parsedTag.text = [parsedTag.text.trimEnd(), `-# ${translate('tag_generate.confirm_declined')}`].join('\n');
     }
-    if (voice && voice.heard) {
-      parsedTag.text = [`-# Heard: ${Markup.escape.all(JSON.stringify(voice.heard))}`, parsedTag.text].join('\n');
+    if (voice) {
+      // its tagscript said nothing in text (`{ai.listen.stop}` after a goodbye, a music control): what it said aloud
+      if (!parsedTag.text.trim() && response.voice) {
+        parsedTag.text = Markup.escape.all(response.voice);
+      }
+      if (voice.heard) {
+        parsedTag.text = [`-# Heard: ${Markup.escape.all(JSON.stringify(voice.heard))}`, parsedTag.text].join('\n');
+      }
     }
     // they used up most of the week's credits, said once a week
     if (response.credits_alert) {
@@ -541,6 +548,42 @@ async function generateAndRunTag(
 
 // the default prefix, what a server without its own (or a dm) uses
 const DEFAULT_PREFIXES = ['.'];
+
+// who else NotSoAI is talking in front of on a voice turn, the api's cap
+const MAX_AI_VOICE_MEMBERS = 10;
+const MAX_AI_VOICE_MEMBER_NAME_LENGTH = 64;
+
+// the people (not bots, not us) in the asker's voice channel besides them, from the cache. Only voice turns send it:
+// "tell Sam..." and "who's here" are about the room there, in text it would be paid for on every message
+function getAIVoiceMembers(
+  context: Command.Context | Interaction.InteractionContext,
+): Pick<RestOptions.GenerateTagSituation, 'voice_members' | 'voice_members_count'> {
+  const member = context.member;
+  const channel = member && member.voiceState && member.voiceState.channel;
+  if (!member || !channel) {
+    return {};
+  }
+  const members: NonNullable<RestOptions.GenerateTagSituation['voice_members']> = [];
+  let count = 0;
+  for (let [, state] of channel.voiceStates) {
+    const other = state.member;
+    // not cached as a member, the user can still say it's a bot
+    const user = (other) ? null : context.client.users.get(state.userId);
+    if (state.userId === member.id || state.userId === context.client.userId || (other && other.bot) || (user && user.bot)) {
+      continue;
+    }
+    count++;
+    if (members.length < MAX_AI_VOICE_MEMBERS) {
+      const name = (other) ? other.name : (user) ? user.name : null;
+      members.push({
+        ...((state.deaf || state.selfDeaf) ? {deaf: true} : {}),
+        id: state.userId,
+        name: (name || 'unknown').slice(0, MAX_AI_VOICE_MEMBER_NAME_LENGTH),
+      });
+    }
+  }
+  return {voice_members: members, voice_members_count: count};
+}
 
 // where this is and who's asking, for the api's prompt (`generate_situation_prompt`). Everything here is already in
 // memory, nothing is fetched for it

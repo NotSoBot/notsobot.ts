@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 
-import { I18n, Parameters, parseGuildRuleCoverage } from '../../../../../utils';
+import { I18n, Parameters, parseGuildRuleCoverage } from '../../../../utils';
 
 
 // what the rule covers, `everything`, `category:FUN` or `command:ship` from the autocomplete (or typed out)

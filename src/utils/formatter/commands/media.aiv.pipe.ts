@@ -214,7 +214,7 @@ export async function createMessage(
       return mediaReply(context, job.result.response, {description});
     } catch(error) {
       if (error instanceof PipeTimeoutError) {
-        throw new Error(translate('media.pipe.took_too_long_script', {max: (maxTime / 1000).toLocaleString()}));
+        throw new UserError(translate('media.pipe.took_too_long_script', {max: (maxTime / 1000).toLocaleString()}));
       }
       throw error;
     }
@@ -289,7 +289,7 @@ export async function createMessage(
         step: (step + 1).toLocaleString(),
       });
       if (!fileResponse) {
-        throw new Error(message);
+        throw new UserError(message);
       }
       // show what the steps before it made
       const description = `piped: ${pipers.slice(0, step).map((x) => x.command.name).join(' -> ')}\n${message}`;

@@ -8,6 +8,7 @@ import { deleteCommandsResponses } from '../api';
 import { ApiEventsSpewer } from '../apievents';
 import { connectCommandResults } from '../commandresults';
 import { connectCommandErrorReporting } from '../sentry';
+import { deleteResponses } from '../utils/commandresponses';
 
 
 // the command clients' own events: their command results, sentry's error reporting, and taking a reply with its deleted
@@ -34,13 +35,10 @@ class CommandHooksListener extends Listener {
           if (event === ClientEvents.MESSAGE_DELETE_BULK) {
             return;
           }
-          if (reply && !reply.deleted) {
-            try {
-              await reply.delete();
-            } catch(error) {
-
-            }
-          }
+          // the messages it sent besides the reply go too (the message delete listener takes the in-memory ones as well,
+          // whichever is first deletes each)
+          const responseIds = (reply && !reply.deleted) ? [reply.id] : [];
+          await deleteResponses(context.client, context.channelId, responseIds);
           try {
             await deleteCommandsResponses(context, {channelId: context.channelId, triggerIds: [context.messageId]});
           } catch(error) {

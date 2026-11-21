@@ -29,6 +29,7 @@ import {
   deleteUserLLMMemories,
   deleteUserLLMMemory,
   editGuildLLMKnowledge,
+  editGuildMusic,
   editGuildSettings,
   editUserLLMMemory,
   deleteReminderPositional,
@@ -65,6 +66,7 @@ import {
   searchGoogle,
   searchGoogleImages,
   searchImgur,
+  searchMusic,
   searchReddit,
   searchSteam,
   searchUrban,
@@ -89,18 +91,20 @@ import {
   utilitiesScreenshot,
   utilitiesWeather,
 } from '../../api';
-import { getJobApiError } from '../../api/errors';
+import { getApiError, getApiErrorTranslationKey, getJobApiError } from '../../api/errors';
 import { GuildSettings } from '../../api/structures/guildsettings';
 import { RestOptions, RestResponses, RestResponsesRaw } from '../../api/types';
 import {
   ApiErrorCodes,
   CodeLanguages,
   CommandTypes,
+  DEFAULT_MUSIC_SPEED,
   DEFAULT_MUSIC_VOLUME,
   DownloadQualities,
   GoogleLocales,
   GuildSettingsResponseDisplayTypes,
   MeasurementUnits,
+  MusicLoopModes,
   Mimetypes,
   MLDiffusionModels,
   MLDiffusionModelsToText,
@@ -125,19 +129,28 @@ import {
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_STDERR_BANNER,
   MAX_MEMBERS_SAFE,
+  MAX_MUSIC_EFFECTS,
   MEDIA_HISTORY_LIMIT,
 } from '../../constants';
 
 import { ReminderInterval } from '../../listeners';
 import VoiceNode from '../../voicenode';
+import { MUSIC_EFFECTS_SORTED, parseMusicEffect, stackMusicEffects } from '../formatter/commands/music.effect';
 import {
   MusicVoteKinds,
   clearMusicVotes,
+  fetchMusicDjRefusal,
+  musicDjRefusal,
+  musicEffectName,
   musicItemPosition,
+  musicKnownEffects,
   musicSkipTarget,
   musicSoundSettingRefusal,
   musicVote,
 } from '../formatter/commands/music.shared';
+import { parseMusicSpeed } from '../formatter/commands/music.speed';
+import { stopListeningFor } from '../formatter/commands/ai.listen';
+import { findVoiceChannel, musicResultRuledOut } from '../formatter/commands/music.play';
 import { parseMusicVolume } from '../formatter/commands/music.volume';
 import { getAIPersonality } from '../formatter/commands/tag.generate';
 import { increaseUsage } from '../formatter/commands/tag.show';
@@ -500,6 +513,7 @@ export enum TagFunctions {
   AI_KNOWLEDGE_ADD = 'AI_KNOWLEDGE_ADD',
   AI_KNOWLEDGE_DELETE = 'AI_KNOWLEDGE_DELETE',
   AI_KNOWLEDGE_EDIT = 'AI_KNOWLEDGE_EDIT',
+  AI_LISTEN_STOP = 'AI_LISTEN_STOP',
   AI_MEMORY_ADD = 'AI_MEMORY_ADD',
   AI_MEMORY_CLEAR = 'AI_MEMORY_CLEAR',
   AI_MEMORY_DELETE = 'AI_MEMORY_DELETE',
@@ -628,6 +642,8 @@ export enum TagFunctions {
   MESSAGE_USER_ID = 'MESSAGE_USER_ID',
   NSFW = 'NSFW',
   MUSIC_CONTROL = 'MUSIC_CONTROL',
+  MUSIC_IDENTIFY = 'MUSIC_IDENTIFY',
+  MUSIC_PLAY = 'MUSIC_PLAY',
   NSFW_FILTER = 'NSFW_FILTER',
   PAGE_JSON = 'PAGE_JSON',
   PREFIX = 'PREFIX',
@@ -724,6 +740,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.AI_KNOWLEDGE_ADD]: ['ai.knowledge.add'],
   [TagFunctions.AI_KNOWLEDGE_DELETE]: ['ai.knowledge.delete'],
   [TagFunctions.AI_KNOWLEDGE_EDIT]: ['ai.knowledge.edit'],
+  [TagFunctions.AI_LISTEN_STOP]: ['ai.listen.stop'],
   [TagFunctions.AI_MEMORY_ADD]: ['ai.memory.add'],
   [TagFunctions.AI_MEMORY_CLEAR]: ['ai.memory.clear'],
   [TagFunctions.AI_MEMORY_DELETE]: ['ai.memory.delete'],
@@ -852,6 +869,8 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MESSAGE_USER_ID]: ['messageuserid'],
   [TagFunctions.NSFW]: ['nsfw'],
   [TagFunctions.MUSIC_CONTROL]: ['music.control'],
+  [TagFunctions.MUSIC_IDENTIFY]: ['music.identify'],
+  [TagFunctions.MUSIC_PLAY]: ['music.play'],
   [TagFunctions.NSFW_FILTER]: ['nsfwfilter'],
   [TagFunctions.PAGE_JSON]: ['pagejson'],
   [TagFunctions.PREFIX]: ['prefix'],
@@ -1362,6 +1381,7 @@ type TagResultsCacheKey = Exclude<
   | TagFunctions.AI_MEMORY_ADD
   | TagFunctions.API_CREATE_REPORT
   | TagFunctions.MUSIC_CONTROL
+  | TagFunctions.MUSIC_PLAY
   | TagFunctions.TAG_CREATE
   | TagFunctions.TAG_EDIT
 >;
@@ -1522,6 +1542,10 @@ export interface TagVariables {
     [TagFunctions.API_UTILITIES_WEATHER]?: Record<string, RestResponsesRaw.UtilitiesWeather>,
     // how many times NotSoAI controlled the music this execution
     [TagFunctions.MUSIC_CONTROL]?: number,
+    // the playing link's songs by `url@second`, {music.identify}
+    [TagFunctions.MUSIC_IDENTIFY]?: Record<string, Array<Record<string, any>>>,
+    // how many times NotSoAI queued music this execution
+    [TagFunctions.MUSIC_PLAY]?: number,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
     // the tag NotSoAI created this execution, it can only make one
@@ -2161,6 +2185,8 @@ const MAX_AI_SEARCH_TAG_DESCRIPTION_LENGTH = 200;
 // same as `report`'s
 const MAX_AI_REPORT_LENGTH = 2000;
 export const MAX_AI_MUSIC_CONTROLS = 3;
+// {music.play}, "play these three songs"
+export const MAX_AI_MUSIC_PLAYS = 3;
 
 // only NotSoAI's own reply can touch the command user's memory, settings, reminders and tags, not a button it made. a
 // press still runs with the command user's context, and NotSoAI can let everyone press its buttons
@@ -2420,9 +2446,72 @@ function checkAIMusicControl(
   return {channel, guildId, member};
 }
 
+// a song {api.audio.identify} and {music.identify} found. Each platform's raw response is huge, only the song's details
+// and its links are kept
+function aiIdentifiedSong(song: RestResponsesRaw.MediaAVToolsIdentifySong) {
+  const { apple_music, deezer, musicbrainz, spotify, youtube } = song.platforms;
+  const platform = [apple_music, deezer, spotify].find((x) => x && x.album && x.album.cover_url);
+  return {
+    album: song.album.name,
+    artists: song.artists.map((artist) => artist.name),
+    cover_url: (platform) ? platform.album.cover_url : null,
+    duration: song.duration,
+    genres: song.genres,
+    label: song.label || null,
+    release_date: song.release_date || null,
+    score: song.score,
+    timestamp: song.timestamp || null,
+    title: song.title,
+    urls: {
+      apple_music: (apple_music) ? apple_music.url : null,
+      deezer: (deezer) ? deezer.url : null,
+      musicbrainz: (musicbrainz) ? musicbrainz.url : null,
+      spotify: (spotify) ? spotify.url : null,
+      youtube: (youtube) ? youtube.url : null,
+    },
+  };
+}
+
+// a queue item as {api.fetch.music} and {music.play} give it to NotSoAI, `position` as `music queue` numbers it (1 is
+// what's playing)
+function aiMusicItem(music: {current: null | RestResponsesRaw.GuildMusicQueueItem}, x: RestResponsesRaw.GuildMusicQueueItem) {
+  return {
+    artist: (x.track) ? x.track.artist : null,
+    duration: (x.track) ? x.track.duration : null,
+    position: musicItemPosition(music, x),
+    queued_by: x.user_id,
+    title: (x.track) ? x.track.title : null,
+    url: x.url,
+  };
+}
+
 // the music commands' refusals start with a status emoji for their reply, a TagError gets just the reason
 function musicRefusalError(refusal: string): TagError {
   return new TagError(refusal.replace(/^\S+\s+/, ''));
+}
+
+// {music.control}'s actions, the dashboard's (`MusicControl`) plus seek and loop
+const AI_MUSIC_CONTROL_ACTIONS: ReadonlyArray<string> = Object.freeze([
+  'effect_add', 'effect_clear', 'effect_remove', 'leave', 'loop', 'pause', 'resume', 'seek', 'skip', 'speed', 'volume',
+]);
+
+// {music.control:loop|...}, `song` and `one` for the track like people say it
+const AI_MUSIC_LOOP_MODES: Record<string, MusicLoopModes> = Object.freeze({
+  none: MusicLoopModes.OFF,
+  off: MusicLoopModes.OFF,
+  one: MusicLoopModes.TRACK,
+  queue: MusicLoopModes.QUEUE,
+  song: MusicLoopModes.TRACK,
+  track: MusicLoopModes.TRACK,
+});
+
+// the command parsers throw `UserError`s for their reply, a tag gets the same reason as a TagError
+function parseMusicValue<T>(parse: () => T): T {
+  try {
+    return parse();
+  } catch(error) {
+    throw new TagError(String((error && error.message) || error));
+  }
 }
 
 async function withAIMemoryNotFound<T>(position: number, callback: () => Promise<T>): Promise<T> {
@@ -4478,6 +4567,28 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.AI_LISTEN_STOP]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {ai.listen.stop}
+    // only NotSoAI can use this, in its own reply (not a button it made). Ends the `.ai listen` voice conversation in
+    // this server, its spoken answer still plays out. Whoever it's listening to, or a dj. Outputs `true`, or `false`
+    // when it wasn't listening
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.AI_LISTEN_STOP, arg)) {
+      return false;
+    }
+    if (!context.guildId) {
+      tag.text += String(false);
+      return true;
+    }
+    const stopped = stopListeningFor(context.guildId, context.member);
+    if (stopped === 'not_allowed') {
+      throw new TagError('Only the person NotSoAI is listening to (or a DJ) can stop it');
+    }
+    tag.text += String(stopped === 'stopped');
+
+    return true;
+  },
+
   [TagFunctions.AI_MEMORY_ADD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {ai.memory.add:fact} {ai.memory.add:fact|server}
     // only NotSoAI can use this, remembers a fact about the command user (everywhere, or only in this server)
@@ -4592,29 +4703,7 @@ const ScriptTags = Object.freeze({
       increaseNetworkRequests(tag);
       const songs = await withDeadline(context, tag, () => mediaAVToolsIdentify(context, {url}));
       // each platform's raw response is huge, only keep the song's details and its links
-      cachedResults[url] = songs.map((song) => {
-        const { apple_music, deezer, musicbrainz, spotify, youtube } = song.platforms;
-        const platform = [apple_music, deezer, spotify].find((x) => x && x.album && x.album.cover_url);
-        return {
-          album: song.album.name,
-          artists: song.artists.map((artist) => artist.name),
-          cover_url: (platform) ? platform.album.cover_url : null,
-          duration: song.duration,
-          genres: song.genres,
-          label: song.label || null,
-          release_date: song.release_date || null,
-          score: song.score,
-          timestamp: song.timestamp || null,
-          title: song.title,
-          urls: {
-            apple_music: (apple_music) ? apple_music.url : null,
-            deezer: (deezer) ? deezer.url : null,
-            musicbrainz: (musicbrainz) ? musicbrainz.url : null,
-            spotify: (spotify) ? spotify.url : null,
-            youtube: (youtube) ? youtube.url : null,
-          },
-        };
-      });
+      cachedResults[url] = songs.map(aiIdentifiedSong);
     }
 
     tag.text += JSON.stringify(cachedResults[url]);
@@ -4848,14 +4937,7 @@ const ScriptTags = Object.freeze({
     const guildId = context.guildId;
     const guild = VoiceNode.guilds.get(guildId);
     const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
-    const item = (x: RestResponsesRaw.GuildMusicQueueItem) => ({
-      artist: (x.track) ? x.track.artist : null,
-      duration: (x.track) ? x.track.duration : null,
-      position: musicItemPosition(music, x),
-      queued_by: x.user_id,
-      title: (x.track) ? x.track.title : null,
-      url: x.url,
-    });
+    const item = (x: RestResponsesRaw.GuildMusicQueueItem) => aiMusicItem(music, x);
     tag.text += JSON.stringify({
       channel_id: (guild) ? guild.channelId || null : null,
       current: (music.current) ? item(music.current) : null,
@@ -8386,7 +8468,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MUSIC_CONTROL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {music.control:pause} {music.control:resume} {music.control:skip} {music.control:volume|150}
+    // {music.control:pause} {music.control:resume} {music.control:skip} {music.control:volume|150} {music.control:speed|1.25}
+    // {music.control:effect_add|bassboost} {music.control:effect_remove|bassboost} {music.control:effect_clear}
+    // {music.control:seek|1:30} {music.control:loop|track} {music.control:leave}
     // only NotSoAI can use this, in its own reply (not a button it made). The same rules as the music commands: them in
     // our channel, dj mode, and the server's votes (a vote counts as theirs, like running `skip`). Outputs `true` when
     // it happened, or `voted x/y` when it needs more votes
@@ -8400,8 +8484,8 @@ const ScriptTags = Object.freeze({
     if (!action) {
       return true;
     }
-    if (!['pause', 'resume', 'skip', 'volume'].includes(action)) {
-      throw new TagError('Music actions are `pause`, `resume`, `skip` and `volume`');
+    if (!AI_MUSIC_CONTROL_ACTIONS.includes(action)) {
+      throw new TagError(`Music actions are ${AI_MUSIC_CONTROL_ACTIONS.map((x) => `\`${x}\``).join(', ')}`);
     }
 
     const { channel, guildId, member } = checkAIMusicControl(context, tag);
@@ -8422,6 +8506,128 @@ const ScriptTags = Object.freeze({
       }
       if (!await withDeadline(context, tag, () => VoiceNode.setVolume(guildId, volume))) {
         throw new TagError('Nothing is playing in this server');
+      }
+      tag.text += String(true);
+      return true;
+    }
+
+    // like `music speed`: them in our channel and a dj with dj mode on, anything but 1x needs a premium server
+    if (action === 'speed') {
+      const speed = parseMusicValue(() => parseMusicSpeed(valueText || '', context));
+      if (speed === null) {
+        throw new TagError('`speed` needs a value from 0.5x to 2x, like `{music.control:speed|1.25}`');
+      }
+      const refusal = await withDeadline(context, tag, () => musicSoundSettingRefusal(context, translate, member, guildId));
+      if (refusal) {
+        throw musicRefusalError(refusal);
+      }
+      if (speed !== DEFAULT_MUSIC_SPEED && !(await withDeadline(context, tag, () => fetchGuildMusic(context, guildId))).premium) {
+        throw new TagError('Speeds other than 1x need a premium server');
+      }
+      if (!await withDeadline(context, tag, () => VoiceNode.setTempo(guildId, speed))) {
+        throw new TagError('Nothing is playing in this server');
+      }
+      tag.text += String(true);
+      return true;
+    }
+
+    // like `music effect add/remove/clear`: them in our channel and a dj with dj mode on, putting one on needs a premium
+    // server. `false` when there was nothing to take off
+    if (action === 'effect_add' || action === 'effect_clear' || action === 'effect_remove') {
+      const refusal = await withDeadline(context, tag, () => musicSoundSettingRefusal(context, translate, member, guildId));
+      if (refusal) {
+        throw musicRefusalError(refusal);
+      }
+      const player = await withDeadline(context, tag, () => VoiceNode.getPlayer(guildId));
+      const current = musicKnownEffects(player && player.effects);
+      let effects: Array<string>;
+      if (action === 'effect_clear') {
+        effects = [];
+      } else {
+        const effect = parseMusicEffect(valueText || '');
+        if (!effect) {
+          throw new TagError(`\`${action}\` needs one of these effects: ${MUSIC_EFFECTS_SORTED.join(', ')}`);
+        }
+        if (action === 'effect_add') {
+          const { conflicting, kept } = stackMusicEffects([...current, effect]);
+          if (kept.length <= current.length) {
+            throw new TagError((conflicting.length) ?
+              `${musicEffectName(effect)} doesn't go with ${musicEffectName(conflicting[0].other)}, which is on` :
+              `Only ${MAX_MUSIC_EFFECTS} effects can be on at once`);
+          }
+          if (!(await withDeadline(context, tag, () => fetchGuildMusic(context, guildId))).premium) {
+            throw new TagError('Effects need a premium server');
+          }
+          effects = kept;
+        } else {
+          // the last of it when it's on more than once, like `music effect remove`
+          const removing = current.lastIndexOf(effect);
+          effects = current.filter((_, index) => index !== removing);
+        }
+      }
+      if (effects.length === current.length && action !== 'effect_add') {
+        tag.text += String(false);
+        return true;
+      }
+      if (!await withDeadline(context, tag, () => VoiceNode.setEffects(guildId, effects))) {
+        throw new TagError('Nothing is playing in this server');
+      }
+      tag.text += String(true);
+      return true;
+    }
+
+    // like `music seek`: djs only with dj mode on. The time is of how long it takes to hear at the speed (what
+    // `music info` shows), the node seeks in the track's own
+    if (action === 'seek') {
+      const time = (valueText || '').trim();
+      const seconds = (time) ? parseMusicValue(() => Parameters.seconds(time, true, context)) : NaN;
+      if (isNaN(seconds) || seconds < 0) {
+        throw new TagError('`seek` needs a time, like `{music.control:seek|1:30}` or `{music.control:seek|90}`');
+      }
+      const refusal = await withDeadline(context, tag, () => fetchMusicDjRefusal(context, translate, guildId, member));
+      if (refusal) {
+        throw musicRefusalError(refusal);
+      }
+      const speed = VoiceNode.guilds.get(guildId)!.speed || 1;
+      if (!await withDeadline(context, tag, () => VoiceNode.seek(guildId, Math.round(seconds * 1000 * speed)))) {
+        throw new TagError('Nothing is playing in this server');
+      }
+      tag.text += String(true);
+      return true;
+    }
+
+    // like `music loop`: djs only with dj mode on. `false` when it already was
+    if (action === 'loop') {
+      const loop = AI_MUSIC_LOOP_MODES[(valueText || '').trim().toLowerCase()];
+      if (!loop) {
+        throw new TagError('`loop` needs `off`, `track` or `queue`, like `{music.control:loop|track}`');
+      }
+      const refusal = await withDeadline(context, tag, () => fetchMusicDjRefusal(context, translate, guildId, member));
+      if (refusal) {
+        throw musicRefusalError(refusal);
+      }
+      const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
+      if (music.loop === loop) {
+        tag.text += String(false);
+        return true;
+      }
+      await withDeadline(context, tag, () => editGuildMusic(context, guildId, {loop}));
+      tag.text += String(true);
+      return true;
+    }
+
+    // like `music leave` pressing Keep: djs only with dj mode on (they're in our channel already). The queue stays and
+    // the playing track's held, `music play` or `music resume` carries on from there. Nothing queued just leaves
+    if (action === 'leave') {
+      const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
+      const refusal = musicDjRefusal(translate, member, music);
+      if (refusal) {
+        throw musicRefusalError(refusal);
+      }
+      if (music.current || music.queue.length) {
+        VoiceNode.hold(guildId);
+      } else {
+        VoiceNode.leave(guildId, true);
       }
       tag.text += String(true);
       return true;
@@ -8464,6 +8670,139 @@ const ScriptTags = Object.freeze({
       throw new TagError('Nothing is playing in this server');
     }
     tag.text += String(true);
+
+    return true;
+  },
+
+  [TagFunctions.MUSIC_IDENTIFY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {music.identify}
+    // only NotSoAI can use this, the song the server's music is on right now ("what song is this?"), like `music listen`
+    // with the bot as the target: a track's already known, a link or file (a mix, a long video) is identified from
+    // where it's playing, one request. Someone else's audio needs `music listen`, the voice node listens to one thing
+    // per server and `.ai listen` may be using it
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.MUSIC_IDENTIFY, arg)) {
+      return false;
+    }
+    const guildId = context.guildId;
+    if (!guildId) {
+      throw new TagError('Music only plays in servers');
+    }
+
+    increaseNetworkRequests(tag);
+
+    const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
+    const current = music.current;
+    if (!current) {
+      throw new TagError('Nothing is playing in this server');
+    }
+    const player = (VoiceNode.guilds.has(guildId)) ? await withDeadline(context, tag, () => VoiceNode.getPlayer(guildId)).catch(() => null) : null;
+    // the node's position is the file's own time (whatever the speed), a held track's is where it stopped
+    const position = Math.max(Math.round((player) ? player.position : (music.held_position || 0)), 0);
+
+    let songs: null | Array<Record<string, any>> = null;
+    if (current.source !== 'opus') {
+      const url = (current.track && current.track.url) || current.url;
+      const cachedResults = getResultsCache(tag, TagFunctions.MUSIC_IDENTIFY);
+      const key = `${url}@${Math.floor(position / 1000)}`;
+      if (!(key in cachedResults)) {
+        increaseNetworkRequests(tag);
+        const found = await withDeadline(context, tag, () => mediaAVToolsIdentify(context, {start: position, url}));
+        cachedResults[key] = found.map(aiIdentifiedSong);
+      }
+      songs = cachedResults[key];
+    }
+    tag.text += JSON.stringify({position, songs, track: aiMusicItem(music, current)});
+
+    return true;
+  },
+
+  [TagFunctions.MUSIC_PLAY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {music.play:lorde royals} {music.play:https://open.spotify.com/track/...}
+    // only NotSoAI can use this, in its own reply (not a button it made). Queues like `music play` in the command user's
+    // voice channel (joining it), the server's queue rules and limits apply. A text search takes the best result the
+    // queue rules allow instead of asking to pick. Outputs what was queued as JSON
+
+    if (!await canChangeAIMemory(context, tag, TagFunctions.MUSIC_PLAY, arg)) {
+      return false;
+    }
+
+    const query = arg.trim();
+    if (!query) {
+      return true;
+    }
+
+    const { channel } = findVoiceChannel(context);
+    if (!channel) {
+      throw new TagError((context.guildId) ? 'They need to be in a voice channel the bot can join and speak in' : 'Music only plays in servers');
+    }
+    const guildId = channel.guildId;
+
+    const results = tag.variables[PrivateVariables.RESULTS];
+    if (MAX_AI_MUSIC_PLAYS <= (results[TagFunctions.MUSIC_PLAY] || 0)) {
+      throw new TagError(`NotSoAI can only queue music ${MAX_AI_MUSIC_PLAYS} times per message`);
+    }
+    results[TagFunctions.MUSIC_PLAY] = (results[TagFunctions.MUSIC_PLAY] || 0) + 1;
+    increaseNetworkRequests(tag);
+
+    const translate = tag.translate;
+    try {
+      const search = await withDeadline(context, tag, () => searchMusic(context, query));
+      if (!search.results.length) {
+        throw new TagError('No songs found for that');
+      }
+
+      let played: Awaited<ReturnType<typeof VoiceNode.play>>;
+      let collection: null | string = null;
+      if (search.type === 'collection') {
+        // a premium server perk (the api checks too)
+        const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId));
+        if (!music.premium) {
+          throw new TagError('Albums and playlists need a premium server, queue their songs one at a time instead');
+        }
+        collection = (search.collection && search.collection.name) || 'Playlist';
+        played = await withDeadline(context, tag, () => VoiceNode.play(context, context.client, guildId, channel.id, search.results, context.userId, collection));
+      } else {
+        // the best result the server's queue rules allow (too long, already queued), the api would refuse the others
+        let result = search.results[0];
+        if (search.type === 'search') {
+          const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId)).catch(() => null);
+          const allowed = search.results.find((x) => x.track && !musicResultRuledOut(translate, music, x.track));
+          if (!allowed) {
+            throw new TagError(musicResultRuledOut(translate, music, result.track!) || 'No songs found for that');
+          }
+          result = allowed;
+        }
+        played = await withDeadline(context, tag, () => VoiceNode.play(context, context.client, guildId, channel.id, result, context.userId));
+      }
+
+      // where it landed, `position` 1 is playing now. Gone already means the node failed it (a link that won't convert)
+      const music = await withDeadline(context, tag, () => fetchGuildMusic(context, guildId)).catch(() => null);
+      const queued = (played.batch) ? played.batch.items : [played.item];
+      const found = (music) ? [music.current, ...music.queue].find((x) => x && x.id === played.item.id) : null;
+      if (music && !found) {
+        throw new TagError('It was queued but couldn\'t be played');
+      }
+      tag.text += JSON.stringify({
+        added: queued.length,
+        collection,
+        joined: played.joined,
+        not_added: (played.batch && search.collection) ? Math.max(search.collection.total - queued.length, 0) : 0,
+        // the queue couldn't be fetched, its position is a guess
+        track: (music && found) ? aiMusicItem(music, found) : aiMusicItem({current: (played.joined) ? null : played.item}, played.item),
+      });
+    } catch(error) {
+      if (error instanceof TagError) {
+        throw error;
+      }
+      // the queue is full, the track's gone from opus.rip, a youtube link, no voice nodes
+      const apiError = await getApiError(error);
+      if (apiError) {
+        const key = getApiErrorTranslationKey(apiError.code);
+        throw new TagError((key) ? getCachedTranslator(context).translateMaybe(key, apiError.message) : apiError.message);
+      }
+      throw error;
+    }
 
     return true;
   },

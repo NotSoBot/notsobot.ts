@@ -3495,7 +3495,13 @@ async function createMediaReplyFilesMessage(
               x.components = x.components.filter((c) => !actions.rows.includes(c as any));
             }
           }
-          await editOrReply(context, {components});
+          // the gallery points at its files with `attachment://`, which discord only resolves against files uploaded
+          // with the same edit, not ones it keeps, so they go up again. the legacy displays keep theirs (`editOrReply`)
+          const reupload = (components.isV2 && files.length) ? {
+            attachments: [],
+            files: files.map((file) => ({...file, hasSpoiler: undefined})),
+          } : {};
+          await editOrReply(context, {components, ...reupload});
         });
       }
     },
@@ -3827,6 +3833,8 @@ export async function createMediaReplyMessage(
   }
 
   const actions = options.actions;
+  // the components v2 display's attached file, sent again when the rows are stripped
+  let componentsFile: RequestTypes.File | undefined;
   const components: Components = new Components((actions) ? {
     timeout: actions.timeout,
     onTimeout: async () => {
@@ -3842,7 +3850,10 @@ export async function createMediaReplyMessage(
             x.components = x.components.filter((c) => !isAction(c));
           }
         }
-        await editOrReply(options.context || context, {components});
+        // the gallery points at its file with `attachment://`, which discord only resolves against files uploaded with
+        // the same edit, not ones it keeps (UNFURLED_MEDIA_ITEM_REFERENCED_ATTACHMENT_NOT_FOUND), so it goes up again
+        const reupload = (componentsFile) ? {attachments: [], files: [{...componentsFile}]} : {};
+        await editOrReply(options.context || context, {components, ...reupload});
       });
     },
   } : {});
@@ -3922,6 +3933,7 @@ export async function createMediaReplyMessage(
         }
       }
 
+      componentsFile = file;
       return {isComponentsV2: true, message: {components, file}, replacesResponse: false};
     }
   }

@@ -26,6 +26,7 @@ import {
   captureRestResponse,
   markApiReachable,
   captureUnhandledError,
+  connectComponentCommandContext,
   getCommandContext,
   initSentry,
   redactUrlTokens,
@@ -306,6 +307,7 @@ const cluster = new ClusterClient('', {
   cluster.on(ClientEvents.SHARD, ({shard}) => {
     const shardId = shard.shardId;
     log.debug(`Loading up ${shardId}...`);
+    connectComponentCommandContext(shard);
     shard.gateway.on('state', ({state}) => {
       const message = `Shard #${shardId} - ${state}`;
       log.info(message);

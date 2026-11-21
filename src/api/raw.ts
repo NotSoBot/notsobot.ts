@@ -432,6 +432,7 @@ export async function createUserCommand(
   const body = {
     channel_id: options.channelId,
     command_type: options.commandType,
+    extra_response_ids: (options.extraResponseIds && options.extraResponseIds.length) ? options.extraResponseIds : undefined,
     guild_id: options.guildId,
     llm_response_id: options.llmResponseId,
     message_response_id: options.messageResponseId,
@@ -570,6 +571,27 @@ export async function sweepGuild(
       method: HTTPMethods.POST,
       path: Api.GUILD_SWEEP,
       params: {guildId},
+    },
+  });
+}
+
+
+export async function createCommandResponseExtra(
+  context: RequestContext,
+  triggerId: string,
+  options: RestOptions.CreateCommandResponseExtra,
+): Promise<RestResponsesRaw.CreateCommandResponseExtra> {
+  const body = {
+    channel_id: options.channelId,
+    response_ids: options.responseIds,
+  };
+  const params = {triggerId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.COMMANDS_RESPONSE_EXTRA,
+      params,
     },
   });
 }
@@ -936,6 +958,7 @@ export async function editGuildSettings(
     ml_llm_personality: options.mlLLMPersonality,
     moderation_dm_disabled: options.moderationDmDisabled,
     post_gallery: options.postGallery,
+    prefix_command_permissions: options.prefixCommandPermissions,
     prefixes: options.prefixes,
     response_display: options.responseDisplay,
     rules_admin_bypass: options.rulesAdminBypass,
@@ -2796,7 +2819,8 @@ export async function funTextToSpeech(
   options: RestOptions.FunTextToSpeech,
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
+  // a body instead of a query, long text url encoded can be over nginx's uri limit (414)
+  const body = {
     max_file_size: maxFileSize,
     text: options.text,
     upload: options.upload,
@@ -2807,9 +2831,9 @@ export async function funTextToSpeech(
     voice_id: options.voiceId,
   };
   return request(context, {
-    query,
+    body,
     route: {
-      method: HTTPMethods.GET,
+      method: HTTPMethods.POST,
       path: Api.FUN_TEXT_TO_SPEECH,
     },
   });
@@ -15879,7 +15903,8 @@ export async function utilitiesMLImagine(
   options: RestOptions.UtilitiesMLImagine,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
+  // a body instead of a query, a long prompt url encoded can be over nginx's uri limit (414)
+  const body = {
     do_not_error: options.doNotError,
     max_file_size: maxFileSize,
     model: options.model,
@@ -15892,9 +15917,9 @@ export async function utilitiesMLImagine(
     upload_temporary: options.uploadTemporary,
   };
   const response = await request(context, {
-    query,
+    body,
     route: {
-      method: HTTPMethods.GET,
+      method: HTTPMethods.POST,
       path: Api.UTILITIES_ML_IMAGINE,
     },
   });

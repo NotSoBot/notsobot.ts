@@ -1,5 +1,5 @@
 import { ClusterClient, Collections, ShardClient } from 'detritus-client';
-import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
+import { DiscordAbortCodes, MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup, Snowflake } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
 
@@ -37,6 +37,8 @@ class ReminderInterval extends Listener {
   completed = new Collections.BaseCollection<string, true>({expire: 10 * 60 * 1000});
   deleteRetryMin = 15 * 1000;
   deleteRetryMax = 10 * 60 * 1000;
+  // waits before each retry of a dm discord refused for opening dms too fast
+  dmRetryDelays = [30 * 1000, 2 * 60 * 1000, 10 * 60 * 1000];
 
   // the api's gateway only sends reminder events to shard 0's cluster (`EVENT_ROUTE_HOME` in its utilities/tools/redis.py),
   // moving this off cluster 0 means changing that route too
@@ -151,17 +153,36 @@ class ReminderInterval extends Listener {
     }
 
     if (!sent) {
-      try {
-        const channel = await shard.rest.createDm({recipientId: reminder.user.id});
-        if (!channelIds.includes(channel.id)) {
-          await shard.rest.createMessage(channel.id, {allowedMentions, content});
-        }
-      } catch(error) {
-        // user has dms closed or we can't reach them, nothing else to do
-      }
+      await this.sendReminderDm(shard, reminder, channelIds, {allowedMentions, content});
     }
 
     await this.deleteHandledReminder(shard, reminder.id);
+  }
+
+  // discord limits how fast a bot opens dms (40003, "You are opening direct messages too fast") and every reminder goes
+  // out from shard 0, so a few due together (or the expired ones caught up on after a restart) can hit it. those wait
+  // and try again, the reminder stays `handled` meanwhile so nothing sends it twice
+  async sendReminderDm(
+    shard: ShardClient,
+    reminder: RestResponsesRaw.Reminder,
+    channelIds: Array<string>,
+    options: {allowedMentions: any, content: string},
+  ): Promise<void> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const channel = await shard.rest.createDm({recipientId: reminder.user.id});
+        if (!channelIds.includes(channel.id)) {
+          await shard.rest.createMessage(channel.id, options);
+        }
+        return;
+      } catch(error) {
+        // anything else is the user having dms closed or us not reaching them, nothing else to do
+        if (!error || error.code !== DiscordAbortCodes.RATE_LIMIT_DM_OPEN || this.dmRetryDelays.length <= attempt) {
+          return;
+        }
+        await Timers.sleep(this.dmRetryDelays[attempt]);
+      }
+    }
   }
 
   async deleteHandledReminder(shard: ShardClient, reminderId: string, attempt: number = 0): Promise<void> {

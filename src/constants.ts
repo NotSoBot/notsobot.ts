@@ -1205,6 +1205,17 @@ export enum GuildRuleTargetTypes {
   USER = 'user',
 }
 
+// which of the server's discord command permissions (Server Settings > Integrations) prefix commands follow, discord
+// only applies them to slash commands
+export enum GuildPrefixCommandPermissions {
+  // none, only the rules decide
+  OFF = 0,
+  // the overwrites on a prefix command's own slash command, not the app-wide "All commands" ones (the default)
+  COMMANDS = 1,
+  // like slash commands: a command's own overwrites, or the app-wide ones (also for prefix-only commands like `ocr`)
+  ALL = 2,
+}
+
 export const MAX_GUILD_RULE_MESSAGE_LENGTH = 200;
 // rules one request can add or remove
 export const MAX_GUILD_RULES_PER_REQUEST = 100;
@@ -3273,6 +3284,7 @@ export const NotSoApiKeys = Object.freeze({
   NAME: 'name',
   POST_GALLERY: 'post_gallery',
   PREFIX: 'prefix',
+  PREFIX_COMMAND_PERMISSIONS: 'prefix_command_permissions',
   PREFIXES: 'prefixes',
   PREMIUM_TYPE: 'premium_type',
   PRICE: 'price',
@@ -3374,6 +3386,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.POST_GALLERY]: 'postGallery',
   [NotSoApiKeys.PREFIX]: 'prefix',
+  [NotSoApiKeys.PREFIX_COMMAND_PERMISSIONS]: 'prefixCommandPermissions',
   [NotSoApiKeys.PREFIXES]: 'prefixes',
   [NotSoApiKeys.PREMIUM_TYPE]: 'premiumType',
   [NotSoApiKeys.PRICE]: 'price',

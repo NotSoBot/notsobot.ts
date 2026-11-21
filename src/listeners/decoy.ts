@@ -64,8 +64,11 @@ type DecoyContext = {client: ShardClient, guild: Structures.Guild, guildId: stri
 
 
 // expired: they didn't press it, unavailable: no reply to press it on (I can't post there), raid: no minute for them,
-// repeat: they pressed it a moment ago and posted again
-type GraceResult = {kind: 'expired' | 'kept' | 'repeat' | 'unavailable'} | {kind: 'raid', posters: number};
+// repeat: they pressed it a moment ago and posted again, elsewhere: they posted in another channel during their minute
+type GraceResult = {kind: 'expired' | 'kept' | 'repeat' | 'unavailable'} | {kind: 'raid', posters: number} | {kind: 'elsewhere', channelId: string};
+// how one poster's minute ended, `elsewhere` is the channel they posted in (a person reads the reply first, a spam
+// account carries on posting everywhere)
+type GraceOutcome = {kind: 'expired' | 'kept'} | {kind: 'elsewhere', channelId: string};
 
 
 /**
@@ -78,9 +81,9 @@ class GracePrompt {
   closed = false;
   created = Date.now();
   // user id -> their deadline
-  entries = new Map<string, {deadline: number, resolve: (kept: boolean) => void, timeout: ReturnType<typeof setTimeout>}>();
-  // whose minute is over and whether they pressed it, a late press gets "too late" (or "staying" again) instead of "only for"
-  finished = new Map<string, boolean>();
+  entries = new Map<string, {deadline: number, resolve: (outcome: GraceOutcome) => void, timeout: ReturnType<typeof setTimeout>}>();
+  // whose minute is over and how it ended, a late press gets "too late" (or "staying" again) instead of "only for"
+  finished = new Map<string, GraceOutcome['kind']>();
   message: Promise<Structures.Message | null> | null = null;
   // edits and the delete one after another, an older content never lands last
   updating: Promise<unknown> = Promise.resolve();
@@ -95,9 +98,9 @@ class GracePrompt {
     public onClose: (prompt: GracePrompt) => void,
   ) {}
 
-  add(userId: string): Promise<boolean> {
+  add(userId: string): Promise<GraceOutcome> {
     return new Promise((resolve) => {
-      const timeout = setTimeout(() => this.finish(userId, false), DECOY_GRACE_TIME);
+      const timeout = setTimeout(() => this.finish(userId, {kind: 'expired'}), DECOY_GRACE_TIME);
       this.entries.set(userId, {deadline: Date.now() + DECOY_GRACE_TIME, resolve, timeout});
       if (this.message) {
         this.render();
@@ -107,16 +110,16 @@ class GracePrompt {
     });
   }
 
-  // their wait ends (pressed or ran out), the last one out deletes the reply
-  finish(userId: string, kept: boolean): void {
+  // their wait ends (pressed, ran out or posted elsewhere), the last one out deletes the reply
+  finish(userId: string, outcome: GraceOutcome): void {
     const entry = this.entries.get(userId);
     if (!entry) {
       return;
     }
     clearTimeout(entry.timeout);
     this.entries.delete(userId);
-    this.finished.set(userId, kept);
-    entry.resolve(kept);
+    this.finished.set(userId, outcome.kind);
+    entry.resolve(outcome);
     if (this.entries.size) {
       this.render();
     } else {
@@ -179,7 +182,7 @@ class GracePrompt {
     } catch(error) {
       // nothing to press it on, everyone waiting is removed like before
       for (let userId of Array.from(this.entries.keys())) {
-        this.finish(userId, false);
+        this.finish(userId, {kind: 'expired'});
       }
       return null;
     }
@@ -188,15 +191,18 @@ class GracePrompt {
   async onKeep(ctx: ComponentContext): Promise<void> {
     // their own language, they pressed it themselves
     const { language, translate } = await I18n.getTranslator(ctx);
-    if (this.entries.has(ctx.userId) || this.finished.get(ctx.userId)) {
+    const finished = this.finished.get(ctx.userId);
+    if (this.entries.has(ctx.userId) || finished === 'kept') {
       // claimed before anything is awaited, their timer can't remove them after this
-      this.finish(ctx.userId, true);
+      this.finish(ctx.userId, {kind: 'kept'});
       await respondEphemeral(ctx, [
         `${StatusEmojis.YES} ${translate('decoy.grace_kept')}`,
         translate('decoy.grace_kept_repeat', {duration: formatDuration(DECOY_KEPT_REPEAT_TIME, language)}),
       ].join('\n'));
-    } else if (this.finished.has(ctx.userId)) {
-      await respondEphemeral(ctx, `${StatusEmojis.WARNING} ${translate('decoy.grace_too_late')}`);
+    } else if (finished) {
+      // removed for posting in another channel, their minute hadn't run out
+      const key = (finished === 'elsewhere') ? 'decoy.grace_too_late_elsewhere' : 'decoy.grace_too_late';
+      await respondEphemeral(ctx, `${StatusEmojis.WARNING} ${translate(key)}`);
     } else {
       await respondEphemeral(ctx, `${StatusEmojis.WARNING} ${translate('decoy.grace_not_yours', {user: this.mentions()})}`);
     }
@@ -224,8 +230,9 @@ function respondEphemeral(ctx: ComponentContext, content: string) {
 
 
 class DecoyListener extends Listener {
-  // `guild id.user id` -> the rest of what they posted in the decoy meanwhile, deleted with the first one
-  inProgress = new Collections.BaseCollection<string, Array<string>>({expire: IN_PROGRESS_EXPIRE});
+  // `guild id.user id` -> the rest of what they posted meanwhile (in the decoy, or the post elsewhere that ended their
+  // minute), deleted with the first one
+  inProgress = new Collections.BaseCollection<string, Array<{channelId: string, messageId: string}>>({expire: IN_PROGRESS_EXPIRE});
   // guild id -> when my notice was last posted again
   reposted = new Collections.BaseCollection<string, number>({expire: NOTICE_REPOST_COOLDOWN});
   // decoy channel id -> the reply new posters join
@@ -235,6 +242,8 @@ class DecoyListener extends Listener {
   kept = new Collections.BaseCollection<string, number>({expire: DECOY_KEPT_REPEAT_TIME});
   // decoy channel id -> user id -> when they last posted there, for the raid count
   posters = new Map<string, Map<string, number>>();
+  // `guild id.user id` -> the reply they're in their minute on, a post in any other channel ends it
+  waiting = new Map<string, GracePrompt>();
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
@@ -249,6 +258,8 @@ class DecoyListener extends Listener {
           this.onMessage(shard, decoy, message).catch((error) => {
             log.error(`Decoy failed for ${message.guildId}`, error);
           });
+        } else if (this.waiting.size) {
+          this.onMessageElsewhere(message);
         }
       };
       if (DecoyStore.loader.isLoaded) {
@@ -326,6 +337,7 @@ class DecoyListener extends Listener {
         attachments: message.attachments.size,
         clean: 0,
         content: message.content || '',
+        elsewhere: null,
         raid: 0,
         reason: exempt,
         repeat: false,
@@ -339,7 +351,7 @@ class DecoyListener extends Listener {
     const others = this.inProgress.get(key);
     if (others) {
       // their removal (or their minute to press the button) is already going, this one goes with the first
-      others.push(message.id);
+      others.push({channelId: message.channelId, messageId: message.id});
       return;
     }
     this.inProgress.set(key, []);
@@ -348,6 +360,24 @@ class DecoyListener extends Listener {
     } finally {
       this.inProgress.delete(key);
     }
+  }
+
+  // they posted somewhere else while their minute to press "I'm not a bot" was running: no person does that with the
+  // reply right there, so it's over and they're removed now (the post goes with the rest of their messages)
+  onMessageElsewhere(message: Structures.Message): void {
+    if (message.webhookId || !MEMBER_MESSAGE_TYPES.includes(message.type)) {
+      return;
+    }
+    const key = `${message.guildId}.${message.author.id}`;
+    const prompt = this.waiting.get(key);
+    if (!prompt) {
+      return;
+    }
+    const others = this.inProgress.get(key);
+    if (others) {
+      others.push({channelId: message.channelId, messageId: message.id});
+    }
+    prompt.finish(message.author.id, {kind: 'elsewhere', channelId: message.channelId});
   }
 
   // why the decoy skips them, null: it doesn't
@@ -405,7 +435,7 @@ class DecoyListener extends Listener {
     }
     if (cannotBan) {
       await this.deleteMessage(message);
-      this.log(context, decoy, {action: 'none', attachments, clean: 0, content, raid: 0, reason: cannotBan, repeat: false, user, warned: false});
+      this.log(context, decoy, {action: 'none', attachments, clean: 0, content, elsewhere: null, raid: 0, reason: cannotBan, repeat: false, user, warned: false});
       return;
     }
 
@@ -415,11 +445,12 @@ class DecoyListener extends Listener {
       await this.deleteMessage(message);
       await this.deleteOthers(context, decoy, key);
       this.kept.set(key, Date.now());
-      this.log(context, decoy, {action: 'kept', attachments, clean: 0, content, raid: 0, reason: null, repeat: false, user, warned: false});
+      this.log(context, decoy, {action: 'kept', attachments, clean: 0, content, elsewhere: null, raid: 0, reason: null, repeat: false, user, warned: false});
       return;
     }
     const raid = (grace.kind === 'raid') ? grace.posters : 0;
     const repeat = grace.kind === 'repeat';
+    const elsewhere = (grace.kind === 'elsewhere') ? grace.channelId : null;
 
     const audit = await I18n.getGuildTranslator(context as unknown as I18n.LanguageContext);
     const languageContext = context as unknown as I18n.LanguageContext;
@@ -512,6 +543,7 @@ class DecoyListener extends Listener {
       attachments,
       clean: (action === 'none') ? 0 : clean,
       content,
+      elsewhere,
       raid,
       reason,
       repeat,
@@ -536,8 +568,8 @@ class DecoyListener extends Listener {
   }
 
   async deleteOthers(context: DecoyContext, decoy: RestResponsesRaw.GuildDecoy, key: string): Promise<void> {
-    for (let messageId of (this.inProgress.get(key) || [])) {
-      await context.rest.deleteMessage(decoy.channel_id, messageId).catch(() => null);
+    for (let { channelId, messageId } of (this.inProgress.get(key) || [])) {
+      await context.rest.deleteMessage(channelId, messageId).catch(() => null);
     }
   }
 
@@ -591,8 +623,15 @@ class DecoyListener extends Listener {
       });
       this.prompts.set(channel.id, prompt);
     }
-    const kept = await prompt.add(message.author.id);
-    return {kind: (kept) ? 'kept' : 'expired'};
+    const key = `${context.guildId}.${message.author.id}`;
+    this.waiting.set(key, prompt);
+    try {
+      return await prompt.add(message.author.id);
+    } finally {
+      if (this.waiting.get(key) === prompt) {
+        this.waiting.delete(key);
+      }
+    }
   }
 
   // "You were removed from **Server**... you can rejoin", the line under the warning dm, or the whole dm without one
@@ -612,6 +651,7 @@ class DecoyListener extends Listener {
       attachments: number,
       clean: number,
       content: string,
+      elsewhere: string | null,
       raid: number,
       reason: GuildLoggingDecoyReason | null,
       repeat: boolean,

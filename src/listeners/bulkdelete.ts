@@ -7,6 +7,7 @@ import { deleteCommandsResponses, fetchCommandsResponses } from '../api';
 import { COMMAND_EDIT_DURATION } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import CommandResponsesStore from '../stores/commandresponses';
+import { deleteResponses } from '../utils/commandresponses';
 
 import { Listener } from './listener';
 
@@ -22,31 +23,44 @@ class MessageDeleteListener extends Listener {
         const me = guild && guild.me;
 
         if (me && shard.commandClient) {
-          const bulkToDelete: Array<string> = [];
+          const toDelete = new Set<string>();
+          const addToDelete = (responseId: string) => {
+            // purged along with its trigger, or deleted before it
+            if (!messages.has(responseId) && !CommandResponsesStore.wasResponseDeleted(responseId)) {
+              toDelete.add(responseId);
+            }
+          };
+
+          // the other messages runs sent that this process remembers, the api may not have them all yet
+          for (let messageId of messages.keys()) {
+            for (let responseId of CommandResponsesStore.takeExtraResponses(messageId)) {
+              addToDelete(responseId);
+            }
+          }
 
           // purges are mostly messages we know never triggered anything, only ask about the ones that might have
           const triggerIds = Array.from(messages.keys()).filter((messageId) => {
             return CommandResponsesStore.mightBeTrigger(shard, messageId);
           });
-          if (!triggerIds.length) {
-            return;
-          }
 
           // this runs as a bare event handler, anything thrown here would be an unhandled rejection
-          let results: Awaited<ReturnType<typeof fetchCommandsResponses>>['results'];
-          try {
-            ({ results } = await fetchCommandsResponses({client: shard}, {channelId, triggerIds}));
-          } catch(error) {
-            return;
+          let results: Awaited<ReturnType<typeof fetchCommandsResponses>>['results'] = [];
+          if (triggerIds.length) {
+            try {
+              ({ results } = await fetchCommandsResponses({client: shard}, {channelId, triggerIds}));
+            } catch(error) {
+              // still delete the remembered ones
+            }
           }
 
           for (let result of results) {
-            // purged along with its trigger, or deleted before it
-            const responseId = result.message_response_id;
-            if (!messages.has(responseId) && !CommandResponsesStore.wasResponseDeleted(responseId)) {
-              bulkToDelete.push(responseId);
+            addToDelete(result.message_response_id);
+            for (let responseId of result.extra_response_ids || []) {
+              addToDelete(responseId);
             }
           }
+          // claimed, so the COMMAND_DELETE handler and a later single delete skip them
+          const bulkToDelete = Array.from(toDelete).filter((responseId) => CommandResponsesStore.claimDeletion(responseId));
 
           /*
           for (let [messageId, message] of messages) {
@@ -103,8 +117,12 @@ class MessageDeleteListener extends Listener {
     {
       const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE, async (event) => {
         const { channelId, message, messageId, shard } = event;
+        // the other messages its run sent that this process remembers (the api may not have them all yet), whatever age.
+        // read now, the api's copy below is gone once its row is deleted
+        const remembered = CommandResponsesStore.takeExtraResponses(messageId);
         // newer triggers still have their reply in the command client's memory, the COMMAND_DELETE handler covers those
         if (Date.now() - Snowflake.timestamp(messageId) < COMMAND_EDIT_DURATION) {
+          await deleteResponses(shard, channelId, remembered);
           return;
         }
         // bots (us included) can't trigger commands
@@ -113,6 +131,7 @@ class MessageDeleteListener extends Listener {
         }
         // nearly every delete on the bot isn't a command, only ask the api when it could have a stored response
         if (!CommandResponsesStore.mightBeTrigger(shard, messageId)) {
+          await deleteResponses(shard, channelId, remembered);
           return;
         }
 
@@ -120,21 +139,21 @@ class MessageDeleteListener extends Listener {
         try {
           ({ results } = await fetchCommandsResponses({client: shard}, {channelId, triggerIds: [messageId]}));
         } catch(error) {
-          return;
-        }
-        if (!results.length) {
+          await deleteResponses(shard, channelId, remembered);
           return;
         }
 
+        const responseIds = new Set(remembered);
         for (let result of results) {
-          if (CommandResponsesStore.wasResponseDeleted(result.message_response_id)) {
-            continue;
+          responseIds.add(result.message_response_id);
+          for (let responseId of result.extra_response_ids || []) {
+            responseIds.add(responseId);
           }
-          try {
-            await shard.rest.deleteMessage(channelId, result.message_response_id);
-          } catch(error) {
-            // already deleted (an edit within the window may have stored it in memory too)
-          }
+        }
+        // already deleted ones are skipped (an edit within the window may have stored it in memory too)
+        await deleteResponses(shard, channelId, Array.from(responseIds));
+        if (!results.length) {
+          return;
         }
 
         try {

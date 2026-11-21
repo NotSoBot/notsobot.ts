@@ -1,10 +1,10 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
+import { StatusEmojis } from '../../../../constants';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'check';

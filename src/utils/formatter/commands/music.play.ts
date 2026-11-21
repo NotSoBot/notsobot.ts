@@ -75,7 +75,7 @@ function fairQueueIndex(queue: Array<RestResponsesRaw.GuildMusicQueueItem>, user
 }
 
 // why the api would turn a search result down, the server's queue rules: too long, or already queued (opus.rip track ids)
-function musicResultRuledOut(
+export function musicResultRuledOut(
   translate: Translator['translate'],
   music: null | RestResponsesRaw.FetchGuildMusic,
   track: RestResponsesRaw.MusicTrack,

@@ -1,10 +1,10 @@
 import { Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { MAX_GUILD_RULE_MESSAGE_LENGTH, StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, Parameters, ParsedGuildRuleCoverage, displayReply } from '../../../../../utils';
+import { MAX_GUILD_RULE_MESSAGE_LENGTH, StatusEmojis } from '../../../../constants';
+import { Formatter, I18n, Parameters, ParsedGuildRuleCoverage, displayReply } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 import { coverageOption, getMissingTargets, targetOptions } from './shared';
 

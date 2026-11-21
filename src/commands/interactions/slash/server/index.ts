@@ -10,7 +10,6 @@ import { ServerFontsGroupCommand } from './fonts';
 import { ServerInvitesCommand } from './invites';
 import { ServerLoggersGroupCommand } from './loggers';
 import { ServerPrefixesGroupCommand } from './prefixes';
-import { ServerRulesGroupCommand } from './rules';
 import { ServerSetGroupCommand } from './set';
 
 
@@ -36,7 +35,6 @@ export default class ServerGroupCommand extends BaseSlashCommand {
         new ServerInvitesCommand(),
         new ServerLoggersGroupCommand(),
         new ServerPrefixesGroupCommand(),
-        new ServerRulesGroupCommand(),
         new ServerSetGroupCommand(),
       ],
     });

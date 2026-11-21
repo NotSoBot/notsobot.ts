@@ -3,9 +3,10 @@ import { AsyncLocalStorage } from 'async_hooks';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { Command, CommandClient, Interaction, InteractionCommandClient } from 'detritus-client';
+import { Command, CommandClient, Interaction, InteractionCommandClient, ShardClient, Structures } from 'detritus-client';
 import { EventSubscription } from 'detritus-utils';
 import { ClientEvents } from 'detritus-client/lib/constants';
+import { getResponseInteractionId } from 'detritus-client/lib/gateway/handlercomponent';
 
 import { JobError, isDiscordEdgeRatelimitError, isDiscordTokenRefusedError } from './api/errors';
 import { CommandRunCancelledError, UserError } from './utils/errors';
@@ -100,6 +101,52 @@ export function runWithCommandContext<T>(context: SentryCommandContext, callback
 
 export function getCommandContext(): SentryCommandContext | undefined {
   return commandContextStorage.getStore();
+}
+
+
+// a reply's buttons and select menus run from the gateway (and their timeouts from a timer started there), outside the
+// command run's async context, so what they did wrong was reported without the command (a stripped `.eyes` picker,
+// a pixel art button). a listener keeps the command it was registered under and its clicks run under it again, its
+// timeout timer is started inside `insert` so it inherits it too, and a listener a click registers (the next result's
+// picker) gets the same one
+const COMPONENT_HANDLER_WRAPPED = Symbol.for('notsobot.sentry.componentHandlerWrapped');
+const componentListenerContexts = new WeakMap<object, SentryCommandContext>();
+
+export function connectComponentCommandContext(shard: ShardClient): void {
+  const handler: any = shard.gatewayHandler._handlers.component;
+  // once per handler, `.refresh` reloads this module but the shard (and its handler) stays
+  if (handler[COMPONENT_HANDLER_WRAPPED]) {
+    return;
+  }
+  handler[COMPONENT_HANDLER_WRAPPED] = true;
+
+  const insert = handler.insert.bind(handler);
+  handler.insert = (listener: any) => {
+    const context = commandContextStorage.getStore() || componentListenerContexts.get(listener);
+    if (!context) {
+      return insert(listener);
+    }
+    componentListenerContexts.set(listener, context);
+    return commandContextStorage.run(context, () => insert(listener));
+  };
+
+  const execute = handler.execute.bind(handler);
+  handler.execute = (interaction: Structures.Interaction) => {
+    // the same lookup `execute` does
+    const message = interaction.message;
+    let listener: any;
+    if (message) {
+      const interactionId = getResponseInteractionId(message);
+      if (interactionId) {
+        listener = handler.listeners.get(interactionId);
+      }
+      if (!listener) {
+        listener = handler.listeners.get(message.id);
+      }
+    }
+    const context = (listener) ? componentListenerContexts.get(listener) : undefined;
+    return (context) ? commandContextStorage.run(context, () => execute(interaction)) : execute(interaction);
+  };
 }
 
 
@@ -248,9 +295,9 @@ export function connectCommandErrorReporting(client: CommandClient | Interaction
 // discord's non-ok responses, minus the expected ones (missing/deleted things, no permissions, ratelimits the lib retries)
 const IGNORED_DISCORD_STATUSES: ReadonlyArray<number> = [403, 404, 429];
 // discord error codes that are the user's or server's doing: the user has DMs closed (like a ban's DM), or the server's
-// AutoMod blocked the message (its content or its title). still sent so they can be tracked, but as info and one issue
-// per code instead of errors
-const EXPECTED_DISCORD_ERROR_CODES: ReadonlyArray<number> = [50007, 200000, 200001];
+// AutoMod blocked the message (its content or its title), or opening dms too fast (a 400, reminders retry it later).
+// still sent so they can be tracked, but as info and one issue per code instead of errors
+const EXPECTED_DISCORD_ERROR_CODES: ReadonlyArray<number> = [40003, 50007, 200000, 200001];
 // our api's own error responses are user facing (invalid tag, media too big, etc..), only its 5xx and responses without a
 // coded body are bugs. 502 and 520-523 without a body is the api restarting or cloudflare not reaching it
 const API_DOWN_STATUSES: ReadonlyArray<number> = [502, 520, 521, 522, 523];

@@ -4,6 +4,7 @@ import { deleteGuildLogger } from '../../api';
 import {
   BAN_CLEAN_DEFAULT,
   GuildLoggerTypes,
+  GuildPrefixCommandPermissions,
   GuildRuleActions,
   GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
@@ -92,6 +93,11 @@ export class GuildSettings extends BaseStructure {
       return rule.adminBypass;
     }
     return (this.settings) ? this.settings.rulesAdminBypass : true;
+  }
+
+  // which of the server's discord command permissions (Integrations) prefix commands follow
+  get prefixCommandPermissions(): GuildPrefixCommandPermissions {
+    return (this.settings) ? this.settings.prefixCommandPermissions : GuildPrefixCommandPermissions.COMMANDS;
   }
 
   // if the owner and admins skip every rule (the default)
@@ -331,6 +337,7 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.MODERATION_DM_DISABLED,
   NotSoApiKeys.MUSIC_DJ_ROLE_ID,
   NotSoApiKeys.POST_GALLERY,
+  NotSoApiKeys.PREFIX_COMMAND_PERMISSIONS,
   NotSoApiKeys.RESPONSE_DISPLAY,
   NotSoApiKeys.RULES_ADMIN_BYPASS,
   NotSoApiKeys.SEARCH_PROVIDER_IMAGES,
@@ -366,6 +373,9 @@ export class GuildSettingsChild extends BaseStructure {
   musicDjRoleId: null | string = null;
   // `PostGalleryTypes` for members without their own, null: gallery
   postGallery: PostGalleryTypes | null = null;
+  // which of the server's discord command permissions (Integrations) prefix commands follow, by default the ones on
+  // their own slash command
+  prefixCommandPermissions: GuildPrefixCommandPermissions = GuildPrefixCommandPermissions.COMMANDS;
   // null uses each user's preference, then our latest format
   responseDisplay: GuildSettingsResponseDisplayTypes | null = null;
   // if the server owner and admins skip the rules, rules can override it with their own `adminBypass`

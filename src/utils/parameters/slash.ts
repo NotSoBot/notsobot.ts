@@ -5,6 +5,7 @@ import { regex as discordRegex } from 'detritus-client/lib/utils';
 import {
   GoogleLocales,
   GoogleLocalesText,
+  GuildPrefixCommandPermissions,
   GuildSettingsResponseDisplayTypes,
   MLDiffusionModels,
   PostGalleryTypes,
@@ -290,3 +291,11 @@ export function banPayload(
     };
   };
 }
+
+
+// `/server-rules integrations`, which of the server's discord command permissions prefix commands follow
+export const GUILD_PREFIX_COMMAND_PERMISSIONS = [
+  createChoice('Off', GuildPrefixCommandPermissions.OFF, {localizationKey: 'choices.settings.prefix_command_permissions.off'}),
+  createChoice('Single Commands', GuildPrefixCommandPermissions.COMMANDS, {isDefault: true, localizationKey: 'choices.settings.prefix_command_permissions.commands'}),
+  createChoice('Everything', GuildPrefixCommandPermissions.ALL, {localizationKey: 'choices.settings.prefix_command_permissions.all'}),
+];

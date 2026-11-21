@@ -174,6 +174,14 @@ export async function sweepGuild(
 }
 
 
+export async function createCommandResponseExtra(
+  context: RequestContext,
+  triggerId: string,
+  options: RestOptions.CreateCommandResponseExtra,
+): Promise<RestResponses.CreateCommandResponseExtra> {
+  return raw.createCommandResponseExtra(context, triggerId, options);
+}
+
 export async function deleteCommandsResponses(
   context: RequestContext,
   options: RestOptions.DeleteCommandsResponses,

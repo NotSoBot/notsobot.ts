@@ -269,6 +269,8 @@ export type GuildLoggingEventDecoy = {
     clean: number,
     // what they posted, empty without it (attachments only, or no message content)
     content: string,
+    // the channel they posted in during their minute to press "I'm not a bot", which ended it, null: they didn't
+    elsewhere: string | null,
     // how many accounts posted there within a minute when it skipped their minute to press "I'm not a bot", 0: it didn't
     raid: number,
     // why they weren't removed (or why a softban stayed a ban), null otherwise

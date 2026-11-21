@@ -29,6 +29,7 @@ import {
 } from '../../constants';
 import { captureCommandError } from '../../sentry';
 import { CommandRunCancelledError, I18n, Parameters, displayReply, findMediaUrlInMessages } from '../../utils';
+import { getCommandId, markRecorded } from '../../utils/commandresponses';
 
 import {
   createArgumentErrorPayload,
@@ -278,8 +279,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 
       }
     }
-    const metadata = context.command.metadata;
-    const commandId = metadata.id || context.command.fullName.split(' ').join('.');
+    const commandId = getCommandId(context);
     // the api only stores it when there's a response, the message delete listener and the reply-to-ai check look here
     // before asking it
     // set by NotSoAI's command, which response its reply holds
@@ -296,20 +296,29 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     const messageResponseId = (context.response) ? context.response.id : undefined;
     // a media job still polling (`run` returned with its thinking reply) counts once it ends, with how it ended
     const command = context.command;
-    await afterJobRuns(context, () => createUserCommand(
-      context,
-      context.userId,
-      commandId,
-      {
-        channelId: context.channelId,
-        commandType: (isMention) ? CommandTypes.MENTION : CommandTypes.PREFIXED,
-        guildId: context.guildId,
-        llmResponseId,
-        messageResponseId,
-        messageTriggerId: context.messageId,
-        result: getRecordedCommandResult(context),
-      },
-    ), (error) => context.commandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));
+    await afterJobRuns(context, async () => {
+      // the other messages it sent (`addExtraResponse`) go with the response, later ones are added once it's stored
+      const extraResponseIds = CommandResponsesStore.getExtraResponses(context.messageId);
+      await createUserCommand(
+        context,
+        context.userId,
+        commandId,
+        {
+          channelId: context.channelId,
+          commandType: (isMention) ? CommandTypes.MENTION : CommandTypes.PREFIXED,
+          extraResponseIds,
+          guildId: context.guildId,
+          llmResponseId,
+          messageResponseId,
+          messageTriggerId: context.messageId,
+          result: getRecordedCommandResult(context),
+        },
+      );
+      // the api only stores a row with a response
+      if (messageResponseId) {
+        markRecorded(context, extraResponseIds);
+      }
+    }, (error) => context.commandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));
   }
 
   async onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {

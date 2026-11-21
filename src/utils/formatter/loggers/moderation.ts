@@ -277,7 +277,7 @@ function getDecoyNotRemovedText(reason: GuildLoggingDecoyReason | null, translat
 // where, what they posted, and what happened to them
 function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Translator): Array<string> {
   const { language, translate } = translator;
-  const { action, attachments, channelId, clean, content, raid, reason, repeat, warned } = event.payload;
+  const { action, attachments, channelId, clean, content, elsewhere, raid, reason, repeat, warned } = event.payload;
   const lines: Array<string> = [`**${translate('logger.decoy_caught_in')}**: <#${channelId}>`];
   if (content) {
     lines.push(`**${translate('logger.decoy_posted')}**:`, Markup.codeblock(content.slice(0, 900)));
@@ -299,6 +299,7 @@ function getDecoyCatchLines(event: GuildLoggingEventDecoyCatch, translator: Tran
       duration: formatDuration(DECOY_KEPT_REPEAT_TIME, language),
     }),
     (raid) && translate('logger.decoy_raid', {button: translate('decoy.grace_button_keep'), count: raid.toLocaleString(language)}),
+    (elsewhere) && translate('logger.decoy_elsewhere', {button: translate('decoy.grace_button_keep'), channel: `<#${elsewhere}>`}),
     (attachments) && translate('logger.decoy_attachments', {count: attachments.toLocaleString(language)}),
   ], true));
   return lines;

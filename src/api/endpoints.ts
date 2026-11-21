@@ -18,6 +18,8 @@ export const Api = Object.freeze({
     '/commands',
   COMMANDS_RESPONSES:
     '/commands/responses',
+  COMMANDS_RESPONSE_EXTRA:
+    '/commands/responses/:triggerId/extra',
   COMMANDS_USAGE:
     '/commands/usage',
 

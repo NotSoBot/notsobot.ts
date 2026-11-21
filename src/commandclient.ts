@@ -41,7 +41,7 @@ import {
   untrackCommandRun,
 } from './utils';
 import { AutoEmbedLink, AutoEmbedSources, findAutoEmbedLink, getAutoEmbedLink } from './utils/autoembed';
-import { fillApplicationCommandPermissions } from './utils/commandpermissions';
+import { isPrefixCommandBlockedByCommandPermissions } from './utils/commandpermissions';
 
 
 
@@ -101,21 +101,18 @@ export class NotSoCommandClient extends CommandClient {
       return true;
     }
 
-    if (!isAdmin && context.channel && member) {
-      // its slash version's overrides, or the app-wide ones (every command, also the prefix-only ones like `ocr`)
+    // discord applies its command permissions (Integrations) to slash commands only, the server picks which of them
+    // prefix commands follow (`/server-rules integrations`): by default the ones on their own slash command
+    if (!isAdmin && settings && context.channel && member) {
+      const mode = settings.prefixCommandPermissions;
       const applicationCommandIds = getSlashCommandIds(context.interactionCommandClient, commandId, guildId);
-      try {
-        await fillApplicationCommandPermissions(context, guildId);
-      } catch(error) {
-
-      }
-      if (!context.client.applicationCommandPermissions.isAllowed(guildId, applicationCommandIds, context.channel, member)) {
-        // the server's discord command permissions for its slash version, `onCommandCancel` reacts like a rule
+      if (await isPrefixCommandBlockedByCommandPermissions(context, guildId, applicationCommandIds, context.channel, member, mode)) {
+        // `onCommandCancel` reacts like a rule
         return setCommandGate(context, {kind: 'command_permissions'});
       }
       if (embedCommandId) {
         const embedApplicationCommandIds = getSlashCommandIds(context.interactionCommandClient, embedCommandId, guildId);
-        if (!context.client.applicationCommandPermissions.isAllowed(guildId, embedApplicationCommandIds, context.channel, member)) {
+        if (await isPrefixCommandBlockedByCommandPermissions(context, guildId, embedApplicationCommandIds, context.channel, member, mode)) {
           return setCommandGate(context, {kind: 'command_permissions'});
         }
       }

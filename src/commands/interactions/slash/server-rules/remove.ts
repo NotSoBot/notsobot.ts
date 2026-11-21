@@ -1,10 +1,10 @@
 import { Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, ParsedGuildRuleCoverage, displayReply, isSnowflake } from '../../../../../utils';
+import { StatusEmojis } from '../../../../constants';
+import { Formatter, I18n, ParsedGuildRuleCoverage, displayReply, isSnowflake } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 import { coverageOption, getMissingTargets, targetOptions } from './shared';
 

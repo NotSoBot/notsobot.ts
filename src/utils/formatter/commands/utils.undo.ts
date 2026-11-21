@@ -62,8 +62,16 @@ export async function createMessage(
     }
     triggerIds.push(result.message_trigger_id);
 
-    if (!CommandResponsesStore.wasResponseDeleted(result.message_response_id)) {
-      messageIds.push(result.message_response_id);
+    // with the other messages its run sent (the api may not have the newest ones yet)
+    const responseIds = new Set([
+      result.message_response_id,
+      ...(result.extra_response_ids || []),
+      ...CommandResponsesStore.takeExtraResponses(result.message_trigger_id),
+    ]);
+    for (let responseId of responseIds) {
+      if (CommandResponsesStore.claimDeletion(responseId)) {
+        messageIds.push(responseId);
+      }
     }
     if (result.message_trigger_type === CommandTypes.PREFIXED) {
       count.prefixed++;

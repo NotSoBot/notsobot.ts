@@ -43,9 +43,10 @@ export async function createMessage(
     if (!file.value) {
       throw new Error('Text to Speech wasn\'t made, try again');
     }
-    await VoiceNode.speak(channel.guildId, `tts-${context.userId}-${Date.now().toString(36)}`, file.value);
+    // held while NotSoAI's answering in `.ai listen`, it's said right after the answer
+    const spoken = await VoiceNode.speak(channel.guildId, `tts-${context.userId}-${Date.now().toString(36)}`, file.value);
     const { translate } = await getTranslator(context);
-    return displayReply(context, {description: translate('music_tts.saying')});
+    return displayReply(context, {description: translate((spoken === 'held') ? 'music_tts.saying_after' : 'music_tts.saying')});
   }
 
   // hosted by us so it's queued like any other link to a file, temporary even for users whose uploads are permanent
