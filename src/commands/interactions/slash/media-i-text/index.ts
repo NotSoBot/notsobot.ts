@@ -11,6 +11,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaIEinsteinCommand } from './einstein';
 import { MediaIFoggyWindowCommand } from './foggy-window';
 import { MediaIHackerCommand } from './hacker';
+import { MediaILuciaCommand } from './lucia';
 import { MediaINeonCommand } from './neon';
 import { MediaIPresidentialCommand } from './presidential';
 import { MediaIRealfactCommand } from './realfact';
@@ -49,6 +50,7 @@ export default class MediaITextGroupCommand extends BaseSlashCommand {
         new MediaIEinsteinCommand(),
         new MediaIFoggyWindowCommand(),
         new MediaIHackerCommand(),
+        new MediaILuciaCommand(),
         new MediaINeonCommand(),
         new MediaIPresidentialCommand(),
         new MediaIRealfactCommand(),

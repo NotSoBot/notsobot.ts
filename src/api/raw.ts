@@ -17,6 +17,7 @@ import {
   NotSoHeaders,
 } from '../constants';
 import { createColorUrl } from '../utils';
+import { UserError } from '../utils/errors';
 
 
 
@@ -2844,6 +2845,76 @@ export async function generateTag(
 }
 
 
+// how long a voice generation's stream can take in all (its spoken sentences, the reply and its checks)
+const GENERATE_TAG_VOICE_TIMEOUT = 3 * 60 * 1000;
+
+// NotSoAI asked by voice (`.ai listen`): the api answers with newline delimited json, each spoken sentence (with its
+// speech) goes to `onVoice` as soon as it's written, then the usual result. An error after it started streaming comes as
+// a line too, thrown here like the api's other errors (`message` is the api's)
+export async function generateTagVoice(
+  context: RequestContext,
+  options: RestOptions.GenerateTag,
+  onVoice: (line: RestResponsesRaw.GenerateTagVoiceLine) => void,
+): Promise<RestResponsesRaw.GenerateTag> {
+  const body = {
+    credits_alert: options.creditsAlert || undefined,
+    memory: options.memory,
+    model: options.model,
+    parent_id: options.parentId,
+    personality: options.personality,
+    personality_preference: options.personalityPreference,
+    prompt: options.prompt,
+    situation: options.situation,
+    voice: true,
+  };
+  const response: Response = await request(context, {
+    body,
+    dataOnly: false,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.TAGS_GENERATE,
+    },
+    timeout: GENERATE_TAG_VOICE_TIMEOUT,
+  });
+  const stream = response.body;
+  if (!stream) {
+    throw new Error('NotSoAI\'s voice reply was empty');
+  }
+  const decoder = new TextDecoder();
+  let buffered = '';
+  let result: null | RestResponsesRaw.GenerateTag = null;
+  const handle = (line: string) => {
+    if (!line.trim()) {
+      return;
+    }
+    const data = JSON.parse(line);
+    if (data.type === 'voice') {
+      onVoice({audio: (typeof(data.audio) === 'string') ? data.audio : null, text: String(data.text || '')});
+    } else if (data.type === 'result') {
+      const { type, ...rest } = data;
+      result = rest;
+    } else if (data.type === 'error') {
+      throw new UserError(String(data.message || 'NotSoAI couldn\'t answer, try again'));
+    }
+  };
+  for await (const chunk of stream as AsyncIterable<Uint8Array>) {
+    // a voice line's audio comes in many chunks, only the new text is searched for its end
+    let start = 0, from = buffered.length;
+    buffered += decoder.decode(chunk, {stream: true});
+    for (let newline = buffered.indexOf('\n', from); newline !== -1; newline = buffered.indexOf('\n', start)) {
+      handle(buffered.slice(start, newline));
+      start = newline + 1;
+    }
+    buffered = buffered.slice(start);
+  }
+  handle(buffered + decoder.decode());
+  if (!result) {
+    throw new Error('NotSoAI\'s voice reply ended early, try again');
+  }
+  return result;
+}
+
+
 export async function googleContentVisionLabels(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionBase,
@@ -4358,6 +4429,7 @@ export async function mediaAVToolsTranscribe(
     file: options.fileFormat,
     highlight: options.highlight,
     url: options.url,
+    vad: options.vad || undefined,
   };
   return request(context, {
     file: options.file,
@@ -4616,6 +4688,26 @@ export async function mediaICreateWoodenSign(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_WOODEN_SIGN,
+    },
+  });
+}
+
+
+export async function mediaICreateLucia(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_LUCIA,
     },
   });
 }

@@ -238,6 +238,8 @@ export const Api = Object.freeze({
     '/media/i/create/quote',
   MEDIA_I_CREATE_REALFACT:
     '/media/i/create/realfact',
+  MEDIA_I_CREATE_LUCIA:
+    '/media/i/create/lucia',
   MEDIA_I_CREATE_RETROWAVE:
     '/media/i/create/retrowave',
   MEDIA_I_CREATE_EINSTEIN:

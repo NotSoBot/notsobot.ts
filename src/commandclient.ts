@@ -93,6 +93,8 @@ export class NotSoCommandClient extends CommandClient {
 
     const { channel, member } = context;
     const commandId = getCommandIdFromInvoker(command);
+    // an auto-embed runs `download`, but someone who blocked `embed` means no embeds either, so it has to get past both
+    const embedCommandId = (getAutoEmbedLink(context)) ? Formatter.Commands.ToolsEmbed.COMMAND_ID : null;
     // the owner and admins skip the rules unless the server turned that off (for every rule or one)
     const isAdmin = !!member && (member.isOwner || member.canAdministrator);
     if (isAdmin && (!settings || isGuildRulesCommandId(commandId))) {
@@ -111,6 +113,12 @@ export class NotSoCommandClient extends CommandClient {
         // the server's discord command permissions for its slash version, `onCommandCancel` reacts like a rule
         return setCommandGate(context, {kind: 'command_permissions'});
       }
+      if (embedCommandId) {
+        const embedApplicationCommandIds = getSlashCommandIds(context.interactionCommandClient, embedCommandId, guildId);
+        if (!context.client.applicationCommandPermissions.isAllowed(guildId, embedApplicationCommandIds, context.channel, member)) {
+          return setCommandGate(context, {kind: 'command_permissions'});
+        }
+      }
     }
 
     if (settings) {
@@ -127,6 +135,23 @@ export class NotSoCommandClient extends CommandClient {
         // only rules with a message tell the user anything, see `onCommandCancel`. the rule is for the server's
         // auto-warn on blocked commands, its reason says which rule
         return setCommandGate(context, {kind: 'rule', message: match.rule.value.message || null, rule: match.rule});
+      }
+      if (embedCommandId) {
+        // only a rule on `embed` itself counts: its category is `download`'s too, so a category or everything rule already
+        // decided above, where a rule allowing `download` can win over a blocked category. whoever/wherever the rule
+        // targets still goes first, so a channel that allows everything wins over `embed` blocked server-wide
+        const embedMatch = resolveGuildRule(settings, GuildRuleActions.ACCESS, {
+          category: getCommandCategory(this, embedCommandId),
+          channel: channel || null,
+          channelId: context.channelId,
+          commandId: embedCommandId,
+          isAdmin,
+          member: member || null,
+          userId: context.userId,
+        });
+        if (embedMatch && !embedMatch.rule.allows && embedMatch.rule.command === embedCommandId) {
+          return setCommandGate(context, {kind: 'rule', message: embedMatch.rule.value.message || null, rule: embedMatch.rule});
+        }
       }
       return true;
     }

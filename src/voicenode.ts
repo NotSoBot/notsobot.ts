@@ -96,7 +96,11 @@ type NodeEvent =
   // a listen's last few seconds of audio (a base64 ogg opus file) every few seconds of new audio, then its end. `userId`
   // is null when it's listening to everyone
   {op: 'LISTEN_AUDIO', data: {audio: string, duration: number, guildId: string, heard: number, userId: null | string}} |
-  {op: 'LISTEN_END', data: {guildId: string, heard: number, reason: string, userId: null | string}};
+  // a listen with `utterances`: one thing they said (a base64 ogg opus file), once they stopped talking
+  {op: 'LISTEN_UTTERANCE', data: {audio: string, duration: number, guildId: string, userId: string}} |
+  {op: 'LISTEN_END', data: {guildId: string, heard: number, reason: string, userId: null | string}} |
+  // a `speak` clip is done (`finished`, `stopped`, `voice`, `failed`)
+  {op: 'SPEAK_END', data: {guildId: string, id: string, reason: string}};
 
 // why a listen ended: the node's (`stopped` when we asked, `time` its duration ran out, `voice` its voice connection
 // went, `replaced`, `destroyed`, `failed` it couldn't mix everyone), `left` when we left the channel, `timeout` when the
@@ -105,8 +109,10 @@ export type ListenEndReason = 'destroyed' | 'failed' | 'left' | 'replaced' | 'st
 
 export interface ListenHandlers {
   // the latest few seconds of their audio, an ogg opus file
-  onAudio: (audio: Buffer, heard: number) => void,
+  onAudio?: (audio: Buffer, heard: number) => void,
   onEnd: (reason: ListenEndReason) => void,
+  // with `utterances`: one thing they said, an ogg opus file (`duration` milliseconds)
+  onUtterance?: (audio: Buffer, duration: number) => void,
 }
 
 // a guild's listen, one at a time. `timeout` gives up on it if the node never ends it
@@ -2177,8 +2183,19 @@ export class VoiceNodeClient extends EventSpewer {
       }; break;
       case 'LISTEN_AUDIO': {
         const listen = this.listens.get(guildId);
-        if (listen && !listen.stopping && listen.userId === event.data.userId && typeof(event.data.audio) === 'string') {
+        if (listen && listen.onAudio && !listen.stopping && listen.userId === event.data.userId && typeof(event.data.audio) === 'string') {
           listen.onAudio(Buffer.from(event.data.audio, 'base64'), event.data.heard);
+        }
+      }; break;
+      case 'LISTEN_UTTERANCE': {
+        const listen = this.listens.get(guildId);
+        if (listen && listen.onUtterance && !listen.stopping && listen.userId === event.data.userId && typeof(event.data.audio) === 'string') {
+          listen.onUtterance(Buffer.from(event.data.audio, 'base64'), event.data.duration);
+        }
+      }; break;
+      case 'SPEAK_END': {
+        if (event.data.reason !== 'finished') {
+          log.debug(`voice node speech ${guildId} ${event.data.id} ${event.data.reason}`);
         }
       }; break;
       case 'LISTEN_END': {
@@ -2205,9 +2222,13 @@ export class VoiceNodeClient extends EventSpewer {
     userId: null | string,
     duration: number,
     handlers: ListenHandlers,
+    options: {utterances?: boolean} = {},
   ): Promise<void> {
     if (this.detached) {
       throw new Error('Music was just reloaded, try again');
+    }
+    if (options.utterances && !userId) {
+      throw new Error('Utterances are only one person\'s');
     }
     if (this.listens.has(guildId)) {
       throw new VoiceListenError('busy');
@@ -2240,7 +2261,9 @@ export class VoiceNodeClient extends EventSpewer {
       // before our voice reaches a new player the node holds it, it starts once the voice connection's up
       await this.playerOp(listening, async () => {
         if (this.guilds.get(guildId) === listening && this.listens.get(guildId) === listen) {
-          await listening.node.updatePlayer(guildId, {listen: (userId) ? {duration, userId} : {duration, everyone: true}});
+          await listening.node.updatePlayer(guildId, {
+            listen: (userId) ? {duration, userId, ...((options.utterances) ? {utterances: true} : {})} : {duration, everyone: true},
+          });
         }
       });
     } catch(error) {
@@ -2273,6 +2296,34 @@ export class VoiceNodeClient extends EventSpewer {
     }).catch((error) => {
       log.warn(`voice node ${guild.node.info.name} stop listening ${guildId}`, error);
       this.giveUpListen(guildId, listen);
+    });
+  }
+
+  // NotSoAI says `audio` (an ogg opus file) in the guild's voice channel right away: over the music if it's playing (the
+  // music ducked under it), otherwise on its own. Clips play in the order they're sent. Not in a channel, it's dropped
+  // `audio` a base64 ogg opus file (it goes to the node as it is)
+  async speak(guildId: string, id: string, audio: string): Promise<void> {
+    const guild = this.guilds.get(guildId);
+    if (!guild || guild.phase.name === 'disconnected') {
+      return;
+    }
+    await this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) === guild) {
+        await guild.node.updatePlayer(guildId, {speak: {audio, id}});
+      }
+    });
+  }
+
+  // stops what NotSoAI's saying and drops the clips after it
+  async stopSpeaking(guildId: string): Promise<void> {
+    const guild = this.guilds.get(guildId);
+    if (!guild) {
+      return;
+    }
+    await this.playerOp(guild, async () => {
+      if (this.guilds.get(guildId) === guild) {
+        await guild.node.updatePlayer(guildId, {speak: null});
+      }
     });
   }
 

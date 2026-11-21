@@ -9,6 +9,7 @@ import UserSettingsStore from '../../../stores/usersettings';
 import {
   fetchCommandsResponses,
   generateTag,
+  generateTagVoice,
   mediaAIVToolsAnalyze,
   putGeneratedTagError,
   utilitiesFetchText,
@@ -77,6 +78,31 @@ export async function createMessage(
   const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate));
   try {
     return await generateAndRunTag(context, args, thinking);
+  } finally {
+    await thinking.stop();
+  }
+}
+
+
+// one thing said to NotSoAI in voice (`.ai listen`): answered like a message (a new reply each turn), its spoken
+// sentences go to `onSpeech` as they're written (`audio` a base64 ogg opus file, null when the speech couldn't be made)
+export interface AIVoiceTurn {
+  // shown above the reply, so a misheard word is easy to spot
+  heard?: string,
+  onSpeech: (audio: null | string, text: string) => void,
+  // the turn before's response, so the whole session is one conversation
+  parentId: null | string,
+  // set once the api answered, the next turn's `parentId`
+  responseId?: string,
+}
+
+// `prompt` is what they said (transcribed). The command's reply isn't edited, each turn sends its own (replying to one
+// continues the conversation in text)
+export async function createVoiceMessage(context: Command.Context, prompt: string, voice: AIVoiceTurn) {
+  context.commandClient.replies.delete(context.messageId);
+  const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate));
+  try {
+    return await generateAndRunTag(context, {prompt}, thinking, undefined, voice);
   } finally {
     await thinking.stop();
   }
@@ -169,6 +195,7 @@ async function generateAndRunTag(
   args: CommandArgs,
   thinking: ThinkingReply,
   continuation?: AIContinuation,
+  voice?: AIVoiceTurn,
 ) {
   const urls: Array<string> = [];
   const promptExtra: Array<string> = [];
@@ -181,6 +208,12 @@ async function generateAndRunTag(
     // a press has no message of its own, the conversation (and its media) is already in the earlier turns
     parentId = continuation.parentId;
     if (UNTRUSTED_RESPONSES.get(parentId) !== false) {
+      isUntrusted = true;
+    }
+  } else if (voice) {
+    // only what they said, the command message's media and replies were for starting the listen
+    parentId = voice.parentId;
+    if (parentId && UNTRUSTED_RESPONSES.get(parentId) !== false) {
       isUntrusted = true;
     }
   } else if (context instanceof Command.Context) {
@@ -333,7 +366,7 @@ async function generateAndRunTag(
   );
 
   const now = Date.now();
-  const response = await generateTag(context, {
+  const generateOptions: RestOptions.GenerateTag = {
     creditsAlert: true,
     memory: true,
     model: args.model,
@@ -343,12 +376,24 @@ async function generateAndRunTag(
     prompt: [args.prompt, ...promptExtra].join('\n'),
     situation: getAISituation(context, !!continuation),
     urls,
-  });
+  };
+  let response: RestResponsesRaw.GenerateTag;
+  if (voice) {
+    generateOptions.situation = {...generateOptions.situation!, invoked: 'voice'};
+    response = await generateTagVoice(context, generateOptions, (line) => {
+      voice.onSpeech(line.audio, line.text);
+    });
+  } else {
+    response = await generateTag(context, generateOptions);
+  }
   if (response.id) {
     // saved with the command's response (`onFinally`), so a reply to it can continue this conversation. a continuation's
-    // message is stored once it's sent, the command's own reply keeps the first response
-    if (!continuation) {
+    // (and a voice turn's) message is stored once it's sent, the command's own reply keeps the first response
+    if (!continuation && !voice) {
       context.metadata = Object.assign({}, context.metadata, {llmResponseId: response.id});
+    }
+    if (voice) {
+      voice.responseId = response.id;
     }
     UNTRUSTED_RESPONSES.set(response.id, isUntrusted);
   }
@@ -426,6 +471,9 @@ async function generateAndRunTag(
       const { translate } = await getTranslator(context);
       parsedTag.text = [parsedTag.text.trimEnd(), `-# ${translate('tag_generate.confirm_declined')}`].join('\n');
     }
+    if (voice && voice.heard) {
+      parsedTag.text = [`-# Heard: ${Markup.escape.all(JSON.stringify(voice.heard))}`, parsedTag.text].join('\n');
+    }
     // they used up most of the week's credits, said once a week
     if (response.credits_alert) {
       const { language, translate } = await getTranslator(context);
@@ -442,6 +490,8 @@ async function generateAndRunTag(
       if (message) {
         CommandResponsesStore.insertLLMResponse(message.id, responseId, context.userId);
       }
+    } else if (voice && responseId && context instanceof Command.Context && context.response) {
+      CommandResponsesStore.insertLLMResponse(context.response.id, responseId, context.userId);
     }
     return result;
   } catch(error) {
@@ -457,7 +507,7 @@ async function generateAndRunTag(
     // caught here so it can reply with the debug info, but it still counts as the run erroring. NotSoAI writing broken
     // tagscript is already kept with the generated tag above, only our own failures go to sentry. api responses were
     // reported where they were seen (and coded ones, like media blocked for being nsfw, are expected)
-    if (!continuation) {
+    if (!continuation && !voice) {
       setCommandResult(context, await getRunErrorResult(error));
     }
     if (!TagFormatter.isTagError(error) && !error.response && !(error instanceof UserError)) {

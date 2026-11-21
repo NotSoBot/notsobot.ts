@@ -24,7 +24,7 @@ export default class SetAutoEmbedCommand extends BaseCommand {
       label: 'args',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'See or change which sites get auto-embedded: a message whose only link is to a post on one of them gets the media downloaded, like `download`, with `-text off` only the media without the post\'s text, and `-gallery pages` shows posts with more than one media one per page (premium servers). `-members off` stops premium members auto-embedding their own links here',
+        description: 'See or change which sites get auto-embedded: a message whose only link is to a post on one of them gets the media downloaded, like `download`, with `-text off` only the media without the post\'s text, and `-gallery pages` shows posts with more than one media one per page (premium servers). `-members off` stops premium members auto-embedding their own links here. A rule blocking `download` or `embed` stops it too',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} on`,

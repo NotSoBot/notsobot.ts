@@ -694,8 +694,9 @@ export namespace RestOptions {
   export interface GenerateTagSituation {
     channel_name?: string,
     display_name?: string,
-    // how they asked: a prefix, an @mention, replying to NotSoAI, `/ai`, or one of its `ai` buttons
-    invoked: 'button' | 'mention' | 'prefix' | 'reply' | 'slash',
+    // how they asked: a prefix, an @mention, replying to NotSoAI, `/ai`, one of its `ai` buttons, or talking in voice
+    // (`.ai listen`)
+    invoked: 'button' | 'mention' | 'prefix' | 'reply' | 'slash' | 'voice',
     // `server_user_app` is a server NotSoBot isn't in (only its slash commands work there), `private_channel` a dm or
     // group dm between users through the user app
     location: 'bot_dm' | 'group_dm' | 'private_channel' | 'server' | 'server_user_app',
@@ -1043,6 +1044,8 @@ export namespace RestOptions {
     fileFormat?: TranscribeFileFormats,
     // the ass highlights the word being said, the lrc times each word
     highlight?: boolean,
+    // only what sounds like speech is transcribed (nothing invented over silence or music, singing can be dropped)
+    vad?: boolean,
   }
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {
@@ -3562,6 +3565,15 @@ export namespace RestResponsesRaw {
       output_tokens: number,
       output_tokens_reasoning: number,
     },
+    // what its `<voice>` block said out loud, a voice request's (`generateTagVoice`)
+    voice?: null | string,
+  }
+
+  // a voice request's spoken sentence (`generateTagVoice`), `audio` its speech in their Default TTS Voice (a base64 48khz
+  // ogg opus file), null when it couldn't be made
+  export interface GenerateTagVoiceLine {
+    audio: null | string,
+    text: string,
   }
 
   export interface GoogleContentVisionLabels {

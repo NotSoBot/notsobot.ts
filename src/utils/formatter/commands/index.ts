@@ -1,3 +1,4 @@
+import * as AIListen from './ai.listen';
 import * as FontsAdd from './fonts.add';
 import * as FontsList from './fonts.list';
 import * as FontsRemove from './fonts.remove';
@@ -106,6 +107,7 @@ import * as MediaAVToolsIdentify from './media.av.tools.identify';
 import * as MediaICreateEinstein from './media.i.create.einstein';
 import * as MediaICreateFoggyWindow from './media.i.create.foggy.window';
 import * as MediaICreateHacker from './media.i.create.hacker';
+import * as MediaICreateLucia from './media.i.create.lucia';
 import * as MediaICreateNeon from './media.i.create.neon';
 import * as MediaICreatePresidential from './media.i.create.presidential';
 import * as MediaICreateRealfact from './media.i.create.realfact';
@@ -848,6 +850,7 @@ import * as VoiceServer from './voice.server';
 
 
 export {
+  AIListen,
   FontsAdd,
   FontsList,
   FontsRemove,
@@ -956,6 +959,7 @@ export {
   MediaICreateEinstein,
   MediaICreateFoggyWindow,
   MediaICreateHacker,
+  MediaICreateLucia,
   MediaICreateNeon,
   MediaICreatePresidential,
   MediaICreateRealfact,

@@ -1272,6 +1272,15 @@ export async function generateTag(
 }
 
 
+export async function generateTagVoice(
+  context: RequestContext,
+  options: RestOptions.GenerateTag,
+  onVoice: (line: RestResponsesRaw.GenerateTagVoiceLine) => void,
+) {
+  return raw.generateTagVoice(context, options, onVoice);
+}
+
+
 export async function googleContentVisionLabels(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionBase,
@@ -1877,6 +1886,14 @@ export async function mediaICreateWoodenSign(
   options: RestOptions.MediaICreateText,
 ) {
   return raw.mediaICreateWoodenSign(context, options);
+}
+
+
+export async function mediaICreateLucia(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+) {
+  return raw.mediaICreateLucia(context, options);
 }
 
 
