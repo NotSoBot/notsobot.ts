@@ -626,18 +626,18 @@ export function formatPost(
   const { language, translate } = translator;
   const above: Array<string> = [];
 
-  const name = (post.author_name) ? Markup.escape.all(post.author_name) : null;
-  const handle = (post.author_username) ? Markup.escape.all(`@${post.author_username}`) : null;
-  const link = (text: string) => (post.author_url) ? Markup.url(text, `<${post.author_url}>`) : text;
+  // raw for link text (discord shows backslashes inside `[text](url)`), escaped everywhere else
+  const name = post.author_name || null;
+  const handle = (post.author_username) ? `@${post.author_username}` : null;
+  const link = (text: string) => (post.author_url) ? Markup.url(text, `<${post.author_url}>`) : Markup.escape.all(text);
   if (post.title) {
-    const title = Markup.escape.all(post.title);
-    above.push(`### ${(post.url) ? Markup.url(title, `<${post.url}>`) : title}`);
+    above.push(`### ${(post.url) ? Markup.url(post.title, `<${post.url}>`) : Markup.escape.all(post.title)}`);
     if (name || handle) {
       // small, the title is what matters
       above.push(`-# ${translate('search_youtube.uploaded_by', {name: link((name || handle)!)})}`);
     }
   } else if (name && handle) {
-    above.push(`**${name}** (${link(handle)})`);
+    above.push(`**${Markup.escape.all(name)}** (${link(handle)})`);
   } else if (name || handle) {
     above.push(`**${link((name || handle)!)}**`);
   }
@@ -649,11 +649,11 @@ export function formatPost(
   // > its text
   const quoted = post.quoted;
   if (quoted) {
-    const quotedName = (quoted.author_name) ? Markup.escape.all(quoted.author_name) : null;
-    const quotedHandle = (quoted.author_username) ? Markup.escape.all(`@${quoted.author_username}`) : null;
+    const quotedName = quoted.author_name || null;
+    const quotedHandle = (quoted.author_username) ? `@${quoted.author_username}` : null;
     const who = (quotedName && quotedHandle) ? `${quotedName} (${quotedHandle})` : (quotedName || quotedHandle);
     if (who) {
-      above.push(`-# ${translate('tools_download.quoting', {name: (quoted.url) ? Markup.url(who, `<${quoted.url}>`) : who})}`);
+      above.push(`-# ${translate('tools_download.quoting', {name: (quoted.url) ? Markup.url(who, `<${quoted.url}>`) : Markup.escape.all(who)})}`);
     }
     if (quoted.text) {
       // by code point, an emoji cut in half would show as garbage
@@ -665,9 +665,8 @@ export function formatPost(
 
   const below: Array<string> = [];
   if (post.site) {
-    const site = Markup.escape.all(post.site);
     const emoji = getPostSiteEmoji(post);
-    const text = (post.url) ? Markup.url(site, `<${post.url}>`) : site;
+    const text = (post.url) ? Markup.url(post.site, `<${post.url}>`) : Markup.escape.all(post.site);
     below.push((emoji) ? `${emoji} ${text}` : text);
   }
   if (post.timestamp) {

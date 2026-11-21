@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { funTextToSpeech } from '../../../api';
 import { TTSVoices } from '../../../constants';
 import { displayReply } from '../../../utils';
+import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
 import * as MusicPlay from './music.play';
@@ -11,6 +12,8 @@ import * as MusicPlay from './music.play';
 export const COMMAND_ID = 'music.tts';
 
 export interface CommandArgs {
+  // queued like a song instead of said right away over the music
+  queue?: boolean,
   text: string,
   use?: {voice: TTSVoices, voiceId?: string},
 }
@@ -24,6 +27,25 @@ export async function createMessage(
   if (!channel) {
     const { translate } = await getTranslator(context);
     return displayReply(context, {description: translate(error)});
+  }
+
+  // we're in their channel already: said right away like `.ai listen`'s replies, over the music (ducked under it) while
+  // it plays, otherwise on its own. Not there yet, it's queued (that joins)
+  const guild = VoiceNode.guilds.get(channel.guildId);
+  if (!args.queue && guild && !guild.disconnected && guild.channelId === channel.id) {
+    const response = await funTextToSpeech(context, {
+      text: args.text,
+      voice: args.use && args.use.voice,
+      voiceClip: true,
+      voiceId: args.use && args.use.voiceId,
+    });
+    const { file } = response.items[0];
+    if (!file.value) {
+      throw new Error('Text to Speech wasn\'t made, try again');
+    }
+    await VoiceNode.speak(channel.guildId, `tts-${context.userId}-${Date.now().toString(36)}`, file.value);
+    const { translate } = await getTranslator(context);
+    return displayReply(context, {description: translate('music_tts.saying')});
   }
 
   // hosted by us so it's queued like any other link to a file, temporary even for users whose uploads are permanent

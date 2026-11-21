@@ -69,6 +69,8 @@ const TRACK_ERROR_LISTEN_FOR = 6 * 60 * 60 * 1000;
 const LISTEN_END_GRACE = 15 * 1000;
 // after asking the node to stop, this long for its `LISTEN_END`
 const LISTEN_STOP_WAIT = 5 * 1000;
+// speech held for NotSoAI's answer (`speechTurns`) goes out after this long anyway, a turn that never ended
+const SPEECH_HOLD_MAX = 60 * 1000;
 
 export type MoveReason =
   // the node was disabled, between tracks (the old player is still there to ask and destroy)
@@ -932,6 +934,10 @@ export class VoiceNodeClient extends EventSpewer {
   guilds = new Map<string, GuildVoice>();
   // by guild, someone's audio the node is sending us (`listen`), we're undeafened while one runs
   listens = new Map<string, GuildListen>();
+  // NotSoAI's answer being said (`speak` with `turn`): from its first clip until `endSpeechTurn`. Other speech (`tts
+  // play`) is held until then, it goes right after the answer's clips instead of between its sentences (the node plays
+  // clips in the order they're sent, `playerOp` keeps that order)
+  speechTurns = new Map<string, {held: Array<{audio: string, id: string}>, timeout: null | ReturnType<typeof setTimeout>}>();
   // by queue item id (oldest first), told the node's error when it couldn't play that item (until the item ends, we
   // leave or `TRACK_ERROR_LISTEN_FOR`)
   trackErrorListeners = new Map<string, {addedAt: number, guildId: string, listener: (error: string) => void}>();
@@ -2299,10 +2305,42 @@ export class VoiceNodeClient extends EventSpewer {
     });
   }
 
-  // NotSoAI says `audio` (an ogg opus file) in the guild's voice channel right away: over the music if it's playing (the
-  // music ducked under it), otherwise on its own. Clips play in the order they're sent. Not in a channel, it's dropped
-  // `audio` a base64 ogg opus file (it goes to the node as it is)
-  async speak(guildId: string, id: string, audio: string): Promise<void> {
+  // says `audio` (a base64 ogg opus file, it goes to the node as it is) in the guild's voice channel: over the music if
+  // it's playing (the music ducked under it), otherwise on its own. Clips play in the order they're sent. Not in a
+  // channel, it's dropped. `turn` is a sentence of NotSoAI's answer (`.ai listen`), anything else waits while one's
+  // being said (`speechTurns`)
+  async speak(guildId: string, id: string, audio: string, options: {turn?: boolean} = {}): Promise<void> {
+    const turn = this.speechTurns.get(guildId);
+    if (options.turn) {
+      if (!turn) {
+        this.speechTurns.set(guildId, {held: [], timeout: null});
+      }
+    } else if (turn) {
+      turn.held.push({audio, id});
+      if (!turn.timeout) {
+        turn.timeout = setTimeout(() => this.endSpeechTurn(guildId), SPEECH_HOLD_MAX);
+      }
+      return;
+    }
+    return this.sendSpeech(guildId, id, audio);
+  }
+
+  // NotSoAI's answer has all been sent (its turn's over, or it was stopped): the speech held for it goes after it
+  endSpeechTurn(guildId: string) {
+    const turn = this.speechTurns.get(guildId);
+    if (!turn) {
+      return;
+    }
+    this.speechTurns.delete(guildId);
+    if (turn.timeout) {
+      clearTimeout(turn.timeout);
+    }
+    for (const clip of turn.held) {
+      this.sendSpeech(guildId, clip.id, clip.audio).catch((error) => log.warn(`voice node held speech ${guildId}`, error));
+    }
+  }
+
+  private async sendSpeech(guildId: string, id: string, audio: string): Promise<void> {
     const guild = this.guilds.get(guildId);
     if (!guild || guild.phase.name === 'disconnected') {
       return;
@@ -2314,17 +2352,20 @@ export class VoiceNodeClient extends EventSpewer {
     });
   }
 
-  // stops what NotSoAI's saying and drops the clips after it
+  // stops what NotSoAI's saying and drops the clips after it. Speech held for its answer goes then
   async stopSpeaking(guildId: string): Promise<void> {
     const guild = this.guilds.get(guildId);
-    if (!guild) {
-      return;
+    if (guild) {
+      // queued before the held speech is sent, so it isn't dropped with the rest
+      const stopping = this.playerOp(guild, async () => {
+        if (this.guilds.get(guildId) === guild) {
+          await guild.node.updatePlayer(guildId, {speak: null});
+        }
+      });
+      this.endSpeechTurn(guildId);
+      return stopping;
     }
-    await this.playerOp(guild, async () => {
-      if (this.guilds.get(guildId) === guild) {
-        await guild.node.updatePlayer(guildId, {speak: null});
-      }
-    });
+    this.endSpeechTurn(guildId);
   }
 
   // the node never ended it (or couldn't be asked to stop): it's over here, and we tell the node in case it's still going

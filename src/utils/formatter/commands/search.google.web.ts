@@ -35,7 +35,7 @@ export async function createMessage(
 
   const suggestionText = (
     (suggestion) ?
-    translate('search_google_web.did_you_mean', {value: Markup.bold(Markup.url(Markup.escape.all(suggestion.text), `<${suggestion.url}>`))}) :
+    translate('search_google_web.did_you_mean', {value: Markup.bold(Markup.url(suggestion.text, `<${suggestion.url}>`))}) :
     null
   );
 
@@ -84,7 +84,7 @@ export async function createMessage(
               if (result.suggestions.length) {
                 const suggestions = result.suggestions.map((suggestion: {text: string, url: string}) => {
                   if (suggestion.url.length < 100) {
-                    return Markup.url(Markup.escape.all(suggestion.text), `<${suggestion.url}>`);
+                    return Markup.url(suggestion.text, `<${suggestion.url}>`);
                   }
                 }).filter((v: string | undefined) => v);
                 if (suggestions.length) {

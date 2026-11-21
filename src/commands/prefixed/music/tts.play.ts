@@ -14,6 +14,7 @@ export default class TTSPlayCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
+        {name: 'queue', aliases: ['q'], type: Boolean},
         {
           name: 'use',
           type: Parameters.textToSpeechVoice,
@@ -22,14 +23,15 @@ export default class TTSPlayCommand extends BaseCommand {
       disableDm: true,
       label: 'text',
       metadata: {
-        description: 'Say Text to Speech in your voice channel (queued like a song)',
+        description: 'Say Text to Speech in your voice channel, over the music (or queued like a song with -queue)',
         examples: [
           `${COMMAND_NAME} give me a table`,
           `${COMMAND_NAME} give me a table -use klattsch`,
+          `${COMMAND_NAME} give me a table -queue`,
         ],
         category: CommandCategories.MUSIC,
         id: Formatter.Commands.MusicTTS.COMMAND_ID,
-        usage: '<text> (-use <language/type>)',
+        usage: '<text> (-queue) (-use <language/type>)',
       },
       type: Parameters.targetTextWithParsedMentions,
     });

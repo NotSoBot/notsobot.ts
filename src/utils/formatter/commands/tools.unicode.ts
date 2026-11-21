@@ -55,7 +55,7 @@ export async function createMessage(
     return [
       Markup.codestring(`U+${hex}`),
       glyph,
-      Markup.url(Markup.escape.all(character.name), `<${url}>`),
+      Markup.url(character.name, `<${url}>`),
     ].filter(Boolean).join(' ');
   }));
 

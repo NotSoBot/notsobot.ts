@@ -135,7 +135,7 @@ async function runTurn(context: Command.Context, guildId: string, session: Sessi
       onSpeech: (speech) => {
         if (speech && session.ended === null) {
           const id = `ai-${Date.now().toString(36)}-${++session.speeches}`;
-          VoiceNode.speak(guildId, id, speech).catch((error) => log.warn(`ai listen speak ${guildId}`, error));
+          VoiceNode.speak(guildId, id, speech, {turn: true}).catch((error) => log.warn(`ai listen speak ${guildId}`, error));
         }
       },
       parentId: session.parentId,
@@ -151,6 +151,8 @@ async function runTurn(context: Command.Context, guildId: string, session: Sessi
     context.commandClient.replies.delete(context.messageId);
     await displayReply(context, {description: `${StatusEmojis.WARNING} ${description}`}).catch(() => {});
   } finally {
+    // its sentences have all been sent, speech held for them (`tts play`) goes after them
+    VoiceNode.endSpeechTurn(guildId);
     session.busy = false;
     const next = session.pending;
     session.pending = null;

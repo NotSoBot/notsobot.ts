@@ -51,8 +51,7 @@ function escapeDescription(text: string): string {
 }
 
 function formatChannel(channel: {name: string, url: string}): string {
-  const name = Markup.escape.all(channel.name);
-  return (channel.url) ? Markup.url(name, `<${channel.url}>`) : name;
+  return (channel.url) ? Markup.url(channel.name, `<${channel.url}>`) : Markup.escape.all(channel.name);
 }
 
 
@@ -134,7 +133,7 @@ export async function createMessage(
               const videos: Array<string> = [];
               for (let video of playlist.videos) {
                 const duration = moment.duration(video.duration, 'seconds').format(MOMENT_FORMAT, DateMomentOptions);
-                videos.push(`${Markup.url(Markup.escape.all(video.title), `<${video.url}>`)} · ${duration}`);
+                videos.push(`${Markup.url(video.title, `<${video.url}>`)} · ${duration}`);
               }
               videos.push(Markup.url(`View all ${playlist.video_count.toLocaleString(language)} videos`, `<${result.url}>`));
               payload.fields!.push({name: translate('search_youtube.playlist_videos'), value: videos.join('\n')});

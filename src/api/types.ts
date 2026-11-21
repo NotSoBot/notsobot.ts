@@ -686,6 +686,8 @@ export namespace RestOptions {
     text: string,
     voice?: string,
     voiceId?: string,
+    // 48khz stereo ogg opus (a minute at most), what `VoiceNode.speak` plays over the music
+    voiceClip?: boolean,
   }
 
   

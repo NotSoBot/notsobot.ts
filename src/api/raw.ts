@@ -2803,6 +2803,7 @@ export async function funTextToSpeech(
     upload_expires_in: options.uploadExpiresIn,
     upload_temporary: options.uploadTemporary,
     voice: options.voice,
+    voice_clip: options.voiceClip || undefined,
     voice_id: options.voiceId,
   };
   return request(context, {

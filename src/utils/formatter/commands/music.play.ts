@@ -343,9 +343,8 @@ export async function createMessage(
   // beside them, where a pick would land under the menu
   const description = results.map((result, index) => {
     const track = result.track!;
-    const title = Markup.escape.all(track.title);
     return displayDetailsLine([
-      `**${index + 1}.** ${(result.url && /^https?:\/\//.test(result.url)) ? Markup.url(title, `<${result.url}>`) : title}`,
+      `**${index + 1}.** ${(result.url && /^https?:\/\//.test(result.url)) ? Markup.url(track.title, `<${result.url}>`) : Markup.escape.all(track.title)}`,
       (track.artist) ? Markup.escape.all(track.artist) : null,
       Markup.codestring(formatTime(track.duration)),
       (ruledOut[index]) ? `*${ruledOut[index]}*` : null,
