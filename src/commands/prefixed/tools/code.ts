@@ -38,46 +38,34 @@ export default class CodeCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    let code = args.code;
-    let language: CodeLanguages | null = null;
-    let version: string | null = null;
+    let { code, language, version } = parseCode(args.code);
 
-    for (let [attachmentId, attachment] of context.message.attachments) {
-      if (attachment.contentType && attachment.contentType.split('/')[0] === 'text') {
+    // typed code always runs, attachments are copied into `./input` (`$FILE_1`...) for it to read
+    // with nothing typed but a language, the first text attachment is the code instead
+    const attachments = Array.from(context.message.attachments.values());
+    let codeAttachmentId: string | null = null;
+    if (!code.trim()) {
+      const attachment = attachments.find((x) => x.contentType && x.contentType.split('/')[0] === 'text');
+      if (attachment) {
+        codeAttachmentId = attachment.id;
         const response = await context.rest.get(attachment.url, {dataOnly: false});
-        code = await response.text();
-
-        const parsed = getCodeLanguage(attachment.filename.split('.').pop()!);
-        if (parsed) {
-          language = parsed.language;
+        const parsed = parseCode(await response.text());
+        code = parsed.code;
+        if (!language) {
+          const fromFile = parsed.language ? parsed : getCodeLanguage(attachment.filename.split('.').pop()!);
+          if (fromFile) {
+            language = fromFile.language;
+            version = fromFile.version;
+          }
         }
-        break;
-      } else {
-        // maybe add it to the code headers, `load URL`
       }
     }
 
-    const index = code.search(/\s/);
-    if (index !== -1) {
-      let parsed = getCodeLanguage(code.slice(0, index));
-      if (parsed) {
-        code = code.slice(index);
-        language = parsed.language;
-        version = parsed.version;
-      }
-    }
+    const files = attachments
+      .filter((x) => x.id !== codeAttachmentId)
+      .map((x) => ({filename: x.filename, url: x.url}));
 
-    const codeblock = Parameters.codeblock(code);
-    if (codeblock.language) {
-      const parsed = getCodeLanguage(codeblock.language);
-      if (parsed) {
-        language = parsed.language;
-        version = parsed.version || version;
-      }
-    }
-    code = codeblock.text;
-
-    // `-language` was declared but never read, it wins over anything detected from the code or attachment
+    // `-language` wins over anything detected from the code or attachment
     if (args.language) {
       const parsed = getCodeLanguage(args.language.trim());
       if (!parsed) {
@@ -93,6 +81,33 @@ export default class CodeCommand extends BaseCommand {
       return displayReply(context, {description: translate('tools.code.invalid_language', {languages: Formatter.Commands.ToolsCode.languagesText})});
     }
 
-    return Formatter.Commands.ToolsCode.createMessage(context, {code, language, version});
+    return Formatter.Commands.ToolsCode.createMessage(context, {code, files, language, version});
   }
+}
+
+
+// `<language> <code>` and/or a codeblock's language, the codeblock's wins
+function parseCode(value: string): {code: string, language: CodeLanguages | null, version: string | null} {
+  let code = value;
+  let language: CodeLanguages | null = null;
+  let version: string | null = null;
+
+  const trimmed = code.trim();
+  const index = trimmed.search(/\s/);
+  const first = getCodeLanguage((index === -1) ? trimmed : trimmed.slice(0, index));
+  if (first) {
+    code = (index === -1) ? '' : trimmed.slice(index);
+    language = first.language;
+    version = first.version;
+  }
+
+  const codeblock = Parameters.codeblock(code);
+  if (codeblock.language) {
+    const parsed = getCodeLanguage(codeblock.language);
+    if (parsed) {
+      language = parsed.language;
+      version = parsed.version || version;
+    }
+  }
+  return {code: codeblock.text, language, version};
 }

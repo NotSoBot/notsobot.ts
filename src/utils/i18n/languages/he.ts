@@ -2868,6 +2868,8 @@ export const Hebrew: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'מי-עשה-את-זה',
   'commands.media_iv.overlay.keep_item.description': 'הנח תמונה או וידאו בתוך מם Customers Usually Keep This Item',
   'commands.media_iv.overlay.keep_item.name': 'שמור-את-הפריט',
+  'commands.media_iv.overlay.pat.description': 'לטף תמונה או וידאו ביד (גיף מ-The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'ליטוף',
   'commands.media_iv.tint.blurple.description': 'צבע תמונה או וידאו בבלרפל',
   'commands.media_iv.tint.derain.description': 'החל את ההפך של גוון קשת על תמונה או וידאו',
   'commands.media_iv.tint.gold.description': 'צבע תמונה או וידאו בגוון זהב',

@@ -2868,6 +2868,8 @@ export const Bulgarian: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'кой-направи-това',
   'commands.media_iv.overlay.keep_item.description': 'Сложи изображение или видео в мема Customers Usually Keep This Item',
   'commands.media_iv.overlay.keep_item.name': 'запази-продукта',
+  'commands.media_iv.overlay.pat.description': 'Потупай изображение или видео с ръка (gif от The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'потупване',
   'commands.media_iv.tint.blurple.description': 'Оцвети изображение или видео в Blurple',
   'commands.media_iv.tint.derain.description': 'Приложи обратното на дъговиден оттенък върху изображение или видео',
   'commands.media_iv.tint.gold.description': 'Приложи златен оттенък върху изображение или видео',

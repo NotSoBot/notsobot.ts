@@ -2868,6 +2868,8 @@ export const Lithuanian: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
   'commands.media_iv.overlay.keep_item.description': 'Įdėti vaizdą ar video į „Customers Usually Keep This Item“ memą',
   'commands.media_iv.overlay.keep_item.name': 'keepitem',
+  'commands.media_iv.overlay.pat.description': 'Paglostyk vaizdą ar video ranka (The Summer Hikaru Died gif)',
+  'commands.media_iv.overlay.pat.name': 'paglostyti',
   'commands.media_iv.tint.blurple.description': 'Nuspalvinti vaizdą ar video blurple spalva',
   'commands.media_iv.tint.derain.description': 'Pritaikyti vaivorykštės atspalviui priešingą atspalvį vaizdui ar video',
   'commands.media_iv.tint.gold.description': 'Nuspalvinti vaizdą ar video auksu',

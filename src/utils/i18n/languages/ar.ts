@@ -2868,6 +2868,8 @@ export const Arabic: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'من-فعل-هذا',
   'commands.media_iv.overlay.keep_item.description': 'وضع صورة أو فيديو داخل ميم Customers Usually Keep This Item',
   'commands.media_iv.overlay.keep_item.name': 'احتفظ-بالمنتج',
+  'commands.media_iv.overlay.pat.description': 'ربّت على صورة أو فيديو بيد (gif من The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'ربت',
   'commands.media_iv.tint.blurple.description': 'تلوين صورة أو فيديو بلون Blurple',
   'commands.media_iv.tint.derain.description': 'تطبيق عكس صبغة قوس قزح على صورة أو فيديو',
   'commands.media_iv.tint.gold.description': 'تلوين صورة أو فيديو بصبغة ذهبية',

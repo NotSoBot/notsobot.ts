@@ -2868,6 +2868,8 @@ export const Thai: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'ใครทำ',
   'commands.media_iv.overlay.keep_item.description': 'ใส่รูปภาพหรือวิดีโอลงในมีม Customers Usually Keep This Item',
   'commands.media_iv.overlay.keep_item.name': 'เก็บสินค้า',
+  'commands.media_iv.overlay.pat.description': 'ลูบหัวรูปภาพหรือวิดีโอด้วยมือ (gif จาก The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'ลูบหัว',
   'commands.media_iv.tint.blurple.description': 'ย้อมรูปภาพหรือวิดีโอเป็นสี Blurple',
   'commands.media_iv.tint.derain.description': 'ใส่โทนสีตรงข้ามกับสีรุ้งให้รูปภาพหรือวิดีโอ',
   'commands.media_iv.tint.gold.description': 'ย้อมรูปภาพหรือวิดีโอเป็นสีทอง',

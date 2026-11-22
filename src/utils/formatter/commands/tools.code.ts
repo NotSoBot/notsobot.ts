@@ -35,8 +35,13 @@ export const languagesText = Object.values(CodeLanguages).map((x: any) => {
 
 export const COMMAND_ID = 'tools.code';
 
+// the api takes 10 files a run, `load URL` header lines and attachments share them
+const MAX_INPUT_FILES = 10;
+
 export interface CommandArgs {
   code: string,
+  // copied into `./input` next to anything the code's `load URL` header asks for
+  files?: Array<{filename?: string, url: string}>,
   language: CodeLanguages,
   version: string | null,
 }
@@ -48,12 +53,13 @@ export async function createMessage(
   const { language: locale, translate, translateMaybe } = await getTranslator(context);
 
   const { code, urls } = generateCodeFromLanguage(args.language, args.code);
+  const inputs = [...Object.values(urls), ...(args.files || [])].slice(0, MAX_INPUT_FILES);
   const { language, result, took, version } = await utilitiesCodeRun(context, {
     code,
     language: args.language,
     safe: DefaultParameters.safe(context),
     stdin: generateCodeStdin(context),
-    urls: Object.values(urls),
+    urls: inputs,
     version: args.version || undefined,
   });
 

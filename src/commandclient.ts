@@ -1,5 +1,5 @@
 import { Collections, Command, CommandAttributes, CommandClient, GatewayClientEvents, Interaction, Structures } from 'detritus-client';
-import { ClientEvents } from 'detritus-client/lib/constants';
+import { ClientEvents, MessageReferenceTypes } from 'detritus-client/lib/constants';
 
 import { acknowledgeUserWarnings, fetchCommandsResponses } from './api';
 import type { GuildSettingsRule } from './api/structures/guildsettings';
@@ -161,13 +161,11 @@ export class NotSoCommandClient extends CommandClient {
     if (attributes) {
       return attributes;
     }
-    if (context.message.messageReference) {
-      const replyMessage = context.message.messageReference.message;
-      if (replyMessage && await isAIResponse(context, replyMessage) && await this.canPassToAICommand(context)) {
-        // its usage row says so, otherwise it's one more prefixed `ai` use
-        context.metadata = Object.assign(context.metadata || {}, {aiReply: true});
-        return {content: context.message.content.trim(), prefix: ''};
-      }
+    const replyMessage = getRepliedMessage(context.message);
+    if (replyMessage && await isAIResponse(context, replyMessage) && await this.canPassToAICommand(context)) {
+      // its usage row says so, otherwise it's one more prefixed `ai` use
+      context.metadata = Object.assign(context.metadata || {}, {aiReply: true});
+      return {content: context.message.content.trim(), prefix: ''};
     }
     // the only link in it is to a post on an auto-embed site, `getCommand` sends that link (not the text) to `download`
     const autoEmbed = await this.findAutoEmbedLink(context);
@@ -269,7 +267,7 @@ export class NotSoCommandClient extends CommandClient {
       }
       let maybePassToAICommand = isMention;
       if (!maybePassToAICommand && !attributes.prefix) {
-        const replyMessage = (context.message.messageReference && context.message.messageReference.message);
+        const replyMessage = getRepliedMessage(context.message);
         maybePassToAICommand = !!(replyMessage && await isAIResponse(context, replyMessage));
       }
       if (!command && maybePassToAICommand && await this.canPassToAICommand(context)) {
@@ -663,6 +661,16 @@ const notAllowedReactions = new Collections.BaseCollection<string, number>({expi
 const aiResponseChecks = new WeakMap<Structures.Message, Promise<boolean>>();
 // per context, an edit re-runs with a new one and could've added or removed the mention
 const aiCommandChecks = new WeakMap<Command.Context, Promise<boolean>>();
+
+// the message they replied to. a forward references the message it copies the same way, but forwarding one of our ai
+// responses somewhere isn't talking to the ai (it ran `ai` and got them auto-warned in a channel blocking commands)
+function getRepliedMessage(message: Structures.Message): Structures.Message | null {
+  const { messageReference } = message;
+  if (!messageReference || messageReference.type === MessageReferenceTypes.FORWARD) {
+    return null;
+  }
+  return messageReference.message || null;
+}
 
 function isAIResponse(context: Command.Context, message: Structures.Message): Promise<boolean> {
   let check = aiResponseChecks.get(context.message);

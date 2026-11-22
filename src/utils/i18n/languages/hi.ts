@@ -2868,6 +2868,8 @@ export const Hindi: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'किसने-किया',
   'commands.media_iv.overlay.keep_item.description': 'इमेज या वीडियो को Customers Usually Keep This Item मीम के अंदर रखें',
   'commands.media_iv.overlay.keep_item.name': 'आइटम-रखें',
+  'commands.media_iv.overlay.pat.description': 'इमेज या वीडियो को हाथ से थपथपाएं (The Summer Hikaru Died का gif)',
+  'commands.media_iv.overlay.pat.name': 'थपथपाना',
   'commands.media_iv.tint.blurple.description': 'इमेज या वीडियो को ब्लर्पल बनाएँ',
   'commands.media_iv.tint.derain.description': 'इमेज या वीडियो पर रेनबो टिंट का उल्टा लगाएँ',
   'commands.media_iv.tint.gold.description': 'इमेज या वीडियो पर सुनहरा टिंट लगाएँ',

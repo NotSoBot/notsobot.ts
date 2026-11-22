@@ -510,6 +510,7 @@ import * as MediaIVManipulationOverlayHalfLifeSMG from './media.iv.manipulation.
 import * as MediaIVManipulationOverlayHyperCam from './media.iv.manipulation.overlay.hypercam';
 import * as MediaIVManipulationOverlayKeepItem from './media.iv.manipulation.overlay.keep.item';
 import * as MediaIVManipulationOverlayMistake from './media.iv.manipulation.overlay.mistake';
+import * as MediaIVManipulationOverlayPat from './media.iv.manipulation.overlay.pat';
 import * as MediaIVManipulationOverlayNews from './media.iv.manipulation.overlay.news';
 import * as MediaIVManipulationOverlayNotResponding from './media.iv.manipulation.overlay.not.responding';
 import * as MediaIVManipulationOverlayNotification from './media.iv.manipulation.overlay.notification';
@@ -1364,6 +1365,7 @@ export {
   MediaIVManipulationOverlayHyperCam,
   MediaIVManipulationOverlayKeepItem,
   MediaIVManipulationOverlayMistake,
+  MediaIVManipulationOverlayPat,
   MediaIVManipulationOverlayNews,
   MediaIVManipulationOverlayNotResponding,
   MediaIVManipulationOverlayNotification,

@@ -2868,6 +2868,8 @@ export const Vietnamese: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'ai-đã-làm',
   'commands.media_iv.overlay.keep_item.description': 'Đặt Ảnh hoặc Video vào meme Customers Usually Keep This Item',
   'commands.media_iv.overlay.keep_item.name': 'giữ-món-hàng',
+  'commands.media_iv.overlay.pat.description': 'Xoa đầu Ảnh hoặc Video bằng một bàn tay (gif từ The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'xoa-đầu',
   'commands.media_iv.tint.blurple.description': 'Phủ màu Blurple lên Ảnh hoặc Video',
   'commands.media_iv.tint.derain.description': 'Phủ màu ngược với cầu vồng lên Ảnh hoặc Video',
   'commands.media_iv.tint.gold.description': 'Phủ màu vàng kim lên Ảnh hoặc Video',

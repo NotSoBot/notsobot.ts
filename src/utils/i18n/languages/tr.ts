@@ -2868,6 +2868,8 @@ export const Turkish: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'bunu-kim-yaptı',
   'commands.media_iv.overlay.keep_item.description': 'Bir Görseli veya Videoyu Customers Usually Keep This Item meme’inin içine yerleştir',
   'commands.media_iv.overlay.keep_item.name': 'ürünü-sakla',
+  'commands.media_iv.overlay.pat.description': 'Bir Görseli veya Videoyu bir elle okşa (The Summer Hikaru Died gif’i)',
+  'commands.media_iv.overlay.pat.name': 'okşa',
   'commands.media_iv.tint.blurple.description': 'Bir Görseli veya Videoyu Blurple renge boya',
   'commands.media_iv.tint.derain.description': 'Bir Görsele veya Videoya Gökkuşağı tonunun tersini uygula',
   'commands.media_iv.tint.gold.description': 'Bir Görsele veya Videoya Altın tonu uygula',

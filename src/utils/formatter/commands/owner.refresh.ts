@@ -113,6 +113,19 @@ async function refreshCommands(
           oldObject[name] = newObject[name];
         }
       }
+      // named exports added since this process started. the old module goes back into the cache below, so the freshly
+      // loaded commands/formatters importing a new helper from it would get undefined ("x is not a function"). only
+      // missing ones are added, existing ones keep pointing at the connected module (a new export that reads the new
+      // module's own default object gets that unconnected copy, those still need a respawn)
+      for (let name of Object.keys(newModule)) {
+        if (name !== 'default' && !(name in oldModule)) {
+          try {
+            oldModule[name] = newModule[name];
+          } catch(error) {
+            errors.push(`${key.slice(key.indexOf(LIB_PATH) + LIB_PATH.length)} (export ${name}): ${(error as any).message}`);
+          }
+        }
+      }
     } catch(error) {
       if (isVoiceNodeListener) {
         voiceNodeListenerFailed = true;

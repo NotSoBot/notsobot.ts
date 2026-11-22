@@ -2868,6 +2868,8 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
   'commands.media_iv.overlay.keep_item.description': 'Colocar uma imagem ou vídeo dentro de um meme "Customers Usually Keep This Item"',
   'commands.media_iv.overlay.keep_item.name': 'keepitem',
+  'commands.media_iv.overlay.pat.description': 'Faz festinhas a uma imagem ou vídeo com uma mão (gif de The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'festinha',
   'commands.media_iv.tint.blurple.description': 'Tornar uma imagem ou vídeo blurple',
   'commands.media_iv.tint.derain.description': 'Aplicar o oposto de um tom arco-íris numa imagem ou vídeo',
   'commands.media_iv.tint.gold.description': 'Aplicar um tom dourado numa imagem ou vídeo',

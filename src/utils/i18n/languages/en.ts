@@ -2866,6 +2866,8 @@ export const English = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
   'commands.media_iv.overlay.keep_item.description': 'Place an Image or Video inside of a Customers Usually Keep This Item meme',
   'commands.media_iv.overlay.keep_item.name': 'keepitem',
+  'commands.media_iv.overlay.pat.description': 'Pat an Image or Video with a hand (The Summer Hikaru Died gif)',
+  'commands.media_iv.overlay.pat.name': 'pat',
   'commands.media_iv.tint.blurple.description': 'Blurple-fy an Image or Video',
   'commands.media_iv.tint.derain.description': 'Scramble an Image or Video\'s colors by reading them as HSB (the reverse of rain)',
   'commands.media_iv.tint.gold.description': 'Add a gold tint to an Image or Video',

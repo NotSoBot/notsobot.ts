@@ -4806,6 +4806,14 @@ export async function mediaIVManipulationOverlayKeepItem(
 }
 
 
+export async function mediaIVManipulationOverlayPat(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPat(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayMistake(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,

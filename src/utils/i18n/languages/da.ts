@@ -2868,6 +2868,8 @@ export const Danish: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'hvem-gjorde-det',
   'commands.media_iv.overlay.keep_item.description': 'Placer et billede eller en video i et Customers Usually Keep This Item-meme',
   'commands.media_iv.overlay.keep_item.name': 'behold-varen',
+  'commands.media_iv.overlay.pat.description': 'Klap et billede eller en video med en hånd (gif fra The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'klap',
   'commands.media_iv.tint.blurple.description': 'Gør et billede eller en video blurple',
   'commands.media_iv.tint.derain.description': 'Tilføj det modsatte af en regnbuetone til et billede eller en video',
   'commands.media_iv.tint.gold.description': 'Giv et billede eller en video en guldtone',

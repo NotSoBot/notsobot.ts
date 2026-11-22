@@ -2868,6 +2868,8 @@ export const Czech: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'kdo-to-udělal',
   'commands.media_iv.overlay.keep_item.description': 'Umístí obrázek nebo video do memu Customers Usually Keep This Item',
   'commands.media_iv.overlay.keep_item.name': 'ponechat-zboží',
+  'commands.media_iv.overlay.pat.description': 'Poplácej obrázek nebo video rukou (gif z The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'poplácat',
   'commands.media_iv.tint.blurple.description': 'Obarví obrázek nebo video do Blurple',
   'commands.media_iv.tint.derain.description': 'Použije na obrázek nebo video opak duhového zabarvení',
   'commands.media_iv.tint.gold.description': 'Obarví obrázek nebo video do zlata',

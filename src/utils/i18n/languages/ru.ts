@@ -2868,6 +2868,8 @@ export const Russian: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'кто-это-сделал',
   'commands.media_iv.overlay.keep_item.description': 'Поместить изображение или видео в мем «Customers Usually Keep This Item»',
   'commands.media_iv.overlay.keep_item.name': 'оставить-товар',
+  'commands.media_iv.overlay.pat.description': 'Погладить изображение или видео рукой (гифка из The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'погладить',
   'commands.media_iv.tint.blurple.description': 'Окрасить изображение или видео в цвет Blurple',
   'commands.media_iv.tint.derain.description': 'Применить обратный радужный оттенок к изображению или видео',
   'commands.media_iv.tint.gold.description': 'Окрасить изображение или видео в золото',

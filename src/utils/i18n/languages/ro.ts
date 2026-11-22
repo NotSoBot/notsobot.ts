@@ -2868,6 +2868,8 @@ export const Romanian: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'whodidthis',
   'commands.media_iv.overlay.keep_item.description': 'Pune o imagine sau un video într-un meme „Customers Usually Keep This Item”',
   'commands.media_iv.overlay.keep_item.name': 'keepitem',
+  'commands.media_iv.overlay.pat.description': 'Mângâie o imagine sau un video cu o mână (gif din The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'mângâiere',
   'commands.media_iv.tint.blurple.description': 'Colorează o imagine sau un video în blurple',
   'commands.media_iv.tint.derain.description': 'Aplică opusul unei nuanțe curcubeu pe o imagine sau un video',
   'commands.media_iv.tint.gold.description': 'Dă o nuanță aurie unei imagini sau unui video',

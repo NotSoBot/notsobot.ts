@@ -2868,6 +2868,8 @@ export const Indonesian: Translations = Object.freeze({
   'commands.media_iv.overlay.who_did_this.name': 'siapa-pelakunya',
   'commands.media_iv.overlay.keep_item.description': 'Taruh Gambar atau Video di dalam meme Customers Usually Keep This Item',
   'commands.media_iv.overlay.keep_item.name': 'simpan-barang',
+  'commands.media_iv.overlay.pat.description': 'Tepuk Gambar atau Video dengan tangan (gif The Summer Hikaru Died)',
+  'commands.media_iv.overlay.pat.name': 'tepuk',
   'commands.media_iv.tint.blurple.description': 'Ubah Gambar atau Video jadi warna Blurple',
   'commands.media_iv.tint.derain.description': 'Terapkan kebalikan warna Pelangi pada Gambar atau Video',
   'commands.media_iv.tint.gold.description': 'Beri warna Emas pada Gambar atau Video',
