@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, CommandCategoryNames, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
-import { DisplayPayload, I18n, Paginator, Parameters, displayReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, I18n, Paginator, Parameters, createSiteLink, displayReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
@@ -81,7 +81,7 @@ export default class HelpCommand extends BaseCommand {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`});
     }
     // `src` is where the click came from, for the site's analytics (notsobot.com-web's src/lib/analyticsUrl.ts)
-    return displayReply(context, {description: translate('help.links', {commands: '<https://notsobot.com/commands?src=bot-help>', invite: '<https://notsobot.com/support/invite>'})});
+    return displayReply(context, {description: translate('help.links', {commands: createSiteLink('/commands', 'bot-help'), invite: createSiteLink('/support/invite')})});
   }
 
   // add client permission labels

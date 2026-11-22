@@ -4462,6 +4462,15 @@ export function createTagDirectoryUrl(tagId: string): string {
   return `${Endpoints.Domains.STABLE}/tags/directory/${tagId}`;
 }
 
+// A link to a page of the website, shown as its address without the scheme: `notsobot.com/invite`.
+// `source` is where the click came from, it goes on the link as `?src=` (the site's analytics read it, and its invite
+// keeps it) without being part of what's shown. The shown text can't start with `https://`: discord doesn't make a
+// link out of `[text](url)` when the text is a url itself, the whole thing would show as typed
+export function createSiteLink(path: string, source?: string): string {
+  const url = `${Endpoints.Domains.STABLE}${path}${(source) ? `?src=${source}` : ''}`;
+  return Markup.url(`${new URL(Endpoints.Domains.STABLE).host}${path}`, `<${url}>`);
+}
+
 
 // a slash command (or subcommand, like `tag show`) as a clickable `</tag show:id>`, using the global command ids the
 // interaction command client keeps from registering. `/tag show` in a code block when it doesn't have one

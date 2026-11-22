@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
-import { I18n, displayReply } from '../../../utils';
+import { I18n, createSiteLink, displayReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -26,6 +26,6 @@ export default class HelpCommand extends BaseSlashCommand {
 
   run(context: Interaction.InteractionContext) {
     // `src` is where the click came from, for the site's analytics (notsobot.com-web's src/lib/analyticsUrl.ts)
-    return displayReply(context, {description: '<https://notsobot.com/commands?src=bot-help> (Join our support server <https://notsobot.com/support/invite>)'});
+    return displayReply(context, {description: `${createSiteLink('/commands', 'bot-help')} (Join our support server ${createSiteLink('/support/invite')})`});
   }
 }
