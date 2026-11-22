@@ -78,14 +78,31 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
         if (context.inDmWithBot) {
           description.push(`-> ${translate('permcheck.send_message')}: ${StatusEmojis.YES}`);
           description.push(`-> ${translate('permcheck.view')}: ${StatusEmojis.YES}`);
+          description.push(`-> ${translate('permcheck.embed_links')}: ${StatusEmojis.YES}`);
+          description.push(`-> ${translate('permcheck.attach_files')}: ${StatusEmojis.YES}`);
+          description.push(`-> ${translate('permcheck.read_history')}: ${StatusEmojis.YES}`);
         } else {
+          // a user-install reply here goes through the interaction, which can embed and attach but never read the dm
           description.push(`-> ${translate('permcheck.send_message')}: ${StatusEmojis.YES}`);
           description.push(`-> ${translate('permcheck.view')}: ${StatusEmojis.NO}`);
+          description.push(`-> ${translate('permcheck.embed_links')}: ${StatusEmojis.YES}`);
+          description.push(`-> ${translate('permcheck.attach_files')}: ${StatusEmojis.YES}`);
+          description.push(`-> ${translate('permcheck.read_history')}: ${StatusEmojis.NO}`);
           willPrefixCommandsWork = false;
         }
       } else {
-        description.push(`-> ${translate('permcheck.send_message')}: ${(channel.can([Permissions.SEND_MESSAGES])) ? StatusEmojis.YES : StatusEmojis.NO}`);
-        description.push(`-> ${translate('permcheck.view')}: ${(channel.can([Permissions.VIEW_CHANNEL])) ? StatusEmojis.YES : StatusEmojis.NO}`);
+        // the five the faq lists: without embed links or attach files media replies fail, without history replies and
+        // "the last image in the channel" can't find anything
+        const checks = [
+          ['permcheck.send_message', Permissions.SEND_MESSAGES],
+          ['permcheck.view', Permissions.VIEW_CHANNEL],
+          ['permcheck.embed_links', Permissions.EMBED_LINKS],
+          ['permcheck.attach_files', Permissions.ATTACH_FILES],
+          ['permcheck.read_history', Permissions.READ_MESSAGE_HISTORY],
+        ] as const;
+        for (const [key, permission] of checks) {
+          description.push(`-> ${translate(key)}: ${(channel.can([permission])) ? StatusEmojis.YES : StatusEmojis.NO}`);
+        }
         willPrefixCommandsWork = channel.canMessage;
       }
     }

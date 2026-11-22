@@ -3,7 +3,6 @@ import { I18n } from '../../../../../utils';
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsSetAIMemoryCommand } from './ai-memory';
-import { SettingsSetAIModelCommand } from './ai-model';
 import { SettingsSetAIPersonalityCommand } from './ai-personality';
 import { SettingsSetApplicationCommandResponseTypeCommand } from './app-command-response-type';
 import { SettingsSetAutoEmbedCommand } from './auto-embed';
@@ -33,7 +32,9 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
     super({
       options: [
         new SettingsSetAIMemoryCommand(),
-        new SettingsSetAIModelCommand(),
+        // `ai-model` (./ai-model.ts) is left out: the api answers everyone but owners with the default model for now
+        // (`generate_tag_content`), so the setting did nothing for them. owners set it on the dashboard, add it back here
+        // once the model is a real choice
         new SettingsSetAIPersonalityCommand(),
         new SettingsSetApplicationCommandResponseTypeCommand(),
         new SettingsSetAutoEmbedCommand(),

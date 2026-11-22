@@ -362,6 +362,10 @@ export interface CommandArgs {
 
 export const COMMAND_ID = 'owner.refresh';
 
+// every cluster reloads its commands/listeners/stores (and checks its slash commands) in the eval, the default 60s
+// isn't enough on a big refresh
+export const REFRESH_EVAL_TIMEOUT = 5 * 60 * 1000;
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
@@ -393,7 +397,18 @@ export async function createMessage(
   const buildText = pullText + describeBuild(build);
   await displayReply(context, {description: `${buildText}\nrefreshing...`});
 
-  const shardIds = await context.manager.broadcastEval(refreshCommands, !!args.voice, LIB_DIRECTORY);
+  // detritus has no per-call eval timeout, broadcastEval reads `broadcastEvalTimeout` synchronously before its first
+  // await and sends it with the eval (the manager times each cluster by it), so it's only raised for this call
+  const manager = context.manager;
+  const defaultEvalTimeout = manager.broadcastEvalTimeout;
+  manager.broadcastEvalTimeout = REFRESH_EVAL_TIMEOUT;
+  let shardIdsPromise: Promise<Array<any>>;
+  try {
+    shardIdsPromise = manager.broadcastEval(refreshCommands, !!args.voice, LIB_DIRECTORY);
+  } finally {
+    manager.broadcastEvalTimeout = defaultEvalTimeout;
+  }
+  const shardIds = await shardIdsPromise;
     /*
   {
     redisChannels: Object.values(RedisChannels),
