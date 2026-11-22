@@ -10,7 +10,7 @@ import { getTranslator } from '../../i18n';
 import { DiscordEmojis, StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
 
-import { MAX_TIME_TO_RESPOND } from './voice.clone';
+import { MAX_TIME_TO_RESPOND, shortSpeechNote } from './voice.clone';
 import { fetchVoices, findVoice, serverVoicesProblem, voiceCloneAccessProblem } from './voice.list';
 
 
@@ -27,7 +27,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const translator = await getTranslator(context);
+  const { language, translate, translateMaybe } = translator;
   if (args.server) {
     const problem = serverVoicesProblem(context, true);
     if (problem) {
@@ -84,6 +85,10 @@ export async function createMessage(
         try {
           const voice = await voiceCloneAdd(context, result.id, args);
           description = translate('voice_clone_add.successfully_added_another_audio_file_to_voice', {name: Markup.codestring(voice.name)});
+          const note = shortSpeechNote(context, translator, voice, !!args.server);
+          if (note) {
+            description += `\n${note}`;
+          }
         } catch(error) {
           const apiError = await getApiError(error);
           if (!apiError) {
@@ -113,6 +118,7 @@ export async function createMessage(
 
   const description = [
     `${StatusEmojis.WARNING} ${translate('voice_clone_add.confirm', {name: voiceText})}`,
+    translate('voice_clone.tip'),
     translate('voice_clone.warning_rights'),
   ];
   return displayReply(context, {components, description: description.join('\n')});

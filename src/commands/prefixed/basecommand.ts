@@ -28,7 +28,16 @@ import {
   UserFlags,
 } from '../../constants';
 import { captureCommandError } from '../../sentry';
-import { CommandRunCancelledError, I18n, Parameters, displayReply, findMediaUrlInMessages } from '../../utils';
+import {
+  CommandRunCancelledError,
+  I18n,
+  Parameters,
+  THINKING_REPLY_AFTER,
+  ThinkingReply,
+  displayReply,
+  finishThinkingReply,
+  findMediaUrlInMessages,
+} from '../../utils';
 import { getCommandId, markRecorded } from '../../utils/commandresponses';
 
 import {
@@ -77,6 +86,9 @@ export interface CommandMetadata {
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
   permissionsIgnoreClientOwner = true;
   triggerTypingAfter = 2000;
+  // how long into its run a command sends "Thinking..." (that its reply then edits), -1 for commands that never reply
+  // through `editOrReply`. counted from the run's start like the typing, and never before it (-1 typing skips both)
+  thinkingReplyAfter = THINKING_REPLY_AFTER;
 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, Object.assign({
@@ -94,6 +106,29 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       return `${this.fullName} ${metadata.usage}`.trim();
     }
     return '';
+  }
+
+  // replaces detritus' own typing: the same one typing indicator (only when the reply will be a new message, not an edit
+  // of a stored one), plus the thinking reply for runs going past it. typing goes away after ~10 seconds on its own
+  async onTypingTrigger(context: Command.Context) {
+    // the typing is already late (`triggerTypingAfter` of 2s on most commands), the reply going out right now replaces it
+    let thinkingIn: number | null = null;
+    if (0 <= this.thinkingReplyAfter && this.usesThinkingReply(context)) {
+      thinkingIn = Math.max(0, this.thinkingReplyAfter - this.triggerTypingAfter);
+      new ThinkingReply(context, null, undefined, thinkingIn);
+    }
+    if (thinkingIn === 0) {
+      return;
+    }
+    const stored = context.commandClient.replies.get(context.messageId);
+    if (this.triggerTypingOnEdits || !stored || !stored.reply.canEdit) {
+      await context.triggerTyping();
+    }
+  }
+
+  // runs that answer without a reply of their own (auto-embed's status reactions) only get the typing
+  usesThinkingReply(context: Command.Context): boolean {
+    return true;
   }
 
   onBefore(context: Command.Context): Promise<boolean> | boolean {
@@ -267,11 +302,13 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 
   // log every attempt, `context.response` is whatever reply the command flow stored (result, error, cancel, etc..)
   async onFinally(context: Command.Context) {
+    // a thinking reply nothing took over is gone now, it isn't the run's response
+    const deletedThinkingId = await finishThinkingReply(context);
     if (!context.command) {
       return;
     }
     // the trigger got deleted while we were still running, so the COMMAND_DELETE cleanup never saw this reply
-    const response = context.response;
+    const response = (context.response && context.response.id !== deletedThinkingId) ? context.response : null;
     if (context.message.deleted && response && !response.deleted) {
       try {
         await response.delete();
@@ -284,16 +321,16 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     // before asking it
     // set by NotSoAI's command, which response its reply holds
     const llmResponseId: string | undefined = context.metadata && context.metadata.llmResponseId;
-    if (context.response) {
-      CommandResponsesStore.insert(context.messageId, context.response.id, commandId);
+    if (response) {
+      CommandResponsesStore.insert(context.messageId, response.id, commandId);
       if (llmResponseId) {
-        CommandResponsesStore.insertLLMResponse(context.response.id, llmResponseId, context.userId);
+        CommandResponsesStore.insertLLMResponse(response.id, llmResponseId, context.userId);
       }
     }
     // `@NotSoBot cmd` counts apart from the prefix, since mentions keep working after prefix commands end
     const isMention = !!context.prefix && context.commandClient.prefixes.mention.has(context.prefix);
     // the reply as it is now, like it always was, the stored one can be gone by the time a job ends
-    const messageResponseId = (context.response) ? context.response.id : undefined;
+    const messageResponseId = (response) ? response.id : undefined;
     // a media job still polling (`run` returned with its thinking reply) counts once it ends, with how it ended
     const command = context.command;
     await afterJobRuns(context, async () => {

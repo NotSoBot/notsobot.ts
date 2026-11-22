@@ -61,6 +61,11 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
     return super.onCancelRun(context, args);
   }
 
+  // a link posted by itself answers with status reactions, a "Thinking..." reply to someone's message would be noise
+  usesThinkingReply(context: Command.Context): boolean {
+    return !getAutoEmbedLink(context);
+  }
+
   // a link that was blocked (rules, a blocked user) wasn't a use of the command, don't log every one of them
   async onFinally(context: Command.Context) {
     if (getAutoEmbedLink(context) && getCommandResult(context) === CommandResults.BLOCKED) {

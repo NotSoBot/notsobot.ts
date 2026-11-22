@@ -176,7 +176,8 @@ export async function createMessage(
   const description: Array<string> = [];
   for (let i = 0; i < voices.length; i++) {
     const voice = voices[i];
-    description.push(`${i + 1}. ${Markup.codestring(voice.name)}`);
+    // with the model it speaks with, the same as the voice pickers show
+    description.push(`${i + 1}. ${Markup.codestring(voice.name)} • ${voicePlatformText(voice.platform_type)}`);
   }
   payload.description = description.join('\n');
 

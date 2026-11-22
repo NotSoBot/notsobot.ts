@@ -1372,6 +1372,10 @@ export class VoiceNodeClient extends EventSpewer {
       throw new Error('Music was just reloaded, try again');
     }
     const current = this.guilds.get(guildId);
+    // playing or 24/7 idle in a channel with only bots left, we come to theirs (the node's queue goes on there)
+    if (current) {
+      this.moveFromEmpty(guildId, channelId);
+    }
     if (!current) {
       const started = this.waitForNextTrack(guildId, JOINED_START_TIMEOUT);
       const resumeAt = (resumed) ? {pause: 'none' as const, position: resumed.position} : null;
@@ -1411,11 +1415,31 @@ export class VoiceNodeClient extends EventSpewer {
     return !!guild && guild.phase.name === 'playing';
   }
 
-  // 24/7 got turned off: an idle guild leaves after `IDLE_LEAVE_DELAY`, a playing one that long after its queue runs out
-  unstay(guildId: string) {
+  // 24/7 got turned on or off, or the pause timeout changed (`music 247` here, the dashboard through `MUSIC_CONTROL`,
+  // both is fine). Off, an idle guild leaves after `IDLE_LEAVE_DELAY` (a playing one that long after its queue runs
+  // out), on, one waiting to leave stays. A paused or disconnected one has its node's pause timeout changed now: the
+  // node only hears it from `/next`, which a paused player doesn't ask for, so a guild paused on 24/7 would otherwise
+  // stay paused in voice for good
+  stayChanged(guildId: string, stays: boolean, pauseTimeout: number) {
     const guild = this.guilds.get(guildId);
-    if (guild && guild.phase.name === 'idle' && !guild.phase.leaveTimeout) {
-      this.leaveWhenIdle(guildId, guild);
+    if (!guild) {
+      return;
+    }
+    const phase = guild.phase;
+    if (phase.name === 'idle') {
+      if (!stays && !phase.leaveTimeout) {
+        this.leaveWhenIdle(guildId, guild);
+      } else if (stays && phase.leaveTimeout) {
+        clearTimeout(phase.leaveTimeout);
+        phase.leaveTimeout = null;
+      }
+    } else if (phase.name === 'playing' || phase.name === 'disconnected') {
+      this.playerOp(guild, async () => {
+        if (this.guilds.get(guildId) === guild) {
+          // like the api's `/next` settings
+          await guild.node.updatePlayer(guildId, {pauseTimeout: (stays) ? -1 : pauseTimeout});
+        }
+      }).catch((error) => log.warn(`voice node ${guild.node.info.name} pause timeout ${guildId}`, error));
     }
   }
 
@@ -1491,6 +1515,13 @@ export class VoiceNodeClient extends EventSpewer {
     }, IDLE_LEAVE_DELAY);
   }
 
+  // activity while idle (speech): a running leave wait starts over. No wait running (24/7, or a listen holding it) stays so
+  private restartIdleLeave(guildId: string, guild: GuildVoice) {
+    if (this.guilds.get(guildId) === guild && guild.phase.name === 'idle' && guild.phase.leaveTimeout) {
+      this.leaveWhenIdle(guildId, guild);
+    }
+  }
+
   // still idle after `IDLE_LEAVE_DELAY`: we leave, unless 24/7 got turned on in the meantime
   private async idleTimedOut(guildId: string, guild: GuildVoice, phase: GuildPhase & {name: 'idle'}) {
     const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
@@ -1501,6 +1532,11 @@ export class VoiceNodeClient extends EventSpewer {
     if (!music || !music.premium || !music.stay) {
       // joined only to listen, it's still going: we wait again once it's over (`endListen`)
       if (this.listens.has(guildId)) {
+        return;
+      }
+      // still saying something (`tts play`, a held answer): wait again, its `SPEAK_END` restarts the wait too
+      if (this.isSpeaking(guildId)) {
+        this.leaveWhenIdle(guildId, guild);
         return;
       }
       this.leave(guildId);
@@ -1564,6 +1600,36 @@ export class VoiceNodeClient extends EventSpewer {
     }
     this.join(guild.shard, guildId, channelId, guild.node, guild.phase);
     return true;
+  }
+
+  // we're in another of the guild's channels and nobody but bots is in there (everyone left, or 24/7 kept us): we go to
+  // `channelId` instead, like someone dragging us there (`handleVoiceState` moves the api session, the node follows with
+  // the new voice, `handleListeners` resumes a `pause_alone` pause). Not while joining or rejoining (a voice state of ours
+  // is on its way), disconnected (playing `reconnect`s), moving to another node, or listening (whoever's listened to is
+  // in there, maybe a bot). True when we asked discord to move us, `guild.channelId` changes once its voice state comes
+  moveFromEmpty(guildId: string, channelId: string): boolean {
+    const guild = this.guilds.get(guildId);
+    if (!guild || !this.canMoveFromEmpty(guildId, channelId)) {
+      return false;
+    }
+    log.info(`voice node ${guildId} moving from empty ${guild.channelId} to ${channelId}`);
+    guild.shard.gateway.voiceStateUpdate(guildId, channelId, {selfDeaf: true});
+    return true;
+  }
+
+  // `moveFromEmpty` would move us, said before anything's sent
+  canMoveFromEmpty(guildId: string, channelId: string): boolean {
+    const guild = this.guilds.get(guildId);
+    if (!guild || this.detached || guild.moving || !guild.channelId || guild.channelId === channelId) {
+      return false;
+    }
+    if (guild.phase.name === 'starting' || guild.phase.name === 'disconnected' || guild.joinTimeout) {
+      return false;
+    }
+    if ((guild.rejoin && guild.rejoin.stage !== 'done') || this.listens.has(guildId)) {
+      return false;
+    }
+    return !this.hasListeners(guild.shard, guild.channelId);
   }
 
   // someone other than a bot in `channelId`, a channel that isn't cached counts as listened to. `hearing` (`pause_alone`)
@@ -2217,6 +2283,11 @@ export class VoiceNodeClient extends EventSpewer {
         if (event.data.reason !== 'finished') {
           log.debug(`voice node speech ${guildId} ${event.data.id} ${event.data.reason}`);
         }
+        // the idle wait counts from when the speech ended, not from when it was sent (a long clip)
+        const speakingGuild = this.guilds.get(guildId);
+        if (speakingGuild) {
+          this.restartIdleLeave(guildId, speakingGuild);
+        }
       }; break;
       case 'LISTEN_END': {
         const listen = this.listens.get(guildId);
@@ -2257,7 +2328,9 @@ export class VoiceNodeClient extends EventSpewer {
       throw new VoiceListenError('busy');
     }
     let guild = this.guilds.get(guildId);
-    if (guild && (guild.phase.name === 'disconnected' || guild.channelId !== channelId)) {
+    // alone in another channel we come to theirs, the undeafen below goes there too (the node's listener carries over
+    // to the new voice connection)
+    if (guild && (guild.phase.name === 'disconnected' || (guild.channelId !== channelId && !this.moveFromEmpty(guildId, channelId)))) {
       throw new VoiceListenError('elsewhere', guild.channelId || null);
     }
     const listen: GuildListen = {...handlers, stopping: false, timeout: null, userId};
@@ -2372,6 +2445,8 @@ export class VoiceNodeClient extends EventSpewer {
           this.speechSent.set(guildId, sent);
         }
         sent.set(id, Date.now());
+        // idle and waiting to leave: speech counts as activity, the wait starts over (again once it ends, `SPEAK_END`)
+        this.restartIdleLeave(guildId, guild);
       }
     });
   }

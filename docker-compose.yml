@@ -3,9 +3,12 @@
 #
 # `bot-build` compiles the source into the `lib` volume and `bot` runs from it. `bot`'s image only has the dependencies,
 # so a source change never recreates its container:
-#   docker compose build && docker compose up -d    compiles (a type error stops here), then updates the volume's files
-#   `.refresh` on discord                           loads them in place, the shards stay connected
-#   docker compose kill -s SIGUSR2 bot              or respawns the clusters one at a time (what refresh skips: bot.ts,
+#   `.refresh` on discord                           compiles the mounted src into lib itself (a type error is replied
+#                                                   and stops it), then loads it in place, the shards stay connected.
+#                                                   `.refresh -respawn` also does the SIGUSR2 respawn below after it,
+#                                                   `.refresh -pull` git pulls this checkout from github before building
+#   docker compose build && docker compose up -d    or compiles here (a type error stops it), then updates the volume
+#   docker compose kill -s SIGUSR2 bot              respawns the clusters one at a time (what refresh skips: bot.ts,
 #                                                   apievents.ts)
 #   ./respawn [--build]                             the SIGUSR2 respawn from any folder, --build compiles and updates first
 # Only package-lock.json, the Dockerfile, .env or this file changing recreates `bot` on `up -d` (every shard reconnects).
@@ -54,7 +57,14 @@ services:
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-}
       SENTRY_RELEASE: ${SENTRY_RELEASE:-}
     volumes:
-      - lib:/notsobot.ts/lib:ro
+      # writable for `.refresh`, it compiles src into it (src/libbuild.ts). git replaces a changed tsconfig.json with a new
+      # file, which the container keeps seeing the old one of until `docker compose restart bot`
+      - lib:/notsobot.ts/lib
+      - ./src:/notsobot.ts/src:ro
+      - ./tsconfig.json:/notsobot.ts/tsconfig.json:ro
+      # this checkout, `.refresh -pull` fast-forwards it from github (the src mount above sees it). the bot's user (node,
+      # uid 1000) has to be able to write it: `sudo chown -R 1000:1000 .` if the checkout is someone else's
+      - .:/notsobot.ts/repo
 
 
 volumes:

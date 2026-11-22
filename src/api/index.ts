@@ -2257,6 +2257,14 @@ export async function mediaIVManipulationEyes(
 }
 
 
+export async function mediaIVManipulationFaceAbove(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceAbove,
+) {
+  return raw.mediaIVManipulationFaceAbove(context, options);
+}
+
+
 export async function mediaIVManipulationFaceAlien(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationFace,

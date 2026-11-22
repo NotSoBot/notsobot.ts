@@ -346,6 +346,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/explode/animated',
   MEDIA_IV_MANIPULATION_EYES:
     '/media/iv/manipulation/eyes',
+  MEDIA_IV_MANIPULATION_FACE_ABOVE:
+    '/media/iv/manipulation/face/above',
   MEDIA_IV_MANIPULATION_FACE_ALIEN:
     '/media/iv/manipulation/face/alien',
   MEDIA_IV_MANIPULATION_FACE_ANIME:

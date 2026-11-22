@@ -5,6 +5,7 @@ import { EventSubscription } from 'detritus-utils';
 
 import { mediaAVToolsTranscribe } from '../../../api';
 import { getApiError } from '../../../api/errors';
+import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
 import { log } from '../../../log';
 import { displayReply, formatTime } from '../../../utils';
@@ -39,6 +40,8 @@ export interface CommandArgs {
 interface Session {
   busy: boolean,
   ended: null | ListenEndReason,
+  // the api keeps the voices it heard under this (a few people can share their mic), so each keeps its number
+  id: string,
   // the last turn's NotSoAI response, the next one continues it
   parentId: null | string,
   // said while a turn was being answered, the newest one goes next (older ones are dropped)
@@ -82,7 +85,17 @@ export async function createMessage(context: Command.Context, args: CommandArgs)
     return displayReply(context, {description: translate(error)});
   }
 
-  const session: Session = {busy: false, ended: null, parentId: null, pending: null, speeches: 0, stopping: false, subscriptions: [], userId: context.userId};
+  const session: Session = {
+    busy: false,
+    ended: null,
+    id: `ai-listen:${guildId}:${context.messageId}`,
+    parentId: null,
+    pending: null,
+    speeches: 0,
+    stopping: false,
+    subscriptions: [],
+    userId: context.userId,
+  };
   try {
     await VoiceNode.listen(context.client, guildId, channel.id, context.userId, LISTEN_DURATION, {
       onEnd: (reason) => {
@@ -186,14 +199,27 @@ function onUtterance(context: Command.Context, guildId: string, session: Session
   runTurn(context, guildId, session, audio).catch((error) => log.warn(`ai listen ${guildId}`, error));
 }
 
+// what NotSoAI is asked and what's shown as heard. Once the session has heard more than one voice through their mic,
+// each line says which voice it was ("Voice 2: ..."), the same number being the same person the whole session
+function getHeard(transcription: RestResponsesRaw.MediaAVToolsTranscribe): {heard: string, prompt: string} {
+  const text = transcription.text.trim();
+  const speakers = transcription.speakers;
+  if (!speakers || speakers.voices < 2 || !speakers.turns.length) {
+    return {heard: text, prompt: text};
+  }
+  const lines = speakers.turns.map((turn) => `Voice ${turn.voice}: ${turn.text}`);
+  return {heard: lines.join(' • '), prompt: lines.join('\n')};
+}
+
 async function runTurn(context: Command.Context, guildId: string, session: Session, audio: Buffer) {
   session.busy = true;
   try {
     const transcription = await mediaAVToolsTranscribe(context, {
       file: {filename: 'speech.ogg', value: audio},
+      speakers: session.id,
       vad: true,
     });
-    const prompt = transcription.text.trim();
+    const { heard, prompt } = getHeard(transcription);
     if (!prompt || session.ended !== null || session.stopping) {
       return;
     }
@@ -204,7 +230,7 @@ async function runTurn(context: Command.Context, guildId: string, session: Sessi
     }
     log.debug(`ai listen ${guildId} heard ${prompt.length} characters`);
     const turn: TagGenerate.AIVoiceTurn = {
-      heard: prompt.slice(0, HEARD_MAX_LENGTH),
+      heard: heard.slice(0, HEARD_MAX_LENGTH),
       onSpeech: (speech) => {
         if (speech && session.ended === null) {
           const id = `${SPEECH_ID_PREFIX}${Date.now().toString(36)}-${++session.speeches}`;

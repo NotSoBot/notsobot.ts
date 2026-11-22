@@ -27,7 +27,8 @@ ARG GIT_COMMIT=
 RUN release="${GIT_COMMIT:-$( (find src -type f -print0 | sort -z | xargs -0 sha256sum; sha256sum package-lock.json tsconfig.json) | sha256sum | cut -c1-12)}" \
   && printf '{"release": "notsobot.ts@%s"}\n' "$release" > lib/release.json
 
-CMD ["rsync", "--archive", "--checksum", "--delete", "lib/", "/lib-volume/"]
+# owned by the bot's user (node, 1000) so `.refresh` can compile into it too (src/libbuild.ts)
+CMD ["rsync", "--archive", "--checksum", "--delete", "--chown=1000:1000", "lib/", "/lib-volume/"]
 
 
 # what the bot runs in: only node and the dependencies, the compiled source is mounted and the settings come from the
@@ -40,7 +41,8 @@ FROM deps AS bot
 # token). background_thread gives freed pages back on a timer instead of only on the next malloc, narenas:2 instead of
 # 4 per cpu (96 here) since a cluster only has a handful of threads. Compare notsobot_process_resident_memory_bytes
 # minus heap_total and external per cluster before and after
-RUN apt-get update && apt-get install -y --no-install-recommends libjemalloc2 && rm -rf /var/lib/apt/lists/* \
+# git (and the certificates for its https) for `.refresh -pull`, it pulls the mounted checkout (src/libbuild.ts)
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates git libjemalloc2 && rm -rf /var/lib/apt/lists/* \
   && ln -s "$(dpkg -L libjemalloc2 | grep '/libjemalloc\.so\.2$')" /usr/local/lib/libjemalloc.so.2
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so.2
 ENV MALLOC_CONF=background_thread:true,narenas:2

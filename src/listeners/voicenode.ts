@@ -92,6 +92,14 @@ class VoiceNodeListener extends Listener {
           case 'effect_remove': promise = controlDashboardEffects(payload.guild_id, payload.action, payload.effect, payload.index); break;
           case 'speed':
           case 'volume': promise = controlDashboardSound(payload.guild_id, payload.action, payload.value); break;
+          // 24/7 or the pause timeout changed, on the dashboard too
+          case 'stay': {
+            if (typeof(payload.stays) !== 'boolean' || typeof(payload.pause_timeout) !== 'number') {
+              return;
+            }
+            VoiceNode.stayChanged(payload.guild_id, payload.stays, payload.pause_timeout);
+            return;
+          };
           default: return;
         }
         promise.catch((error) => log.warn(`voice node dashboard ${payload.action} ${payload.guild_id}`, error));

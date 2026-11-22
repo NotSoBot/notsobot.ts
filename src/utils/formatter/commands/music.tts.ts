@@ -31,8 +31,10 @@ export async function createMessage(
 
   // we're in their channel already: said right away like `.ai listen`'s replies, over the music (ducked under it) while
   // it plays, otherwise on its own. Not there yet, it's queued (that joins)
+  // alone in another channel (only bots there) we come to theirs first, the move's done by the time the speech is made
   const guild = VoiceNode.guilds.get(channel.guildId);
-  if (!args.queue && guild && !guild.disconnected && guild.channelId === channel.id) {
+  const here = !!guild && !guild.disconnected && (guild.channelId === channel.id || VoiceNode.moveFromEmpty(channel.guildId, channel.id));
+  if (!args.queue && here) {
     const response = await funTextToSpeech(context, {
       text: args.text,
       voice: args.use && args.use.voice,

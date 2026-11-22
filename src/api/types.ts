@@ -1061,6 +1061,8 @@ export namespace RestOptions {
     fileFormat?: TranscribeFileFormats,
     // the ass highlights the word being said, the lrc times each word
     highlight?: boolean,
+    // a voice session id: also says which voice said what (`speakers`), the same person keeping the same number in it
+    speakers?: string,
     // only what sounds like speech is transcribed (nothing invented over silence or music, singing can be dropped)
     vad?: boolean,
   }
@@ -1331,6 +1333,11 @@ export namespace RestOptions {
     type?: string,
     x?: number,
     y?: number,
+  }
+
+  export interface MediaIVManipulationFaceAbove extends MediaBaseOptionsMultiple {
+    faces?: Array<number>,
+    size?: number,
   }
 
   export interface MediaIVManipulationFaceCutout extends MediaBaseOptionsMultiple {
@@ -2756,6 +2763,12 @@ export namespace RestResponsesRaw {
     text: string,
     // the transcription as the subtitles or lyrics file asked for (`file`), null when nothing was said
     file?: null | string,
+    // with `speakers`: what each voice said in order (voices numbered from 1 across the session) and how many voices the
+    // session has heard so far, null when they couldn't be told apart (the service is off or failed)
+    speakers?: null | {
+      turns: Array<{end: number, start: number, text: string, voice: number}>,
+      voices: number,
+    },
   }
 
   export type CreateGuildLogger = Array<GuildLogger>;
@@ -2779,7 +2792,7 @@ export namespace RestResponsesRaw {
     
   }
 
-  export type CreateVoiceClone = Voice;
+  export type CreateVoiceClone = VoiceCloneSpeech;
 
   export type SweepGuild = null;
   export interface CreateCommandResponseExtra {
@@ -4858,7 +4871,7 @@ export namespace RestResponsesRaw {
     },
   }
 
-  export type VoiceCloneAdd = Voice;
+  export type VoiceCloneAdd = VoiceCloneSpeech;
   export type VoiceCloneEdit = Voice;
   export type VoiceCloneTransfer = Voice;
 
@@ -5024,5 +5037,12 @@ export namespace RestResponsesRaw {
     // set for a server's voice, those have no user
     server_id: null | string,
     user: null | User,
+  }
+
+  // a clone's or added clip's response: how much speech all the voice's clips kept after the api's trim, and how much its
+  // platform wants before it sounds close (both ms)
+  export interface VoiceCloneSpeech extends Voice {
+    speech_duration: number,
+    speech_recommended: number,
   }
 }

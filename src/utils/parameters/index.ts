@@ -442,6 +442,17 @@ export function number(options: NumberOptions = {}) {
 }
 
 
+// a list of whole numbers split by commas or spaces (`1,0`, `2 3`), each checked like `number`, at most `maxAmount`
+export function numbers(options: NumberOptions & {maxAmount?: number} = {}) {
+  const parse = number(options);
+  return (value: string, context?: Command.Context | Interaction.InteractionContext): Array<number> => {
+    const pieces = (value || '').split(/[\s,]+/).filter(Boolean);
+    const values = pieces.map((piece) => parse(piece, context));
+    return (options.maxAmount !== undefined) ? values.slice(0, options.maxAmount) : values;
+  };
+}
+
+
 export function parsedMentionsText(
   value: string,
   context: Command.Context | Interaction.InteractionContext,

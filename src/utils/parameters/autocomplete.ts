@@ -54,6 +54,7 @@ import {
   toTitleCase,
 } from '../tools';
 import { GUILD_RULE_CATEGORIES } from '../guildrules';
+import { voicePlatformText } from '../formatter/commands/voice.list';
 import { Languages, getTranslatorForLanguage, languageFromLocale } from '../i18n';
 
 import { normalizeSavedFontName } from './fonts';
@@ -985,8 +986,29 @@ ttsVoiceSearch.addAll(Object.entries(TTSVoicesToText).filter((x) => {
 }));
 
 
+interface VoiceChoice {
+  id: string,
+  name: string,
+  platform_type: number,
+}
+
+// a cloned voice's choice name with the model it speaks with (`nightmare • ZONOS3`), its name cut so that always fits
+function voiceChoiceName(name: string, platformType: number): string {
+  const suffix = ` • ${voicePlatformText(platformType)}`;
+  return name.slice(0, 100 - suffix.length) + suffix;
+}
+
+// a cloned voice as a search document: typing the model (`zonos`, `fish`) finds its voices too, a name match still
+// ranks above a model match
+function voiceSearchDocument(voice: VoiceChoice, id: string = voice.id) {
+  return {id, name: voice.name, platform: voicePlatformText(voice.platform_type), platform_type: voice.platform_type};
+}
+
+const VOICE_PLATFORM_SEARCH_BOOST = 0.5;
+
+
 // the user's own cloned voices and the server's (marked as the server's), the server's are left out in dms
-async function fetchUsableVoices(context: Interaction.InteractionAutoCompleteContext): Promise<Array<{id: string, name: string}>> {
+async function fetchUsableVoices(context: Interaction.InteractionAutoCompleteContext): Promise<Array<VoiceChoice>> {
   // both at once, autocomplete only has 3 seconds to answer
   const hasServer = !!(context.guildId || (context.channel && context.channel.ownerId));
   const [ userResponse, serverResponse ] = await Promise.all([
@@ -994,13 +1016,17 @@ async function fetchUsableVoices(context: Interaction.InteractionAutoCompleteCon
     (hasServer) ? fetchServerVoices(context).catch(() => null) : null,
   ]);
 
-  const voices: Array<{id: string, name: string}> = [];
+  const voices: Array<VoiceChoice> = [];
   if (userResponse) {
     voices.push(...userResponse.voices);
   }
   if (serverResponse) {
     const { translate } = getTranslatorForLanguage(languageFromLocale(context.locale) || Languages.ENGLISH);
-    voices.push(...serverResponse.voices.map((voice) => ({id: voice.id, name: translate('voice_server.label', {name: voice.name})})));
+    voices.push(...serverResponse.voices.map((voice) => ({
+      id: voice.id,
+      name: translate('voice_server.label', {name: voice.name}),
+      platform_type: voice.platform_type,
+    })));
   }
   return voices;
 }
@@ -1016,17 +1042,15 @@ export async function ttsVoices(context: Interaction.InteractionAutoCompleteCont
     if (voices.length) {
       // clone search and add this
       search = new MiniSearch({
-        fields: ['id', 'name'],
-        storeFields: ['id', 'name'],
+        fields: ['id', 'name', 'platform'],
+        storeFields: ['id', 'name', 'platform_type'],
         searchOptions: {
-          boost: {id: 2},
+          boost: {id: 2, platform: VOICE_PLATFORM_SEARCH_BOOST},
           fuzzy: true,
           prefix: true,
         },
       });
-      search.addAll(voices.map((voice) => {
-        return {id: `${TTSVoices.CLONED}.${voice.id}`, name: voice.name};
-      }));
+      search.addAll(voices.map((voice) => voiceSearchDocument(voice, `${TTSVoices.CLONED}.${voice.id}`)));
       search.addAll(Object.entries(TTSVoicesToText).filter((x) => {
         return x[0] !== TTSVoices.CLONED;
       }).map(([key, name]) => {
@@ -1034,7 +1058,9 @@ export async function ttsVoices(context: Interaction.InteractionAutoCompleteCont
       }));
     }
     choices = search.search(context.value).slice(0, 25).map((result) => {
-      return {name: result.name.slice(0, 100), value: result.id};
+      // only cloned voices have a platform, the built-in ones are named after theirs already
+      const name = (typeof(result.platform_type) === 'number') ? voiceChoiceName(result.name, result.platform_type) : result.name.slice(0, 100);
+      return {name, value: result.id};
     });
   } else {
     choices = [
@@ -1066,7 +1092,7 @@ export async function ttsVoices(context: Interaction.InteractionAutoCompleteCont
     ].map((x) => ({name: TTSVoicesToText[x], value: x}));
     if (voices.length) {
       choices = [
-        ...voices.map((x) => ({name: x.name.slice(0, 100), value: `${TTSVoices.CLONED}.${x.id}`})),
+        ...voices.map((x) => ({name: voiceChoiceName(x.name, x.platform_type), value: `${TTSVoices.CLONED}.${x.id}`})),
         ...choices,
       ].slice(0, 25);
     }
@@ -1077,7 +1103,7 @@ export async function ttsVoices(context: Interaction.InteractionAutoCompleteCont
 
 // only the user's cloned voices, the value is the voice id (`findVoice` takes names or ids)
 export async function clonedVoices(context: Interaction.InteractionAutoCompleteContext) {
-  let voices: Array<{id: string, name: string}> = [];
+  let voices: Array<VoiceChoice> = [];
   try {
     const response = await fetchUserVoices(context, context.userId);
     voices = response.voices;
@@ -1087,21 +1113,21 @@ export async function clonedVoices(context: Interaction.InteractionAutoCompleteC
 
   if (context.value && voices.length) {
     const search = new MiniSearch({
-      fields: ['name'],
-      storeFields: ['id', 'name'],
-      searchOptions: {fuzzy: true, prefix: true},
+      fields: ['name', 'platform'],
+      storeFields: ['id', 'name', 'platform_type'],
+      searchOptions: {boost: {platform: VOICE_PLATFORM_SEARCH_BOOST}, fuzzy: true, prefix: true},
     });
-    search.addAll(voices);
+    search.addAll(voices.map((voice) => voiceSearchDocument(voice)));
     voices = search.search(context.value) as any;
   }
-  const choices = voices.slice(0, 25).map((voice) => ({name: voice.name.slice(0, 100), value: voice.id}));
+  const choices = voices.slice(0, 25).map((voice) => ({name: voiceChoiceName(voice.name, voice.platform_type), value: voice.id}));
   return context.respond({choices});
 }
 
 
 // only the server's cloned voices (`/tts voice-server`), the value is the voice id
 export async function serverVoices(context: Interaction.InteractionAutoCompleteContext) {
-  let voices: Array<{id: string, name: string}> = [];
+  let voices: Array<VoiceChoice> = [];
   try {
     const response = await fetchServerVoices(context);
     voices = response.voices;
@@ -1111,14 +1137,14 @@ export async function serverVoices(context: Interaction.InteractionAutoCompleteC
 
   if (context.value && voices.length) {
     const search = new MiniSearch({
-      fields: ['name'],
-      storeFields: ['id', 'name'],
-      searchOptions: {fuzzy: true, prefix: true},
+      fields: ['name', 'platform'],
+      storeFields: ['id', 'name', 'platform_type'],
+      searchOptions: {boost: {platform: VOICE_PLATFORM_SEARCH_BOOST}, fuzzy: true, prefix: true},
     });
-    search.addAll(voices);
+    search.addAll(voices.map((voice) => voiceSearchDocument(voice)));
     voices = search.search(context.value) as any;
   }
-  const choices = voices.slice(0, 25).map((voice) => ({name: voice.name.slice(0, 100), value: voice.id}));
+  const choices = voices.slice(0, 25).map((voice) => ({name: voiceChoiceName(voice.name, voice.platform_type), value: voice.id}));
   return context.respond({choices});
 }
 

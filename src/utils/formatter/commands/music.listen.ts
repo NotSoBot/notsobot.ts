@@ -200,7 +200,8 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_listen.busy')}`});
   }
   const playing = VoiceNode.guilds.get(guildId);
-  if (playing && (playing.disconnected || playing.channelId !== channel.id)) {
+  // in another channel with only bots there, `VoiceNode.listen` moves us
+  if (playing && (playing.disconnected || (playing.channelId !== channel.id && !VoiceNode.canMoveFromEmpty(guildId, channel.id)))) {
     const elsewhere = (playing.channelId) ? `<#${playing.channelId}>` : translate('common.channel');
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_listen.other_channel', {channel: elsewhere})}`});
   }

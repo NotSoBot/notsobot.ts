@@ -4453,6 +4453,7 @@ export async function mediaAVToolsTranscribe(
   const query = {
     file: options.fileFormat,
     highlight: options.highlight,
+    speakers: options.speakers,
     url: options.url,
     vad: options.vad || undefined,
   };
@@ -5787,6 +5788,30 @@ export async function mediaIVManipulationEyes(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_EYES,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFaceAbove(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceAbove,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    faces: options.faces,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    size: options.size,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_ABOVE,
     },
   });
 }

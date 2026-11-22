@@ -55,6 +55,7 @@ const STRING_SAMPLES = {
 };
 // args with their own words that no command lists as choices
 const SAMPLE_OVERRIDES = {
+  'media.iv.manipulation.face.above': {faces: [0], size: 1.5},
   'media.iv.manipulation.ripple': {type: 'BLEND'},
   'media.iv.manipulation.timecode.vegas': {type: 'drop', x: 'left', y: 'top'},
   'media.iv.tools.rotate.3d': {order: 'ptr'},

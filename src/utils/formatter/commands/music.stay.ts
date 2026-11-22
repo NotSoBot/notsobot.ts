@@ -7,7 +7,7 @@ import { displayDetails, displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Translator, getTranslator } from '../../i18n';
 
-import { canManageMusic, musicPremiumUpsell } from './music.shared';
+import { canManageMusic, musicPremiumUpsell, musicStays } from './music.shared';
 
 
 export const COMMAND_ID = 'music.stay';
@@ -34,9 +34,8 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_fair.no_permission')}`});
   }
   const music = await editGuildMusic(context, guildId, {stay: args.enabled});
-  if (!args.enabled) {
-    VoiceNode.unstay(guildId);
-  }
+  // right away, the api's `MUSIC_CONTROL` for it comes too
+  VoiceNode.stayChanged(guildId, musicStays(music), music.pause_timeout);
   return replyStay(context, translate, music);
 }
 

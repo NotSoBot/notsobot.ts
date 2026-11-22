@@ -23,8 +23,11 @@ import { UserError } from '../../errors';
 import {
   Paginator,
   Parameters,
+  THINKING_REPLY_AFTER,
   TagFormatter,
+  ThinkingReply,
   checkNSFW,
+  displayDetailsLine,
   displayReply,
   editOrReply,
   findMediaUrlInMessage,
@@ -34,12 +37,10 @@ import {
 import { Translator, getTranslator, randomAIThinkingText } from '../../i18n';
 
 import { formatCreditsAlert } from './credits';
-import { canControlMusic } from './music.shared';
+import { canControlMusic, musicItemTitle } from './music.shared';
 import {
-  THINKING_REPLY_AFTER,
   TagMessageAIOptions,
   TagReplyTarget,
-  ThinkingReply,
   createTagMessage,
   tagTimeLimitText,
 } from './tag.show';
@@ -476,6 +477,19 @@ async function generateAndRunTag(
       // its tagscript said nothing in text (`{ai.listen.stop}` after a goodbye, a music control): what it said aloud
       if (!parsedTag.text.trim() && response.voice) {
         parsedTag.text = Markup.escape.all(response.voice);
+      }
+      // what it queued: its spoken "putting on Baby" isn't in the text channel, the tagscript's text is whatever it
+      // picked out of the json (often just the title)
+      const musicPlayed = TagFormatter.getAIMusicPlayed(parsedTag);
+      if (musicPlayed.length) {
+        const { language, translate } = await getTranslator(context);
+        const lines = musicPlayed.map((played) => displayDetailsLine([
+          `**${(played.collection) ? Markup.escape.all(played.collection) : musicItemTitle(played.item)}**`,
+          (played.collection) ? translate('music_play.added_tracks', {count: played.added.toLocaleString(language)}) : null,
+          (played.position === 1) ? translate('music_play.plays_now') : null,
+          (played.position && 1 < played.position) ? translate('music_play.plays_as', {position: played.position.toLocaleString(language)}) : null,
+        ]));
+        parsedTag.text = [parsedTag.text.trimEnd(), ...lines].join('\n');
       }
       if (voice.heard) {
         parsedTag.text = [`-# Heard: ${Markup.escape.all(JSON.stringify(voice.heard))}`, parsedTag.text].join('\n');

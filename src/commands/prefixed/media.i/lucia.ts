@@ -17,7 +17,7 @@ export default class LuciaCommand extends BaseCommand {
       label: 'text',
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Make a "Play with Lucia" prompt asking for your text',
+        description: 'Make a "Play with Lucia" prompt from GTA 6 asking for your text',
         examples: [
           `${COMMAND_NAME} hop on deadlock`,
           `${COMMAND_NAME} help me move a couch`,

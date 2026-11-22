@@ -19,7 +19,7 @@ import {
 } from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
-import { Translator, getCachedTranslator, getTranslator, randomThinkingText } from '../../i18n';
+import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
 import { createTagUse, editTag, fetchFileVanity } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -33,7 +33,7 @@ import {
   checkNSFW,
   editOrReply,
   mediaReplyFromOptions,
-  replyThinking,
+  ThinkingReply,
   timeLimitParts,
 } from '../../../utils';
 import { UserError } from '../../errors';
@@ -68,122 +68,6 @@ export interface TagMessageOptions {
 
 // NotSoAI's questions get longer than a tag's buttons, someone has to read them and pick
 export const AI_COMPONENTS_TIMEOUT = 10 * 60 * 1000;
-
-// prefix commands only get a typing indicator, so a slow tag replies with "Thinking..." and its result edits that
-// reply. interactions already defer into discord's own thinking state
-export const THINKING_REPLY_AFTER = 2000;
-
-// the line under the thinking text, worked out only once the reply is actually sent (so fast commands skip the lookups)
-export type ThinkingStatus = (translate: Translator['translate']) => Promise<string | null> | string | null;
-
-// a prefix command's thinking reply: sent once the command has taken `THINKING_REPLY_AFTER`, and edited whenever its
-// status changes after that. the same random thinking text stays on top. interactions get nothing, they already defer
-export class ThinkingReply {
-  context: Command.Context | Interaction.InteractionContext;
-  // NotSoAI continuing from a press, its thinking text goes on that press's response instead of the command's reply
-  replyTo: TagReplyTarget | undefined;
-  // something else is on the reply (NotSoAI asking to confirm, see `hold`), status edits wait for it
-  held: boolean = false;
-  pending: Promise<void> = Promise.resolve();
-  sent: boolean = false;
-  status: ThinkingStatus | null;
-  statusTimeout: ReturnType<typeof setTimeout> | null = null;
-  stopped: boolean = false;
-  thinkingText: string | null = null;
-  timeout: ReturnType<typeof setTimeout> | null = null;
-
-  constructor(
-    context: Command.Context | Interaction.InteractionContext,
-    status: ThinkingStatus | null = null,
-    replyTo?: TagReplyTarget,
-  ) {
-    this.context = context;
-    this.replyTo = replyTo;
-    this.status = status;
-    if (context instanceof Command.Context) {
-      this.timeout = setTimeout(() => {
-        this.timeout = null;
-        this.sent = true;
-        this.render();
-      }, THINKING_REPLY_AFTER);
-    }
-  }
-
-  // `after` holds off the edit when the reply is already out, so a status that's over right away (generated tagscript
-  // that runs instantly) doesn't cost an edit right before the command's own reply. not out yet, it's just swapped
-  setStatus(status: ThinkingStatus | null, after: number = 0): void {
-    if (this.statusTimeout) {
-      clearTimeout(this.statusTimeout);
-      this.statusTimeout = null;
-    }
-    if (!this.sent || !after) {
-      this.status = status;
-      if (this.sent) {
-        this.render();
-      }
-      return;
-    }
-    this.statusTimeout = setTimeout(() => {
-      this.statusTimeout = null;
-      this.status = status;
-      this.render();
-    }, after);
-  }
-
-  // the command's reply (or error) has to edit the thinking reply, not race it into a second message, so this has to
-  // be awaited before replying. edits that haven't started yet are dropped
-  async stop(): Promise<void> {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
-    if (this.statusTimeout) {
-      clearTimeout(this.statusTimeout);
-      this.statusTimeout = null;
-    }
-    this.stopped = true;
-    await this.pending;
-  }
-
-  // the reply shows what `callback` puts on it until it's done (NotSoAI's confirmation buttons), then the thinking text
-  // goes back on it, the reply is out either way now. edits already started finish first
-  async hold<T>(callback: () => Promise<T>): Promise<T> {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
-    this.held = true;
-    await this.pending;
-    try {
-      return await callback();
-    } finally {
-      this.held = false;
-      this.sent = true;
-      this.render();
-    }
-  }
-
-  // edits go one at a time, so a slow first reply can't land after the edit meant to replace it
-  private render(): void {
-    this.pending = this.pending.then(async () => {
-      if (this.stopped || this.held) {
-        return;
-      }
-      const { translate } = await getTranslator(this.context);
-      if (!this.thinkingText) {
-        this.thinkingText = randomThinkingText(translate);
-      }
-      const statusText = (this.status) ? await this.status(translate) : null;
-      if (this.stopped) {
-        return;
-      }
-      await replyThinking(this.context, this.thinkingText, statusText, this.replyTo);
-    }).catch(() => {
-      // the trigger was edited/deleted or the channel can't be replied in, the command's own reply will deal with it
-    });
-  }
-}
-
 
 // "-# premium plus · stops in 47 seconds" for a tag that started running at `startedAt`. `parse` picks its deadline
 // right after that (the same `getMaxTime`, and these tags never pass their own limits), so it's at most a few ms early

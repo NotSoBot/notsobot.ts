@@ -189,6 +189,7 @@ import * as MediaIVManipulationEyesSpinner from './media.iv.manipulation.eyes.sp
 import * as MediaIVManipulationEyesSpongebob from './media.iv.manipulation.eyes.spongebob';
 import * as MediaIVManipulationEyesWhite from './media.iv.manipulation.eyes.white';
 import * as MediaIVManipulationEyesYellow from './media.iv.manipulation.eyes.yellow';
+import * as MediaIVManipulationFaceAbove from './media.iv.manipulation.face.above';
 import * as MediaIVManipulationFaceAlien from './media.iv.manipulation.face.alien';
 import * as MediaIVManipulationFaceAnime from './media.iv.manipulation.face.anime';
 import * as MediaIVManipulationFaceClown from './media.iv.manipulation.face.clown';
@@ -1042,6 +1043,7 @@ export {
   MediaIVManipulationEyesSpongebob,
   MediaIVManipulationEyesWhite,
   MediaIVManipulationEyesYellow,
+  MediaIVManipulationFaceAbove,
   MediaIVManipulationFaceAlien,
   MediaIVManipulationFaceAnime,
   MediaIVManipulationFaceClown,

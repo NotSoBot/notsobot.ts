@@ -9,6 +9,7 @@ import { MediaIVMemeGoldStarCommand } from './goldstar';
 import { MediaIVMemeHyperCamCommand } from './hypercam';
 import { MediaIVMemeShutterstockCommand } from './stock';
 import { MediaIVMemeSupremeCommand } from './supreme';
+import { MediaIVOverlayAboveHeadCommand } from './above-head';
 import { MediaIVOverlayFaceCommand } from './face';
 import { MediaIVOverlayFliesCommand } from './flies';
 import { MediaIVOverlayNotRespondingCommand } from './notresponding';
@@ -29,6 +30,7 @@ export class MediaIVOverlayMiscGroupCommand extends BaseInteractionCommandOption
     super({
       options: [
         new MediaIVMeme9GagCommand(),
+        new MediaIVOverlayAboveHeadCommand(),
         new MediaIVMemeAdidasCommand(),
         new MediaIVMemeBandicamCommand(),
         new MediaIVOverlayFaceCommand(),

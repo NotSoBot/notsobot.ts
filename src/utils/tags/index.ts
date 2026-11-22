@@ -425,6 +425,7 @@ const REGEX_INVITE_CODE = /^(?:(?:https?:\/\/)?(?:www\.)?discord(?:app)?\.(?:gg|
 
 export enum PrivateVariables {
   AI_EXECUTIONS = '__aiExecutions',
+  AI_MUSIC_PLAYED = '__aiMusicPlayed',
   AI_PROMPT_UNTRUSTED = '__aiPromptUntrusted',
   AI_CONFIRMATIONS = '__aiConfirmations',
   AI_WRITES_BLOCKED = '__aiWritesBlocked',
@@ -1546,6 +1547,8 @@ export interface TagVariables {
     [TagFunctions.MUSIC_IDENTIFY]?: Record<string, Array<Record<string, any>>>,
     // how many times NotSoAI queued music this execution
     [TagFunctions.MUSIC_PLAY]?: number,
+    // what it queued, posted under a voice reply (its spoken line isn't in the text channel)
+    [PrivateVariables.AI_MUSIC_PLAYED]?: Array<AIMusicPlayed>,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
     // the tag NotSoAI created this execution, it can only make one
@@ -2187,6 +2190,19 @@ const MAX_AI_REPORT_LENGTH = 2000;
 export const MAX_AI_MUSIC_CONTROLS = 3;
 // {music.play}, "play these three songs"
 export const MAX_AI_MUSIC_PLAYS = 3;
+
+// what a {music.play} queued: its first track (an album's or playlist's too), where that landed (1 is playing now, null
+// when the queue couldn't be fetched), and how many tracks a collection added
+export interface AIMusicPlayed {
+  added: number,
+  collection: null | string,
+  item: RestResponsesRaw.GuildMusicQueueItem,
+  position: null | number,
+}
+
+export function getAIMusicPlayed(tag: TagResult): Array<AIMusicPlayed> {
+  return tag.variables[PrivateVariables.RESULTS][PrivateVariables.AI_MUSIC_PLAYED] || [];
+}
 
 // only NotSoAI's own reply can touch the command user's memory, settings, reminders and tags, not a button it made. a
 // press still runs with the command user's context, and NotSoAI can let everyone press its buttons
@@ -8783,13 +8799,18 @@ const ScriptTags = Object.freeze({
       if (music && !found) {
         throw new TagError('It was queued but couldn\'t be played');
       }
+      // the queue couldn't be fetched, its position is a guess
+      const track = (music && found) ? aiMusicItem(music, found) : aiMusicItem({current: (played.joined) ? null : played.item}, played.item);
+      results[PrivateVariables.AI_MUSIC_PLAYED] = [
+        ...(results[PrivateVariables.AI_MUSIC_PLAYED] || []),
+        {added: queued.length, collection, item: found || played.item, position: (music && found) ? track.position : null},
+      ];
       tag.text += JSON.stringify({
         added: queued.length,
         collection,
         joined: played.joined,
         not_added: (played.batch && search.collection) ? Math.max(search.collection.total - queued.length, 0) : 0,
-        // the queue couldn't be fetched, its position is a guess
-        track: (music && found) ? aiMusicItem(music, found) : aiMusicItem({current: (played.joined) ? null : played.item}, played.item),
+        track,
       });
     } catch(error) {
       if (error instanceof TagError) {

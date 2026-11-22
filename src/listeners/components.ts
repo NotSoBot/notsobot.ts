@@ -19,7 +19,7 @@ import { ApiEventsSpewer } from '../apievents';
 import { log } from '../log';
 import { RedisPayloads } from '../types';
 import { I18n, editOrReply, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
-import { createHostedExpiresText } from '../utils/tools';
+import { MediaReplyEmbedFooter, createHostedExpiresText } from '../utils/tools';
 import {
   onGuildReportComponent,
   onGuildReportMessageCreate,
@@ -228,14 +228,8 @@ class ComponentsListener extends Listener {
       context.metadata.started = Date.now();
     }
 
-    let content: string = '';
-    let description: string = '';
-    let spoiler: boolean = false;
-    let took: number = 0;
-
-    // grab content/description from message object
-    // grab spoiler from message object
-    // grab took from message object?
+    // its text (like a post's author, caption, site and counts) is only on the reply, read before it's replaced
+    const text = findReuploadText(context.interaction.message, storage);
 
     await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     await context.createMessage(renderEphemeralDisplay(context, translator, {description: translate('media.reupload_started')}));
@@ -251,18 +245,15 @@ class ComponentsListener extends Listener {
       await mediaReplyFromOptions(context, value, {
         buttons: findKeptButtons(context.interaction.message),
         invokerButton: findKeptInvokerButton(context.interaction.message),
-        content,
+        ...text,
         context,
-        description,
         extension: storage.metadata.extension,
         filename: storage.filename_safe_base,
         framecount: storage.metadata.framecount,
         height: storage.metadata.height,
         mimetype: storage.metadata.mimetype,
         size: storage.metadata.size,
-        spoiler,
         storageUserId: storage.user.id,
-        took,
         width: storage.metadata.width,
       });
     } catch(error) {
@@ -520,6 +511,110 @@ function keptButtonFrom(component: unknown): ComponentButton | null {
     return null;
   }
   return new ComponentButton({customId, label: component.label || undefined, style: component.style});
+}
+
+// what a single hosted file's reply said around it (`createMediaReplyMessage`): a post's text above it, its site and
+// counts below, its embed footer, the details line. the re-upload is rendered again from the file alone and left all of
+// it out, so it's read back from the reply in whichever display it was sent in
+interface ReuploadText {
+  altText?: string,
+  content?: string,
+  description?: string,
+  descriptionBelow?: string,
+  // the reply's own details line, kept as it was (with how long it took), `hideDetails` when it had none
+  details?: string,
+  embedFooter?: MediaReplyEmbedFooter,
+  hideDetails?: boolean,
+  spoiler?: boolean,
+}
+
+function findReuploadText(
+  message: Structures.Message | null | undefined,
+  storage: RestResponsesRaw.FileResponseStorage,
+): ReuploadText {
+  if (!message) {
+    return {};
+  }
+
+  // components v2: [content, separator] [description, separator] media [below] separator invoked by, expiry, details
+  const container = message.components.find((x) => x instanceof Structures.ComponentContainer) as Structures.ComponentContainer | undefined;
+  if (container) {
+    const children = container.components.toArray();
+    const mediaIndex = children.findIndex((child) => (
+      child instanceof Structures.ComponentMediaGallery ||
+      // one that can't be in a gallery (like audio) is its link
+      (child instanceof Structures.ComponentTextDisplay && child.content === storage.urls.vanity)
+    ));
+    if (mediaIndex === -1) {
+      return {};
+    }
+    const text: ReuploadText = {};
+    const media = children[mediaIndex];
+    if (media instanceof Structures.ComponentMediaGallery) {
+      const item = media.items.first();
+      if (item) {
+        text.altText = item.description || undefined;
+        text.spoiler = !!item.spoiler;
+      }
+    }
+    const textOf = (child: unknown) => (child instanceof Structures.ComponentTextDisplay) ? child.content : null;
+    const above = children.slice(0, mediaIndex).map(textOf).filter((x): x is string => !!x);
+    if (1 < above.length) {
+      text.content = above[0];
+    }
+    text.description = above.slice((1 < above.length) ? 1 : 0).join('\n') || undefined;
+    let end = mediaIndex + 1;
+    while (end < children.length && !(children[end] instanceof Structures.ComponentSeparator)) {
+      end++;
+    }
+    text.descriptionBelow = children.slice(mediaIndex + 1, end).map(textOf).filter(Boolean).join('\n') || undefined;
+    // the invoked by and expiry lines are bold, the details line isn't
+    const details = children.slice(end + 1).map(textOf).find((x) => !!x && x.startsWith('-# ') && !x.startsWith('-# **'));
+    if (details) {
+      text.details = details.slice(3);
+    } else {
+      text.hideDetails = true;
+    }
+    return text;
+  }
+
+  // the embed display: description with the expiry line, the post's site and counts (or the details) in the footer
+  const embed = message.embeds.first();
+  if (embed && embed.image) {
+    const text: ReuploadText = {content: message.content || undefined};
+    const lines = (embed.description || '').split('\n').filter((line) => !isHostedExpiresText(line));
+    text.description = lines.join('\n') || undefined;
+    const footer = embed.footer;
+    const timestamp = (embed.timestamp) ? new Date(embed.timestamp).getTime() : undefined;
+    if ((footer && footer.iconUrl) || timestamp) {
+      // a post's, which never has the details line
+      text.embedFooter = {iconUrl: (footer && footer.iconUrl) || undefined, text: (footer && footer.text) || undefined, timestamp};
+      text.hideDetails = true;
+    } else if (footer && footer.text) {
+      text.details = footer.text;
+    } else {
+      text.hideDetails = true;
+    }
+    return text;
+  }
+
+  // the text display: the description, then the quoted link, invoked by, expiry and details lines
+  if (message.content) {
+    const lines = message.content.split('\n');
+    const vanity = `${storage.urls.vanity}?embed=true`;
+    const linkIndex = lines.findIndex((line) => line === `> ${vanity}` || line === `> ||${vanity}||`);
+    if (linkIndex === -1) {
+      return {};
+    }
+    const last = lines[lines.length - 1];
+    return {
+      description: lines.slice(0, linkIndex).join('\n') || undefined,
+      // its details line was only how long it took, the re-upload's has the size and dimensions too
+      hideDetails: !(linkIndex < lines.length - 1 && !last.startsWith('> -# **')),
+      spoiler: lines[linkIndex].includes('||'),
+    };
+  }
+  return {};
 }
 
 function getHostedVanity(url: string): null | string {

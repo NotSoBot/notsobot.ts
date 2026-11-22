@@ -8,7 +8,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'lucia';
 
 export class MediaILuciaCommand extends BaseInteractionCommandOption {
-  description = 'Make a "Play with Lucia" prompt asking for your text';
+  description = 'Make a "Play with Lucia" prompt from GTA 6 asking for your text';
   descriptionLocalizations = I18n.localizations('commands.media_i.fun.lucia.description');
   metadata = {
     id: Formatter.Commands.MediaICreateLucia.COMMAND_ID,

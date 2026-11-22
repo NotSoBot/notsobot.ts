@@ -1,16 +1,11 @@
-import * as path from 'path';
-
 import { ClusterClient, Command, Interaction, ShardClient } from 'detritus-client';
 
 import { NotSoCommandClient } from '../../../commandclient';
 import { NotSoInteractionClient } from '../../../interactioncommandclient';
+import { buildLib, LIB_DIRECTORY, LibBuildResult, pullSource, PullResult } from '../../../libbuild';
 import { log } from '../../../log';
 import { displayReply } from '../../../utils';
 import { ClusterStartupPhase, ClusterStartupStage } from '../../clusterstartup';
-
-
-// the compiled source's folder (this file is in its utils/formatter/commands), what every cluster loaded its files from
-const LIB_DIRECTORY = path.resolve(__dirname, '..', '..', '..');
 
 
 // listeners and stores are always reloaded (a store keeps its cached data, only its methods are swapped). the voice
@@ -337,6 +332,8 @@ export interface RefreshSkipped {
 }
 
 export interface CommandArgs {
+  pull?: boolean,
+  respawn?: boolean,
   voice?: boolean,
 }
 
@@ -350,7 +347,30 @@ export async function createMessage(
   if (!context.manager) {
     return displayReply(context, {description: 'no cluster manager found'});
   }
-  await displayReply(context, {description: 'ok, refreshing...'});
+  // `-pull` fast-forwards the checkout from github first, a failed pull stops it before anything is built
+  let pullText = '';
+  if (args.pull) {
+    await displayReply(context, {description: 'ok, pulling...'});
+    const pull = await pullSource();
+    if (pull.status === 'failed') {
+      return displayBuildFailure(context, 'pull failed, nothing was built or refreshed:', pull.output);
+    }
+    pullText = describePull(pull) + '\n';
+  }
+
+  // src is compiled into lib first (only this cluster), a type error stops it before lib or any cluster changes
+  await displayReply(context, {description: `${pullText}building...`});
+  const build = await buildLib();
+  if (build.status === 'failed') {
+    const header = (build.synced) ?
+      'build failed partway through writing lib, nothing was refreshed:' :
+      'build failed, lib is untouched and nothing was refreshed:';
+    return displayBuildFailure(context, `${pullText}${header}`, build.output);
+  }
+  // every reply from here on starts with what was pulled and built
+  const buildText = pullText + describeBuild(build);
+  await displayReply(context, {description: `${buildText}\nrefreshing...`});
+
   const shardIds = await context.manager.broadcastEval(refreshCommands, !!args.voice, LIB_DIRECTORY);
     /*
   {
@@ -372,6 +392,7 @@ export async function createMessage(
     const plan = failures.find((x) => x.dump.plan)?.dump.plan;
     const changed: Array<string> = (plan) ? [...plan.create, ...plan.edit.map((x: {name: string}) => x.name)] : [];
     const description = [
+      buildText,
       ...failures.map((x) => `Error: ${x.error}`),
       ...badStrings.slice(0, 5).map((x: string) => `bad text: \`${x.slice(0, 200)}\``),
       ...((changed.length) ? [`changed: ${changed.slice(0, 20).map((name) => `/${name}`).join(', ')}`] : []),
@@ -407,7 +428,7 @@ export async function createMessage(
   }
 
   const refreshed = shardIds.filter((x: any) => Array.isArray(x)).flat().length;
-  const description = [`ok, refreshed commands on ${refreshed} shards.`];
+  const description = [buildText, `ok, refreshed commands on ${refreshed} shards.`];
   if (restarting.length) {
     const clusters = restarting.slice(0, 20).join(', ') + ((20 < restarting.length) ? ', ...' : '');
     description.push(`restarting (they load the new code when they're back): cluster ${clusters}`);
@@ -415,7 +436,70 @@ export async function createMessage(
   if (skippedText) {
     description.push(skippedText);
   }
-  return displayReply(context, {description: description.join('\n')});
+  if (!args.respawn) {
+    return displayReply(context, {description: description.join('\n')});
+  }
+
+  // what `./respawn` does (the manager's SIGUSR2, run.ts), for what refresh can't swap in (bot.ts, apievents.ts). the
+  // manager is this cluster process' parent. replied first, this cluster may be the first one respawned. the manager
+  // only logs it when it ignores it (clusters still starting, or a respawn already going)
+  description.push('respawning the clusters one at a time (`docker compose logs -f bot`)');
+  const reply = await displayReply(context, {description: description.join('\n')});
+  try {
+    process.kill(process.ppid, 'SIGUSR2');
+  } catch(error) {
+    description[description.length - 1] = `respawning failed, signaling the manager (pid ${process.ppid}): ${error.message}`;
+    return displayReply(context, {description: description.join('\n')});
+  }
+  return reply;
+}
+
+
+function describeBuild(build: Exclude<LibBuildResult, {status: 'failed'}>): string {
+  if (build.status === 'no-source') {
+    return `no src next to lib (${LIB_DIRECTORY}), refreshing what's already in it`;
+  }
+  const seconds = build.seconds.toFixed(1);
+  if (!build.changed && !build.removed) {
+    return `built in ${seconds}s, lib already matched it`;
+  }
+  return `built in ${seconds}s: ${build.changed.toLocaleString()} files changed, ${build.removed.toLocaleString()} removed`;
+}
+
+
+function describePull(pull: Exclude<PullResult, {status: 'failed'}>): string {
+  if (pull.status === 'up-to-date') {
+    return `${pull.branch} already up to date (${pull.commit})`;
+  }
+  const more = pull.count - pull.commits.length;
+  return [
+    `pulled ${pull.branch} ${pull.from}..${pull.to} (${pull.count.toLocaleString()} commits)`,
+    ...pull.commits.map((commit) => {
+      const space = commit.indexOf(' ');
+      return `- \`${commit.slice(0, space)}\` ${commit.slice(space + 1, space + 101)}`;
+    }),
+    ...((0 < more) ? [`- and ${more.toLocaleString()} more`] : []),
+  ].join('\n');
+}
+
+
+// tsc's or git's errors in a code block, all of them in a file when they don't fit
+// leaves room for the pulled commits above it (4096 per description)
+const BUILD_OUTPUT_LIMIT = 2600;
+
+function displayBuildFailure(
+  context: Command.Context | Interaction.InteractionContext,
+  header: string,
+  output: string,
+) {
+  let text = output;
+  if (BUILD_OUTPUT_LIMIT < text.length) {
+    text = text.slice(0, BUILD_OUTPUT_LIMIT) + '\n...';
+  }
+  return displayReply(context, {
+    description: `${header}\n\`\`\`\n${text.replace(/```/g, '`​``')}\n\`\`\``,
+    ...((BUILD_OUTPUT_LIMIT < output.length) ? {files: [{filename: 'build-errors.txt', value: output}]} : {}),
+  });
 }
 
 

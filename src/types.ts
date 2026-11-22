@@ -67,15 +67,21 @@ export namespace RedisPayloads {
 
   // the dashboard's music controls, for whichever cluster is playing in `guild_id`. `created` is unix ms, events are
   // replayed after reconnecting so old ones are ignored
+  // `stay` is 24/7 or the pause timeout changed (anywhere, our own `music 247` too)
   export interface MusicControl {
-    action: 'effect_add' | 'effect_clear' | 'effect_remove' | 'leave' | 'pause' | 'resume' | 'skip' | 'speed' | 'volume',
+    action: 'effect_add' | 'effect_clear' | 'effect_remove' | 'leave' | 'pause' | 'resume' | 'skip' | 'speed' | 'stay' | 'volume',
     created: number,
     // `effect_add` and `effect_remove`, a `MusicEffects` value (the api only checks it looks like one)
     effect?: string,
     guild_id: string,
     // `effect_remove`, where in the stack the dashboard saw it
     index?: number,
-    user_id: string,
+    // `stay`, the server's seconds paused before leaving (without 24/7)
+    pause_timeout?: number,
+    // `stay`, whether 24/7 keeps us in voice (on and premium)
+    stays?: boolean,
+    // not on `stay`
+    user_id?: string,
     // `speed` (the tempo) and `volume`, percent. The api saved it for the server already (and checked premium)
     value?: number,
   }

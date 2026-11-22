@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'async_hooks';
 import { URL } from 'url';
 
 import { onlyEmoji } from 'emoji-aware';
@@ -282,6 +283,14 @@ export async function editOrReply(
   }
 
   options = await addPrefixSlashTip(context, options as Command.EditOrReply);
+  // the run's thinking reply finishes its edits first, this reply takes its place. not when it's a thinking reply editing
+  // itself (or one it took over from, still finishing an edit)
+  const thinking = thinkingReplies.get(context);
+  const ownEdit = thinkingReplyOwnEdits.getStore();
+  const replacesThinking = !!thinking && !(ownEdit && ownEdit.context === context);
+  if (thinking && replacesThinking) {
+    await thinking.stop();
+  }
   // again after the awaits (a big file's separate upload takes a while): an edit of the trigger in the meantime gave
   // the reply to the newer run, editing it now would put this result over its thinking message
   if (isCommandRunCancelled(context)) {
@@ -324,11 +333,15 @@ export async function editOrReply(
     }
   }
 
-  return context.editOrReply({
+  const message = await context.editOrReply({
     reference: true,
     ...options,
     allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
   });
+  if (thinking && replacesThinking) {
+    thinking.replaced = true;
+  }
+  return message;
 }
 
 // discord can't edit a components v2 response back into plain content with an attachment (the flag can't be removed),
@@ -2033,6 +2046,205 @@ export function replyThinking(
 }
 
 
+// prefix commands only get a typing indicator (one, it's gone after ~10s), so a slow one replies with "Thinking..." and
+// its result edits that reply. interactions already defer into discord's own thinking state
+export const THINKING_REPLY_AFTER = 2000;
+
+// the line under the thinking text, worked out only once the reply is actually sent (so fast commands skip the lookups)
+export type ThinkingStatus = (translate: Translator['translate']) => Promise<string | null> | string | null;
+
+// each prefix run's thinking reply (the latest one, a tag's takes over from the command's), `editOrReply` stops it
+// before the command's own reply so the two can't race into separate messages
+const thinkingReplies = new WeakMap<Command.Context, ThinkingReply>();
+// set while a thinking reply edits itself (or `hold` puts something on it), those replies mustn't stop it
+const thinkingReplyOwnEdits = new AsyncLocalStorage<ThinkingReply>();
+
+// a prefix command's thinking reply: sent once the command has taken `after` (`THINKING_REPLY_AFTER`), and edited
+// whenever its status changes after that. the same random thinking text stays on top. interactions get nothing, they
+// already defer. every prefix command starts one (`BaseCommand.onTypingTrigger`), slow tags and NotSoAI make their own
+// with a status line, taking over the command's (its timer, or its reply if it's already out)
+export class ThinkingReply {
+  context: Command.Context | Interaction.InteractionContext;
+  // NotSoAI continuing from a press, its thinking text goes on that press's response instead of the command's reply
+  replyTo: ComponentContext | InteractionModalContext | undefined;
+  // when the timer sends it, for a thinking reply taking this one over
+  dueAt: number = 0;
+  // something else is on the reply (NotSoAI asking to confirm, see `hold`), status edits wait for it
+  held: boolean = false;
+  // the reply it's on, deleted at the end of the run (`finishThinkingReply`) when nothing replaced it
+  message: Structures.Message | null = null;
+  pending: Promise<void> = Promise.resolve();
+  // the command's own reply went on it (through `editOrReply`)
+  replaced: boolean = false;
+  sent: boolean = false;
+  status: ThinkingStatus | null;
+  statusTimeout: ReturnType<typeof setTimeout> | null = null;
+  stopped: boolean = false;
+  thinkingText: string | null = null;
+  timeout: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(
+    context: Command.Context | Interaction.InteractionContext,
+    status: ThinkingStatus | null = null,
+    replyTo?: ComponentContext | InteractionModalContext,
+    after: number = THINKING_REPLY_AFTER,
+  ) {
+    this.context = context;
+    this.replyTo = replyTo;
+    this.status = status;
+    if (!(context instanceof Command.Context)) {
+      return;
+    }
+    // a press's response is its own message, nothing to share with the command's
+    if (replyTo) {
+      this.startTimer(after);
+      return;
+    }
+    const previous = thinkingReplies.get(context);
+    thinkingReplies.set(context, this);
+    if (previous && !previous.replaced) {
+      // the same text on the same message, a second one (a tag parsed after the command's) doesn't swap it
+      this.message = previous.message;
+      this.thinkingText = previous.thinkingText;
+      if (!previous.stopped) {
+        previous.clearTimers();
+        previous.stopped = true;
+        // its edits still going finish before ours
+        this.pending = previous.pending;
+        if (previous.sent) {
+          this.sent = true;
+          this.render();
+        } else {
+          this.startTimer(previous.dueAt - Date.now());
+        }
+        return;
+      }
+    }
+    this.startTimer(after);
+  }
+
+  private startTimer(after: number): void {
+    after = Math.max(0, after);
+    this.dueAt = Date.now() + after;
+    this.timeout = setTimeout(() => {
+      this.timeout = null;
+      this.sent = true;
+      this.render();
+    }, after);
+  }
+
+  private clearTimers(): void {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    if (this.statusTimeout) {
+      clearTimeout(this.statusTimeout);
+      this.statusTimeout = null;
+    }
+  }
+
+  // `after` holds off the edit when the reply is already out, so a status that's over right away (generated tagscript
+  // that runs instantly) doesn't cost an edit right before the command's own reply. not out yet, it's just swapped
+  setStatus(status: ThinkingStatus | null, after: number = 0): void {
+    if (this.statusTimeout) {
+      clearTimeout(this.statusTimeout);
+      this.statusTimeout = null;
+    }
+    if (!this.sent || !after) {
+      this.status = status;
+      if (this.sent) {
+        this.render();
+      }
+      return;
+    }
+    this.statusTimeout = setTimeout(() => {
+      this.statusTimeout = null;
+      this.status = status;
+      this.render();
+    }, after);
+  }
+
+  // the command's reply (or error) has to edit the thinking reply, not race it into a second message. `editOrReply`
+  // does this itself for prefix replies, a press's response (`replyTo`) still has to await it. edits that haven't
+  // started yet are dropped
+  async stop(): Promise<void> {
+    this.clearTimers();
+    this.stopped = true;
+    await this.pending;
+  }
+
+  // the reply shows what `callback` puts on it until it's done (NotSoAI's confirmation buttons), then the thinking text
+  // goes back on it, the reply is out either way now. edits already started finish first
+  async hold<T>(callback: () => Promise<T>): Promise<T> {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    this.held = true;
+    await this.pending;
+    try {
+      return await thinkingReplyOwnEdits.run(this, callback);
+    } finally {
+      this.held = false;
+      this.sent = true;
+      this.render();
+    }
+  }
+
+  // edits go one at a time, so a slow first reply can't land after the edit meant to replace it
+  private render(): void {
+    this.pending = this.pending.then(() => thinkingReplyOwnEdits.run(this, async () => {
+      if (this.stopped || this.held) {
+        return;
+      }
+      const { translate } = await getTranslator(this.context);
+      if (!this.thinkingText) {
+        this.thinkingText = randomThinkingText(translate);
+      }
+      const statusText = (this.status) ? await this.status(translate) : null;
+      if (this.stopped) {
+        return;
+      }
+      const message = await replyThinking(this.context, this.thinkingText, statusText, this.replyTo);
+      if (message) {
+        this.message = message;
+      }
+    })).catch(() => {
+      // the trigger was edited/deleted or the channel can't be replied in, the command's own reply will deal with it
+    });
+  }
+}
+
+// the text of the run's thinking reply when it's already out, so a media job's own thinking reply keeps it
+export function getSentThinkingText(context: Command.Context | Interaction.InteractionContext | ComponentContext): string | null {
+  const thinking = (context instanceof Command.Context) ? thinkingReplies.get(context) : undefined;
+  return (thinking && thinking.sent && !thinking.replaced && thinking.message) ? thinking.thinkingText : null;
+}
+
+// the end of a prefix run: no thinking reply after it, and one that nothing replaced (a command replying some other way,
+// or with nothing at all) is deleted instead of saying "Thinking..." forever. gives the id of the deleted one
+export async function finishThinkingReply(context: Command.Context): Promise<string | null> {
+  const thinking = thinkingReplies.get(context);
+  if (!thinking) {
+    return null;
+  }
+  thinkingReplies.delete(context);
+  await thinking.stop();
+  const { message } = thinking;
+  // an edited (or deleted) trigger's newer run has the reply now
+  if (!message || thinking.replaced || message.deleted || isCommandRunCancelled(context)) {
+    return null;
+  }
+  try {
+    await message.delete();
+    return message.id;
+  } catch(error) {
+    return null;
+  }
+}
+
+
 // giving up on a job, with where it still was in its queue when it never started (a backed up queue, not a slow job)
 function jobTimedOutText(translate: Translator['translate'], job: RestResponsesRaw.JobResponse): string {
   if (job.status === 'queued' && job.queue && job.position !== undefined) {
@@ -2223,7 +2435,8 @@ export async function jobReply(
   }
 
   const { translate } = await getTranslator(context);
-  const thinkingText = randomThinkingText(translate);
+  // the command's own thinking reply when it's already out (a slow download before the job), so the text doesn't change
+  const thinkingText = getSentThinkingText(context) || randomThinkingText(translate);
   // the api's first answer already says where it is (queued or running), so the first message does too. the api
   // doesn't say when it started, but we poll often enough that the first time we see it running is close (the first
   // answer can be up to `JOB_RESPONSE_BRIEF_WAIT` late, so the countdown might give it a couple seconds too many)

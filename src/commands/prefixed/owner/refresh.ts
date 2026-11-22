@@ -15,17 +15,21 @@ export default class RefreshCommand extends BaseCommand {
 
       aliases: ['reload'],
       args: [
+        {name: 'pull', type: Boolean},
+        {name: 'respawn', type: Boolean},
         {name: 'voice', type: Boolean},
       ],
       metadata: {
-        description: 'Reload the bot\'s commands, listeners and stores (stores keep their cached data), and with -voice the voice node client',
+        description: 'Build the source into lib (with -pull pulled from github first), then reload the bot\'s commands, listeners and stores (stores keep their cached data), with -voice the voice node client and with -respawn respawn every cluster one at a time afterwards',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -voice`,
+          `${COMMAND_NAME} -respawn`,
+          `${COMMAND_NAME} -pull -respawn`,
         ],
         category: CommandCategories.OWNER,
         id: Formatter.Commands.OwnerRefresh.COMMAND_ID,
-        usage: '(-voice)',
+        usage: '(-pull) (-respawn) (-voice)',
       },
       responseOptional: true,
     });
