@@ -3969,6 +3969,8 @@ export const Hungarian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Kép címkéinek lekérése',
   'commands.tools.labels.name': 'cimkek',
+  'commands.tools.ocr.description': 'Kép szövegének felismerése (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Kép szövegének felismerése és fordítása',
   'commands.tools.ocr_translate.name': 'ocr-forditas',
   'commands.tools.ocr_translate.to.name': 'nyelvre',

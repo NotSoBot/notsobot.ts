@@ -3969,6 +3969,8 @@ export const Czech: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Zobrazí štítky obrázku',
   'commands.tools.labels.name': 'stitky',
+  'commands.tools.ocr.description': 'Přečte text v obrázku (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Přečte text v obrázku a přeloží ho',
   'commands.tools.ocr_translate.name': 'ocr-preklad',
   'commands.tools.ocr_translate.to.name': 'do',

@@ -2954,6 +2954,7 @@ export async function generateTag(
       method: HTTPMethods.POST,
       path: Api.TAGS_GENERATE,
     },
+    signal: options.signal,
   });
 }
 
@@ -2987,6 +2988,8 @@ export async function generateTagVoice(
       method: HTTPMethods.POST,
       path: Api.TAGS_GENERATE,
     },
+    // also stops reading the stream, its later sentences aren't said
+    signal: options.signal,
     timeout: GENERATE_TAG_VOICE_TIMEOUT,
   });
   const stream = response.body;

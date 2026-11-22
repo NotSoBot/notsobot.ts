@@ -3969,6 +3969,8 @@ export const Bulgarian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Виж етикетите на изображение',
   'commands.tools.labels.name': 'етикети',
+  'commands.tools.ocr.description': 'Разчети текста в изображение (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Разчети текста в изображение и го преведи',
   'commands.tools.ocr_translate.name': 'ocr-превод',
   'commands.tools.ocr_translate.to.name': 'на',

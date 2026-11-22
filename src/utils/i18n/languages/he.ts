@@ -3969,6 +3969,8 @@ export const Hebrew: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'הצג את התוויות של תמונה',
   'commands.tools.labels.name': 'תוויות',
+  'commands.tools.ocr.description': 'קרא טקסט בתוך תמונה (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'קרא טקסט בתוך תמונה ותרגם אותו',
   'commands.tools.ocr_translate.name': 'ocr-תרגום',
   'commands.tools.ocr_translate.to.name': 'אל',

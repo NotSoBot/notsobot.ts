@@ -3969,6 +3969,8 @@ export const Japanese: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': '画像のラベルを取得',
   'commands.tools.labels.name': 'ラベル',
+  'commands.tools.ocr.description': '画像内の文字を読み取る (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': '画像内の文字を読み取って翻訳',
   'commands.tools.ocr_translate.name': 'ocr翻訳',
   'commands.tools.ocr_translate.to.name': '翻訳先',

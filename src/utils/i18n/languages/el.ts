@@ -3969,6 +3969,8 @@ export const Greek: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Δες τις ετικέτες μιας εικόνας',
   'commands.tools.labels.name': 'ετικέτες',
+  'commands.tools.ocr.description': 'Διάβασε κείμενο σε εικόνα (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Διάβασε κείμενο σε εικόνα και μετάφρασέ το',
   'commands.tools.ocr_translate.name': 'ocr-μετάφραση',
   'commands.tools.ocr_translate.to.name': 'προς',

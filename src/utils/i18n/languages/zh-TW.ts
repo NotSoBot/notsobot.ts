@@ -3969,6 +3969,8 @@ export const ChineseTraditional: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': '取得圖片的標籤',
   'commands.tools.labels.name': '標籤',
+  'commands.tools.ocr.description': '辨識圖片中的文字 (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': '辨識圖片中的文字並翻譯',
   'commands.tools.ocr_translate.name': 'ocr翻譯',
   'commands.tools.ocr_translate.to.name': '目標語言',

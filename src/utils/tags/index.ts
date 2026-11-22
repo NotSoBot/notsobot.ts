@@ -155,6 +155,7 @@ import { parseMusicVolume } from '../formatter/commands/music.volume';
 import { getAIPersonality } from '../formatter/commands/tag.generate';
 import { increaseUsage } from '../formatter/commands/tag.show';
 
+import { CommandRunCancelledError } from '../errors';
 import * as DefaultParameters from '../defaultparameters';
 import { Translator, getCachedTranslator } from '../i18n';
 import { MathSession, MATH_ERROR_TIMEOUT_MESSAGE } from '../math';
@@ -168,6 +169,7 @@ import {
   generateCodeFromLanguage,
   generateCodeStdin,
   getCodeLanguage,
+  getCommandRunSignal,
   getSearchProvider,
   getGuildObjectForJSONSerialization,
   htmlDecode,
@@ -2161,6 +2163,19 @@ export function isFromAI(context: Command.Context | Interaction.InteractionConte
   return !!tag.variables[PrivateVariables.IS_FROM_AI];
 }
 
+// a button/select press or the onTimeout script (tag.show's `resetTagLimits` then `increaseComponentExecutions`), not
+// the run that made the message. Private like every `__` variable, and it carries over into called tags with the limits
+export function isComponentRun(tag: TagResult): boolean {
+  return 0 < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS];
+}
+
+// `{ai}` sent as `from_ai`, which the api doesn't charge: only inside NotSoAI's own reply on its first run, that
+// message was already paid for. Its buttons' scripts and its onTimeout script run again on every press (the listener
+// re-arms each time), their `{ai}` is charged like a message, as is every user tag's
+export function isFreeAICall(context: Command.Context | Interaction.InteractionContext, tag: TagResult): boolean {
+  return isFromAI(context, tag) && !isComponentRun(tag);
+}
+
 
 export interface AIMemoryChanges {
   added: number,
@@ -2222,7 +2237,7 @@ export async function canChangeAIMemory(
   arg: string,
   options: {deferConfirm?: boolean} = {},
 ): Promise<boolean> {
-  if (!isFromAI(context, tag) || 0 < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS]) {
+  if (!isFromAI(context, tag) || isComponentRun(tag)) {
     return false;
   }
   if (tag.variables[PrivateVariables.AI_PROMPT_UNTRUSTED] && !options.deferConfirm) {
@@ -4488,10 +4503,11 @@ const ScriptTags = Object.freeze({
       personality = personalities[0];
     }
 
-    const response = await withDeadline(context, tag, () => generateTag(context, {
+    // an edit of the trigger stops waiting on it too, only in the run itself (a press comes after the run ended)
+    const runSignal = (isComponentRun(tag)) ? undefined : getCommandRunSignal(context);
+    const response = await withDeadline(context, tag, (signal) => generateTag(context, {
       files,
-      // NotSoAI's own reply already counted as the server's message, its `{ai}` call doesn't count again
-      fromAI: !!tag.variables[PrivateVariables.IS_FROM_AI],
+      fromAI: isFreeAICall(context, tag),
       // a user's tag running {ai} for someone else never gets their memories, it could send them anywhere
       memory: !(context.metadata && context.metadata.tag),
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_MODEL],
@@ -4500,6 +4516,7 @@ const ScriptTags = Object.freeze({
         `${PrivateVariables.AI_EXECUTIONS} count: ${tag.variables[PrivateVariables.AI_EXECUTIONS]}`,
         withRealNewlines(prompt),
       ].join('\n').slice(0, 12000),
+      signal: (runSignal) ? AbortSignal.any([signal, runSignal]) : signal,
       urls: Object.values(urls).filter((x) => x.url),
     }));
 
@@ -5897,7 +5914,7 @@ const ScriptTags = Object.freeze({
 
     const component = parseComponentFromData(data, undefined, undefined, tag.translate);
     // pressing one sends their next message to NotSoAI as them, only its own reply (not a tag, or a button's run) can
-    if (hasComponentAI(component) && (!isFromAI(context, tag) || 0 < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS])) {
+    if (hasComponentAI(component) && (!isFromAI(context, tag) || isComponentRun(tag))) {
       throw new TagError('Only NotSoAI\'s own reply can use `ai` and `ai_input` on components');
     }
     components.components.push(component);
@@ -7030,7 +7047,8 @@ const ScriptTags = Object.freeze({
         try {
           tag.text += await parseValue(context, tag, conditional);
         } catch(error) {
-          if (error instanceof TagExitError || error instanceof TagTimeoutError) {
+          // the trigger was edited or deleted (an aborted `{ai}`, a cancelled job), the next action would still spend
+          if (error instanceof TagExitError || error instanceof TagTimeoutError || error instanceof CommandRunCancelledError) {
             throw error;
           }
           // go to the next one if it errors
@@ -7062,11 +7080,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.LOGICAL_IS_FROM_COMPONENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {isfromcomponent}
 
-    if (tag.variables[PrivateVariables.COMPONENT_EXECUTIONS] <= 0) {
-      tag.text += String(false);
-    } else {
-      tag.text += String(true);
-    }
+    tag.text += String(isComponentRun(tag));
 
     return true;
   },

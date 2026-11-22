@@ -3969,6 +3969,8 @@ export const Indonesian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Lihat label dari Gambar',
   'commands.tools.labels.name': 'label',
+  'commands.tools.ocr.description': 'Baca teks di dalam Gambar (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Baca teks di dalam Gambar lalu terjemahkan',
   'commands.tools.ocr_translate.name': 'ocr-terjemah',
   'commands.tools.ocr_translate.to.name': 'ke',

@@ -8,11 +8,12 @@ import { getApiError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
 import { log } from '../../../log';
-import { displayReply, formatTime, isCommandRunCancelled } from '../../../utils';
+import { CommandRunCancelledError, displayReply, formatTime, isCommandRunCancelled } from '../../../utils';
 import { addExtraResponse, detachReply } from '../../commandresponses';
 import VoiceNode, { ListenEndReason, VoiceListenError } from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
+import { isFillerUtterance } from './ai.listen.filler';
 import { findVoiceChannel } from './music.play';
 import { canControlMusic } from './music.shared';
 import * as TagGenerate from './tag.generate';
@@ -254,6 +255,12 @@ async function runTurn(context: Command.Context, guildId: string, session: Sessi
     if (!prompt || session.ended !== null || session.stopping) {
       return;
     }
+    // "uh", "hmm", a cough whisper made a word of: every turn is a charged NotSoAI message, and it shouldn't stop what
+    // it's saying for one either
+    if (isFillerUtterance(transcription.text)) {
+      log.debug(`ai listen ${guildId} skipped filler (${transcription.text.trim().length} characters)`);
+      return;
+    }
     // they talked over it: what it was still saying stops, like a person would ("be quiet" needs nothing more). Only
     // while its own sentences are playing, `tts play` alone isn't interrupted (one queued behind them goes with them)
     if (VoiceNode.isSpeaking(guildId, SPEECH_ID_PREFIX)) {
@@ -279,6 +286,11 @@ async function runTurn(context: Command.Context, guildId: string, session: Sessi
       session.parentId = turn.responseId;
     }
   } catch(error) {
+    // the command message was edited or deleted while it answered (its generation was aborted), like `onUtterance`
+    if (error instanceof CommandRunCancelledError || isCommandRunCancelled(context)) {
+      stopSession(guildId, session);
+      return;
+    }
     const apiError = await getApiError(error);
     const description = (apiError) ? apiError.message : String(error.message || error);
     // its own reply, the listening one stays as it is

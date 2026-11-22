@@ -3969,6 +3969,8 @@ export const Hindi: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'इमेज के लेबल पाएँ',
   'commands.tools.labels.name': 'लेबल',
+  'commands.tools.ocr.description': 'इमेज का टेक्स्ट पढ़ें (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'इमेज का टेक्स्ट पढ़ें और अनुवाद करें',
   'commands.tools.ocr_translate.name': 'ocr-अनुवाद',
   'commands.tools.ocr_translate.to.name': 'भाषा-में',

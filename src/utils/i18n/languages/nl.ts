@@ -3969,6 +3969,8 @@ export const Dutch: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Bekijk de labels van een afbeelding',
   'commands.tools.labels.name': 'labels',
+  'commands.tools.ocr.description': 'Lees tekst in een afbeelding (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Lees tekst in een afbeelding en vertaal die',
   'commands.tools.ocr_translate.name': 'ocr-vertalen',
   'commands.tools.ocr_translate.to.name': 'naar',

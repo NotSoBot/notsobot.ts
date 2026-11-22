@@ -3969,6 +3969,8 @@ export const Arabic: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'عرض تصنيفات صورة',
   'commands.tools.labels.name': 'التصنيفات',
+  'commands.tools.ocr.description': 'قراءة النص داخل صورة (التعرف الضوئي على الحروف)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'قراءة النص داخل صورة وترجمته',
   'commands.tools.ocr_translate.name': 'ocr-ترجمة',
   'commands.tools.ocr_translate.to.name': 'إلى',

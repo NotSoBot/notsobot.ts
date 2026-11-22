@@ -771,6 +771,8 @@ export namespace RestOptions {
     personality?: null | string,
     personalityPreference?: string,
     prompt: string,
+    // aborts the request (the bot stops waiting), like the run being cancelled by an edit or the tag's deadline
+    signal?: AbortSignal,
     situation?: GenerateTagSituation,
   }
 

@@ -79,6 +79,19 @@ function jsonField(value: unknown): string {
 }
 
 
+// the payload's description with its upsell, the tier's name a link to its store page
+export function formatErrorDescription(context: ErrorContext, payload: ErrorPayload): string {
+  const { upsell } = payload;
+  if (!upsell) {
+    return payload.description;
+  }
+  // the line goes in the description, not the note: embeds show the note in their footer, where links don't work
+  return (upsell.text) ?
+    `${payload.description}\n-# ${linkPremiumSkuName(context, upsell.text, upsell.skuId)}` :
+    linkPremiumSkuName(context, payload.description, upsell.skuId);
+}
+
+
 export async function replyError(
   context: ErrorContext,
   payload: ErrorPayload,
@@ -86,14 +99,7 @@ export async function replyError(
 ): Promise<any> {
   skipPrefixSlashTip(context);
   const { translate } = await I18n.getTranslator(context);
-  let description = payload.description;
-  const { upsell } = payload;
-  if (upsell) {
-    // the line goes in the description, not the note: embeds show the note in their footer, where links don't work
-    description = (upsell.text) ?
-      `${description}\n-# ${linkPremiumSkuName(context, upsell.text, upsell.skuId)}` :
-      linkPremiumSkuName(context, description, upsell.skuId);
-  }
+  const description = formatErrorDescription(context, payload);
   return displayReply(context, {
     allowedMentions: options.allowedMentions,
     color: EmbedColors.ERROR,

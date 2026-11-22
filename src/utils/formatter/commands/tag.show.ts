@@ -22,6 +22,7 @@ import TagCustomCommandStore from '../../../stores/tagcustomcommands';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
 import { createTagUse, editTag, fetchFileVanity } from '../../../api';
+import { getApiError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import { Mimetypes, MimetypesToExtension } from '../../../constants';
 import {
@@ -493,8 +494,8 @@ export function generateComponents(
 
   const components = new Components({
     timeout: (hasAI) ? AI_COMPONENTS_TIMEOUT : 1 * (60 * 1000),
-    onError: (componentContext: ComponentContext, error: Error) => {
-      const content = translate('tag_show.tagscript_error_has_occured', {error: error});
+    onError: async (componentContext: ComponentContext, error: Error) => {
+      const content = await formatComponentError(context, error);
       // a components v2 message can't have content, discord refused the edit and the press failed without a word
       const pressed = componentContext.interaction.message;
       if (pressed && pressed.hasFlagComponentsV2) {
@@ -778,6 +779,27 @@ export function generateComponents(
   }
 
   return components;
+}
+
+
+// a press's error for its message. One from the api (an `{ai}` without the credits or premium it needs, a ratelimit)
+// gets the same translated text and store link as a command's error would, instead of the raw http error
+async function formatComponentError(
+  context: Command.Context | Interaction.InteractionContext,
+  error: any,
+): Promise<string> {
+  const translator = await getTranslator(context);
+  try {
+    if (await getApiError(error)) {
+      // required here, commands/errors imports utils (and this file with it) back
+      const { createRunErrorPayload, formatErrorDescription, warning }: typeof import('../../../commands/errors') = require('../../../commands/errors');
+      const payload = await createRunErrorPayload(context, '', error, translator);
+      return warning(formatErrorDescription(context, payload));
+    }
+  } catch(e) {
+
+  }
+  return translator.translate('tag_show.tagscript_error_has_occured', {error});
 }
 
 

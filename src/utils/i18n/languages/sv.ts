@@ -3969,6 +3969,8 @@ export const Swedish: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Hämta etiketterna för en bild',
   'commands.tools.labels.name': 'etiketter',
+  'commands.tools.ocr.description': 'Läs text i en bild (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Läs text i en bild och översätt den',
   'commands.tools.ocr_translate.name': 'ocr-oversatt',
   'commands.tools.ocr_translate.to.name': 'till',

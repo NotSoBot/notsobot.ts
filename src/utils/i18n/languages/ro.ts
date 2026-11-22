@@ -3969,6 +3969,8 @@ export const Romanian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Află etichetele unei imagini',
   'commands.tools.labels.name': 'etichete',
+  'commands.tools.ocr.description': 'Citește textul dintr-o imagine (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Citește textul dintr-o imagine și îl traduce',
   'commands.tools.ocr_translate.name': 'ocr-traducere',
   'commands.tools.ocr_translate.to.name': 'in-limba',

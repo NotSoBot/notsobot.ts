@@ -3969,6 +3969,8 @@ export const ChineseSimplified: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': '获取图片的标签',
   'commands.tools.labels.name': '标签',
+  'commands.tools.ocr.description': '识别图片中的文字 (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': '识别图片中的文字并翻译',
   'commands.tools.ocr_translate.name': 'ocr翻译',
   'commands.tools.ocr_translate.to.name': '目标语言',

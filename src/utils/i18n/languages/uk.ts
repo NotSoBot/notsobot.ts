@@ -3969,6 +3969,8 @@ export const Ukrainian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Отримати мітки зображення',
   'commands.tools.labels.name': 'мітки',
+  'commands.tools.ocr.description': 'Розпізнати текст на зображенні (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Розпізнати текст на зображенні й перекласти',
   'commands.tools.ocr_translate.name': 'ocr-переклад',
   'commands.tools.ocr_translate.to.name': 'на',

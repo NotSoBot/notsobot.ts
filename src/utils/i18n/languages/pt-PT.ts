@@ -3969,6 +3969,8 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Obtém os rótulos de uma imagem',
   'commands.tools.labels.name': 'rotulos',
+  'commands.tools.ocr.description': 'Lê o texto de uma imagem (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Lê o texto de uma imagem e traduz',
   'commands.tools.ocr_translate.name': 'ocr-traduzir',
   'commands.tools.ocr_translate.to.name': 'para',

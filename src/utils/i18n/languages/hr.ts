@@ -3969,6 +3969,8 @@ export const Croatian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Prikaži oznake slike',
   'commands.tools.labels.name': 'oznake',
+  'commands.tools.ocr.description': 'Pročitaj tekst sa slike (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Pročitaj tekst sa slike i prevedi ga',
   'commands.tools.ocr_translate.name': 'ocr-prijevod',
   'commands.tools.ocr_translate.to.name': 'na',

@@ -3969,6 +3969,8 @@ export const Korean: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': '이미지의 라벨을 가져와요',
   'commands.tools.labels.name': '라벨',
+  'commands.tools.ocr.description': '이미지 속 글자를 읽어요 (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': '이미지 속 글자를 읽고 번역해요',
   'commands.tools.ocr_translate.name': 'ocr번역',
   'commands.tools.ocr_translate.to.name': '번역언어',

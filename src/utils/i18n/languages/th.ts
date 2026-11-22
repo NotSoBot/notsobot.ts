@@ -3969,6 +3969,8 @@ export const Thai: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'ดูป้ายกำกับของรูปภาพ',
   'commands.tools.labels.name': 'ป้ายกำกับ',
+  'commands.tools.ocr.description': 'อ่านข้อความในรูปภาพ (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'อ่านข้อความในรูปภาพแล้วแปล',
   'commands.tools.ocr_translate.name': 'ocr-แปล',
   'commands.tools.ocr_translate.to.name': 'เป็นภาษา',

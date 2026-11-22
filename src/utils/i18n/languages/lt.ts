@@ -3969,6 +3969,8 @@ export const Lithuanian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Gauti vaizdo žymas',
   'commands.tools.labels.name': 'zymos',
+  'commands.tools.ocr.description': 'Perskaityti tekstą vaizde (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Perskaityti tekstą vaizde ir jį išversti',
   'commands.tools.ocr_translate.name': 'ocr-vertimas',
   'commands.tools.ocr_translate.to.name': 'i-kalba',

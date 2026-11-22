@@ -3969,6 +3969,8 @@ export const Vietnamese: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Xem nhãn của Ảnh',
   'commands.tools.labels.name': 'nhãn',
+  'commands.tools.ocr.description': 'Đọc chữ trong Ảnh (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Đọc chữ trong Ảnh rồi dịch',
   'commands.tools.ocr_translate.name': 'ocr-dịch',
   'commands.tools.ocr_translate.to.name': 'sang',

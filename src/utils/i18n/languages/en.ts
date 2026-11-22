@@ -3967,6 +3967,8 @@ export const English = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Get the labels of an Image',
   'commands.tools.labels.name': 'labels',
+  'commands.tools.ocr.description': 'Read text inside of an Image (Optical Character Recognition)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Read text inside of an Image and translate it',
   'commands.tools.ocr_translate.name': 'ocr-translate',
   'commands.tools.ocr_translate.to.name': 'to',

@@ -11,6 +11,7 @@ import { ToolsHashCommand } from './hash';
 import { ToolsImageToAudioCommand } from './image-to-audio';
 import { ToolsLabelsCommand } from './labels';
 import { ToolsMathCommand } from './math';
+import { ToolsOCRCommand } from './ocr';
 import { ToolsOCRTranslateCommand } from './ocr-translate';
 import { ToolsSafetyLabelsCommand } from './safety-labels';
 import { ToolsScreenshotCommand } from './screenshot';
@@ -53,6 +54,7 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
         new ToolsLabelsCommand(),
         new ToolsMLGroupCommand(),
         new ToolsMathCommand(),
+        new ToolsOCRCommand(),
         new ToolsOCRTranslateCommand(),
         new ToolsQrGroupCommand(),
         new ToolsSafetyLabelsCommand(),

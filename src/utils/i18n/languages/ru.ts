@@ -3969,6 +3969,8 @@ export const Russian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Получить метки изображения',
   'commands.tools.labels.name': 'метки',
+  'commands.tools.ocr.description': 'Распознать текст на изображении (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Распознать текст на изображении и перевести',
   'commands.tools.ocr_translate.name': 'ocr-перевод',
   'commands.tools.ocr_translate.to.name': 'на',

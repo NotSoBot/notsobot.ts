@@ -3969,6 +3969,8 @@ export const Norwegian: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Hent etikettene til et bilde',
   'commands.tools.labels.name': 'etiketter',
+  'commands.tools.ocr.description': 'Les tekst i et bilde (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Les tekst i et bilde og oversett den',
   'commands.tools.ocr_translate.name': 'ocr-oversett',
   'commands.tools.ocr_translate.to.name': 'til',

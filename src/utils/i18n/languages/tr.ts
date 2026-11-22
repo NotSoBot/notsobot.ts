@@ -3969,6 +3969,8 @@ export const Turkish: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Bir Görselin etiketlerini getir',
   'commands.tools.labels.name': 'etiketler',
+  'commands.tools.ocr.description': 'Bir Görseldeki metni oku (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Bir Görseldeki metni oku ve çevir',
   'commands.tools.ocr_translate.name': 'ocr-cevir',
   'commands.tools.ocr_translate.to.name': 'hedef-dil',

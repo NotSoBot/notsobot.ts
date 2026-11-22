@@ -19,7 +19,7 @@ import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT
 import { getRunErrorResult, setCommandResult } from '../../../commandresults';
 import { captureCommandError, captureError } from '../../../sentry';
 import { detachReply } from '../../commandresponses';
-import { UserError } from '../../errors';
+import { CommandRunCancelledError, UserError } from '../../errors';
 import {
   Paginator,
   Parameters,
@@ -31,6 +31,7 @@ import {
   displayReply,
   editOrReply,
   findMediaUrlInMessage,
+  getCommandRunSignal,
   timeLimitParts,
 } from '../../../utils';
 
@@ -385,6 +386,9 @@ async function generateAndRunTag(
     personality,
     personalityPreference: args.personalityPreference,
     prompt: [args.prompt, ...promptExtra].join('\n'),
+    // an edit (or delete) of the trigger stops waiting on it. Not a continuation: its press came after the run ended, an
+    // edit since then would abort it for nothing
+    signal: (continuation) ? undefined : getCommandRunSignal(context),
     situation: getAISituation(context, !!continuation),
     urls,
   };
@@ -526,6 +530,11 @@ async function generateAndRunTag(
     return result;
   } catch(error) {
     await thinking.stop();
+    // the trigger was edited or deleted while its tagscript ran (an aborted `{ai}`, a cancelled job), NotSoAI's
+    // tagscript didn't break and there's nothing to reply on
+    if (error instanceof CommandRunCancelledError) {
+      throw error;
+    }
     if (response.id) {
       try {
         await putGeneratedTagError(context, response.id, {error: error.message.slice(0, 6000)});

@@ -2476,7 +2476,8 @@ export function untrackCommandRun(context: Command.Context): void {
   }
 }
 
-// stops the run's jobs, and anything it tries to reply with afterwards, so a slow old run can't overwrite the new reply
+// stops the run's jobs, its in-flight requests (`getCommandRunSignal`), and anything it tries to reply with afterwards,
+// so a slow old run can't overwrite the new reply
 export function cancelCommandRun(messageId: string): void {
   const context = commandRuns.get(messageId);
   if (!context) {
@@ -2492,10 +2493,32 @@ export function cancelCommandRun(messageId: string): void {
     }
     metadata.jobIds.clear();
   }
+  if (metadata.runAbortController) {
+    (metadata.runAbortController as AbortController).abort(new CommandRunCancelledError());
+  }
 }
 
 export function isCommandRunCancelled(context: Command.Context | Interaction.InteractionContext | ComponentContext | InteractionModalContext): boolean {
   return context instanceof Command.Context && !!context.metadata && !!context.metadata.cancelled;
+}
+
+// aborts (with a `CommandRunCancelledError`) once the trigger message is edited or deleted, for requests that aren't
+// jobs, like NotSoAI's generation: waiting on a reply that would never be shown. Only message commands are cancelled,
+// slash commands and presses get none
+export function getCommandRunSignal(
+  context: Command.Context | Interaction.InteractionContext | ComponentContext | InteractionModalContext,
+): AbortSignal | undefined {
+  if (!(context instanceof Command.Context)) {
+    return undefined;
+  }
+  const metadata = context.metadata = context.metadata || {};
+  if (metadata.cancelled) {
+    return AbortSignal.abort(new CommandRunCancelledError());
+  }
+  if (!metadata.runAbortController) {
+    metadata.runAbortController = new AbortController();
+  }
+  return (metadata.runAbortController as AbortController).signal;
 }
 
 // returns false (after cancelling the job) if the run was already cancelled
@@ -4462,12 +4485,34 @@ export function createTagDirectoryUrl(tagId: string): string {
   return `${Endpoints.Domains.STABLE}/tags/directory/${tagId}`;
 }
 
+// Where a link to the website was (`bot-invite`), scrambled into letters that don't read as tracking: discord shows a
+// link in full in its "leaving discord" prompt. Not a secret, the site unscrambles it in the open.
+// The same steps and numbers as `encodeSource` in notsobot.com-web's src/lib/analyticsUrl.ts (its `decodeSource`
+// reads these), the two have to change together
+const SITE_SOURCE_KEY = [0x5a, 0x13, 0xc7, 0x2e, 0x91, 0x64, 0xb8, 0x3d];
+const SITE_SOURCE_SEED = 0x6b;
+
+export function encodeSiteSource(source: string): string {
+  // one byte that depends on the whole source, first in the code and mixed into the rest
+  let check = SITE_SOURCE_SEED;
+  for (let i = 0; i < source.length; i++) {
+    check = (check * 33 + source.charCodeAt(i)) & 0xff;
+  }
+  const bytes = Buffer.alloc(source.length + 1);
+  bytes[0] = check;
+  for (let i = 0; i < source.length; i++) {
+    bytes[i + 1] = source.charCodeAt(i) ^ SITE_SOURCE_KEY[i % SITE_SOURCE_KEY.length] ^ check;
+  }
+  return bytes.toString('base64url');
+}
+
 // A link to a page of the website, shown as its address without the scheme: `notsobot.com/invite`.
-// `source` is where the click came from, it goes on the link as `?src=` (the site's analytics read it, and its invite
-// keeps it) without being part of what's shown. The shown text can't start with `https://`: discord doesn't make a
-// link out of `[text](url)` when the text is a url itself, the whole thing would show as typed
+// `source` is where the click came from (lowercase letters, digits, `-` and `_`), it goes on the link scrambled as
+// `?i=` (the site's analytics read it, and its invite keeps it) without being part of what's shown. The shown text
+// can't start with `https://`: discord doesn't make a link out of `[text](url)` when the text is a url itself, the
+// whole thing would show as typed
 export function createSiteLink(path: string, source?: string): string {
-  const url = `${Endpoints.Domains.STABLE}${path}${(source) ? `?src=${source}` : ''}`;
+  const url = `${Endpoints.Domains.STABLE}${path}${(source) ? `?i=${encodeSiteSource(source)}` : ''}`;
   return Markup.url(`${new URL(Endpoints.Domains.STABLE).host}${path}`, `<${url}>`);
 }
 

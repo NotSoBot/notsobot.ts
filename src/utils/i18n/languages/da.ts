@@ -3969,6 +3969,8 @@ export const Danish: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Hent etiketterne for et billede',
   'commands.tools.labels.name': 'etiketter',
+  'commands.tools.ocr.description': 'Læs tekst i et billede (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Læs tekst i et billede og oversæt den',
   'commands.tools.ocr_translate.name': 'ocr-oversaet',
   'commands.tools.ocr_translate.to.name': 'til',

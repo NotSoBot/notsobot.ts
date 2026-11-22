@@ -3969,6 +3969,8 @@ export const Finnish: Translations = Object.freeze({
   'commands.tools.exif.name': 'exif',
   'commands.tools.labels.description': 'Hae kuvan tunnisteet',
   'commands.tools.labels.name': 'tunnisteet',
+  'commands.tools.ocr.description': 'Lue kuvassa oleva teksti (OCR)',
+  'commands.tools.ocr.name': 'ocr',
   'commands.tools.ocr_translate.description': 'Lue kuvassa oleva teksti ja käännä se',
   'commands.tools.ocr_translate.name': 'ocr-kaanna',
   'commands.tools.ocr_translate.to.name': 'kielelle',
