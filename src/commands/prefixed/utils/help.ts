@@ -80,7 +80,8 @@ export default class HelpCommand extends BaseCommand {
     if (args.commands) {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`});
     }
-    return displayReply(context, {description: translate('help.links', {commands: '<https://notsobot.com/commands>', invite: '<https://notsobot.com/support/invite>'})});
+    // `src` is where the click came from, for the site's analytics (notsobot.com-web's src/lib/analyticsUrl.ts)
+    return displayReply(context, {description: translate('help.links', {commands: '<https://notsobot.com/commands?src=bot-help>', invite: '<https://notsobot.com/support/invite>'})});
   }
 
   // add client permission labels

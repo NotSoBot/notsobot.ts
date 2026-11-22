@@ -25,6 +25,7 @@ export default class HelpCommand extends BaseSlashCommand {
   ];
 
   run(context: Interaction.InteractionContext) {
-    return displayReply(context, {description: '<https://notsobot.com/commands> (Join our support server <https://notsobot.com/support/invite>)'});
+    // `src` is where the click came from, for the site's analytics (notsobot.com-web's src/lib/analyticsUrl.ts)
+    return displayReply(context, {description: '<https://notsobot.com/commands?src=bot-help> (Join our support server <https://notsobot.com/support/invite>)'});
   }
 }

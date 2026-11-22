@@ -285,12 +285,35 @@ export async function editOrReply(
   options = await addPrefixSlashTip(context, options as Command.EditOrReply);
   // the run's thinking reply finishes its edits first, this reply takes its place. not when it's a thinking reply editing
   // itself (or one it took over from, still finishing an edit)
-  const thinking = thinkingReplies.get(context);
   const ownEdit = thinkingReplyOwnEdits.getStore();
-  const replacesThinking = !!thinking && !(ownEdit && ownEdit.context === context);
-  if (thinking && replacesThinking) {
-    await thinking.stop();
+  if (ownEdit && ownEdit.context === context) {
+    return sendPrefixReply(context, options as Command.EditOrReply, null, true);
   }
+  // from here (nothing awaited in between) the run's own reply is on its way: the command's own thinking reply can't
+  // start anymore (`ThinkingReply`'s constructor), the one that's already going is the `thinking` stopped below. the
+  // 2s typing trigger used to start one while a file was still uploading, over a tag's stopped one: it edited the
+  // result into "Thinking..." and `finishThinkingReply` deleted that as an orphan
+  const thinking = thinkingReplies.get(context) || null;
+  const runReply = getRunReply(context);
+  runReply.replying++;
+  try {
+    if (thinking) {
+      await thinking.stop();
+    }
+    return await sendPrefixReply(context, options as Command.EditOrReply, thinking, false);
+  } finally {
+    runReply.replying--;
+  }
+}
+
+// `editOrReply`'s prefix reply once the run's thinking reply is out of its way (`thinking`, the one this reply replaces).
+// `isOwnEdit` is a thinking reply's own edit
+async function sendPrefixReply(
+  context: Command.Context,
+  options: Command.EditOrReply,
+  thinking: ThinkingReply | null,
+  isOwnEdit: boolean,
+): Promise<Structures.Message> {
   // again after the awaits (a big file's separate upload takes a while): an edit of the trigger in the meantime gave
   // the reply to the newer run, editing it now would put this result over its thinking message
   if (isCommandRunCancelled(context)) {
@@ -333,15 +356,74 @@ export async function editOrReply(
     }
   }
 
-  const message = await context.editOrReply({
-    reference: true,
-    ...options,
-    allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
-  });
-  if (thinking && replacesThinking) {
+  const startedAt = Date.now();
+  let message: Structures.Message;
+  try {
+    message = await context.editOrReply({
+      reference: true,
+      ...options,
+      allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
+    });
+  } catch(error) {
+    logSlowPrefixReply(context, options, startedAt, response, null, isOwnEdit);
+    throw error;
+  }
+  logSlowPrefixReply(context, options, startedAt, response, message, isOwnEdit);
+  // detritus sends a trigger's replies one at a time, so the last one to finish is what the reply message shows
+  const runReply = getRunReply(context);
+  if (isOwnEdit) {
+    runReply.shows = RunReplyShows.THINKING;
+  } else {
+    runReply.replied = true;
+    runReply.shows = RunReplyShows.REPLY;
+  }
+  if (thinking) {
     thinking.replaced = true;
   }
   return message;
+}
+
+// a prefix reply's call that took this long gets a log line
+const SLOW_REPLY_LOG_AFTER = 2000;
+
+// recordings showed a tag's file on screen 1 to 10 seconds before its reply call came back (what let the 2s thinking
+// reply land on the result). the message's own timestamp (its id's for a new one, its edit time for an edit) is when
+// discord had it, so the line splits the wait into before that (the upload, or queued behind the trigger's previous
+// reply) and after (the answer coming back to us). discord's clock isn't ours, so either part can be a few ms off
+function logSlowPrefixReply(
+  context: Command.Context,
+  options: Command.EditOrReply,
+  startedAt: number,
+  previous: Structures.Message | null,
+  message: Structures.Message | null,
+  isOwnEdit: boolean,
+): void {
+  const now = Date.now();
+  const took = now - startedAt;
+  if (took < SLOW_REPLY_LOG_AFTER) {
+    return;
+  }
+  const parts: Array<string> = [];
+  if (message) {
+    const isEdit = !!previous && previous.id === message.id;
+    const hadAt = (isEdit) ? message.editedAtUnix : message.createdAtUnix;
+    parts.push(`${(isEdit) ? 'edit of' : 'new message'} ${message.id} took ${took}ms`);
+    if (hadAt) {
+      parts.push(`discord had it ${hadAt - startedAt}ms in and answered ${now - hadAt}ms later`);
+    }
+  } else {
+    parts.push(`failed after ${took}ms`);
+  }
+  const files = options.files || [];
+  if (files.length) {
+    const size = files.reduce((x, file) => x + ((file.value && file.value.length) || 0), 0);
+    parts.push(`${files.length} file${(files.length === 1) ? '' : 's'} of ${formatMemory(size, 2)}`);
+  }
+  if (isOwnEdit) {
+    parts.push('thinking text');
+  }
+  const name = (context.command) ? context.command.name : 'unknown';
+  log.warn(`Slow prefix reply (${name}, shard #${context.shardId}): ${parts.join(', ')}`);
 }
 
 // discord can't edit a components v2 response back into plain content with an attachment (the flag can't be removed),
@@ -2065,6 +2147,35 @@ const thinkingReplies = new WeakMap<Command.Context, ThinkingReply>();
 // set while a thinking reply edits itself (or `hold` puts something on it), those replies mustn't stop it
 const thinkingReplyOwnEdits = new AsyncLocalStorage<ThinkingReply>();
 
+enum RunReplyShows {
+  REPLY = 'reply',
+  THINKING = 'thinking',
+}
+
+// a prefix run's own replies through `editOrReply` (results, errors, a job's thinking text), not its thinking reply's
+// edits:
+//   replying  how many are on their way to discord
+//   replied   one got there
+//   shows     what the reply message got last, the run's own reply or thinking text
+// the command's own thinking reply never starts once `replying` or `replied` (the reply is the answer, even when
+// discord takes seconds to answer the upload), and `finishThinkingReply` never deletes a message that `shows` a reply
+interface RunReply {
+  replied: boolean,
+  replying: number,
+  shows: RunReplyShows | null,
+}
+
+const runReplies = new WeakMap<Command.Context, RunReply>();
+
+function getRunReply(context: Command.Context): RunReply {
+  let runReply = runReplies.get(context);
+  if (!runReply) {
+    runReply = {replied: false, replying: 0, shows: null};
+    runReplies.set(context, runReply);
+  }
+  return runReply;
+}
+
 // a prefix command's thinking reply: sent once the command has taken `after` (`THINKING_REPLY_AFTER`), and edited
 // whenever its status changes after that. the same random thinking text stays on top. interactions get nothing, they
 // already defer. every prefix command starts one (`BaseCommand.onTypingTrigger`), slow tags and NotSoAI make their own
@@ -2074,7 +2185,8 @@ const thinkingReplyOwnEdits = new AsyncLocalStorage<ThinkingReply>();
 //   out      `sent`, status edits go one at a time through `pending`. `held` while something else is on it (`hold`)
 //   stopped  no more edits (the run's reply is coming, or a newer one took over), `stop` waits for edits in flight
 //   replaced the command's own reply went on its message (`editOrReply`), `finishThinkingReply` leaves it alone
-// a command's own (status-less) one never takes over one with a status that's still going, see the constructor
+// a command's own (status-less) one never takes over one with a status that's still going, and never starts once the
+// run's own reply has (`RunReply`), see the constructor
 export class ThinkingReply {
   context: Command.Context | Interaction.InteractionContext;
   // NotSoAI continuing from a press, its thinking text goes on that press's response instead of the command's reply
@@ -2117,6 +2229,13 @@ export class ThinkingReply {
     // started: that one keeps the reply. taking it over dropped its status line (and setStatus/hold on it did nothing
     // after, so its confirmation could be put back to plain "Thinking..." by this one's timer). this one does nothing
     if (!status && previous && !previous.replaced && !previous.stopped) {
+      this.stopped = true;
+      return;
+    }
+    // or after the run's own reply went out or started to (see `RunReply`): a tag done in under 2s leaves its thinking
+    // reply stopped while the file uploads, taking over from there put "Thinking..." over the result
+    const runReply = runReplies.get(context);
+    if (!status && runReply && (runReply.replied || runReply.replying)) {
       this.stopped = true;
       return;
     }
@@ -2253,6 +2372,12 @@ export async function finishThinkingReply(context: Command.Context): Promise<str
   const { message } = thinking;
   // an edited (or deleted) trigger's newer run has the reply now
   if (!message || thinking.replaced || message.deleted || isCommandRunCancelled(context)) {
+    return null;
+  }
+  // `replaced` is only set on the thinking reply the run's reply stopped, one that took over while that reply was on its
+  // way shares its message without it. the run's reply is what's on the message, not ours to delete
+  const runReply = runReplies.get(context);
+  if (runReply && runReply.shows === RunReplyShows.REPLY) {
     return null;
   }
   try {

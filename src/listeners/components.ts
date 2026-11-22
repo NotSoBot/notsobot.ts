@@ -7,7 +7,9 @@ import {
   ClientEvents,
   InteractionCallbackTypes,
   InteractionTypes,
+  MessageFlags,
 } from 'detritus-client/lib/constants';
+import { getResponseInteractionId } from 'detritus-client/lib/gateway/handlercomponent';
 import { ComponentButton, ComponentContext, Components } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 import { EventSubscription, Timers } from 'detritus-utils';
@@ -19,6 +21,7 @@ import { ApiEventsSpewer } from '../apievents';
 import { log } from '../log';
 import { RedisPayloads } from '../types';
 import { I18n, editOrReply, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
+import { RawAttachment, disableStaleComponents, isStaticCustomId } from '../utils/stalecomponents';
 import { MediaReplyEmbedFooter, createHostedExpiresText } from '../utils/tools';
 import {
   deliverUndeliveredGuildReportMessages,
@@ -75,6 +78,9 @@ class ComponentsListener extends Listener {
         switch (interaction.type) {
           case InteractionTypes.MESSAGE_COMPONENT: {
             const context = new ComponentContext(interaction);
+            // read before anything is awaited: the shard runs the press's listener right after this event, a button
+            // that ends its listener (a paginator's stop) would look stale afterwards
+            const stale = isStalePress(shard, interaction);
             if (context.customId.startsWith(MessageComponentCustomIds.AUTO_EMBED_UNDO + '.')) {
               try {
                 // `auto-embed-undo.{userId}.{messageId}`, on an auto-embed
@@ -160,6 +166,13 @@ class ComponentsListener extends Listener {
                 log.warn(`report respond ${context.customId} ${context.userId}`, error);
               }
             }
+            if (stale) {
+              try {
+                return await this.disableStaleComponents(context, event._raw);
+              } catch(error) {
+                log.warn(`stale components ${context.customId} ${context.guildId}`, error);
+              }
+            }
           }; break;
         }
       });
@@ -187,6 +200,80 @@ class ComponentsListener extends Listener {
     }
 
     return subscriptions;
+  }
+
+  // a press nothing listens for anymore: the process restarted before the reply's listener timed out (it takes the
+  // buttons off then), or that edit failed. the press used to just fail ("This interaction failed"), now the message is
+  // edited with its dead buttons and select menus disabled, everything else on it stays (`disableStaleComponents`)
+  async disableStaleComponents(context: ComponentContext, raw: Record<string, any>) {
+    const message = raw && raw.message;
+    if (!message || !Array.isArray(message.components)) {
+      return;
+    }
+    const isComponentsV2 = ((message.flags || 0) & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2;
+    const attachments: Array<RawAttachment> = (Array.isArray(message.attachments)) ? message.attachments : [];
+    const stale = disableStaleComponents(message.components, (isComponentsV2) ? attachments : []);
+    if (!stale.disabled) {
+      return;
+    }
+    // discord's own json goes back as it came, detritus passes anything with a `toJSON` through
+    const components = {toJSON: () => stale.components as Array<RequestTypes.RawChannelMessageComponent>};
+
+    if (!isComponentsV2) {
+      // only the rows are sent, the content, embeds and attachments stay as they are
+      return context.respond(InteractionCallbackTypes.UPDATE_MESSAGE, {components});
+    }
+    const payload = {allowedMentions: {parse: []}, components, flags: MessageFlags.IS_COMPONENTS_V2};
+    if (!stale.attachmentIds.length) {
+      return context.respond(InteractionCallbackTypes.UPDATE_MESSAGE, payload);
+    }
+
+    // its media is attached to it. the attachments stay by their ids, listed so `attachment://` has an entry to resolve
+    // against (left out, or as an empty list, the reference isn't found)
+    try {
+      const kept = attachments.map((attachment) => ({filename: attachment.filename, id: attachment.id}));
+      return await context.respond(InteractionCallbackTypes.UPDATE_MESSAGE, {...payload, attachments: kept});
+    } catch(error) {
+      if (!isBadRequest(error)) {
+        throw error;
+      }
+      // discord refused it, in case it only resolves `attachment://` against files uploaded with the same edit
+      // (UNFURLED_MEDIA_ITEM_REFERENCED_ATTACHMENT_NOT_FOUND): they're downloaded and go up again. the refused response
+      // didn't use the press up
+      log.warn(`stale components ${message.id}: keeping its attachments was refused, uploading them again`, error);
+    }
+
+    const referenced = attachments.filter((attachment) => stale.attachmentIds.includes(attachment.id));
+    // one press per message at a time, the others are only acknowledged
+    const key = `stale.${message.id}`;
+    if (this.componentsProcessing.has(key)) {
+      return context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+    }
+    this.componentsProcessing.add(key);
+    const filepaths: Array<string> = [];
+    try {
+      const clusterId = (context.cluster) ? context.cluster.clusterId : 0;
+      await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      const files = await downloadAttachments(context, clusterId, referenced.map((attachment) => {
+        return {
+          contentType: attachment.content_type,
+          description: attachment.description || undefined,
+          filename: attachment.filename,
+          size: attachment.size,
+          title: attachment.title || undefined,
+          url: attachment.url,
+        };
+      }), filepaths);
+      // the ones nothing points at stay as they are
+      const kept = attachments.filter((attachment) => !stale.attachmentIds.includes(attachment.id)).map((attachment) => {
+        return {filename: attachment.filename, id: attachment.id};
+      });
+      // the press's `@original` is the message the button is on
+      await context.editResponse({...payload, attachments: kept, files});
+    } finally {
+      this.componentsProcessing.delete(key);
+      await Promise.all(filepaths.map((filepath) => removeTempFile(filepath)));
+    }
   }
 
   async makePermanentUsingNitro(context: ComponentContext, fileId: string) {
@@ -341,6 +428,21 @@ class ComponentsListener extends Listener {
       return respondEphemeral(translate((temporary.length) ? 'media.reupload_too_big' : 'media.reupload_missing'));
     }
 
+    // the items that are already attached to the message, kept by their ids (see the edit below)
+    const findAttachment = (url: string) => {
+      const path = urlPath(url);
+      return (path) ? message.attachments.find((attachment) => urlPath(attachment.url) === path) : undefined;
+    };
+    const attached = new Map<string, Structures.Attachment>();
+    items.forEach((item, i) => {
+      const storage = storages[i];
+      const attachment = (storage && fits.includes(storage)) ? undefined : findAttachment(item.media.url);
+      if (attachment) {
+        attached.set(attachment.id, attachment);
+      }
+    });
+    const reattach = Array.from(attached.values());
+
     // they're downloaded to disk first (see `downloadStorageToBlob`), don't fill it up
     const clusterId = (context.cluster) ? context.cluster.clusterId : 0;
     const totalSize = fits.reduce((total, storage) => total + storage.metadata.size, 0);
@@ -354,7 +456,7 @@ class ComponentsListener extends Listener {
 
     const filepaths: Array<string> = [];
     try {
-      // its attachments stay (and keep their names), the new ones get names none of them have
+      // its attachments keep their names, the new ones get names none of them have
       const usedFilenames = new Set(message.attachments.map((attachment) => attachment.filename.toLowerCase()));
       const uploads = new Map<string, {file: RequestTypes.File, storage: RestResponsesRaw.FileResponseStorage}>();
       // every download settles before the temp files are removed below: one failing rejected `Promise.all` straight
@@ -374,11 +476,6 @@ class ComponentsListener extends Listener {
         uploads.get(storage.id)!.file.filename = uniqueFilename(storage.filename_safe, usedFilenames);
       }
 
-      const kept: Array<{filename: string, id: string}> = [];
-      const findAttachment = (url: string) => {
-        const path = urlPath(url);
-        return (path) ? message.attachments.find((attachment) => urlPath(attachment.url) === path) : undefined;
-      };
       // the hosted ones that are left: the ones too big for the clicker, their expiry line and the button stay
       const remaining = items.map((item, i) => {
         const storage = storages[i];
@@ -414,7 +511,6 @@ class ComponentsListener extends Listener {
             } else {
               const attachment = findAttachment(item.media.url);
               if (attachment) {
-                kept.push({filename: attachment.filename, id: attachment.id});
                 url = `attachment://${attachment.filename}`;
               }
             }
@@ -453,7 +549,30 @@ class ComponentsListener extends Listener {
       }
 
       const files = fits.map((storage) => uploads.get(storage.id)!.file);
-      await editOrReply(context, {attachments: kept, components, files});
+      try {
+        // the ones it has stay by their ids, listed so `attachment://` has an entry to resolve against
+        const kept = reattach.map((attachment) => ({filename: attachment.filename, id: attachment.id}));
+        await editOrReply(context, {attachments: kept, components, files});
+      } catch(error) {
+        if (!reattach.length || !isBadRequest(error)) {
+          throw error;
+        }
+        // discord refused it, in case it only resolves `attachment://` against files uploaded with the same edit
+        // (UNFURLED_MEDIA_ITEM_REFERENCED_ATTACHMENT_NOT_FOUND): its own files go up again too, `attachments: []`
+        // drops the old copies
+        log.warn(`gallery reupload ${message.id}: keeping its attachments was refused, uploading them again`, error);
+        const reattached = await downloadAttachments(context, clusterId, reattach.map((attachment) => {
+          return {
+            contentType: attachment.contentType,
+            description: attachment.description,
+            filename: attachment.filename,
+            size: attachment.size,
+            title: attachment.title,
+            url: attachment.url,
+          };
+        }), filepaths);
+        await editOrReply(context, {attachments: [], components, files: [...reattached, ...files]});
+      }
     } catch(error) {
       // they were told it started, without this the "re-uploading" message would be the last thing they see
       log.warn(`Failed to re-upload a gallery (${fits.length} files, ${totalSize} bytes)`, error);
@@ -473,6 +592,24 @@ class ComponentsListener extends Listener {
       })).catch(() => {});
     }
   }
+}
+
+// discord refused the request itself (a 400, like an `attachment://` it couldn't find), not a missing interaction or message
+function isBadRequest(error: any): boolean {
+  return !!error && !!error.response && error.response.statusCode === 400;
+}
+
+// if nothing answers this press: its custom id isn't one the listener above handles, and the shard has no listener for
+// the message it's on (the same lookup the shard's handler does, its message key is set before the event is emitted)
+function isStalePress(shard: ShardClient, interaction: Structures.Interaction): boolean {
+  const { data, message } = interaction;
+  const customId = (data && (data as Structures.InteractionDataComponent).customId) || '';
+  if (!message || !customId || isStaticCustomId(customId)) {
+    return false;
+  }
+  const { listeners } = shard.gatewayHandler._handlers.component;
+  const interactionId = getResponseInteractionId(message);
+  return !((interactionId && listeners.has(interactionId)) || listeners.has(message.id));
 }
 
 // a file on our cdn (`https://cdn.nsb.gg/{vanity}.{extension}`, not its `assets/`), its vanity for `fetchFileVanity`
@@ -676,17 +813,29 @@ function uniqueFilename(filename: string, used: Set<string>): string {
  * A hosted file downloaded to `filepath` and opened as a blob to upload from (they go up to 500 MB with nitro, held in
  * memory they'd be copied over and over on a host with little memory to spare). Never more than the clicker's limit
  */
-async function downloadStorageToBlob(
+function downloadStorageToBlob(
   context: ComponentContext,
   storage: RestResponsesRaw.FileResponseStorage,
+  filepath: string,
+): Promise<Blob> {
+  return downloadToBlob(context, storage.urls.cdn, storage.metadata.mimetype, filepath);
+}
+
+/**
+ * The same for any url (a message's own attachment, to upload it again)
+ */
+async function downloadToBlob(
+  context: ComponentContext,
+  url: string,
+  mimetype: string | undefined,
   filepath: string,
 ): Promise<Blob> {
   // one deadline for the whole download, a response that never answers or stalls mid-body would otherwise hold the
   // file (and the button's lock) until the process restarts
   const signal = AbortSignal.timeout(REUPLOAD_DOWNLOAD_TIMEOUT);
-  const response = await context.rest.get(storage.urls.cdn, {dataOnly: false, signal});
+  const response = await context.rest.get(url, {dataOnly: false, signal});
   if (!response.body) {
-    throw new Error(`Reupload of ${storage.id} got an empty body`);
+    throw new Error(`Download of ${url.split('?')[0]} got an empty body`);
   }
   await pipeline(
     Readable.fromWeb(response.body),
@@ -695,7 +844,57 @@ async function downloadStorageToBlob(
     fs.createWriteStream(filepath),
     {signal},
   );
-  return fs.openAsBlob(filepath, {type: storage.metadata.mimetype});
+  return fs.openAsBlob(filepath, {type: mimetype});
+}
+
+interface AttachmentDownload {
+  contentType?: string,
+  description?: string,
+  filename: string,
+  size: number,
+  title?: string,
+  url: string,
+}
+
+/**
+ * A message's own attachments as files to upload again, each downloaded to a temp file whose path is added to
+ * `filepaths` (the caller removes them in its `finally`). Throws when one doesn't fit the upload limit there anymore
+ * (the server lost its boosts since) or the disk is short
+ */
+async function downloadAttachments(
+  context: ComponentContext,
+  clusterId: number,
+  attachments: Array<AttachmentDownload>,
+  filepaths: Array<string>,
+): Promise<Array<RequestTypes.File>> {
+  const totalSize = attachments.reduce((total, attachment) => total + attachment.size, 0);
+  if (attachments.some((attachment) => context.maxAttachmentSize < attachment.size)) {
+    throw new Error(`An attachment is over the upload limit (${attachments.length} files, ${totalSize} bytes)`);
+  }
+  if (!(await hasTempDiskSpace(clusterId, totalSize))) {
+    throw new Error(`Not enough disk space to upload attachments again (${attachments.length} files, ${totalSize} bytes)`);
+  }
+  // every download settles before the caller removes the temp files
+  const downloads = await Promise.allSettled(attachments.map(async (attachment): Promise<RequestTypes.File> => {
+    const filepath = await createTempFilePath(clusterId, 'reattach');
+    filepaths.push(filepath);
+    const value = await downloadToBlob(context, attachment.url, attachment.contentType, filepath);
+    return {
+      contentType: attachment.contentType,
+      description: attachment.description,
+      filename: attachment.filename,
+      title: attachment.title,
+      value,
+    };
+  }));
+  const files: Array<RequestTypes.File> = [];
+  for (let download of downloads) {
+    if (download.status === 'rejected') {
+      throw download.reason;
+    }
+    files.push(download.value);
+  }
+  return files;
 }
 
 /**
