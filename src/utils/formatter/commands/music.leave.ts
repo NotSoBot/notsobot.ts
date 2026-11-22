@@ -29,7 +29,11 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   }
   // the voice node's channel, or one we're still in without it knowing (like after the node lost our players)
   const me = context.guild && context.guild.me;
-  const channelId = VoiceNode.guilds.get(guildId)?.channelId || (me && me.voiceState && me.voiceState.channelId);
+  // or a 24/7 one waiting to rejoin it (no node reachable), which would come back later otherwise
+  const recovered = VoiceNode.recoveredSessions.get(guildId);
+  const channelId = VoiceNode.guilds.get(guildId)?.channelId
+    || (me && me.voiceState && me.voiceState.channelId)
+    || (recovered && recovered.session.channel_id);
   const music = await fetchGuildMusic(context, guildId).catch(() => null);
   const held = !channelId && !!music && music.held_position !== null;
   if (!channelId && !held) {
@@ -55,6 +59,8 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     if (VoiceNode.guilds.has(guildId)) {
       VoiceNode.leave(guildId, true);
     } else {
+      // the api's queue goes below, the session with it
+      VoiceNode.recoveredSessions.delete(guildId);
       if (channelId) {
         context.client.gateway.voiceStateUpdate(guildId, null);
       }
@@ -80,7 +86,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   }
 
   // once a button's used the timeout leaves the message alone
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: CONFIRM_TIMEOUT,
     onTimeout: () => confirmer.expire(async () => {
@@ -125,6 +131,8 @@ export async function createMessage(context: Command.Context | Interaction.Inter
         if (VoiceNode.guilds.has(guildId)) {
           VoiceNode.hold(guildId);
         } else {
+          // one waiting to rejoin loses its session, the queue stays
+          VoiceNode.cancelRecovered(guildId, false);
           context.client.gateway.voiceStateUpdate(guildId, null);
         }
         await displayReply(context, {description: translate('music_leave.left_kept', {channel})}, {replyTo: ctx});

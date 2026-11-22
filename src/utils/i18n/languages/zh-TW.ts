@@ -5384,6 +5384,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'music_stay.stays': '佇列結束後留在語音頻道（24/7）',
   'music_tts.saying': '正在說',
   'music_tts.saying_after': '會在 NotSoAI 回答後說',
+  'music_tts.too_long': '太長了，無法在音樂上方說出，請使用佇列選項把它當作歌曲播放',
   'music_volume.current': '音量為{volume}',
   'music_volume.needs_premium': '變更音量需要進階伺服器',
   'music_volume.reset': '音量已恢復到100%',

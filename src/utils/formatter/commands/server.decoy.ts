@@ -2,7 +2,7 @@ import { Command, Interaction, ShardClient, Structures } from 'detritus-client';
 import { ChannelTypes, OverwriteTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { deleteGuildDecoy, editGuildDecoy, fetchGuildDecoy, putGuildDecoy } from '../../../api';
+import { adoptGuildDecoyNotice, deleteGuildDecoy, editGuildDecoy, fetchGuildDecoy, putGuildDecoy } from '../../../api';
 import { RestOptions, RestResponsesRaw } from '../../../api/types';
 import DecoyStore from '../../../stores/decoys';
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -73,6 +73,19 @@ export async function editDecoy(
   const { decoy } = await editGuildDecoy(context, guildId, options);
   DecoyStore.apply(decoy, guildId);
   return decoy;
+}
+
+
+// the member waited on posted the notice: theirs if they still are (the api decides, under its lock)
+export async function adoptNotice(
+  context: {client: ShardClient},
+  guildId: string,
+  userId: string,
+  messageId: string,
+): Promise<RestResponsesRaw.AdoptGuildDecoyNotice> {
+  const result = await adoptGuildDecoyNotice(context, guildId, userId, messageId);
+  DecoyStore.apply(result.decoy, guildId);
+  return result;
 }
 
 
@@ -303,13 +316,14 @@ export async function createRenameMessage(context: Context, args: RenameArgs) {
   if (RENAME_LIMIT <= recent.length) {
     return warn(context, translate('decoy.rename_ratelimited', {when: displayTimestamp(recent[0] + RENAME_WINDOW)}));
   }
+  // counted before anything awaits, two renames at once both passed the check otherwise (and the second waited out a 429)
+  recent.push(now);
+  renames.set(channel.id, recent);
 
   const audit = await getGuildTranslator(context);
   const given = (args.name || '').trim();
   const others = guild.channels.filter((x) => x.type === ChannelTypes.GUILD_TEXT && x.id !== channel.id).map((x) => x.name);
   const name = (given) ? given.slice(0, 100) : generateDecoyChannelName([...others, channel.name], audit.language);
-  recent.push(now);
-  renames.set(channel.id, recent);
   const edited = await channel.edit({name, reason: audit.translate('decoy.audit_rename', {user: formatUserTag(context.user)})});
   if (decoy.name_generated !== !given) {
     await editDecoy(context, guild.id, {nameGenerated: !given});

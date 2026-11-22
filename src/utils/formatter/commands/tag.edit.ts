@@ -49,7 +49,7 @@ export async function createMessage(
     !referenceTag.locked
   );
 
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: () => confirmer.expire(async () => {

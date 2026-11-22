@@ -277,6 +277,8 @@ export async function createMessage(
   // sent once the reply is up, a warning doesn't remove them so they can still get it after (unlike a kick or ban)
   // kept so an undo can take them back
   const dms = new Map<string, Structures.Message>();
+  // set by the undo button, the dms and ladder steps still waiting to go out are skipped (a kick can't be taken back)
+  let undone = false;
   const sendDms = async (): Promise<void> => {
     const guild = context.guild;
     if (!guild || !(await GuildSettingsStore.canModerationDm(context, guild.id, GuildModerationDmFlags.WARN))) {
@@ -285,6 +287,9 @@ export async function createMessage(
     const audit = await getGuildTranslator(context);
     const details = createDetails(audit);
     for (let member of warnable) {
+      if (undone) {
+        break;
+      }
       try {
         const dm = await getTranslatorForUser(context, member.id);
         const message = await member.createMessage([
@@ -335,7 +340,7 @@ export async function createMessage(
     const done: Array<AutomaticAction> = [];
     const audit = await getGuildTranslator(context);
     for (let action of automatic) {
-      if (action.missing) {
+      if (action.missing || undone) {
         continue;
       }
       const { step } = action;
@@ -429,6 +434,9 @@ export async function createMessage(
       return {automatic: done, dms: Array.from(dms.values())};
     },
     members: warnable,
+    onUndo: () => {
+      undone = true;
+    },
     reason,
     stop: (clearButtons) => paginator.stop(clearButtons),
   });
@@ -460,7 +468,8 @@ export async function createMessage(
     return await reply();
   } finally {
     // the warning's saved either way, they still get told (and the ladder still goes)
-    followUps = sendDms().then(() => runAutomatic());
+    // the dms failing (their settings not loading) mustn't skip the ladder's mute or ban
+    followUps = sendDms().catch(() => null).then(() => runAutomatic());
     await followUps;
   }
 }
@@ -610,13 +619,15 @@ function createActionComponents(
     // the dms and the ladder steps that went through, once they're done
     getFollowUps: () => Promise<{automatic: Array<AutomaticAction>, dms: Array<Structures.Message>}>,
     members: Array<Structures.Member | Structures.User>,
+    // the undo was pressed, whatever hasn't gone out yet mustn't
+    onUndo?: () => void,
     reason: string,
     // the message's buttons go (or stay for the caller to replace the whole thing)
     stop: (clearButtons: boolean) => Promise<unknown>,
   },
 ): Components | null {
   const { translate } = translator;
-  const { added, banClean, getFollowUps, members, reason, stop } = options;
+  const { added, banClean, getFollowUps, members, onUndo, reason, stop } = options;
   if (!members.length || !added.length) {
     return null;
   }
@@ -650,7 +661,13 @@ function createActionComponents(
     done = true;
 
     // kicks and bans dm everyone first, longer than discord waits for a response
-    await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+    try {
+      await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+    } catch(error) {
+      // nothing happened yet, the buttons stay usable
+      done = false;
+      throw error;
+    }
     // the warning got deleted if this fails, still do it
     await stop(true).catch(() => null);
 
@@ -686,54 +703,69 @@ function createActionComponents(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       done = true;
-      // a request each, more than discord waits for with a few members
-      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      for (let id of added) {
-        try {
-          const warning = await deleteGuildWarning(context, context.guildId!, id);
-          GuildLoggingListener.logModeration(context.client, {
-            guildId: context.guildId!,
-            happened: Date.now(),
-            name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,
-            payload: {moderator: context.user, user: context.client.users.get(warning.user_id) || null, warning},
-          });
-        } catch(error) {
-          const information = await getApiError(error);
-          // already removed with `warnings remove`
-          if (!information || information.code !== ApiErrorCodes.UNKNOWN_GUILD_WARNING) {
-            throw error;
-          }
-        }
+      // before any await, the dms and ladder steps still waiting skip themselves (stays set if the undo fails, it's
+      // pressed again)
+      if (onUndo) {
+        onUndo();
       }
-      const { automatic, dms } = await getFollowUps();
-      for (let message of dms) {
-        try {
-          await message.delete();
-        } catch(error) {
-          // they still got it, nothing else to do
-        }
-      }
-      // the mutes and bans the ladder did go with it, a kick can't be taken back
-      const audit = await getGuildTranslator(context);
-      const undoReason = audit.translate('moderation_warn.undo_audit_reason', {user: formatUserTag(context.user)});
       let reverted = false;
-      for (let { members, step } of automatic) {
-        for (let member of members) {
+      try {
+        // a request each, more than discord waits for with a few members
+        await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        for (let id of added) {
           try {
-            if (step.action === 'mute' && isMember(member)) {
-              await member.edit({communicationDisabledUntil: null, reason: undoReason});
-              reverted = true;
-            } else if (step.action === 'ban') {
-              await context.rest.removeGuildBan(context.guildId!, member.id, {reason: undoReason});
-              reverted = true;
-            }
+            const warning = await deleteGuildWarning(context, context.guildId!, id);
+            GuildLoggingListener.logModeration(context.client, {
+              guildId: context.guildId!,
+              happened: Date.now(),
+              name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,
+              payload: {moderator: context.user, user: context.client.users.get(warning.user_id) || null, warning},
+            });
           } catch(error) {
-            // unmuted or unbanned already
+            const information = await getApiError(error);
+            // already removed with `warnings remove`
+            if (!information || information.code !== ApiErrorCodes.UNKNOWN_GUILD_WARNING) {
+              throw error;
+            }
           }
         }
-        if (step.action === 'ban' && step.duration) {
-          await deleteGuildTimedBans(context, context.guildId!, {userIds: members.map((member) => member.id)}).catch(() => null);
+        const { automatic, dms } = await getFollowUps();
+        for (let message of dms) {
+          try {
+            await message.delete();
+          } catch(error) {
+            // they still got it, nothing else to do
+          }
         }
+        // the mutes and bans the ladder did go with it, a kick can't be taken back
+        const audit = await getGuildTranslator(context);
+        const undoReason = audit.translate('moderation_warn.undo_audit_reason', {user: formatUserTag(context.user)});
+        for (let { members, step } of automatic) {
+          for (let member of members) {
+            try {
+              if (step.action === 'mute' && isMember(member)) {
+                await member.edit({communicationDisabledUntil: null, reason: undoReason});
+                reverted = true;
+              } else if (step.action === 'ban') {
+                await context.rest.removeGuildBan(context.guildId!, member.id, {reason: undoReason});
+                reverted = true;
+              }
+            } catch(error) {
+              // unmuted or unbanned already
+            }
+          }
+          if (step.action === 'ban' && step.duration) {
+            await deleteGuildTimedBans(context, context.guildId!, {userIds: members.map((member) => member.id)}).catch(() => null);
+          }
+        }
+      } catch(error) {
+        // a button's error goes nowhere, it used to leave every button dead with nothing said. it can be pressed again,
+        // whatever already went is skipped then (removed warnings, deleted dms, lifted mutes and bans)
+        done = false;
+        return ctx.createMessage(renderEphemeralDisplay(ctx, translator, {
+          color: EmbedColors.ERROR,
+          description: `${StatusEmojis.WARNING} ${ModerationMute.formatError(error)}`,
+        }));
       }
       // replaced below, the pages go with it
       await stop(false);

@@ -5384,6 +5384,7 @@ export const Romanian: Translations = Object.freeze({
   'music_stay.stays': 'Rămâne pe canalul vocal când coada se termină (24/7)',
   'music_tts.saying': 'Îl spun acum',
   'music_tts.saying_after': 'Îl spun după răspunsul lui NotSoAI',
+  'music_tts.too_long': 'Prea lung ca să-l spun peste muzică, folosește opțiunea de coadă ca să fie redat ca o melodie',
   'music_volume.current': 'Volumul este {volume}',
   'music_volume.needs_premium': 'Schimbarea volumului are nevoie de un server premium',
   'music_volume.reset': 'Volumul a revenit la 100%',

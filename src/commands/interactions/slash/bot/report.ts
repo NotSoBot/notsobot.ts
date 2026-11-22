@@ -1,5 +1,5 @@
 import { Interaction } from 'detritus-client';
-import { MessageComponentInputTextStyles, MessageComponentTypes } from 'detritus-client/lib/constants';
+import { InteractionCallbackTypes, MessageComponentInputTextStyles, MessageComponentTypes, MessageFlags } from 'detritus-client/lib/constants';
 import { InteractionModal, InteractionModalArgs, InteractionModalContext } from 'detritus-client/lib/utils';
 
 import { EmbedColors, ReportTypes } from '../../../../constants';
@@ -38,6 +38,9 @@ export async function createReportReasonModal(
   const modal = new InteractionModal({
     title: translate('report.modal_title'),
     run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+      // creating it waits on our api, past 3 seconds the submit failed though the report was made (and detritus dropped
+      // the modal, a resubmit failed too: they ran it again, a duplicate). Every answer is ephemeral
+      await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
       const payload = await Formatter.Commands.Report.createPayload(context, {...createArgs(args.content), content: args.content});
       return modalContext.editOrRespond(await renderDisplay(context, payload));
     },
@@ -81,6 +84,8 @@ export class BotReportCommand extends BaseInteractionCommandOption {
     const modal = new InteractionModal({
       title: translate('report.modal_title'),
       run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+        // see `createReportReasonModal`
+        await modalContext.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
         const type = ReportTypes[(args.type || 'bug').toUpperCase() as keyof typeof ReportTypes];
         const userId = (Array.isArray(args.user) && args.user.length) ? args.user[0] : null;
         const payload = await Formatter.Commands.Report.createPayload(context, {

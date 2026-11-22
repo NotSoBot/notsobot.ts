@@ -8,16 +8,22 @@ import { UserFull } from '../api/structures/user';
 import { RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
+import { FetchVersions } from '../utils/fetchversions';
 
 
 // Stores NotSoApi User Object
 class UserStore extends Store<string, UserFull> {
+  // a fetch only caches what it got if no edit/event/resync happened for the user since it started, a premium purchase's
+  // `USER_UPDATE` arriving mid-fetch (nothing cached yet to merge it into) used to be lost to the older copy for 2 hours
+  fetches = new FetchVersions<string>();
+
   constructor() {
     // 2 hours
     super({expire: 2 * 60 * 60 * 1000});
   }
 
   insert(payload: UserFull): void {
+    this.fetches.bump(payload.id);
     this.set(payload.id, payload);
   }
 
@@ -58,6 +64,7 @@ class UserStore extends Store<string, UserFull> {
         });
 
         let discordUser = context.users.get(userId);
+        const version = this.fetches.start(userId);
         try {
           if (!discordUser) {
             discordUser = await context.rest.fetchUser(userId);
@@ -81,9 +88,16 @@ class UserStore extends Store<string, UserFull> {
           } else {
             user = await fetchUser(context, userId);
           }
-          this.insert(user);
+          if (this.fetches.end(userId, version)) {
+            this.insert(user);
+          } else if (this.get(userId) === user) {
+            // an event or an edit changed them while we waited, the api helper above already cached this older copy (or
+            // merged it into what was cached), drop it so the next use fetches again
+            this.delete(userId);
+          }
           resolve(user);
         } catch(error) {
+          this.fetches.end(userId, version);
           resolve(null);
         }
         timeout.stop();
@@ -100,6 +114,7 @@ class UserStore extends Store<string, UserFull> {
     const subscriptions: Array<EventSubscription> = [];
     {
       const subscription = apiEvents.subscribe(RedisChannels.USER_UPDATE, (payload: RedisPayloads.UserUpdate) => {
+        this.fetches.bump(payload.id);
         if (this.has(payload.id)) {
           const user = this.get(payload.id)!;
           user.merge(payload);
@@ -110,6 +125,7 @@ class UserStore extends Store<string, UserFull> {
     {
       // events were missed, so anything cached could be stale. drop it all and let the next use refetch
       const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.fetches.bumpAll();
         this.clear();
       });
       subscriptions.push(subscription);

@@ -5384,6 +5384,7 @@ export const Japanese: Translations = Object.freeze({
   'music_stay.stays': 'キューが終わってもボイスに残ります（24/7）',
   'music_tts.saying': '今話しています',
   'music_tts.saying_after': 'NotSoAIの返答のあとに話します',
+  'music_tts.too_long': '音楽に重ねて話すには長すぎます。キューオプションを使うと曲のように再生できます',
   'music_volume.current': '音量は{volume}です',
   'music_volume.needs_premium': '音量の変更にはプレミアムサーバーが必要です',
   'music_volume.reset': '音量を100%に戻しました',

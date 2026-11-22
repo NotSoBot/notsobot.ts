@@ -5384,6 +5384,7 @@ export const Hungarian: Translations = Object.freeze({
   'music_stay.stays': 'A hangcsatornában marad, ha véget ér a sor (24/7)',
   'music_tts.saying': 'Most mondom',
   'music_tts.saying_after': 'NotSoAI válasza után mondom',
+  'music_tts.too_long': 'Túl hosszú ahhoz, hogy a zene fölött mondjam, használd a várólista opciót, hogy dalként szóljon',
   'music_volume.current': 'A hangerő {volume}',
   'music_volume.needs_premium': 'A hangerő módosításához prémium szerver kell',
   'music_volume.reset': 'Hangerő visszaállítva 100%-ra',

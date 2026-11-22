@@ -11,6 +11,7 @@ import { RestResponsesRaw } from '../api/types';
 import { GuildFeatures, RedisChannels, UserFlags } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
+import { FetchVersions } from '../utils/fetchversions';
 
 
 
@@ -47,6 +48,9 @@ export type TagCustomCommandStored = TagCustomCommandCollection;
 
 
 class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
+  // a fetch that outlived its 5 seconds is out of the promises store, `stale` can't reach it anymore but this still does
+  fetches = new FetchVersions<string>();
+
   constructor() {
     // 2 hours
     super({expire: 2 * 60 * 60 * 1000});
@@ -62,9 +66,9 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       const collection = this.get(payloadId)!;
       collection.set(tag.id, tag);
     } else {
-      const collection = new TagCustomCommandCollection();
-      collection.set(tag.id, tag);
-      this.insert(payloadId, collection);
+      // nothing cached: a collection of just this one hid the server's other commands until it expired (every use kept
+      // it alive). the next use fetches all of them, this one included, and one fetching now could be from before it
+      this.markFetchesStale(payloadId);
     }
   }
 
@@ -90,41 +94,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
     guildId: string,
   ): Promise<TagCustomCommandStored | null> {
-    let promise: Promise<TagCustomCommandStored | null>;
-    if (TagCustomCommandPromisesStore.has(guildId)) {
-      promise = TagCustomCommandPromisesStore.get(guildId)!.promise;
-    } else {
-      const timeout = new Timers.Timeout();
-      promise = new Promise(async (resolve) => {
-        timeout.start(5000, () => {
-          // a newer fetch may have replaced this entry after a timeout, only remove our own
-          if (TagCustomCommandPromisesStore.get(guildId)?.promise === promise) {
-            TagCustomCommandPromisesStore.delete(guildId);
-          }
-          resolve(null);
-        });
-
-        const guild = context.guilds.get(guildId);
-        try {
-          const payload = await fetchGuildTagsCommands(context, guildId);
-  
-          const collection = new TagCustomCommandCollection();
-          for (let tag of payload.tags) {
-            collection.set(tag.id, tag);
-          }
-          this.insert(guildId, collection);
-          resolve(collection);
-        } catch(error) {
-          resolve(null);
-        }
-        timeout.stop();
-        if (TagCustomCommandPromisesStore.get(guildId)?.promise === promise) {
-          TagCustomCommandPromisesStore.delete(guildId);
-        }
-      });
-      TagCustomCommandPromisesStore.insert(guildId, {promise, timeout});
-    }
-    return promise;
+    return this.fetchCommands(guildId, () => fetchGuildTagsCommands(context, guildId));
   }
 
   async getOrFetchUserCommands(
@@ -149,40 +119,78 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
     userId: string,
   ): Promise<TagCustomCommandStored | null> {
-    let promise: Promise<TagCustomCommandStored | null>;
-    if (TagCustomCommandPromisesStore.has(userId)) {
-      promise = TagCustomCommandPromisesStore.get(userId)!.promise;
-    } else {
-      const timeout = new Timers.Timeout();
-      promise = new Promise(async (resolve) => {
-        timeout.start(5000, () => {
-          // a newer fetch may have replaced this entry after a timeout, only remove our own
-          if (TagCustomCommandPromisesStore.get(userId)?.promise === promise) {
-            TagCustomCommandPromisesStore.delete(userId);
-          }
-          resolve(null);
-        });
+    return this.fetchCommands(userId, () => fetchUserTagsCommands(context, userId));
+  }
 
-        try {
-          const payload = await fetchUserTagsCommands(context, userId);
-
-          const collection = new TagCustomCommandCollection();
-          for (let tag of payload.tags) {
-            collection.set(tag.id, tag);
-          }
-          this.insert(userId, collection);
-          resolve(collection);
-        } catch(error) {
-          resolve(null);
-        }
-        timeout.stop();
-        if (TagCustomCommandPromisesStore.get(userId)?.promise === promise) {
-          TagCustomCommandPromisesStore.delete(userId);
-        }
-      });
-      TagCustomCommandPromisesStore.insert(userId, {promise, timeout});
+  // one fetch per id at a time, callers waiting longer than 5 seconds get null (no commands) while it keeps going. A
+  // tag event (or a resync) while it's in flight marks it `stale`: its response could be from before the change, and
+  // the event had no collection to change yet, so it's only used for this message and the next one fetches again (it
+  // was cached for 2 hours, a command added right then didn't work until it expired)
+  private fetchCommands(
+    payloadId: string,
+    fetch: () => Promise<{tags: Array<RestResponsesRaw.Tag>}>,
+  ): Promise<TagCustomCommandStored | null> {
+    const existing = TagCustomCommandPromisesStore.get(payloadId);
+    if (existing) {
+      return existing.promise;
     }
-    return promise;
+
+    const timeout = new Timers.Timeout();
+    const item = {stale: false, timeout} as TagCustomCommandPromiseItem;
+    const removeOwn = () => {
+      // a newer fetch may have replaced this entry after a timeout, only remove our own
+      if (TagCustomCommandPromisesStore.get(payloadId) === item) {
+        TagCustomCommandPromisesStore.delete(payloadId);
+      }
+    };
+    const version = this.fetches.start(payloadId);
+    item.promise = new Promise(async (resolve) => {
+      timeout.start(5000, () => {
+        removeOwn();
+        resolve(null);
+      });
+
+      let ended = false;
+      try {
+        const payload = await fetch();
+        ended = true;
+        const unchanged = this.fetches.end(payloadId, version);
+        const collection = new TagCustomCommandCollection();
+        for (let tag of payload.tags) {
+          collection.set(tag.id, tag);
+        }
+        // one that timed out finishes in the background, it only fills the cache if nothing newer did (or is fetching)
+        const isCurrent = TagCustomCommandPromisesStore.get(payloadId) === item;
+        const isNewest = isCurrent || (!this.has(payloadId) && !TagCustomCommandPromisesStore.has(payloadId));
+        if (!item.stale && unchanged && isNewest) {
+          this.insert(payloadId, collection);
+        }
+        resolve(collection);
+      } catch(error) {
+        if (!ended) {
+          this.fetches.end(payloadId, version);
+        }
+        resolve(null);
+      }
+      timeout.stop();
+      removeOwn();
+    });
+    TagCustomCommandPromisesStore.insert(payloadId, item);
+    return item.promise;
+  }
+
+  // the fetches an event could have changed the response of, see `fetchCommands`
+  markFetchesStale(...payloadIds: Array<null | string | undefined>): void {
+    for (let payloadId of payloadIds) {
+      if (!payloadId) {
+        continue;
+      }
+      this.fetches.bump(payloadId);
+      const item = TagCustomCommandPromisesStore.get(payloadId);
+      if (item) {
+        item.stale = true;
+      }
+    }
   }
 
   async maybeGetOrFetchGuildCommands(
@@ -245,6 +253,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     const subscriptions: Array<EventSubscription> = [];
     {
       const subscription = apiEvents.subscribe(RedisChannels.TAG_DELETE, (payload: RedisPayloads.TagDelete) => {
+        this.markFetchesStale(payload.guild_id, payload.server_id, payload.user.id);
         const collection = this.getCollectionForTag(payload);
         if (collection) {
           collection.delete(payload.id);
@@ -254,6 +263,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.TAG_DELETE_BULK, (payload: RedisPayloads.TagDeleteBulk) => {
+        this.markFetchesStale(payload.dm_user_id, payload.server_id);
         const collection = this.get(payload.dm_user_id || payload.server_id);
         if (collection) {
           for (let tagId of payload.tag_ids) {
@@ -265,6 +275,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.TAG_UPDATE, (payload: RedisPayloads.TagUpdate) => {
+        this.markFetchesStale(payload.guild_id, payload.server_id, payload.user.id);
         const collection = this.getCollectionForTag(payload);
         if (collection) {
           if (payload.is_command) {
@@ -280,6 +291,8 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       // events were missed, so anything cached could be stale. drop it all and let the next use refetch
       const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
         this.clear();
+        this.fetches.bumpAll();
+        this.markFetchesStale(...TagCustomCommandPromisesStore.keys());
       });
       subscriptions.push(subscription);
     }
@@ -293,6 +306,8 @@ export default new TagCustomCommandStore();
 
 export type TagCustomCommandPromiseItem = {
   promise: Promise<TagCustomCommandStored | null>,
+  // a tag event (or a resync) came in while it was fetching, what it gets isn't cached
+  stale: boolean,
   timeout: Timers.Timeout,
 };
 

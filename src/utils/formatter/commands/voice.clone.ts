@@ -71,7 +71,7 @@ export async function createMessage(
   }
 
   // the user has to confirm they own the voice (or have its owner's permission) before the audio is cloned
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: () => confirmer.expire(async () => {

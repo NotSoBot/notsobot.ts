@@ -72,7 +72,7 @@ export async function createMessage(
 
   const tags = await fetchTagsServerSearch(context, serverId, fetchTagsServerSearchOptions);
   if (tags.length) {
-    const confirmer = new Confirmer();
+    const confirmer = new Confirmer(context);
     const components = new Components({
       timeout: MAX_TIME_TO_RESPOND,
       onTimeout: () => confirmer.expire(async () => {

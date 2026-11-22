@@ -9,16 +9,21 @@ import { ServerSettings } from '../api/structures/serversettings';
 import { RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
+import { FetchVersions } from '../utils/fetchversions';
 
 
 // Stores Server Settings
 class ServerSettingsStore extends Store<string, ServerSettings> {
+  // a fetch only caches what it got if no edit/event/resync happened for the server since it started
+  fetches = new FetchVersions<string>();
+
   constructor() {
     // 2 hours
     super({expire: 2 * 60 * 60 * 1000});
   }
 
   insert(payload: ServerSettings): void {
+    this.fetches.bump(payload.id);
     this.set(payload.id, payload);
   }
 
@@ -56,6 +61,7 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
         // if it has ownerId, then its a group dm, we classify this as a server
         // only given to us by interactions
 
+        const version = this.fetches.start(serverId);
         try {
           let settings: ServerSettings;
           if (channel && channel.ownerId) {
@@ -63,9 +69,16 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
           } else {
             settings = await fetchServerSettings(context, serverId);
           }
-          this.insert(settings);
+          if (this.fetches.end(serverId, version)) {
+            this.insert(settings);
+          } else if (this.get(serverId) === settings) {
+            // an event or an edit changed it while we waited, the api helper above already cached this older copy (or
+            // merged it into what was cached), drop it so the next use fetches again
+            this.delete(serverId);
+          }
           resolve(settings);
         } catch(error) {
+          this.fetches.end(serverId, version);
           resolve(null);
         }
         timeout.stop();
@@ -82,6 +95,7 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
     const subscriptions: Array<EventSubscription> = [];
     {
       const subscription = apiEvents.subscribe(RedisChannels.SERVER_FEATURES_UPDATE, (payload: RedisPayloads.ServerFeaturesUpdate) => {
+        this.fetches.bump(payload.id);
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -91,6 +105,7 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.SERVER_SETTINGS_UPDATE, (payload: RedisPayloads.ServerSettingsUpdate) => {
+        this.fetches.bump(payload.id);
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -102,6 +117,7 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
     {
       // events were missed, so anything cached could be stale. drop it all and let the next use refetch
       const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.fetches.bumpAll();
         this.clear();
       });
       subscriptions.push(subscription);

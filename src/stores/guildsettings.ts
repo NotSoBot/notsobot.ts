@@ -9,6 +9,7 @@ import { GuildSettings } from '../api/structures/guildsettings';
 import { BAN_CLEAN_DEFAULT, GuildModerationDmFlags, GuildRuleTargetTypes, RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { log } from '../log';
+import { FetchVersions } from '../utils/fetchversions';
 import { RedisPayloads } from '../types';
 
 
@@ -33,46 +34,17 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   lastKnown = new BaseCollection<string, GuildSettings>({expire: LAST_KNOWN_EXPIRE});
   // guild id -> when its settings were last checked for deleted channels/roles
   pruned = new BaseCollection<string, number>({expire: PRUNE_INTERVAL});
-  // guild id -> bumped by every insert/event merge/delete/clear while a fetch for it is going, a fetch only caches what
-  // it got if nothing changed since it started (or it'd put back the snapshot from before). only kept while fetching
-  versions = new Map<string, {fetches: number, version: number}>();
+  // a fetch only caches what it got if no insert/event merge/delete/clear happened for the guild since it started (or it'd
+  // put back the snapshot from before)
+  fetches = new FetchVersions<string>();
 
   constructor() {
     // 2 hours
     super({expire: 2 * 60 * 60 * 1000});
   }
 
-  startFetch(guildId: string): number {
-    let item = this.versions.get(guildId);
-    if (!item) {
-      item = {fetches: 0, version: 0};
-      this.versions.set(guildId, item);
-    }
-    item.fetches++;
-    return item.version;
-  }
-
-  // if nothing changed the server's settings since `startFetch` gave out this version
-  endFetch(guildId: string, version: number): boolean {
-    const item = this.versions.get(guildId);
-    if (!item) {
-      return false;
-    }
-    if (!--item.fetches) {
-      this.versions.delete(guildId);
-    }
-    return item.version === version;
-  }
-
-  bumpVersion(guildId: string): void {
-    const item = this.versions.get(guildId);
-    if (item) {
-      item.version++;
-    }
-  }
-
   insert(payload: GuildSettings): void {
-    this.bumpVersion(payload.id);
+    this.fetches.bump(payload.id);
     this.set(payload.id, payload);
     this.lastKnown.set(payload.id, payload);
     this.failedFetches.delete(payload.id);
@@ -138,7 +110,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         const { guildPartial } = context as any; // this will be just {features, id, locale}
 
         const guild = client.guilds.get(guildId) || guildPartial;
-        const version = this.startFetch(guildId);
+        const version = this.fetches.start(guildId);
         try {
           let settings: GuildSettings;
           if (guild) {
@@ -149,7 +121,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
           } else {
             settings = await fetchGuildSettings(context, guildId);
           }
-          if (this.endFetch(guildId, version)) {
+          if (this.fetches.end(guildId, version)) {
             this.insert(settings);
           } else {
             // an event or a resync changed it while we waited, the api helper above already cached this older snapshot
@@ -165,7 +137,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
             log.error(`Pruning settings failed for ${guildId}`, error);
           });
         } catch(error) {
-          this.endFetch(guildId, version);
+          this.fetches.end(guildId, version);
           resolve(onFailed());
         }
         timeout.stop();
@@ -282,8 +254,12 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     */
     {
       const subscription = cluster.subscribe(ClientEvents.GUILD_DELETE, (event) => {
+        // an outage: still the server's settings, `lastKnown` is what commands fall back to if the api is slow then too
+        if (event.isUnavailable) {
+          return;
+        }
         const { guildId } = event;
-        this.bumpVersion(guildId);
+        this.fetches.bump(guildId);
         this.delete(guildId);
         this.lastKnown.delete(guildId);
         this.failedFetches.delete(guildId);
@@ -316,7 +292,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_FEATURES_UPDATE, (payload: RedisPayloads.GuildFeaturesUpdate) => {
-        this.bumpVersion(payload.id);
+        this.fetches.bump(payload.id);
         const settings = this.getForUpdate(payload.id);
         if (settings) {
           settings.merge(payload);
@@ -326,7 +302,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_LOGGER_UPDATE, (payload: RedisPayloads.GuildLoggerUpdate) => {
-        this.bumpVersion(payload.id);
+        this.fetches.bump(payload.id);
         const settings = this.getForUpdate(payload.id);
         if (settings) {
           settings.merge(payload);
@@ -336,7 +312,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: RedisPayloads.GuildPrefixUpdate) => {
-        this.bumpVersion(payload.id);
+        this.fetches.bump(payload.id);
         const settings = this.getForUpdate(payload.id);
         if (settings) {
           settings.merge(payload);
@@ -346,7 +322,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_RULES_UPDATE, (payload: RedisPayloads.GuildRulesUpdate) => {
-        this.bumpVersion(payload.id);
+        this.fetches.bump(payload.id);
         const settings = this.getForUpdate(payload.id);
         if (settings) {
           settings.merge(payload);
@@ -356,7 +332,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_SETTINGS_UPDATE, (payload: RedisPayloads.GuildSettingsUpdate) => {
-        this.bumpVersion(payload.id);
+        this.fetches.bump(payload.id);
         const settings = this.getForUpdate(payload.id);
         if (settings) {
           settings.merge(payload);
@@ -369,9 +345,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       // events were missed, so anything cached could be stale. drop it all and let the next use refetch, the last known
       // copies stay since they're only used when that fails (better slightly stale than blocking every command)
       const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
-        for (let guildId of this.versions.keys()) {
-          this.bumpVersion(guildId);
-        }
+        this.fetches.bumpAll();
         this.clear();
         this.failedFetches.clear();
       });

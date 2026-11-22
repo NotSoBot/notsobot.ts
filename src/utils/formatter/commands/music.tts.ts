@@ -11,6 +11,9 @@ import * as MusicPlay from './music.play';
 
 export const COMMAND_ID = 'music.tts';
 
+// the voice node's `MAX_SPEAK_AUDIO` (its src/server/server.ts), a `speak` clip's base64 past it gets a 413
+const MAX_SPEAK_AUDIO = 700 * 1024;
+
 export interface CommandArgs {
   // queued like a song instead of said right away over the music
   queue?: boolean,
@@ -45,8 +48,18 @@ export async function createMessage(
     if (!file.value) {
       throw new Error('Text to Speech wasn\'t made, try again');
     }
+    // a couple of minutes of speech, too much to send the node at once. made already, so not made again to queue it
+    // (a cloned voice costs per character)
+    if (MAX_SPEAK_AUDIO < file.value.length) {
+      const { translate } = await getTranslator(context);
+      return displayReply(context, {description: translate('music_tts.too_long')});
+    }
     // held while NotSoAI's answering in `.ai listen`, it's said right after the answer
     const spoken = await VoiceNode.speak(channel.guildId, `tts-${context.userId}-${Date.now().toString(36)}`, file.value);
+    // we left (or got disconnected) while it was being made, it used to say it was being said
+    if (spoken === 'dropped') {
+      throw new Error('Left the voice channel before it could be said, try again');
+    }
     const { translate } = await getTranslator(context);
     return displayReply(context, {description: translate((spoken === 'held') ? 'music_tts.saying_after' : 'music_tts.saying')});
   }

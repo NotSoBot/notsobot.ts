@@ -76,6 +76,9 @@ export namespace RedisPayloads {
     guild_id: string,
     // `effect_remove`, where in the stack the dashboard saw it
     index?: number,
+    // `skip`, the track the dashboard saw playing: a second skip (a double click, two people) for one that already ended is
+    // dropped instead of skipping the next one too. Not sent by the api yet, a skip without it skips whatever's playing
+    item_id?: string,
     // `stay`, the server's seconds paused before leaving (without 24/7)
     pause_timeout?: number,
     // `stay`, whether 24/7 keeps us in voice (on and premium)

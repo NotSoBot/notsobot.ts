@@ -5384,6 +5384,7 @@ export const Croatian: Translations = Object.freeze({
   'music_stay.stays': 'Ostaje u glasovnom kanalu kad red završi (24/7)',
   'music_tts.saying': 'Izgovaram sada',
   'music_tts.saying_after': 'Izgovorit ću nakon odgovora NotSoAI-ja',
+  'music_tts.too_long': 'Predugo je da to kažem preko glazbe, koristi opciju reda da se pusti kao pjesma',
   'music_volume.current': 'Glasnoća je {volume}',
   'music_volume.needs_premium': 'Promjena glasnoće treba premium poslužitelj',
   'music_volume.reset': 'Glasnoća vraćena na 100 %',

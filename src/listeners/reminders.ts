@@ -26,11 +26,14 @@ class ReminderInterval extends Listener {
   catchUpIntervalTime = 5 * 60 * 1000;
   // scan a bit past the next interval so timer drift can't leave a gap between scans
   scanMargin = 5 * 60 * 1000;
-  // a reminder goes scheduled (`reminders`) -> sending/deleting (`handled`, plus `deleteRetries` while its delete keeps
-  // failing) -> done (`completed`), and `isKnown` covers all of them
+  // a reminder goes scheduled (`reminders`) -> sending (`handled` + `sending`) -> deleting (`handled`, plus
+  // `deleteRetries` while its delete keeps failing) -> done (`completed`), and `isKnown` covers all of them
   reminders = new Collections.BaseCollection<string, ReminderItem>();
   // reminders that were executed (or are executing) but not yet deleted from the api
   handled = new Set<string>();
+  // the part of `handled` still sending (a dm can wait minutes on discord's dm limit), its delete only comes after.
+  // the delete safety net deleting one of these would lose it to a restart before it went out
+  sending = new Set<string>();
   // pending retries for reminders whose delete failed
   deleteRetries = new Collections.BaseCollection<string, Timers.Timeout>();
   // sent and deleted for a while, a fetch that read the api before our delete would otherwise send it again
@@ -116,8 +119,17 @@ class ReminderInterval extends Listener {
       return;
     }
     this.handled.add(reminder.id);
+    this.sending.add(reminder.id);
     this.removeReminder(reminder.id);
+    try {
+      await this.sendReminder(shard, reminder, content);
+    } finally {
+      this.sending.delete(reminder.id);
+    }
+    await this.deleteHandledReminder(shard, reminder.id);
+  }
 
+  async sendReminder(shard: ShardClient, reminder: RestResponsesRaw.Reminder, content: string): Promise<void> {
     const allowedMentions = {
       repliedUser: true,
       users: [reminder.user.id],
@@ -155,13 +167,11 @@ class ReminderInterval extends Listener {
     if (!sent) {
       await this.sendReminderDm(shard, reminder, channelIds, {allowedMentions, content});
     }
-
-    await this.deleteHandledReminder(shard, reminder.id);
   }
 
   // discord limits how fast a bot opens dms (40003, "You are opening direct messages too fast") and every reminder goes
   // out from shard 0, so a few due together (or the expired ones caught up on after a restart) can hit it. those wait
-  // and try again, the reminder stays `handled` meanwhile so nothing sends it twice
+  // and try again, the reminder stays `handled` and `sending` meanwhile so nothing sends or deletes it early
   async sendReminderDm(
     shard: ShardClient,
     reminder: RestResponsesRaw.Reminder,
@@ -215,7 +225,7 @@ class ReminderInterval extends Listener {
   async retryHandledDeletes(shard: ShardClient): Promise<void> {
     // safety net for anything that isn't already being sent or retried (e.g. after a stop/reconnect)
     for (let reminderId of Array.from(this.handled)) {
-      if (!this.reminders.has(reminderId) && !this.deleteRetries.has(reminderId)) {
+      if (!this.sending.has(reminderId) && !this.reminders.has(reminderId) && !this.deleteRetries.has(reminderId)) {
         await this.deleteHandledReminder(shard, reminderId);
       }
     }

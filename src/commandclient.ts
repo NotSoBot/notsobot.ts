@@ -164,6 +164,8 @@ export class NotSoCommandClient extends CommandClient {
     if (context.message.messageReference) {
       const replyMessage = context.message.messageReference.message;
       if (replyMessage && await isAIResponse(context, replyMessage) && await this.canPassToAICommand(context)) {
+        // its usage row says so, otherwise it's one more prefixed `ai` use
+        context.metadata = Object.assign(context.metadata || {}, {aiReply: true});
         return {content: context.message.content.trim(), prefix: ''};
       }
     }
@@ -388,6 +390,10 @@ export class NotSoCommandClient extends CommandClient {
     context: Command.Context,
   ) {
     return runWithCommandContext(context, async () => {
+      if (name === ClientEvents.MESSAGE_UPDATE) {
+        // for its usage row, an edit running a command is usually a second try
+        context.metadata = Object.assign(context.metadata || {}, {edited: true});
+      }
       // edits past the edit duration don't re-run anything, leave the old run alone
       if (!this.isWithinEditDuration(context.message)) {
         return super.handleContext(name, event, context);

@@ -57,7 +57,7 @@ export async function createMessage(
   const voiceText = Markup.codestring(result.name);
 
   // same confirmation as `tts voice create`, the new audio is sent to elevenlabs too
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: () => confirmer.expire(async () => {

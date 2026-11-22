@@ -1584,6 +1584,9 @@ export interface TagContext {
   blockedFunctions?: ReadonlySet<TagFunctions>,
   // whether code blocks (`{js:...}`, `{py:...}`) error instead of running
   blocksCode?: boolean,
+  // the ids of the memories NotSoAI's prompt listed (`GenerateTag.memory_ids`), `{ai.memory.edit:N}` changes the one at
+  // N by id since positions shift (an earlier delete in the same reply, or one on the dashboard meanwhile)
+  aiMemoryIds?: ReadonlyArray<string>,
   // NotSoAI's reply can ask the command user before some functions run (`confirmAIAction`), only `tag generate` has one
   confirmAction?: AIConfirmAction,
   // the tag being run is a verified directory listing (staff reviewed it), it gets premium limits like a premium user's
@@ -2331,6 +2334,13 @@ function parseAIMemoryPosition(value: string): number {
     throw new TagError('Memory position must be a positive number');
   }
   return position;
+}
+
+// the id of the memory the prompt showed at that position, undefined (the api uses the position) from an older api or
+// for a position the prompt didn't have
+function getAIMemoryId(tag: TagResult, position: number): string | undefined {
+  const ids = tag.context.aiMemoryIds;
+  return (ids) ? ids[position - 1] : undefined;
 }
 
 function parseAIPosition(value: string, what: string): number {
@@ -4502,10 +4512,14 @@ const ScriptTags = Object.freeze({
       // is from ai, parse the text first. its prompt was built while running, so it can have anyone's text in it
       const isFromAICache = tag.variables[PrivateVariables.IS_FROM_AI];
       tag.variables[PrivateVariables.IS_FROM_AI] = 1;
+      // its memory positions are into its own prompt's list, which an earlier change in this reply could have shifted
+      const aiMemoryIdsCache = tag.context.aiMemoryIds;
+      tag.context.aiMemoryIds = response.memory_ids;
       try {
         tag.text += await parseUntrustedValue(context, tag, response.text);
       } finally {
         tag.variables[PrivateVariables.IS_FROM_AI] = isFromAICache;
+        tag.context.aiMemoryIds = aiMemoryIdsCache;
       }
     }
 
@@ -4671,7 +4685,8 @@ const ScriptTags = Object.freeze({
     checkAIMemoryChanges(tag);
     increaseNetworkRequests(tag);
 
-    await withAIMemoryNotFound(position, () => withDeadline(context, tag, () => deleteUserLLMMemory(context, context.userId, position)));
+    const id = getAIMemoryId(tag, position);
+    await withAIMemoryNotFound(position, () => withDeadline(context, tag, () => deleteUserLLMMemory(context, context.userId, position, {id})));
     recordAIMemoryChange(tag, 'changed');
     tag.text += String(true);
 
@@ -4696,7 +4711,8 @@ const ScriptTags = Object.freeze({
     checkAIMemoryChanges(tag);
     increaseNetworkRequests(tag);
 
-    await withAIMemoryNotFound(position, () => withDeadline(context, tag, () => editUserLLMMemory(context, context.userId, position, {content: withRealNewlines(content)})));
+    const id = getAIMemoryId(tag, position);
+    await withAIMemoryNotFound(position, () => withDeadline(context, tag, () => editUserLLMMemory(context, context.userId, position, {content: withRealNewlines(content), id})));
     recordAIMemoryChange(tag, 'changed');
     tag.text += String(true);
 

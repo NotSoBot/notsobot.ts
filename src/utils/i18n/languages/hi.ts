@@ -5384,6 +5384,7 @@ export const Hindi: Translations = Object.freeze({
   'music_stay.stays': 'कतार खत्म होने पर वॉइस में रहता है (24/7)',
   'music_tts.saying': 'अभी बोला जा रहा है',
   'music_tts.saying_after': 'NotSoAI के जवाब के बाद बोला जाएगा',
+  'music_tts.too_long': 'संगीत के ऊपर बोलने के लिए बहुत लंबा है, इसे गाने की तरह चलाने के लिए क़तार विकल्प का इस्तेमाल करें',
   'music_volume.current': 'वॉल्यूम {volume} है',
   'music_volume.needs_premium': 'वॉल्यूम बदलने के लिए प्रीमियम सर्वर चाहिए',
   'music_volume.reset': 'वॉल्यूम वापस 100% पर',

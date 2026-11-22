@@ -15,9 +15,11 @@ export interface ApiErrorBody {
   [key: string]: unknown,
 }
 
-// set by `request` on errors that came from the notsobot api, discord errors use the same {code, message} shape
-export const IS_NOTSOBOT_API_ERROR = Symbol('isNotSoBotApiError');
-const BODY = Symbol('body');
+// set by `request` on errors that came from the notsobot api, discord errors use the same {code, message} shape. both
+// registered (`Symbol.for`) so a request still going over an owner `.refresh` (which reloads this file) is recognized
+// by the reloaded copy, its error was marked with the old one's symbol
+export const IS_NOTSOBOT_API_ERROR = Symbol.for('notsobot.api.isNotSoBotApiError');
+const BODY = Symbol.for('notsobot.api.errorBody');
 
 
 // a response body can only be read once, so cache it on the error for everyone else

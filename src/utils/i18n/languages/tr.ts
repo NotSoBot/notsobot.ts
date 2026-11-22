@@ -5384,6 +5384,7 @@ export const Turkish: Translations = Object.freeze({
   'music_stay.stays': 'Sıra bitince ses kanalında kalır (24/7)',
   'music_tts.saying': 'Şimdi söylüyorum',
   'music_tts.saying_after': 'NotSoAI\'ın cevabından sonra söylüyorum',
+  'music_tts.too_long': 'Müziğin üstünde söylemek için çok uzun, şarkı gibi çalmak için sıra seçeneğini kullan',
   'music_volume.current': 'Ses seviyesi {volume}',
   'music_volume.needs_premium': 'Ses seviyesini değiştirmek için premium sunucu gerekir',
   'music_volume.reset': 'Ses seviyesi yeniden %100 oldu',

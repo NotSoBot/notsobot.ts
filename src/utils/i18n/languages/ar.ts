@@ -5384,6 +5384,7 @@ export const Arabic: Translations = Object.freeze({
   'music_stay.stays': 'يبقى في الصوت عندما تنتهي القائمة (24/7)',
   'music_tts.saying': 'أقولها الآن',
   'music_tts.saying_after': 'سأقولها بعد إجابة NotSoAI',
+  'music_tts.too_long': 'طويل جدًا لأقوله فوق الموسيقى، استخدم خيار الطابور لتشغيله كأغنية بدلًا من ذلك',
   'music_volume.current': 'مستوى الصوت {volume}',
   'music_volume.needs_premium': 'تغيير مستوى الصوت يحتاج إلى خادم مميز',
   'music_volume.reset': 'عاد مستوى الصوت إلى 100%',

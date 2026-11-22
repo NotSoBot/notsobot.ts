@@ -2,8 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
-import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { displayReply } from '../../../utils';
+import { Formatter, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -43,9 +42,8 @@ export default class NickMassCancelCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const guild = context.guild as Structures.Guild;
 
-    const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
-    if (isExecuting.nick) {
-      isExecuting.nick = false;
+    // stops the run itself like its Stop button, clearing only the server's flag left it renaming while a new one could start
+    if (Formatter.Commands.ModerationNickMass.stopNickMassRun(guild.id)) {
       return displayReply(context, {description: 'Canceled mass nickname changes'});
     } else {
       return displayReply(context, {description: 'Mass nickname isn\'t ongoing right now'});

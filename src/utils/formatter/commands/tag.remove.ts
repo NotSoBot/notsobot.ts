@@ -85,7 +85,7 @@ export async function createMessage(
         ].join('\n');
       }
 
-      const confirmer = new Confirmer();
+      const confirmer = new Confirmer(context);
       const components = new Components({timeout: 5 * (60 * 1000)});
       components.createButton({
         label: translate('tag_remove.continue'),

@@ -5384,6 +5384,7 @@ export const German: Translations = Object.freeze({
   'music_stay.stays': 'Bleibt im Sprachkanal, wenn die Warteschlange endet (24/7)',
   'music_tts.saying': 'Sage es jetzt',
   'music_tts.saying_after': 'Sage es nach der Antwort von NotSoAI',
+  'music_tts.too_long': 'Zu lang, um es über die Musik zu sagen, nutze die Warteschlangen-Option, um es wie einen Song abzuspielen',
   'music_volume.current': 'Die Lautstärke ist {volume}',
   'music_volume.needs_premium': 'Die Lautstärke zu ändern braucht einen Premium-Server',
   'music_volume.reset': 'Lautstärke wieder auf 100 %',

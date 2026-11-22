@@ -5384,6 +5384,7 @@ export const Polish: Translations = Object.freeze({
   'music_stay.stays': 'Zostaje na kanale głosowym, gdy kolejka się skończy (24/7)',
   'music_tts.saying': 'Mówię to teraz',
   'music_tts.saying_after': 'Powiem to po odpowiedzi NotSoAI',
+  'music_tts.too_long': 'Za długie, żeby powiedzieć to na muzyce, użyj opcji kolejki, aby odtworzyć to jak utwór',
   'music_volume.current': 'Głośność wynosi {volume}',
   'music_volume.needs_premium': 'Zmiana głośności wymaga serwera premium',
   'music_volume.reset': 'Głośność przywrócona do 100%',

@@ -1,5 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
+import { CommandResults, setCommandReason, setCommandResult } from '../../../commandresults';
 import { CommandCategories } from '../../../constants';
 import { Formatter, I18n, Parameters } from '../../../utils';
 
@@ -56,6 +57,10 @@ export default class URLCommand extends BaseCommand<CommandArgs> {
 
     const url = await findUrl(args.value, context);
     if (!url) {
+      // the media is looked for in here (see above), so it's `run` that finds nothing: recorded like the media
+      // commands' own "no media found" instead of as a use that ran
+      setCommandResult(context, CommandResults.CANCELLED);
+      setCommandReason(context, (url === null) ? 'invalid_media' : 'no_media');
       const { translate } = await I18n.getTranslator(context);
       return replyWarning(context, translate((url === null) ? 'errors.invalid_user_or_url' : 'errors.no_media_found'));
     }

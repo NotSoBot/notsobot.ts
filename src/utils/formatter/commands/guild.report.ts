@@ -1,4 +1,4 @@
-import { ClusterClient, Command, Interaction, ShardClient, Structures } from 'detritus-client';
+import { ClusterClient, Collections, Command, Interaction, ShardClient, Structures } from 'detritus-client';
 import {
   DiscordAbortCodes,
   InteractionCallbackTypes,
@@ -18,14 +18,15 @@ import {
   Markup,
 } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
-import { Timers } from 'detritus-utils';
 
 import {
   createGuildReport,
   createGuildReportMessage,
   editGuildReport,
   editGuildReportLogMessages,
+  fetchGuildReportMessagesUndelivered,
   fetchGuildReportQuote,
+  postGuildReportMessageDelivered,
   putGuildReportMember,
   putGuildReportReporterMuted,
   putGuildReportQuote,
@@ -110,11 +111,44 @@ const ReportStatusColors: Record<ReportStatuses, number> = {
 // several moderators at once) becomes one edit per report with its latest state
 const REPORT_UPDATE_DELAY = 5000;
 
-// the dashboard changes waiting to be drawn, by server then report (only the latest per report), and the servers whose
-// queue is being worked through. one report's messages are edited at a time per server, so however many changes come in
-// it never sends more than one edit at once per server (and detritus waits out any 429 on its own)
-const reportUpdates = new Map<string, Map<string, RedisPayloads.GuildReportUpdate>>();
-const reportUpdateWorkers = new Set<string>();
+// a button press waiting to redraw the message it was on, through its own interaction (already deferred). `done` settles
+// once it's drawn, or right away when a newer press on the same message takes its place
+interface ReportPress {
+  context: ComponentContext,
+  done: {resolve: () => void, reject: (error: any) => void},
+}
+
+// one report's redraws waiting, drawn with `report`: the newest state from a button or the dashboard, whichever came in
+// last. a dashboard change redraws all its logger messages once `update.due` comes, presses redraw theirs right away
+interface ReportRedraw {
+  presses: Map<string, ReportPress>,
+  report: RestResponsesRaw.GuildReport,
+  update: null | {due: number, payload: RedisPayloads.GuildReportUpdate},
+}
+
+// the redraws waiting, by server then report, and the servers whose queue is being worked through (`wake` cuts a wait for
+// a dashboard change short when a press comes in). one report's messages are edited at a time per server, so however many
+// changes come in it never sends more than one edit at once per server (and detritus waits out any 429 on its own), and a
+// newer state is always drawn after an older one, never raced by it
+const reportUpdates = new Map<string, Map<string, ReportRedraw>>();
+const reportUpdateWorkers = new Map<string, {wake: () => void}>();
+// the newest snapshot seen of each report (by its `version`, every write bumps it): a dashboard event delayed in redis,
+// a reply's snapshot or a press's PATCH answer that's older than one already queued or drawn used to be drawn over it
+const newestReports = new Collections.BaseCollection<string, RestResponsesRaw.GuildReport>({expire: 60 * 60 * 1000});
+
+// `report`, or the newer snapshot already seen of it (an equal version is taken, reply counts change without a bump). An
+// old api without `version` is always taken
+function getNewestReport(report: RestResponsesRaw.GuildReport): RestResponsesRaw.GuildReport {
+  if (typeof(report.version) !== 'number') {
+    return report;
+  }
+  const newest = newestReports.get(report.id);
+  if (newest && typeof(newest.version) === 'number' && report.version < newest.version) {
+    return newest;
+  }
+  newestReports.set(report.id, report);
+  return report;
+}
 
 // a report resolved or dismissed DMs its reporter after this long, so a misclick that's undone right away (reopened, or
 // switched between resolve and dismiss) only sends where it ended up, or nothing
@@ -289,7 +323,8 @@ async function attachReportQuote(
     try {
       const message = await shard.rest.fetchWebhookTokenMessage(logger.webhookId, logger.webhookToken, logMessage.message_id);
       const componentsV2 = (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2;
-      const { flags, ...options } = createReportLogMessage(translator, report, target, componentsV2, true);
+      // a status pressed while the quote was drawn is newer than the api's answer here (outside the server's queue)
+      const { flags, ...options } = createReportLogMessage(translator, getNewestReport(report), target, componentsV2, true);
       await shard.rest.editWebhookTokenMessage(logger.webhookId, logger.webhookToken, logMessage.message_id, {
         ...options,
         files: [{filename: REPORT_QUOTE_FILENAME, value: buffer}],
@@ -404,47 +439,170 @@ export function queueGuildReportUpdate(cluster: ClusterClient, payload: RedisPay
     return;
   }
   queueReporterNotice(shard, report, payload.created);
+  queueGuildReportRedraw(shard, payload, {delay: REPORT_UPDATE_DELAY, repliesOnly: false});
+}
+
+// the report's logger messages redrawn by the server's worker in `delay`. `repliesOnly` (a reply's snapshot, taken before
+// the DM and thread posts) only brings its reply count to a state already waiting, which can be a newer status
+function queueGuildReportRedraw(
+  shard: ShardClient,
+  payload: RedisPayloads.GuildReportUpdate,
+  options: {delay: number, repliesOnly: boolean},
+): void {
+  const { report } = payload;
   if (!payload.log_messages.length) {
     return;
   }
-  let updates = reportUpdates.get(report.guild_id);
+  // older than one already queued or drawn, that one has everything this had (it was written after)
+  if (getNewestReport(report) !== report) {
+    return;
+  }
+  const updates = getReportRedraws(report.guild_id);
+  const queued = updates.get(report.id);
+  const due = Date.now() + options.delay;
+  if (queued) {
+    if (queued.update && payload.created < queued.update.payload.created) {
+      return;
+    }
+    // without versions (an old api) a reply's snapshot can't be ordered against a queued state, only its reply counts go
+    const versioned = typeof(report.version) === 'number';
+    queued.report = (options.repliesOnly && !versioned) ? {...queued.report, last_reply: report.last_reply, replies: report.replies} : report;
+    // a burst of changes is still drawn when the first one would've been
+    queued.update = {due: (queued.update) ? Math.min(queued.update.due, due) : due, payload};
+  } else {
+    updates.set(report.id, {presses: new Map(), report, update: {due, payload}});
+  }
+  startGuildReportUpdates(shard, report.guild_id);
+}
+
+// a status button's change, saved with the api. its message is redrawn with it (or with a newer state if one came in
+// first) as soon as the server's worker gets to it, settling once it's drawn
+function queueGuildReportPress(context: ComponentContext, pressed: RestResponsesRaw.GuildReport): Promise<void> {
+  // its message is redrawn either way (the press was answered), with the newest state known
+  const report = getNewestReport(pressed);
+  const message = context.interaction.message;
+  const messageId = (message) ? message.id : context.interactionId;
+  const updates = getReportRedraws(report.guild_id);
+  let queued = updates.get(report.id);
+  if (queued) {
+    queued.report = report;
+    if (queued.update) {
+      // this press draws its own message, the dashboard's change only has the others left (and those get this state)
+      const logMessages = queued.update.payload.log_messages.filter((logMessage) => logMessage.message_id !== messageId);
+      queued.update = (logMessages.length) ? {...queued.update, payload: {...queued.update.payload, log_messages: logMessages}} : null;
+    }
+  } else {
+    queued = {presses: new Map(), report, update: null};
+    updates.set(report.id, queued);
+  }
+  // an older press on the same message is left with nothing to draw, it was already answered (deferred)
+  const older = queued.presses.get(messageId);
+  if (older) {
+    older.done.resolve();
+  }
+  const promise = new Promise<void>((resolve, reject) => {
+    queued!.presses.set(messageId, {context, done: {resolve, reject}});
+  });
+  startGuildReportUpdates(context.client, report.guild_id);
+  return promise;
+}
+
+function getReportRedraws(guildId: string): Map<string, ReportRedraw> {
+  let updates = reportUpdates.get(guildId);
   if (!updates) {
     updates = new Map();
-    reportUpdates.set(report.guild_id, updates);
+    reportUpdates.set(guildId, updates);
   }
-  const queued = updates.get(report.id);
-  if (!queued || queued.created <= payload.created) {
-    updates.set(report.id, payload);
-  }
-  if (!reportUpdateWorkers.has(report.guild_id)) {
-    reportUpdateWorkers.add(report.guild_id);
-    runGuildReportUpdates(cluster, report.guild_id);
+  return updates;
+}
+
+function startGuildReportUpdates(shard: ShardClient, guildId: string): void {
+  const worker = reportUpdateWorkers.get(guildId);
+  if (worker) {
+    worker.wake();
+  } else {
+    const worker = {wake: () => {}};
+    reportUpdateWorkers.set(guildId, worker);
+    runGuildReportUpdates(shard, guildId, worker);
   }
 }
 
-// a button on one of its messages was used after the dashboard change, so that change is already out of date
-function dropQueuedGuildReportUpdate(guildId: string, reportId: string): void {
-  const updates = reportUpdates.get(guildId);
-  if (updates) {
-    updates.delete(reportId);
-  }
-}
-
-// waits, then edits whatever's queued one report at a time. changes that come in meanwhile wait for the next round (or
-// are picked up by this one if it hasn't reached them yet). a failed edit is never retried, the next change redraws it
-async function runGuildReportUpdates(cluster: ClusterClient, guildId: string): Promise<void> {
+// edits whatever's queued one report at a time: presses first, then dashboard changes whose wait is over, sleeping until
+// the next one's due (or a press comes in). each report is drawn with its newest state when it's taken off the queue, and
+// changes that come in while it's being drawn queue it again, so the last edit is always the newest state. a failed edit is
+// never retried, the next change redraws it
+async function runGuildReportUpdates(shard: ShardClient, guildId: string, worker: {wake: () => void}): Promise<void> {
   try {
     while (true) {
-      await Timers.sleep(REPORT_UPDATE_DELAY);
       const updates = reportUpdates.get(guildId);
       if (!updates || !updates.size) {
         reportUpdates.delete(guildId);
         break;
       }
-      for (let [reportId, payload] of updates) {
-        updates.delete(reportId);
+      const now = Date.now();
+      let pressed: null | [string, ReportRedraw] = null;
+      let due: null | [string, ReportRedraw] = null;
+      let wait = Infinity;
+      for (let [reportId, queued] of updates) {
+        if (queued.presses.size) {
+          pressed = [reportId, queued];
+          break;
+        }
+        if (queued.update) {
+          if (queued.update.due <= now) {
+            if (!due || queued.update.due < due[1].update!.due) {
+              due = [reportId, queued];
+            }
+          } else {
+            wait = Math.min(wait, queued.update.due - now);
+          }
+        }
+      }
+
+      const next = pressed || due;
+      if (!next) {
+        if (wait === Infinity) {
+          // only emptied reports left (never happens, but never spin)
+          reportUpdates.delete(guildId);
+          break;
+        }
+        await new Promise<void>((resolve) => {
+          const timeout = setTimeout(done, wait);
+          function done() {
+            clearTimeout(timeout);
+            worker.wake = () => {};
+            resolve();
+          }
+          worker.wake = done;
+        });
+        continue;
+      }
+
+      const [ reportId, queued ] = next;
+      const { report } = queued;
+      if (pressed) {
+        const presses = Array.from(queued.presses.values());
+        queued.presses = new Map();
+        if (!queued.update) {
+          updates.delete(reportId);
+        }
+        const quoteCache: {buffer?: Buffer | null} = {};
+        for (let press of presses) {
+          try {
+            await redrawReportPress(report, press.context, quoteCache);
+            press.done.resolve();
+          } catch(error) {
+            press.done.reject(error);
+          }
+        }
+      } else {
+        const payload = queued.update!.payload;
+        queued.update = null;
+        if (!queued.presses.size) {
+          updates.delete(reportId);
+        }
         try {
-          await updateReportLogMessages(cluster, payload);
+          await updateReportLogMessages(shard, {...payload, report});
         } catch(error) {
           log.error(`Guild Report ${reportId} failed to update for ${guildId}`, error);
         }
@@ -455,13 +613,23 @@ async function runGuildReportUpdates(cluster: ClusterClient, guildId: string): P
   }
 }
 
+// redrawn the way it was sent, the server could have changed its display setting since
+async function redrawReportPress(
+  report: RestResponsesRaw.GuildReport,
+  context: ComponentContext,
+  quoteCache: {buffer?: Buffer | null},
+): Promise<void> {
+  const message = context.interaction.message;
+  const componentsV2 = !!message && (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2;
+  const target = await fetchUser(context.client, report.target_id);
+  const quote = await getReportQuoteRedraw(context.client, report, message, quoteCache);
+  const { flags, ...payload } = createReportLogMessage(getReportLogTranslator(context.client, report.guild_id), report, target, componentsV2, quote.hasQuote);
+  await context.editResponse({...payload, files: quote.files});
+}
+
 // redrawn the same way the buttons do (in the format each was sent in), deleted messages and removed loggers are skipped
-async function updateReportLogMessages(cluster: ClusterClient, payload: RedisPayloads.GuildReportUpdate): Promise<void> {
+async function updateReportLogMessages(shard: ShardClient, payload: RedisPayloads.GuildReportUpdate): Promise<void> {
   const { report } = payload;
-  const shard = shardForGuild(cluster, report.guild_id);
-  if (!shard) {
-    return;
-  }
   const settings = await GuildSettingsStore.getOrFetch({client: shard}, report.guild_id);
   if (!settings) {
     return;
@@ -683,18 +851,12 @@ export async function onGuildReportComponent(context: ComponentContext, action: 
     }));
   }
 
-  dropQueuedGuildReportUpdate(context.guildId, report.id);
   if (report.changed) {
     queueReporterNotice(context.client, report, Date.now());
   }
-
-  // redrawn the way it was sent, the server could have changed its display setting since
-  const message = context.interaction.message;
-  const componentsV2 = !!message && (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2;
-  const target = await fetchUser(context.client, report.target_id);
-  const quote = await getReportQuoteRedraw(context.client, report, message, {});
-  const { flags, ...payload } = createReportLogMessage(getReportLogTranslator(context.client, report.guild_id), report, target, componentsV2, quote.hasQuote);
-  return context.editResponse({...payload, files: quote.files});
+  // through the server's queue (`runGuildReportUpdates`) with the dashboard's changes, so presses at once from two
+  // moderators can't finish their edits out of order and leave the older status showing
+  return queueGuildReportPress(context, report);
 }
 
 
@@ -835,6 +997,23 @@ export async function onGuildReportMessageCreate(cluster: ClusterClient, payload
   if (!shard || !message.content) {
     return;
   }
+  // claimed first: the live event and a restarted cluster's catch-up (`deliverUndeliveredGuildReportMessages`) can't both
+  // DM it and post it in the thread. An old api without the route (or a blip) delivers like before
+  try {
+    const { claimed } = await postGuildReportMessageDelivered({client: shard}, report.guild_id, report.id, message.id);
+    if (!claimed) {
+      trace('already delivered');
+      return;
+    }
+  } catch(error) {
+    trace(`claim failed (${(error && (error.code ?? error.message)) || error}), delivering anyway`);
+  }
+  // the report's messages show whether it's waiting on the moderators, which every reply changes. first and through the
+  // server's queue: drawn after the DM and thread posts (seconds), it went over a status pressed meanwhile with this older one
+  queueGuildReportRedraw(shard, {created: Date.now(), log_messages: payload.log_messages, moderator_id: '', report}, {
+    delay: 0,
+    repliesOnly: true,
+  });
   // why the reporter wasn't DMed the moderators' reply, noted in the thread
   let dmNote: null | 'failed' | 'muted' = null;
   if (message.author === 'moderator' && report.reporter_muted) {
@@ -854,8 +1033,28 @@ export async function onGuildReportMessageCreate(cluster: ClusterClient, payload
   }
   await postReportThreadMessages(shard, payload, dmNote);
   trace('thread posts done');
-  // the report's messages show whether it's waiting on the moderators, which every reply changes
-  await updateReportLogMessages(cluster, {created: Date.now(), log_messages: payload.log_messages, moderator_id: '', report});
+}
+
+
+// once a cluster's ready after starting: replies whose event came while it was down (a restart, a crash) are delivered,
+// oldest first. The api keeps unclaimed ones for 15 minutes, each is claimed before it goes (another cluster's catch-up or
+// the live event can't send it too)
+export async function deliverUndeliveredGuildReportMessages(cluster: ClusterClient): Promise<void> {
+  const shard = cluster.shards.first();
+  if (!shard) {
+    return;
+  }
+  const { messages } = await fetchGuildReportMessagesUndelivered({client: shard});
+  for (let payload of messages) {
+    if (!shardForGuild(cluster, payload.report.guild_id)) {
+      continue;
+    }
+    try {
+      await onGuildReportMessageCreate(cluster, payload);
+    } catch(error) {
+      log.error(`Failed to deliver guild report ${payload.report.id}'s reply ${payload.message.id} (catch up)`, error);
+    }
+  }
 }
 
 

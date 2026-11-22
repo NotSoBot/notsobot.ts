@@ -8,13 +8,15 @@ import GuildSettingsStore from '../../stores/guildsettings';
 import { getServerPremiumUsers } from '../../stores/premiumservers';
 import UserStore from '../../stores/users';
 
-import { createUserCommand } from '../../api';
+import { createUserCommand, deleteCommandsResponses } from '../../api';
 import {
   CommandResults,
   afterJobRuns,
   getCommandGate,
+  getRecordedCommandReason,
   getRecordedCommandResult,
   setCommandGate,
+  setCommandReason,
   setCommandResult,
 } from '../../commandresults';
 import {
@@ -37,7 +39,9 @@ import {
   displayReply,
   finishThinkingReply,
   findMediaUrlInMessages,
+  isCommandRunCancelled,
 } from '../../utils';
+import { getAutoEmbedLink } from '../../utils/autoembed';
 import { getCommandId, markRecorded } from '../../utils/commandresponses';
 
 import {
@@ -55,6 +59,17 @@ function commandNameForError(context: Command.Context, translator: I18n.Translat
     return Markup.codestring(context.command.fullName);
   }
   return translator.translate('errors.this_command');
+}
+
+
+// the reply's language for the usage row, the settings it comes from are cached by now and it's never worth losing
+// the row over
+async function getUsageLocale(context: Command.Context): Promise<string | undefined> {
+  try {
+    return await I18n.getLanguage(context);
+  } catch(error) {
+    return undefined;
+  }
 }
 
 
@@ -202,6 +217,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   async onCancelRun(context: Command.Context, args: unknown) {
+    setCommandReason(context, 'usage');
     const description = this.commandDescription;
     if (description) {
       return displayReply(context, {description: Markup.codeblock(`${context.prefix}${description}`)});
@@ -321,7 +337,12 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     // before asking it
     // set by NotSoAI's command, which response its reply holds
     const llmResponseId: string | undefined = context.metadata && context.metadata.llmResponseId;
-    if (response) {
+    // an edit (or a delete) cancelled this run: `context.response` is the newer run's reply by now (or deleted above),
+    // recording it here linked the newer answer to this run's NotSoAI conversation, or wrote back a row COMMAND_DELETE
+    // had just removed (the newest row `.undo` then picked). The usage is still counted, the api only stores a response
+    // row with a response
+    const isRecordable = () => !isCommandRunCancelled(context) && !context.message.deleted;
+    if (response && isRecordable()) {
       CommandResponsesStore.insert(context.messageId, response.id, commandId);
       if (llmResponseId) {
         CommandResponsesStore.insertLLMResponse(response.id, llmResponseId, context.userId);
@@ -336,6 +357,24 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     await afterJobRuns(context, async () => {
       // the other messages it sent (`addExtraResponse`) go with the response, later ones are added once it's stored
       const extraResponseIds = CommandResponsesStore.getExtraResponses(context.messageId);
+      // again after the job, it could've been edited or deleted while it ran
+      const recordable = isRecordable();
+      // the job's result can replace its thinking reply with a new message (content and a file on a components v2
+      // reply), the stored id pointed at the deleted one once detritus forgot the reply (15 minutes, a restart)
+      const current = context.response;
+      const finalResponseId = (messageResponseId && current && !current.deleted) ? current.id : messageResponseId;
+      if (recordable && finalResponseId && finalResponseId !== messageResponseId) {
+        CommandResponsesStore.insert(context.messageId, finalResponseId, commandId);
+      }
+      const recordedResponseId = (recordable) ? finalResponseId : undefined;
+      const metadata = context.metadata || {};
+      const result = getRecordedCommandResult(context);
+      let trigger: string | undefined;
+      if (getAutoEmbedLink(context)) {
+        trigger = 'auto_embed';
+      } else if (metadata.aiReply) {
+        trigger = 'ai_reply';
+      }
       await createUserCommand(
         context,
         context.userId,
@@ -343,17 +382,32 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         {
           channelId: context.channelId,
           commandType: (isMention) ? CommandTypes.MENTION : CommandTypes.PREFIXED,
+          // a message only reaches us where the bot itself is, a server or its own dms
+          contextType: (context.guildId) ? 'guild' : 'bot_dm',
+          duration: (metadata.started) ? Math.max(Date.now() - metadata.started, 0) : undefined,
+          edited: !!metadata.edited,
           extraResponseIds,
           guildId: context.guildId,
-          llmResponseId,
-          messageResponseId,
+          install: (context.guildId) ? 'guild' : undefined,
+          llmResponseId: (recordable) ? llmResponseId : undefined,
+          locale: await getUsageLocale(context),
+          messageResponseId: recordedResponseId,
           messageTriggerId: context.messageId,
-          result: getRecordedCommandResult(context),
+          reason: getRecordedCommandReason(context, result),
+          result,
+          tip: !!metadata.prefixSlashTipShown,
+          trigger,
         },
       );
       // the api only stores a row with a response
-      if (messageResponseId) {
-        markRecorded(context, extraResponseIds);
+      if (recordedResponseId) {
+        // deleted while the request went (COMMAND_DELETE's delete may have reached the api first), the row it made is
+        // for a trigger that's gone
+        if (context.message.deleted) {
+          await deleteCommandsResponses(context, {channelId: context.channelId, triggerIds: [context.messageId]}).catch(() => null);
+        } else {
+          markRecorded(context, extraResponseIds);
+        }
       }
     }, (error) => context.commandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));
   }
@@ -392,8 +446,10 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
   async onCancelRun(context: Command.Context, args: {url?: null | string}) {
     const { translate } = await I18n.getTranslator(context);
     if (args.url === undefined) {
+      setCommandReason(context, 'no_media');
       return replyWarning(context, translate(this.errorNotFound));
     } else if (args.url === null) {
+      setCommandReason(context, 'invalid_media');
       return replyWarning(context, translate('errors.invalid_user_or_url'));
     }
     return super.onCancelRun(context, args);
@@ -441,11 +497,14 @@ export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
   async onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
     const { translate } = await I18n.getTranslator(context);
     if (!args.urls.length) {
+      setCommandReason(context, 'no_media');
       return replyWarning(context, translate(this.errorNotFound));
     } else if (args.urls.length < this.minAmount) {
+      setCommandReason(context, 'not_enough_media');
       return replyWarning(context, translate(this.errorNotEnough, {amount: this.minAmount}));
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
+      setCommandReason(context, 'too_many_media');
       return replyWarning(context, translate(this.errorTooMany));
     }
     return super.onCancelRun(context, args);

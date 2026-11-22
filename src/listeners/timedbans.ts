@@ -5,7 +5,7 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Listener } from './listener';
 
-import { deleteGuildTimedBan, deleteGuildTimedBans, fetchTimedBans } from '../api';
+import { deleteGuildTimedBan, deleteGuildTimedBans, fetchGuildTimedBans, fetchTimedBans, postGuildTimedBanLifted } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { DateMomentLogFormat, RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
@@ -58,6 +58,9 @@ class TimedBanScheduler extends Listener {
   // lifted and deleted for a while, a fetch that read the api before our delete would otherwise unban them again (even
   // if they got banned by hand since)
   completed = new Collections.BaseCollection<string, true>({expire: 10 * 60 * 1000});
+  // unbanned but its delete failed (an api blip): the next catch up only retries the delete. it unbanned again, lifting
+  // a ban made by hand since (Discord's own ban, another bot). Lost on a restart, the api would have to keep it for that
+  lifted = new Collections.BaseCollection<string, true>({expire: 24 * 60 * 60 * 1000});
 
   // the api's gateway only sends timed ban events to shard 0's cluster (`EVENT_ROUTE_HOME` in its utilities/tools/redis.py),
   // moving this off cluster 0 means changing that route too
@@ -95,14 +98,16 @@ class TimedBanScheduler extends Listener {
       this.timedBans.delete(timedBanId);
     }
     this.deferred.delete(timedBanId);
+    this.lifted.delete(timedBanId);
     // drop it from its server's queue if it hasn't started yet
     for (let [guildId, queue] of this.queues) {
       const index = queue.items.findIndex((x) => x.id === timedBanId);
       if (index !== -1) {
         queue.items.splice(index, 1);
-        this.queued.delete(timedBanId);
       }
     }
+    // one being unbanned right now sees it's gone before it lifts the ban (`executeUnban`)
+    this.queued.delete(timedBanId);
   }
 
   enqueue(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan): void {
@@ -211,25 +216,51 @@ class TimedBanScheduler extends Listener {
   }
 
   async executeUnban(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan): Promise<void> {
-    try {
-      await shard.rest.removeGuildBan(timedBan.guild_id, timedBan.user_id, {reason: await this.createReason(shard, timedBan)});
-    } catch(error) {
-      switch (error && error.code) {
-        case DiscordErrorCodes.UNKNOWN_BAN:
-        case DiscordErrorCodes.MISSING_PERMISSIONS: {
-          // already unbanned, or we can't unban anymore: either way it's done
-        }; break;
-        case DiscordErrorCodes.MISSING_ACCESS:
-        case DiscordErrorCodes.UNKNOWN_GUILD: {
-          // we're not in the server, keep it for if we get added back
-          this.deferred.set(timedBan.id, Date.now() + this.notInGuildRetryTime);
+    // still this ban? banning them again with a new time replaces it (a new id), and this one's TIMED_BAN_DELETE can be
+    // missed in an api events gap: its timer would lift the renewed ban early. gone without a replacement (the timed
+    // ban was removed) isn't unbanned either. a failed check throws, the next catch up tries again. a server has at most
+    // 200 of them, one page
+    const { timed_bans: current } = await fetchGuildTimedBans({client: shard}, timedBan.guild_id);
+    const stored = current.find((x) => x.id === timedBan.id);
+    if (!stored) {
+      this.lifted.delete(timedBan.id);
+      this.completed.set(timedBan.id, true);
+      return;
+    }
+    // the api remembers the lift (`lifted_at`), so a restart between our unban and the delete only deletes too
+    if (stored.lifted_at) {
+      this.lifted.set(timedBan.id, true);
+    }
+    if (!this.lifted.has(timedBan.id)) {
+      try {
+        const reason = await this.createReason(shard, timedBan);
+        // removed (TIMED_BAN_DELETE, an unban by hand) while this one was already going
+        if (!this.queued.has(timedBan.id)) {
           return;
-        };
-        default: {
-          // anything else (discord being down, network) gets tried again on the next catch up
-          throw error;
-        };
+        }
+        await shard.rest.removeGuildBan(timedBan.guild_id, timedBan.user_id, {reason});
+      } catch(error) {
+        switch (error && error.code) {
+          case DiscordErrorCodes.UNKNOWN_BAN:
+          case DiscordErrorCodes.MISSING_PERMISSIONS: {
+            // already unbanned, or we can't unban anymore: either way it's done
+          }; break;
+          case DiscordErrorCodes.MISSING_ACCESS:
+          case DiscordErrorCodes.UNKNOWN_GUILD: {
+            // we're not in the server, keep it for if we get added back
+            this.deferred.set(timedBan.id, Date.now() + this.notInGuildRetryTime);
+            return;
+          };
+          default: {
+            // anything else (discord being down, network) gets tried again on the next catch up
+            throw error;
+          };
+        }
       }
+      this.lifted.set(timedBan.id, true);
+      // marked before the delete; an old api without the route (or a blip) doesn't stop the delete, the in-memory mark
+      // still covers a retry in this process
+      await postGuildTimedBanLifted({client: shard}, timedBan.guild_id, timedBan.user_id, {timedBanId: timedBan.id}).catch(() => null);
     }
 
     try {
@@ -243,6 +274,7 @@ class TimedBanScheduler extends Listener {
         return;
       }
     }
+    this.lifted.delete(timedBan.id);
     this.completed.set(timedBan.id, true);
   }
 
@@ -365,10 +397,13 @@ class TimedBanScheduler extends Listener {
     if (!shard) {
       return;
     }
+    // only timers that were there before the fetch can be stale, a TIMED_BAN_CREATE while it waits is newer than what
+    // it read (dropping those left a new timed ban without a timer until the next catch up)
+    const scheduled = new Map<string, TimedBanItem>(this.timedBans.entries());
     const now = Date.now();
     const timedBans = await this.fetchTimedBans(shard, now - 2000, now + this.intervalTime + this.scanMargin);
-    for (let [timedBanId, item] of this.timedBans) {
-      if (!timedBans.has(timedBanId)) {
+    for (let [timedBanId, item] of scheduled) {
+      if (this.timedBans.get(timedBanId) === item && !timedBans.has(timedBanId)) {
         this.removeTimedBan(timedBanId);
       }
     }

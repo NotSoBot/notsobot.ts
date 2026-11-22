@@ -5384,6 +5384,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'music_stay.stays': '队列结束后留在语音频道（24/7）',
   'music_tts.saying': '正在说',
   'music_tts.saying_after': '会在 NotSoAI 回答后说',
+  'music_tts.too_long': '太长了，无法在音乐上方说出，请使用队列选项把它当作歌曲播放',
   'music_volume.current': '音量为{volume}',
   'music_volume.needs_premium': '更改音量需要高级服务器',
   'music_volume.reset': '音量已恢复到100%',

@@ -597,7 +597,8 @@ export function takeMusicPaginatorItemId(paginator: Paginator): string | undefin
 // the pages still going on `message` (`music info`'s and `music play`'s), they handle its buttons
 function findMessagePaginator(message: Structures.Message): Paginator | undefined {
   const stored = PaginatorsStore.get(message.channelId);
-  const paginator = (stored) ? [...stored.normal, ...stored.ephemeral].find((x) => x.messageId === message.id) : undefined;
+  // one whose trigger was edited/deleted doesn't own the message anymore, the newer reply's page goes there instead
+  const paginator = (stored) ? [...stored.normal, ...stored.ephemeral].find((x) => x.messageId === message.id && x.ownsMessage) : undefined;
   return (paginator && !paginator.stopped) ? paginator : undefined;
 }
 

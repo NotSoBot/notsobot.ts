@@ -17,9 +17,16 @@ const BUILD_TIMEOUT = 5 * 60 * 1000;
 // sentry's release (sentry.ts), it isn't compiled from src so syncing never removes it
 const RELEASE_FILENAME = 'release.json';
 
-// what's running, so a second refresh meanwhile waits on the same build instead of compiling over it. on globalThis
-// since refresh reloads this module
-const RUNNING_KEY = 'notsobotLibBuild';
+// the build that's running and the one queued after it (`LibBuildState`), on globalThis since refresh reloads this module
+const STATE_KEY = 'notsobotLibBuildState';
+
+// idle (no state), running, or running with the next one queued. A refresh while one runs can't share it, that build may
+// have read src before a `-pull` changed it (it used to, and the pulled commits silently weren't in lib), so it waits for
+// the queued one, which starts once the running one is done. every refresh meanwhile shares the queued one
+interface LibBuildState {
+  next: null | Promise<LibBuildResult>,
+  running: Promise<LibBuildResult>,
+}
 
 export type LibBuildResult = {
   changed: number,
@@ -62,12 +69,30 @@ export type PullResult = {
 };
 
 
+// the pull that's running, on globalThis like the build state. a second `-pull` meanwhile (another owner, or another
+// cluster's refresh in the same process) shares it, two at once used to fail the second on git's index.lock
+const PULL_KEY = 'notsobotPullSource';
+
 /**
  * Fast-forwards the checkout's branch to github's (`git pull --ff-only`). Over https, so the container needs no keys
  * (the repository is public) even when the checkout's origin is an ssh url. Local commits or changes that would be
  * overwritten fail it with git's own message, nothing is merged or reset
  */
-export async function pullSource(): Promise<PullResult> {
+export function pullSource(): Promise<PullResult> {
+  const running = (globalThis as any)[PULL_KEY] as Promise<PullResult> | undefined;
+  if (running) {
+    return running;
+  }
+  const pull = runPull().finally(() => {
+    if ((globalThis as any)[PULL_KEY] === pull) {
+      delete (globalThis as any)[PULL_KEY];
+    }
+  });
+  (globalThis as any)[PULL_KEY] = pull;
+  return pull;
+}
+
+async function runPull(): Promise<PullResult> {
   const directory = CHECKOUT_DIRECTORIES.find((x) => fs.existsSync(path.join(x, '.git')));
   if (!directory) {
     return {output: `no git checkout at ${CHECKOUT_DIRECTORIES.join(' or ')} (docker-compose.yml mounts it)`, status: 'failed'};
@@ -124,18 +149,30 @@ function toHttpsUrl(url: string): string {
 
 /**
  * Compiles src into a temporary folder and, if tsc passes, makes lib match it (changed files replaced with a rename so
- * a cluster starting meanwhile never reads half of one, removed ones deleted), like the Dockerfile's bot-build
+ * a cluster starting meanwhile never reads half of one, removed ones deleted), like the Dockerfile's bot-build. Always a
+ * build that reads src after this call, one at a time per process
  */
 export function buildLib(): Promise<LibBuildResult> {
-  const running = (globalThis as any)[RUNNING_KEY] as Promise<LibBuildResult> | undefined;
-  if (running) {
-    return running;
+  const state = (globalThis as any)[STATE_KEY] as LibBuildState | undefined;
+  if (!state) {
+    return startBuild();
   }
-  const promise = runBuild().finally(() => {
-    delete (globalThis as any)[RUNNING_KEY];
+  if (!state.next) {
+    state.next = state.running.then(() => {}, () => {}).then(() => startBuild());
+  }
+  return state.next;
+}
+
+function startBuild(): Promise<LibBuildResult> {
+  const state: LibBuildState = {next: null, running: null as any};
+  state.running = runBuild().finally(() => {
+    // a queued build takes the state over when it starts
+    if ((globalThis as any)[STATE_KEY] === state && !state.next) {
+      delete (globalThis as any)[STATE_KEY];
+    }
   });
-  (globalThis as any)[RUNNING_KEY] = promise;
-  return promise;
+  (globalThis as any)[STATE_KEY] = state;
+  return state.running;
 }
 
 

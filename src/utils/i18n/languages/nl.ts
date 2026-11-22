@@ -5384,6 +5384,7 @@ export const Dutch: Translations = Object.freeze({
   'music_stay.stays': 'Blijft in voice als de wachtrij eindigt (24/7)',
   'music_tts.saying': 'Ik zeg het nu',
   'music_tts.saying_after': 'Ik zeg het na het antwoord van NotSoAI',
+  'music_tts.too_long': 'Te lang om over de muziek te zeggen, gebruik de wachtrij-optie om het als een nummer af te spelen',
   'music_volume.current': 'Het volume is {volume}',
   'music_volume.needs_premium': 'Het volume aanpassen heeft een premium server nodig',
   'music_volume.reset': 'Volume terug naar 100%',

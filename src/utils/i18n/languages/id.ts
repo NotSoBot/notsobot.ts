@@ -5384,6 +5384,7 @@ export const Indonesian: Translations = Object.freeze({
   'music_stay.stays': 'Tetap di voice saat antrean selesai (24/7)',
   'music_tts.saying': 'Mengucapkannya sekarang',
   'music_tts.saying_after': 'Mengucapkannya setelah jawaban NotSoAI',
+  'music_tts.too_long': 'Terlalu panjang untuk diucapkan di atas musik, gunakan opsi antrean untuk memutarnya seperti lagu',
   'music_volume.current': 'Volumenya {volume}',
   'music_volume.needs_premium': 'Mengubah volume membutuhkan server premium',
   'music_volume.reset': 'Volume kembali ke 100%',

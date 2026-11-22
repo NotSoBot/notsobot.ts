@@ -5384,6 +5384,7 @@ export const Swedish: Translations = Object.freeze({
   'music_stay.stays': 'Stannar i röstkanalen när kön tar slut (24/7)',
   'music_tts.saying': 'Säger det nu',
   'music_tts.saying_after': 'Säger det efter NotSoAIs svar',
+  'music_tts.too_long': 'För långt för att säga över musiken, använd kö-alternativet för att spela det som en låt i stället',
   'music_volume.current': 'Volymen är {volume}',
   'music_volume.needs_premium': 'Att ändra volymen kräver en premiumserver',
   'music_volume.reset': 'Volymen är tillbaka på 100 %',

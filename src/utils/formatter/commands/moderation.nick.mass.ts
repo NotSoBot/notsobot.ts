@@ -1,8 +1,9 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
+import { INTERACTION_TIMEOUT, InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
 import { ComponentContext, Components } from 'detritus-client/lib/utils';
 
 import { EmbedColors, StatusEmojis } from '../../../constants';
+import { captureCommandError } from '../../../sentry';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { Confirmer } from '../../confirmer';
 import { DisplayPayload, I18n, displayReply, formatUserForAuditLog, renderDisplay, renderEphemeralDisplay } from '../../../utils';
@@ -18,6 +19,56 @@ export const MAX_MEMBERS = 5000;
 export const MAX_NICKNAME_LENGTH = 32;
 export const MAX_TIME_TO_RESPOND = 60 * 1000;
 export const RATELIMIT_TIME = [10, 10]; // 10 members per 10 seconds (use a constant incase it changes in the future)
+
+// how long a run's Refresh/Stop buttons keep working: twice the estimate (ratelimits, slow responses) plus the usual 15
+// minutes, the run can't be stopped without them
+export function progressTimeout(count: number): number {
+  const [ amount, time ] = RATELIMIT_TIME;
+  return Math.round((count / amount) * time * 1000 * 2) + INTERACTION_TIMEOUT;
+}
+
+// a run past its confirmation, from Continue until it ends: it went through everyone, Stop, `nick-mass cancel`, or an
+// error it can't get past. It holds the server's `isExecuting.nick` the whole time and only its own end lets that go
+//   (confirmer) pending -> running -> done
+// the loop checks `isRunning` rather than the shared flag, after a Stop a newer run can hold the flag again while the old
+// loop still waits on its last edit (it used to carry on next to the new one, and clear the new one's lock when it ended)
+export interface NickMassRun {
+  // false when it had already ended
+  end: () => boolean,
+  isRunning: () => boolean,
+}
+
+// the run going in each server, for `nick-mass cancel`. kept on the process instead of this module (like metrics.ts): a
+// `.refresh` reloads this file while a run goes on under the old copy, the reloaded `nick-mass cancel` has to find it
+const NICK_MASS_RUNS_KEY = 'notsobotNickMassRuns';
+const runs: Map<string, () => boolean> = (globalThis as any)[NICK_MASS_RUNS_KEY] || ((globalThis as any)[NICK_MASS_RUNS_KEY] = new Map());
+
+// null when the server already has one going (or the prompt was already answered)
+export function startNickMassRun(guildId: string, confirmer: Confirmer): NickMassRun | null {
+  const isExecuting = ServerExecutionsStore.getOrCreate(guildId);
+  if (isExecuting.nick || !confirmer.transition('pending', 'running')) {
+    return null;
+  }
+  isExecuting.nick = true;
+  const end = (): boolean => {
+    if (!confirmer.transition('running', 'done')) {
+      return false;
+    }
+    isExecuting.nick = false;
+    if (runs.get(guildId) === end) {
+      runs.delete(guildId);
+    }
+    return true;
+  };
+  runs.set(guildId, end);
+  return {end, isRunning: () => confirmer.state === 'running'};
+}
+
+// `nick-mass cancel`, the same as pressing the run's Stop (its progress message ends up showing it stopped)
+export function stopNickMassRun(guildId: string): boolean {
+  const end = runs.get(guildId);
+  return !!end && end();
+}
 
 export interface CommandArgsBefore {
   nobots?: boolean,
@@ -93,7 +144,7 @@ export async function createMessage(
 
     // continue only runs once, a second click (or its expiry) mustn't run or cover it again. Stop only acts while this
     // prompt's run is going, Stop on an old progress message used to stop a later run in the server (they share `isExecuting`)
-    const confirmer = new Confirmer();
+    const confirmer = new Confirmer(context);
     const components = new Components({timeout: 5 * (60 * 1000)});
     components.createButton({
       label: translate('common.continue'),
@@ -112,8 +163,10 @@ export async function createMessage(
             description: translate('nickmass.in_progress'),
           }));
         }
-        isExecuting.nick = true;
-        confirmer.transition('pending', 'running');
+        const run = startNickMassRun(guild.id, confirmer);
+        if (!run) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
 
         const amounts = {
           changed: 0,
@@ -124,40 +177,63 @@ export async function createMessage(
         // in the server's language since the whole server sees it
         const reason = I18n.getCachedGuildTranslator(context).translate('nickmass.audit_reason', {user: formatUserForAuditLog(context.user)});
 
+        // read fresh each time, a Stop (or `nick-mass cancel`) ends it while the loop below awaits
+        const { end, isRunning } = run;
+        const countFinished = () => amounts.changed + amounts.skipped + amounts.failed + errors.length;
+        const describe = (headerKey: 'nickmass.cancelled' | 'nickmass.finished'): Array<string> => {
+          const finished = countFinished();
+          const description: Array<string> = [];
+          description.push(translate(headerKey, {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+          if (finished) {
+            if (amounts.changed) {
+              description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
+            }
+            if (amounts.skipped) {
+              description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
+            }
+            if (amounts.failed) {
+              description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
+            }
+            if (errors.length) {
+              description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
+            }
+          }
+          return description;
+        };
+        // stopped by the button, or by an error nobody can get past
+        const setStopped = () => {
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('nickmass.cancelled_title');
+          payload.description = describe('nickmass.cancelled').join('\n');
+        };
+
         {
           payload.description = translate('nickmass.starting', {count: members.length.toLocaleString(language), seconds: ((members.length / amount) * time).toLocaleString(language)});
           payload.color = EmbedColors.LOG_UPDATE;
 
-          const components = new Components();
+          // has to outlive the run, Stop is the only way to end it (the 15 minute default left runs over ~900 members
+          // unstoppable)
+          const components = new Components({timeout: progressTimeout(members.length)});
           components.createButton({
             label: translate('common.refresh'),
             style: MessageComponentButtonStyles.SECONDARY,
             run: async (ctx: ComponentContext) => {
-              const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
-
-              const description: Array<string> = [];
-              description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
-              if (finished) {
-                if (amounts.changed) {
-                  description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
-                }
-                if (amounts.skipped) {
-                  description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
-                }
-                if (amounts.failed) {
-                  description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
-                }
-                if (errors.length) {
-                  description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
-                }
+              // `payload` holds the result once it ended, this puts it on a progress message the end couldn't edit
+              // (a slash command's after 15 minutes) instead of putting the buttons back
+              if (!isRunning()) {
+                return ctx.editOrRespond(await renderDisplay(context, payload));
               }
+              const finished = countFinished();
+              const description = describe('nickmass.finished');
               if (members.length !== finished) {
                 description.push('');
                 description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
               }
-              payload.description = description.join('\n');
-
-              ctx.editOrRespond(await renderDisplay(context, {...payload, components}));
+              const options = await renderDisplay(context, {...payload, description: description.join('\n'), components});
+              if (!isRunning()) {
+                return ctx.editOrRespond(await renderDisplay(context, payload));
+              }
+              return ctx.editOrRespond(options);
             },
           });
           components.createButton({
@@ -168,49 +244,24 @@ export async function createMessage(
               if (ctx.userId !== context.userId) {
                 return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
               }
-              if (!confirmer.transition('running', 'done')) {
+              if (!end()) {
                 return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
               }
-              isExecuting.nick = false;
-
-              payload.color = EmbedColors.ERROR;
-              payload.title = translate('nickmass.cancelled_title');
-              {
-                const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
-
-                const description: Array<string> = [];
-                description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
-                if (finished) {
-                  if (amounts.changed) {
-                    description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
-                  }
-                  if (amounts.skipped) {
-                    description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
-                  }
-                  if (amounts.failed) {
-                    description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
-                  }
-                  if (errors.length) {
-                    description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
-                  }
-                }
-                payload.description = description.join('\n');
-              }
+              setStopped();
               return displayReply(context, payload, {replyTo: ctx});
             },
           });
           try {
             await displayReply(context, {...payload, components}, {replyTo: ctx});
           } catch(error) {
-            isExecuting.nick = false;
-            confirmer.transition('running', 'done');
+            end();
             throw error;
           }
         }
 
-        isExecuting.nick = true;
         for (let member of members) {
-          if (!isExecuting.nick) {
+          // the run's own state, not `isExecuting.nick` (see `NickMassRun`)
+          if (!isRunning()) {
             break;
           }
 
@@ -239,79 +290,38 @@ export async function createMessage(
             continue;
           }
 
+          // Stop could've been pressed while the script rendered
+          if (!isRunning()) {
+            break;
+          }
           try {
             await member.editNick(nickname, {reason});
             amounts.changed++;
           } catch(error) {
-            if (error.response && ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
-              errors.push(error);
-            } else {
+            errors.push(error);
+            if (!error.response || !ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
+              // anything else stops the run, ended like a Stop so the progress message doesn't stay "in progress" (a
+              // button's error goes nowhere) and the server isn't left "in progress" until a restart
               error.metadata = {
                 canEdit: me.canEdit(member),
                 canChangeNicknames: me.canChangeNicknames,
                 user: member.user,
               };
-              // otherwise the server stays "in progress" until a restart
-              isExecuting.nick = false;
-              confirmer.transition('running', 'done');
-              throw error;
+              captureCommandError(context, error, 'nick_mass');
+              end();
+              break;
             }
           }
         }
-        confirmer.transition('running', 'done');
 
-        if (!isExecuting.nick) {
-          payload.color = EmbedColors.ERROR;
-          payload.title = translate('nickmass.cancelled_title');
-          {
-            const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
-
-            const description: Array<string> = [];
-            description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
-            if (finished) {
-              if (amounts.changed) {
-                description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
-              }
-              if (amounts.skipped) {
-                description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
-              }
-              if (amounts.failed) {
-                description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
-              }
-              if (errors.length) {
-                description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
-              }
-            }
-            payload.description = description.join('\n');
-          }
-
-          return finishWithDisplay(context, ctx, message, payload);
-        }
-        isExecuting.nick = false;
-
-        {
-          const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
-
-          const description: Array<string> = [];
-          description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
-          if (finished) {
-            if (amounts.changed) {
-              description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
-            }
-            if (amounts.skipped) {
-              description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
-            }
-            if (amounts.failed) {
-              description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
-            }
-            if (errors.length) {
-              description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
-            }
-          }
+        // only a run that went through every member gets here still running, a stopped one already let go of the lock
+        if (end()) {
           payload.color = EmbedColors.LOG_CREATION;
-          payload.description = description.join('\n');
+          payload.description = describe('nickmass.finished').join('\n');
+        } else {
+          // counted again, the edit that was going when Stop was pressed has landed by now
+          setStopped();
         }
-
         return finishWithDisplay(context, ctx, message, payload);
       },
     });

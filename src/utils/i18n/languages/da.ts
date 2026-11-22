@@ -5384,6 +5384,7 @@ export const Danish: Translations = Object.freeze({
   'music_stay.stays': 'Bliver i voice, når køen slutter (24/7)',
   'music_tts.saying': 'Siger det nu',
   'music_tts.saying_after': 'Siger det efter NotSoAIs svar',
+  'music_tts.too_long': 'For langt til at sige over musikken, brug kø-indstillingen for at afspille det som en sang i stedet',
   'music_volume.current': 'Lydstyrken er {volume}',
   'music_volume.needs_premium': 'Det kræver en premium-server at ændre lydstyrken',
   'music_volume.reset': 'Lydstyrken er tilbage på 100%',

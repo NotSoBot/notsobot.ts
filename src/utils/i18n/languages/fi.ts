@@ -5384,6 +5384,7 @@ export const Finnish: Translations = Object.freeze({
   'music_stay.stays': 'Pysyy puhekanavalla, kun jono loppuu (24/7)',
   'music_tts.saying': 'Sanon sen nyt',
   'music_tts.saying_after': 'Sanon sen NotSoAI:n vastauksen jälkeen',
+  'music_tts.too_long': 'Liian pitkä sanottavaksi musiikin päälle, käytä jono-valintaa soittaaksesi sen kappaleena',
   'music_volume.current': 'Äänenvoimakkuus on {volume}',
   'music_volume.needs_premium': 'Äänenvoimakkuuden muuttaminen vaatii premium-palvelimen',
   'music_volume.reset': 'Äänenvoimakkuus palautettu 100 %:iin',

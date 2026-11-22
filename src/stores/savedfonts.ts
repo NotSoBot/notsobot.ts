@@ -3,6 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Store } from './store';
 
 import { RestResponsesRaw, fetchSavedFonts } from '../api';
+import { FetchVersions } from '../utils/fetchversions';
 
 
 type SavedFontsContext = Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext;
@@ -17,57 +18,38 @@ const EXPIRE = 5 * 60 * 1000;
 // own font commands put what the api answered back in, changes from elsewhere show up once it expires
 class SavedFontsStore extends Store<string, RestResponsesRaw.SavedFonts> {
   promises = new Map<string, Promise<null | RestResponsesRaw.FetchSavedFonts>>();
-  // key -> bumped by every insert while a fetch for it is going, a fetch only caches what it got if nothing was inserted
-  // since it started (or a font a command just saved would vanish until it expires). only kept while fetching
-  versions = new Map<string, {fetches: number, version: number}>();
+  // a fetch only caches what it got for a key if nothing was inserted for it since it started (or a font a command just
+  // saved would vanish until it expires)
+  fetches = new FetchVersions<string>();
 
   constructor() {
     super({expire: EXPIRE});
   }
 
-  startFetch(key: string): number {
-    let item = this.versions.get(key);
-    if (!item) {
-      item = {fetches: 0, version: 0};
-      this.versions.set(key, item);
-    }
-    item.fetches++;
-    return item.version;
-  }
-
-  // if nothing was inserted for the key since `startFetch` gave out this version
-  endFetch(key: string, version: number): boolean {
-    const item = this.versions.get(key);
-    if (!item) {
-      return false;
-    }
-    if (!--item.fetches) {
-      this.versions.delete(key);
-    }
-    return item.version === version;
-  }
-
   insert(context: SavedFontsContext, fonts: RestResponsesRaw.SavedFonts, guildId?: null | string): void {
     const key = (guildId) ? `guild.${guildId}` : context.userId;
-    const item = this.versions.get(key);
-    if (item) {
-      item.version++;
-    }
+    this.fetches.bump(key);
     this.set(key, fonts);
+  }
+
+  // without `get()`'s touch: no api event says a list changed (the dashboard, another cluster), only expiring does, and
+  // font autocomplete reading it on every keystroke kept it from ever expiring
+  peek(key: string): RestResponsesRaw.SavedFonts | undefined {
+    return (this.has(key)) ? this.cache.get(key) : undefined;
   }
 
   async getOrFetch(context: SavedFontsContext): Promise<RestResponsesRaw.FetchSavedFonts> {
     const userKey = context.userId;
     const guildKey = (context.guildId) ? `guild.${context.guildId}` : null;
     if (this.has(userKey) && (!guildKey || this.has(guildKey))) {
-      return {guild: (guildKey) ? this.get(guildKey)! : null, user: this.get(userKey)!};
+      return {guild: (guildKey) ? this.peek(guildKey) || null : null, user: this.peek(userKey)!};
     }
 
     const promiseKey = `${userKey}.${guildKey}`;
     let promise = this.promises.get(promiseKey);
     if (!promise) {
-      const userVersion = this.startFetch(userKey);
-      const guildVersion = (guildKey) ? this.startFetch(guildKey) : 0;
+      const userVersion = this.fetches.start(userKey);
+      const guildVersion = (guildKey) ? this.fetches.start(guildKey) : 0;
       promise = (async () => {
         let payload: null | RestResponsesRaw.FetchSavedFonts = null;
         try {
@@ -78,8 +60,8 @@ class SavedFontsStore extends Store<string, RestResponsesRaw.SavedFonts> {
           this.promises.delete(promiseKey);
         }
         // cached once here instead of by every caller, and only for the keys nothing was inserted for in the meantime
-        const userUnchanged = this.endFetch(userKey, userVersion);
-        const guildUnchanged = !!guildKey && this.endFetch(guildKey, guildVersion);
+        const userUnchanged = this.fetches.end(userKey, userVersion);
+        const guildUnchanged = !!guildKey && this.fetches.end(guildKey, guildVersion);
         if (payload) {
           if (payload.user && userUnchanged) {
             this.set(userKey, payload.user);
@@ -97,7 +79,7 @@ class SavedFontsStore extends Store<string, RestResponsesRaw.SavedFonts> {
     if (payload) {
       return payload;
     }
-    return {guild: (guildKey) ? this.get(guildKey) || null : null, user: this.get(userKey) || null};
+    return {guild: (guildKey) ? this.peek(guildKey) || null : null, user: this.peek(userKey) || null};
   }
 }
 

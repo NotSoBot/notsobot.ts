@@ -29,7 +29,7 @@ export async function createMessage(
     title: translate('settings_ai_memory.are_you_sure_you_want_to_clear'),
   };
 
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({timeout: 5 * (60 * 1000)});
   components.createButton({
     label: translate('settings_ai_memory.continue'),

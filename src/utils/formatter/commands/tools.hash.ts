@@ -13,16 +13,15 @@ import { DisplayPayload, displayReply, toTitleCase } from '../../../utils';
 
 export const COMMAND_ID = 'tools.hash';
 
+// what node's openssl 3 can hash: MD4 and WHIRLPOOL are only in its legacy provider and SHA (sha-0) is gone, they threw
+// `digital envelope routines::unsupported` on every use
 export enum HashTypes {
-  MD4 = 'MD4',
   MD5 = 'MD5',
-  SHA = 'SHA',
   SHA1 = 'SHA1',
   SHA224 = 'SHA224',
   SHA256 = 'SHA256',
   SHA384 = 'SHA384',
   SHA512 = 'SHA512',
-  WHIRLPOOL = 'WHIRLPOOL',
 }
 
 

@@ -5384,6 +5384,7 @@ export const Ukrainian: Translations = Object.freeze({
   'music_stay.stays': 'Лишається в голосовому каналі, коли черга закінчується (24/7)',
   'music_tts.saying': 'Кажу зараз',
   'music_tts.saying_after': 'Скажу після відповіді NotSoAI',
+  'music_tts.too_long': 'Задовго, щоб сказати поверх музики, скористайся опцією черги, щоб увімкнути це як пісню',
   'music_volume.current': 'Гучність: {volume}',
   'music_volume.needs_premium': 'Щоб змінювати гучність, потрібен преміум-сервер',
   'music_volume.reset': 'Гучність повернуто на 100%',

@@ -16,7 +16,8 @@ export const PREVIEW: RestOptions.CommandPreview = {
   inputs: ['voice'],
   script: [
     'load FILE_1 audio',
-    'audiosentencemix audio try this on your bad voice',
+    // quoted like the command's own line, bare words are read as expressions (`this` is an unset variable)
+    'audiosentencemix audio SENTENCE="try this on your bad voice"',
     'render audio',
   ].join('\n'),
 };

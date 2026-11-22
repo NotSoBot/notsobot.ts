@@ -178,25 +178,27 @@ class MetricsInterval extends Listener {
       }
     }));
 
-    const connectShard = (shard: ShardClient) => {
-      subscriptions.push(shard.gateway.subscribe('packet', (packet: {t?: string | null}) => {
+    // a shard made after `create` returned goes straight into `this.subscriptions`, the returned list is already taken
+    // by then and `stop` only removes `this.subscriptions` (a `.refresh` would otherwise count its events twice)
+    const connectShard = (shard: ShardClient, into: Array<EventSubscription>) => {
+      into.push(shard.gateway.subscribe('packet', (packet: {t?: string | null}) => {
         if (packet.t) {
           incrementCounter('notsobot_gateway_events_total', {event: packet.t});
         }
       }));
-      subscriptions.push(shard.gateway.subscribe('close', ({code}: {code: number}) => {
+      into.push(shard.gateway.subscribe('close', ({code}: {code: number}) => {
         incrementCounter('notsobot_gateway_closes_total', {code: String(code)});
       }));
-      subscriptions.push(shard.gateway.subscribe('state', ({state}: {state: string}) => {
+      into.push(shard.gateway.subscribe('state', ({state}: {state: string}) => {
         incrementCounter('notsobot_gateway_state_changes_total', {state});
       }));
     };
     if (cluster.shards.length) {
       for (let [shardId, shard] of cluster.shards) {
-        connectShard(shard);
+        connectShard(shard, subscriptions);
       }
     } else {
-      subscriptions.push(cluster.subscribe(ClientEvents.SHARD, ({shard}) => connectShard(shard)));
+      subscriptions.push(cluster.subscribe(ClientEvents.SHARD, ({shard}) => connectShard(shard, this.subscriptions)));
     }
 
     this.eventLoopDelay.enable();

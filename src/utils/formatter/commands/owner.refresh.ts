@@ -121,7 +121,16 @@ async function refreshCommands(
     } finally {
       // set the cache back to the old module and reconnect it, even if the reload failed
       require.cache[key] = oldCache;
-      oldObject.connect(cluster);
+      // a new `create()` that throws is this file's error: thrown out of the finally it skipped every listener after
+      // it, new listener files, the voice node's adopt (voice sessions orphaned after a detach) and the command swap
+      try {
+        oldObject.connect(cluster);
+      } catch(error) {
+        if (isVoiceNodeListener) {
+          voiceNodeListenerFailed = true;
+        }
+        errors.push(`${key.slice(key.indexOf(LIB_PATH) + LIB_PATH.length)} (connect): ${(error as any).message}`);
+      }
     }
   }
 

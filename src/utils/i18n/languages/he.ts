@@ -5384,6 +5384,7 @@ export const Hebrew: Translations = Object.freeze({
   'music_stay.stays': 'נשאר בערוץ הקולי כשהתור נגמר (24/7)',
   'music_tts.saying': 'אומר את זה עכשיו',
   'music_tts.saying_after': 'אגיד את זה אחרי התשובה של NotSoAI',
+  'music_tts.too_long': 'ארוך מדי בשביל להגיד מעל המוזיקה, השתמשו באפשרות התור כדי לנגן את זה כמו שיר',
   'music_volume.current': 'עוצמת הקול היא {volume}',
   'music_volume.needs_premium': 'שינוי עוצמת הקול דורש שרת פרימיום',
   'music_volume.reset': 'עוצמת הקול חזרה ל-100%',

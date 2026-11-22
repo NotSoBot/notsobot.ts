@@ -5384,6 +5384,7 @@ export const Spanish: Translations = Object.freeze({
   'music_stay.stays': 'Se queda en el canal de voz cuando la cola termina (24/7)',
   'music_tts.saying': 'Diciéndolo ahora',
   'music_tts.saying_after': 'Lo digo después de la respuesta de NotSoAI',
+  'music_tts.too_long': 'Es demasiado largo para decirlo sobre la música, usa la opción de cola para reproducirlo como una canción',
   'music_volume.current': 'El volumen está en {volume}',
   'music_volume.needs_premium': 'Cambiar el volumen necesita un servidor premium',
   'music_volume.reset': 'Volumen de vuelta al 100 %',

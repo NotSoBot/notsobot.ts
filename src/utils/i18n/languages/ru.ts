@@ -5384,6 +5384,7 @@ export const Russian: Translations = Object.freeze({
   'music_stay.stays': 'Остаётся в голосовом канале, когда очередь кончается (24/7)',
   'music_tts.saying': 'Говорю сейчас',
   'music_tts.saying_after': 'Скажу после ответа NotSoAI',
+  'music_tts.too_long': 'Слишком длинно, чтобы сказать поверх музыки, используй опцию очереди, чтобы включить это как песню',
   'music_volume.current': 'Громкость: {volume}',
   'music_volume.needs_premium': 'Чтобы менять громкость, нужен премиум-сервер',
   'music_volume.reset': 'Громкость возвращена на 100%',

@@ -5384,6 +5384,7 @@ export const Czech: Translations = Object.freeze({
   'music_stay.stays': 'Zůstává v hlasovém kanálu, když fronta dojde (24/7)',
   'music_tts.saying': 'Říkám to teď',
   'music_tts.saying_after': 'Řeknu to po odpovědi NotSoAI',
+  'music_tts.too_long': 'Příliš dlouhé na to, abych to řekl přes hudbu, použij možnost fronty a pusť to jako skladbu',
   'music_volume.current': 'Hlasitost je {volume}',
   'music_volume.needs_premium': 'Změna hlasitosti vyžaduje prémiový server',
   'music_volume.reset': 'Hlasitost vrácena na 100 %',

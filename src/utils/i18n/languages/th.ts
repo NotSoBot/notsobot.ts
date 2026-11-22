@@ -5384,6 +5384,7 @@ export const Thai: Translations = Object.freeze({
   'music_stay.stays': 'อยู่ในห้องเสียงต่อเมื่อคิวหมด (24/7)',
   'music_tts.saying': 'กำลังพูดตอนนี้',
   'music_tts.saying_after': 'จะพูดหลังคำตอบของ NotSoAI',
+  'music_tts.too_long': 'ยาวเกินกว่าจะพูดทับเพลงได้ ใช้ตัวเลือกคิวเพื่อเล่นเหมือนเพลงแทน',
   'music_volume.current': 'ระดับเสียงคือ {volume}',
   'music_volume.needs_premium': 'การเปลี่ยนระดับเสียงต้องใช้เซิร์ฟเวอร์พรีเมียม',
   'music_volume.reset': 'ระดับเสียงกลับเป็น 100% แล้ว',

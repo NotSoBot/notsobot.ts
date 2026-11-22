@@ -1226,6 +1226,8 @@ export const Api = Object.freeze({
     '/guilds/:guildId/decoy/delete',
   GUILD_DECOY_TRIGGER:
     '/guilds/:guildId/decoy/trigger',
+  GUILD_DECOY_NOTICE_ADOPT:
+    '/guilds/:guildId/decoy/notice/adopt',
   DECOYS:
     '/decoys',
   GUILD_TIMED_BANS:
@@ -1234,6 +1236,8 @@ export const Api = Object.freeze({
     '/guilds/:guildId/bans/timed/delete',
   GUILD_TIMED_BAN:
     '/guilds/:guildId/bans/timed/:userId',
+  GUILD_TIMED_BAN_LIFTED:
+    '/guilds/:guildId/bans/timed/:userId/lifted',
   GUILD_WARNINGS:
     '/guilds/:guildId/warnings',
   GUILD_WARNINGS_DELETE:
@@ -1248,6 +1252,10 @@ export const Api = Object.freeze({
     '/guilds/:guildId/reports/:reportId/log-messages',
   GUILD_REPORT_MESSAGES:
     '/guilds/:guildId/reports/:reportId/messages',
+  GUILD_REPORT_MESSAGE_DELIVERED:
+    '/guilds/:guildId/reports/:reportId/messages/:messageId/delivered',
+  GUILD_REPORT_MESSAGES_UNDELIVERED:
+    '/guild-reports/messages/undelivered',
   GUILD_REPORT_MEMBER:
     '/guilds/:guildId/reports/:reportId/member',
   GUILD_REPORT_QUOTE:

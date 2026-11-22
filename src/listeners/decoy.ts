@@ -235,6 +235,9 @@ class DecoyListener extends Listener {
   inProgress = new Collections.BaseCollection<string, Array<{channelId: string, messageId: string}>>({expire: IN_PROGRESS_EXPIRE});
   // guild id -> when my notice was last posted again
   reposted = new Collections.BaseCollection<string, number>({expire: NOTICE_REPOST_COOLDOWN});
+  // guild id -> the check once the cooldown's over, for a notice deleted again during it (it was dropped, the channel
+  // stayed without a notice while members posting there got softbanned)
+  repostChecks = new Map<string, ReturnType<typeof setTimeout>>();
   // decoy channel id -> the reply new posters join
   prompts = new Map<string, GracePrompt>();
   // `guild id.user id` -> when they pressed "I'm not a bot", see `DECOY_KEPT_REPEAT_TIME`. in memory: a server's
@@ -286,6 +289,14 @@ class DecoyListener extends Listener {
     }));
 
     return subscriptions;
+  }
+
+  stop(cluster: ClusterClient | ShardClient) {
+    super.stop(cluster);
+    for (let timeout of this.repostChecks.values()) {
+      clearTimeout(timeout);
+    }
+    this.repostChecks.clear();
   }
 
   async deleteMessage(message: Structures.Message): Promise<void> {
@@ -354,11 +365,16 @@ class DecoyListener extends Listener {
       others.push({channelId: message.channelId, messageId: message.id});
       return;
     }
-    this.inProgress.set(key, []);
+    // `inProgress` only expires as a safety net, so a removal that outlives it keeps its own list (and doesn't drop a
+    // newer removal's entry when it ends)
+    const pending: Array<{channelId: string, messageId: string}> = [];
+    this.inProgress.set(key, pending);
     try {
-      await this.removeMember(context, decoy, message, member, settings, rule, key);
+      await this.removeMember(context, decoy, message, member, settings, rule, key, pending);
     } finally {
-      this.inProgress.delete(key);
+      if (this.inProgress.get(key) === pending) {
+        this.inProgress.delete(key);
+      }
     }
   }
 
@@ -418,6 +434,7 @@ class DecoyListener extends Listener {
     settings: Awaited<ReturnType<typeof GuildSettingsStore.getOrFetch>>,
     rule: RestResponsesRaw.GuildWarningAuto | null,
     key: string,
+    pending: Array<{channelId: string, messageId: string}>,
   ): Promise<void> {
     const { guild, me } = context;
     const user = message.author;
@@ -443,7 +460,7 @@ class DecoyListener extends Listener {
     const grace = await this.waitForPerson(context, message);
     if (grace.kind === 'kept') {
       await this.deleteMessage(message);
-      await this.deleteOthers(context, decoy, key);
+      await this.deletePending(context, pending);
       this.kept.set(key, Date.now());
       this.log(context, decoy, {action: 'kept', attachments, clean: 0, content, elsewhere: null, raid: 0, reason: null, repeat: false, user, warned: false});
       return;
@@ -534,7 +551,7 @@ class DecoyListener extends Listener {
     // nothing cleaned (or it failed), their messages still go
     if (!clean || action === 'none') {
       await this.deleteMessage(message);
-      await this.deleteOthers(context, decoy, key);
+      await this.deletePending(context, pending);
     }
 
     putGuildDecoyTrigger(context, guild.id, decoy.channel_id).catch(() => null);
@@ -567,8 +584,8 @@ class DecoyListener extends Listener {
     return false;
   }
 
-  async deleteOthers(context: DecoyContext, decoy: RestResponsesRaw.GuildDecoy, key: string): Promise<void> {
-    for (let { channelId, messageId } of (this.inProgress.get(key) || [])) {
+  async deletePending(context: DecoyContext, pending: Array<{channelId: string, messageId: string}>): Promise<void> {
+    for (let { channelId, messageId } of pending) {
       await context.rest.deleteMessage(channelId, messageId).catch(() => null);
     }
   }
@@ -667,17 +684,37 @@ class DecoyListener extends Listener {
     });
   }
 
-  // their message is the notice now, the old one goes (only now, so the channel is never empty)
+  // their message is the notice now, the old one goes (only now, so the channel is never empty). The api only hands it
+  // over while they're still the one waited on and says which notice it replaced: a second post before its update
+  // reached us (both used to be adopted, the second deleting the original instead of the first post), or a moderator
+  // putting the bot's notice back meanwhile, isn't adopted. That post just goes, they're no spammer
   async adoptNotice(shard: ShardClient, decoy: RestResponsesRaw.GuildDecoy, message: Structures.Message): Promise<void> {
-    const old = decoy.notice_message_id;
-    await Formatter.Commands.ServerDecoy.editDecoy({client: shard}, decoy.guild_id, {
-      noticeContent: null,
-      noticeMessageId: message.id,
-      noticePendingUserId: null,
-      noticeUserId: message.author.id,
-    });
-    if (old && old !== message.id) {
-      await shard.rest.deleteMessage(decoy.channel_id, old).catch(() => null);
+    let result: RestResponsesRaw.AdoptGuildDecoyNotice;
+    try {
+      result = await Formatter.Commands.ServerDecoy.adoptNotice({client: shard}, decoy.guild_id, message.author.id, message.id);
+    } catch(error) {
+      // an api from before the adopt route: as before, from our copy
+      log.warn(`Decoy notice adopt failed for ${decoy.guild_id}, saving it directly`, error);
+      const old = decoy.notice_message_id;
+      await Formatter.Commands.ServerDecoy.editDecoy({client: shard}, decoy.guild_id, {
+        noticeContent: null,
+        noticeMessageId: message.id,
+        noticePendingUserId: null,
+        noticeUserId: message.author.id,
+      });
+      if (old && old !== message.id) {
+        await shard.rest.deleteMessage(decoy.channel_id, old).catch(() => null);
+      }
+      return;
+    }
+    if (!result.adopted) {
+      if (result.decoy.notice_message_id !== message.id) {
+        await this.deleteMessage(message);
+      }
+      return;
+    }
+    if (result.previous_message_id) {
+      await shard.rest.deleteMessage(decoy.channel_id, result.previous_message_id).catch(() => null);
     }
   }
 
@@ -704,7 +741,22 @@ class DecoyListener extends Listener {
       });
       return;
     }
-    if (this.reposted.has(decoy.guild_id) || !channel.canMessage) {
+    if (this.reposted.has(decoy.guild_id)) {
+      const guildId = decoy.guild_id;
+      const deletedId = decoy.notice_message_id;
+      if (!this.repostChecks.has(guildId)) {
+        this.repostChecks.set(guildId, setTimeout(() => {
+          this.repostChecks.delete(guildId);
+          // still pointing at the deleted one (nobody posted a new notice meanwhile)
+          const current = DecoyStore.get(guildId);
+          if (current && deletedId && current.notice_message_id === deletedId) {
+            this.onNoticeDelete(shard, current).catch((error) => log.error(`Decoy notice repost failed for ${guildId}`, error));
+          }
+        }, NOTICE_REPOST_COOLDOWN));
+      }
+      return;
+    }
+    if (!channel.canMessage) {
       return;
     }
     this.reposted.set(decoy.guild_id, Date.now());

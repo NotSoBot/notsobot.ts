@@ -5384,6 +5384,7 @@ export const Greek: Translations = Object.freeze({
   'music_stay.stays': 'Μένει στο φωνητικό κανάλι όταν τελειώσει η ουρά (24/7)',
   'music_tts.saying': 'Το λέω τώρα',
   'music_tts.saying_after': 'Θα το πω μετά την απάντηση του NotSoAI',
+  'music_tts.too_long': 'Πολύ μεγάλο για να το πω πάνω από τη μουσική, χρησιμοποίησε την επιλογή ουράς για να παίξει σαν τραγούδι',
   'music_volume.current': 'Η ένταση είναι {volume}',
   'music_volume.needs_premium': 'Η αλλαγή έντασης χρειάζεται premium διακομιστή',
   'music_volume.reset': 'Η ένταση επέστρεψε στο 100%',

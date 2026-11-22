@@ -6,6 +6,7 @@ import { CommandTypes, StatusEmojis } from '../../../constants';
 import CommandResponsesStore from '../../../stores/commandresponses';
 import { getTranslator } from '../../i18n';
 import { displayReply } from '../../../utils';
+import { isUnknownMessageError } from '../../commandresponses';
 
 
 export const COMMAND_ID = 'undo';
@@ -17,13 +18,6 @@ export const BULK_DELETE_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
 
 export interface CommandArgs {
   amount: number,
-}
-
-// discord's error for a message that doesn't exist anymore
-const ERROR_CODE_UNKNOWN_MESSAGE = 10008;
-
-function isUnknownMessageError(error: any): boolean {
-  return !!error && !!error.response && (error.response.statusCode === 404 || error.code === ERROR_CODE_UNKNOWN_MESSAGE);
 }
 
 export async function createMessage(
@@ -53,6 +47,8 @@ export async function createMessage(
   const count = {interactions: 0, prefixed: 0};
   const messageIds: Array<string> = [];
   const triggerIds: Array<string> = [];
+  // response -> its trigger, a response that fails to delete keeps its trigger's api row so a later undo can retry it
+  const responseTriggerIds = new Map<string, string>();
   for (let result of results) {
     if (amount <= triggerIds.length) {
       break;
@@ -71,6 +67,7 @@ export async function createMessage(
     for (let responseId of responseIds) {
       if (CommandResponsesStore.claimDeletion(responseId)) {
         messageIds.push(responseId);
+        responseTriggerIds.set(responseId, result.message_trigger_id);
       }
     }
     if (result.message_trigger_type === CommandTypes.PREFIXED) {
@@ -93,6 +90,7 @@ export async function createMessage(
   }
 
   let failed = 0;
+  const keptTriggerIds = new Set<string>();
   if (messageIds.length) {
     let singleIds = messageIds;
 
@@ -116,14 +114,21 @@ export async function createMessage(
         // already deleted (or an ephemeral response) is fine
         if (!isUnknownMessageError(error)) {
           failed++;
+          // still there: unclaim it so another undo (or deleting its trigger) can try again
+          const triggerId = responseTriggerIds.get(messageId);
+          if (triggerId !== undefined) {
+            CommandResponsesStore.releaseDeletion(messageId);
+            keptTriggerIds.add(triggerId);
+          }
         }
       }
     }
   }
 
-  if (triggerIds.length) {
+  const deletedTriggerIds = triggerIds.filter((triggerId) => !keptTriggerIds.has(triggerId));
+  if (deletedTriggerIds.length) {
     try {
-      await deleteCommandsResponses(context, {channelId, triggerIds});
+      await deleteCommandsResponses(context, {channelId, triggerIds: deletedTriggerIds});
     } catch(error) {
       // the stale cleanup will get them eventually
     }

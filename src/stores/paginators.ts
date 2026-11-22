@@ -61,6 +61,10 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
 
     {
       const subscription = cluster.subscribe(ClientEvents.GUILD_DELETE, async (event) => {
+        // an outage: the server comes back with its messages, stopping here left every paginator's buttons up and dead
+        if (event.isUnavailable) {
+          return;
+        }
         const { channels } = event;
         if (channels) {
           for (let [channelId, channel] of channels) {
@@ -95,7 +99,8 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
               await paginator.stop(false);
             }
           }
-          if (!stored.ephemeral.length && !stored.normal.length) {
+          // a paginator started during the stop's await could have made a new entry, only drop the one we emptied
+          if (!stored.ephemeral.length && !stored.normal.length && this.get(channelId) === stored) {
             this.delete(channelId);
           }
         }

@@ -130,7 +130,9 @@ export enum MusicVoteKinds {
 }
 
 // votes for what's playing in each guild (`{kind}.{guildId}`), a new track (another item) starts them over
-const musicVotes = new Map<string, {itemId: string, userIds: Set<string>}>();
+// `started` drops a vote that never passed (the music stopped or the bot left) once it's older than `MUSIC_VOTE_MAX_AGE`
+const musicVotes = new Map<string, {itemId: string, started: number, userIds: Set<string>}>();
+const MUSIC_VOTE_MAX_AGE = 6 * 60 * 60 * 1000;
 
 // who's listening in `channel` (ours, `member`'s in it): not bots, not deafened, `member` always
 function musicListeners(member: Structures.Member, channel: Structures.Channel): Set<string> {
@@ -204,7 +206,13 @@ export function musicVote(
 
   let entry = musicVotes.get(key);
   if (!entry || entry.itemId !== item.id) {
-    entry = {itemId: item.id, userIds: new Set()};
+    const now = Date.now();
+    for (let [otherKey, other] of musicVotes) {
+      if (MUSIC_VOTE_MAX_AGE <= now - other.started) {
+        musicVotes.delete(otherKey);
+      }
+    }
+    entry = {itemId: item.id, started: now, userIds: new Set()};
     musicVotes.set(key, entry);
   }
   entry.userIds.add(member.id);

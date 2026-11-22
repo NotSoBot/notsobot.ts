@@ -43,12 +43,29 @@ import { Listener } from './listener';
 
 
 export interface GuildLogStorage {
+  // the round being sent, a round past `FLUSH_DEADLINE` is replaced and stops at its next await (its late requests
+  // can't touch the state anymore). optional, storages from before a `.refresh` don't have them
+  flushRound?: GuildLogFlushRound | null,
   // sending what was queued, whatever comes in meanwhile goes out with the round it starts at the end
   flushing?: boolean,
   queues: Collections.BaseCollection<GuildLoggerTypes, Array<GuildLoggingEventItem>>,
+  // an abandoned round's webhook sends that hadn't settled, the next round sends them again unless they succeed first
+  resends?: Array<GuildLogSend>,
   settingsRetries: number,
   shard: ShardClient,
   timeout: Timers.Timeout,
+}
+
+export interface GuildLogFlushRound {
+  deadline: Timers.Timeout,
+  sends: Array<GuildLogSend>,
+}
+
+export interface GuildLogSend {
+  attempts: number,
+  logger: GuildSettingsLogger,
+  payload: RequestTypes.ExecuteWebhook,
+  settled: boolean,
 }
 
 
@@ -75,6 +92,12 @@ export const AUDIT_LEEWAY_TIME = 2000;
 
 export const COLLECTION_TIME = 1000;
 
+// a round that hasn't finished by then (a request hanging, discord's only bound is undici's 5 minute headers/body
+// timeout) is abandoned so the guild's logs don't stop behind it, what it was still sending goes out with the next one
+export const FLUSH_DEADLINE = 60 * 1000;
+// sends of a payload, the original and the one from the round after its round was abandoned
+export const FLUSH_SEND_ATTEMPTS = 2;
+
 // when the guild's settings can't be fetched (api down/timing out), keep the logs queued and retry a few times
 export const SETTINGS_RETRY_MAX = 5;
 export const SETTINGS_RETRY_TIME = 5000;
@@ -89,6 +112,9 @@ export const MAX_EMBED_SIZE = 6000;
 class GuildLoggingListener extends Listener {
   // <guildId, GuildLogStorage>
   storage = new Collections.BaseCollection<string, GuildLogStorage>();
+  // a dead webhook's logger is removed once: every payload of a round fails on it at the same time, and the rounds after
+  // keep failing until the settings update reaches the store (each sent its own delete, all but one failing)
+  removingLoggers = new Collections.BaseCollection<string, Promise<unknown>>({expire: 60 * 1000});
 
   async add(guildId: string, type: GuildLoggerTypes, shard: ShardClient, event: GuildLoggingEventItem): Promise<void> {
     await Timers.sleep(250); // add a slight delay for the audit log to be populated
@@ -152,7 +178,13 @@ class GuildLoggingListener extends Listener {
       switch (error.code) {
         case DiscordAbortCodes.INVALID_WEBHOOK_TOKEN:
         case DiscordAbortCodes.UNKNOWN_WEBHOOK: {
-          return logger.delete(shard);
+          const key = `${logger.guildId}.${logger.key}.${logger.webhookId}`;
+          let removal = this.removingLoggers.get(key);
+          if (!removal) {
+            removal = logger.delete(shard);
+            this.removingLoggers.set(key, removal);
+          }
+          return removal;
         };
         default: {
           throw error;
@@ -169,17 +201,75 @@ class GuildLoggingListener extends Listener {
 
     const { timeout } = storage;
     timeout.start(delay, async () => {
+      const round: GuildLogFlushRound = {deadline: new Timers.Timeout(), sends: []};
+      storage.flushRound = round;
       storage.flushing = true;
+      round.deadline.start(FLUSH_DEADLINE, () => this.abandonFlush(guildId, storage, round));
       try {
-        await this.flush(guildId, storage);
+        await this.flush(guildId, storage, round);
       } finally {
-        storage.flushing = false;
+        // an abandoned round's state belongs to the round after it now
+        if (storage.flushRound === round) {
+          round.deadline.stop();
+          storage.flushRound = null;
+          storage.flushing = false;
+        }
       }
     });
   }
 
-  async flush(guildId: string, storage: GuildLogStorage): Promise<void> {
+  abandonFlush(guildId: string, storage: GuildLogStorage, round: GuildLogFlushRound): void {
+    if (storage.flushRound !== round) {
+      return;
+    }
+    storage.flushRound = null;
+    storage.flushing = false;
+
+    let dropped = 0;
+    for (let send of round.sends) {
+      if (!send.settled) {
+        if (send.attempts < FLUSH_SEND_ATTEMPTS) {
+          if (storage.resends) {
+            storage.resends.push(send);
+          } else {
+            storage.resends = [send];
+          }
+        } else {
+          dropped++;
+        }
+      }
+    }
+    log.error(`Guild Logging round for ${guildId} didn't finish within ${FLUSH_DEADLINE}ms, sending again ${(storage.resends) ? storage.resends.length : 0} and dropping ${dropped} webhook payloads`);
+    // the events it hadn't taken yet are still queued, they and the resends go out with the next round
+    if (this.storage.get(guildId) === storage && !storage.timeout.hasStarted) {
+      this.startTimeout(guildId);
+    }
+  }
+
+  sendLogPayload(storage: GuildLogStorage, send: GuildLogSend): Promise<unknown> {
+    send.attempts++;
+    send.settled = false;
+    return this.execute(storage.shard, send.logger, send.payload).then((result) => {
+      send.settled = true;
+      // went through after its round was abandoned, the next round doesn't send it again (if it hasn't taken it yet)
+      if (storage.resends) {
+        const index = storage.resends.indexOf(send);
+        if (index !== -1) {
+          storage.resends.splice(index, 1);
+        }
+      }
+      return result;
+    }, (error) => {
+      send.settled = true;
+      throw error;
+    });
+  }
+
+  async flush(guildId: string, storage: GuildLogStorage, round?: GuildLogFlushRound): Promise<void> {
     const { queues, shard } = storage;
+    // after every await, an abandoned round stops without touching anything: the queues, resends and timers are the
+    // next round's now
+    const isAbandoned = () => !!round && storage.flushRound !== round;
     {
       // only what's queued before the audit log fetch goes out this round. something that comes in while it waits (like a
       // cleaning kick's unban right after its ban) waits for the next round's fetch instead of going out without its audit
@@ -190,16 +280,39 @@ class GuildLoggingListener extends Listener {
         }
       }
       try {
-        await this.populateAuditLogs(guildId, storage);
+        await this.populateAuditLogs(guildId, storage, isAbandoned);
       } catch(error) {
         // missing permissions or discord being weird, still send the logs without the audit info
+      }
+      if (isAbandoned()) {
+        return;
       }
 
       try {
         const settings = await GuildSettingsStore.getOrFetch({client: shard}, guildId);
+        if (isAbandoned()) {
+          return;
+        }
         if (settings) {
           storage.settingsRetries = 0;
           const promises: Array<Promise<any>> = [];
+          const send = (logger: GuildSettingsLogger, payload: RequestTypes.ExecuteWebhook, attempts: number = 0) => {
+            const item: GuildLogSend = {attempts, logger, payload, settled: false};
+            if (round) {
+              round.sends.push(item);
+            }
+            promises.push(this.sendLogPayload(storage, item));
+          };
+          // an abandoned round's unsettled payloads first, to the logger if it's still there (it may have been removed
+          // or its webhook replaced meanwhile)
+          if (storage.resends && storage.resends.length) {
+            for (let resend of storage.resends.splice(0)) {
+              const logger = settings.loggers.find((logger) => logger.key === resend.logger.key);
+              if (logger) {
+                send(logger, resend.payload, resend.attempts);
+              }
+            }
+          }
           // legacy and no embed both stay as embeds, there is no text only log format
           const componentsV2 = !!settings.settings && (settings.settings.responseDisplay ?? GuildSettingsResponseDisplayTypes.DEFAULT) === GuildSettingsResponseDisplayTypes.DEFAULT;
           // there's no one invoking a command here, so logs use the server's preferred locale
@@ -219,7 +332,7 @@ class GuildLoggingListener extends Listener {
                 // each logger skips what it ignores
                 const kept = logPayloads.filter((logPayload, index) => !isEventIgnoredByLogger(logger, events[index]));
                 for (let payload of createWebhookPayloads(kept)) {
-                  promises.push(this.execute(shard, logger, payload));
+                  send(logger, payload);
                 }
               }
             } else if (!queue.length) {
@@ -233,6 +346,9 @@ class GuildLoggingListener extends Listener {
               log.error(`Guild Logging webhook failed for ${guildId}`, result.reason);
             }
           }
+          if (isAbandoned()) {
+            return;
+          }
 
           if (queues.some((queue) => !!queue.length)) {
             return this.startTimeout(guildId);
@@ -245,16 +361,21 @@ class GuildLoggingListener extends Listener {
           for (let [loggerType, queue] of queues) {
             amount += queue.length;
           }
-          log.error(`Guild Logging dropped ${amount} logs for ${guildId}, couldn't fetch the guild's settings`);
+          const resends = (storage.resends) ? storage.resends.length : 0;
+          log.error(`Guild Logging dropped ${amount} logs and ${resends} webhook payloads for ${guildId}, couldn't fetch the guild's settings`);
         }
       } catch(error) {
         log.error(`Guild Logging failed for ${guildId}`, error);
+      }
+      if (isAbandoned() || this.storage.get(guildId) !== storage) {
+        return;
       }
       this.storage.delete(guildId);
     }
   }
 
-  async populateAuditLogs(guildId: string, storage: GuildLogStorage): Promise<void> {
+  // `isAbandoned` so a round abandoned while its fetch hung doesn't add the audits late (the next round adds its own)
+  async populateAuditLogs(guildId: string, storage: GuildLogStorage, isAbandoned?: () => boolean): Promise<void> {
     const { queues, shard } = storage;
 
     const guild = shard.guilds.get(guildId);
@@ -311,6 +432,9 @@ class GuildLoggingListener extends Listener {
 
     // populate the items audit log
     const auditLogs = await shard.rest.fetchGuildAuditLogs(guildId, {limit: 50});
+    if (isAbandoned && isAbandoned()) {
+      return;
+    }
     for (let [auditLogId, auditLog] of auditLogs) {
       let events: Array<GuildLoggingEventItem> | undefined;
       switch (auditLog.actionType) {

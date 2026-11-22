@@ -115,8 +115,6 @@ export class ApiEventsSpewer extends EventSpewer {
   phase: ApiEventsPhase = 'idle';
   reconnectAttempts: number = 0;
   reconnectTimeout = new Timers.Timeout();
-  // the api couldn't resume the current connection, we already resynced for it
-  resynced: boolean = false;
   sessionTimeout = new Timers.Timeout();
   // which shards our cluster has, sent with IDENTIFY/RESUME so the api sends us the requests for them
   shards: ApiEventsShards | null = null;
@@ -176,7 +174,6 @@ export class ApiEventsSpewer extends EventSpewer {
     }
 
     this.socket = socket;
-    this.resynced = false;
     this.setPhase('connecting');
 
     let handshakeStatusCode: null | number = null;
@@ -191,13 +188,7 @@ export class ApiEventsSpewer extends EventSpewer {
         this.setPhase('handshaking');
       }
       this.flushPendingResponses();
-      this.sessionTimeout.start(SESSION_TIMEOUT, () => {
-        if (socket === this.socket) {
-          log.warn(`Api events connection wasn't ready after ${SESSION_TIMEOUT}ms, reconnecting`);
-          // emits close, which reconnects
-          socket.terminate();
-        }
-      });
+      this.armSessionTimeout(socket);
     });
     socket.on('message', (data, isBinary) => {
       if (socket === this.socket && !isBinary) {
@@ -213,6 +204,17 @@ export class ApiEventsSpewer extends EventSpewer {
     });
     socket.on('close', (code, reason) => {
       this.onClose(socket, code, reason.toString(), handshakeStatusCode);
+    });
+  }
+
+  // handshaking has to reach READY in time, a socket that stalls in it (on open, or after an INVALID_SESSION) reconnects
+  armSessionTimeout(socket: WebSocket): void {
+    this.sessionTimeout.start(SESSION_TIMEOUT, () => {
+      if (socket === this.socket) {
+        log.warn(`Api events connection wasn't ready after ${SESSION_TIMEOUT}ms, reconnecting`);
+        // emits close, which reconnects
+        socket.terminate();
+      }
     });
   }
 
@@ -400,11 +402,16 @@ export class ApiEventsSpewer extends EventSpewer {
         }
       }; break;
       case ApiGatewayOpcodes.INVALID_SESSION: {
-        // what we missed is gone, start from the newest event and drop anything cached
+        // what we missed is gone, start from the newest event and drop anything cached once READY says the new session
+        // exists: resyncing here let a fetch finish before the api took the IDENTIFY, an event published in between
+        // was never sent to us and that fetch's older copy stayed cached
         this.lastId = null;
-        this.resynced = true;
+        this.missedEvents = true;
         this.setPhase('handshaking');
-        this.emitResync();
+        // back to handshaking after READY too (the api answering a RESUME), the timeout READY stopped starts again
+        if (this.socket) {
+          this.armSessionTimeout(this.socket);
+        }
         this.identify();
       }; break;
       case ApiGatewayOpcodes.DISPATCH: {
@@ -420,7 +427,7 @@ export class ApiEventsSpewer extends EventSpewer {
     switch (name) {
       case ApiGatewayDispatchEvents.READY: {
         // a fresh connection after a disconnect can't replay anything, so treat it like the api couldn't resume us
-        if (!this.resynced && this.missedEvents) {
+        if (this.missedEvents) {
           this.emitResync();
         }
         this.onSessionReady();

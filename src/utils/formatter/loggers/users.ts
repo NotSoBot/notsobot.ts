@@ -2,6 +2,7 @@ import { UserFlags as DiscordUserFlags, MAX_ATTACHMENT_SIZE } from 'detritus-cli
 import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
 import { DiscordUserFlagsText, EmbedColors } from '../../../constants';
+import { getAvatarDecorationName } from '../../../stores/useravatardecorations';
 import { createTimestampStringFromGuild, createUserEmbed } from '../../../utils';
 
 import type { Translator } from '../../i18n';
@@ -36,8 +37,8 @@ export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate, trans
     }
   }
   if (differences.avatarDecorationData !== undefined) {
-    const newUrl = avatarDecorations && avatarDecorations.current && Markup.url(avatarDecorations.current.name, avatarDecorations.current.url);
-    const oldUrl = avatarDecorations && avatarDecorations.old && Markup.url(avatarDecorations.old.name, avatarDecorations.old.url);
+    const newUrl = avatarDecorations && avatarDecorations.current && Markup.url(getAvatarDecorationName(avatarDecorations.current) || avatarDecorations.current.id, avatarDecorations.current.url);
+    const oldUrl = avatarDecorations && avatarDecorations.old && Markup.url(getAvatarDecorationName(avatarDecorations.old) || avatarDecorations.old.id, avatarDecorations.old.url);
 
     if (old.avatarDecorationData && user.avatarDecorationData) {
       description.push(`- ${translate('logger.user.decoration_changed')}`);

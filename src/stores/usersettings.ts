@@ -7,6 +7,7 @@ import { RequestContext, RestResponsesRaw, fetchUserSettings } from '../api';
 import { RedisChannels } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
+import { FetchVersions } from '../utils/fetchversions';
 
 
 // how long a fetch can take before the command goes on without it
@@ -21,6 +22,9 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
   // timezone, etc were all dropped for that command (their language fell back to the server's discord locale). the same
   // objects as the cache while they're in it, so it only costs anything for users that expired out of it
   lastKnown = new BaseCollection<string, RestResponsesRaw.UserSettings>({expire: LAST_KNOWN_EXPIRE});
+  // a fetch only caches what it got if no command/event/resync changed the user's settings since it started, a change
+  // arriving mid-fetch (nothing cached yet to apply it to) used to be lost to the older copy for 2 hours
+  fetches = new FetchVersions<string>();
 
   constructor() {
     // 2 hours
@@ -28,6 +32,7 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
   }
 
   insert(userId: string, settings: RestResponsesRaw.UserSettings): void {
+    this.fetches.bump(userId);
     this.set(userId, settings);
     this.lastKnown.set(userId, settings);
   }
@@ -77,11 +82,16 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
           resolve(onFailed());
         });
 
+        const version = this.fetches.start(userId);
         try {
           const settings = await fetchUserSettings(context, userId);
-          this.insert(userId, settings);
+          // otherwise the next use fetches again, this command goes on with what it got
+          if (this.fetches.end(userId, version)) {
+            this.insert(userId, settings);
+          }
           resolve(settings);
         } catch(error) {
+          this.fetches.end(userId, version);
           resolve(onFailed());
         }
         timeout.stop();
@@ -98,6 +108,7 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
     const subscriptions: Array<EventSubscription> = [];
     {
       const subscription = apiEvents.subscribe(RedisChannels.USER_SETTINGS_UPDATE, (payload: RedisPayloads.UserSettingsUpdate) => {
+        this.fetches.bump(payload.id);
         // the last known copy too, so it's still right if a fetch fails later
         const settings = this.cache.get(payload.id) || this.lastKnown.cache.get(payload.id);
         if (settings) {
@@ -110,6 +121,7 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
       // events were missed, so anything cached could be stale. drop it all and let the next use refetch, the last known
       // copies stay since they're only used when that fails (better slightly stale than the server's language)
       const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.fetches.bumpAll();
         this.clear();
       });
       subscriptions.push(subscription);

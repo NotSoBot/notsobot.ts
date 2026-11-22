@@ -48,6 +48,8 @@ export async function createGuildLogger(
   if (GuildSettingsStore.has(guildId)) {
     const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({loggers: data});
+    // a fetch still going for it has an older copy
+    GuildSettingsStore.fetches.bump(guildId);
   }
   return collection;
 }
@@ -67,6 +69,8 @@ export async function createGuildPrefix(
   if (GuildSettingsStore.has(guildId)) {
     const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({prefixes: data});
+    // a fetch still going for it has an older copy
+    GuildSettingsStore.fetches.bump(guildId);
   }
   return collection;
 }
@@ -223,6 +227,8 @@ export async function deleteGuildLogger(
   if (GuildSettingsStore.has(guildId)) {
     const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({loggers: data});
+    // a fetch still going for it has an older copy
+    GuildSettingsStore.fetches.bump(guildId);
   }
   return collection;
 }
@@ -242,6 +248,8 @@ export async function deleteGuildPrefix(
   if (GuildSettingsStore.has(guildId)) {
     const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({prefixes: data});
+    // a fetch still going for it has an older copy
+    GuildSettingsStore.fetches.bump(guildId);
   }
   return collection;
 }
@@ -320,8 +328,9 @@ export async function deleteUserLLMMemory(
   context: RequestContext,
   userId: string,
   position: number | string,
+  options: RestOptions.DeleteUserLLMMemory = {},
 ) {
-  return raw.deleteUserLLMMemory(context, userId, position);
+  return raw.deleteUserLLMMemory(context, userId, position, options);
 }
 
 
@@ -471,6 +480,7 @@ async function mergeGuildRules(
   let settings = GuildSettingsStore.get(guildId);
   if (settings) {
     settings.merge({rules});
+    GuildSettingsStore.fetches.bump(guildId);
   } else {
     settings = await GuildSettingsStore.fetch(context, guildId) || new GuildSettings({id: guildId, rules});
   }
@@ -511,6 +521,8 @@ export async function editGuildLogger(
   if (GuildSettingsStore.has(guildId)) {
     const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({loggers: data});
+    // a fetch still going for it has an older copy
+    GuildSettingsStore.fetches.bump(guildId);
   }
   return collection;
 }
@@ -549,8 +561,9 @@ export async function editGuildSettings(
     settings.merge(data);
   } else {
     settings = new GuildSettings(data);
-    GuildSettingsStore.set(settings.id, settings);
   }
+  // a fetch going for it has an older copy now, it mustn't put that back
+  GuildSettingsStore.insert(settings);
   return settings;
 }
 
@@ -567,8 +580,9 @@ export async function editServerSettings(
     settings.merge(data);
   } else {
     settings = new ServerSettings(data);
-    ServerSettingsStore.set(settings.id, settings);
   }
+  // a fetch going for it has an older copy now, it mustn't put that back
+  ServerSettingsStore.insert(settings);
   return settings;
 }
 
@@ -603,8 +617,9 @@ export async function editUser(
     user.merge(data);
   } else {
     user = new UserFull(data);
-    UserStore.set(user.id, user);
   }
+  // a fetch going for it has an older copy now, it mustn't put that back
+  UserStore.insert(user);
   return user;
 }
 
@@ -864,6 +879,11 @@ export async function deleteGuildDecoy(context: RequestContext, guildId: string,
 }
 
 
+export async function adoptGuildDecoyNotice(context: RequestContext, guildId: string, userId: string, messageId: string) {
+  return raw.adoptGuildDecoyNotice(context, guildId, userId, messageId);
+}
+
+
 export async function putGuildDecoyTrigger(context: RequestContext, guildId: string, channelId: string) {
   return raw.putGuildDecoyTrigger(context, guildId, channelId);
 }
@@ -890,6 +910,16 @@ export async function deleteGuildTimedBan(
   options: RestOptions.DeleteGuildTimedBan = {},
 ) {
   return raw.deleteGuildTimedBan(context, guildId, userId, options);
+}
+
+
+export async function postGuildTimedBanLifted(
+  context: RequestContext,
+  guildId: string,
+  userId: string,
+  options: RestOptions.PostGuildTimedBanLifted,
+) {
+  return raw.postGuildTimedBanLifted(context, guildId, userId, options);
 }
 
 
@@ -1019,6 +1049,21 @@ export async function createGuildReportMessage(
   options: RestOptions.CreateGuildReportMessage,
 ) {
   return raw.createGuildReportMessage(context, guildId, reportId, options);
+}
+
+
+export async function postGuildReportMessageDelivered(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  messageId: string,
+) {
+  return raw.postGuildReportMessageDelivered(context, guildId, reportId, messageId);
+}
+
+
+export async function fetchGuildReportMessagesUndelivered(context: RequestContext) {
+  return raw.fetchGuildReportMessagesUndelivered(context);
 }
 
 

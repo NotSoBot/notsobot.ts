@@ -127,7 +127,8 @@ class ClusterInfoInterval extends Listener {
         const gatewaySubscription = shard.gateway.subscribe('state', ({state}) => {
           this.maybeUploadInformation(cluster);
         });
-        subscriptions.push(gatewaySubscription);
+        // `create` already returned its list by now, only `this.subscriptions` gets removed on `stop`
+        this.subscriptions.push(gatewaySubscription);
       });
       subscriptions.push(subscription);
     }

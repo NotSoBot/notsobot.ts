@@ -1,3 +1,4 @@
+import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
 import { ComponentContext } from 'detritus-client/lib/utils';
 
@@ -14,6 +15,12 @@ export type ConfirmerState = 'done' | 'expired' | 'pending' | 'running';
 
 export class Confirmer {
   state: ConfirmerState = 'pending';
+  // the command's, a failed continue shows its error on the prompt (`run`)
+  context: Command.Context | Interaction.InteractionContext | null;
+
+  constructor(context?: Command.Context | Interaction.InteractionContext) {
+    this.context = context || null;
+  }
 
   // only moves when it's in `from`, so a double click or a late timeout can't act twice
   transition(from: ConfirmerState, to: ConfirmerState): boolean {
@@ -39,6 +46,13 @@ export class Confirmer {
     }
     try {
       return await work();
+    } catch(error) {
+      // the error went to sentry only: done, the buttons stayed up for good (presses only acknowledged, the timeout
+      // never comes for a done prompt). It replaces them now, still thrown for sentry
+      if (this.context) {
+        await showConfirmerError(this.context, ctx, error).catch(() => null);
+      }
+      throw error;
     } finally {
       this.transition('running', 'done');
     }
@@ -59,4 +73,18 @@ export class Confirmer {
     }
     return work();
   }
+}
+
+
+async function showConfirmerError(
+  context: Command.Context | Interaction.InteractionContext,
+  ctx: ComponentContext,
+  error: any,
+): Promise<void> {
+  // required here, both import the utils this file is loaded with
+  const { createRunErrorPayload, replyError, warning }: typeof import('../commands/errors') = require('../commands/errors');
+  const { getTranslator }: typeof import('./i18n') = require('./i18n');
+  const translator = await getTranslator(context);
+  const title = warning(translator.translate('errors.prefix_run_title'));
+  await replyError(context, await createRunErrorPayload(context, title, error, translator), {replyTo: ctx});
 }

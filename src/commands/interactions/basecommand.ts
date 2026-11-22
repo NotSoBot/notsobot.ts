@@ -26,8 +26,10 @@ import {
   afterJobRuns,
   getCommandGate,
   getCommandGateMessage,
+  getRecordedCommandReason,
   getRecordedCommandResult,
   setCommandGate,
+  setCommandReason,
   setCommandResult,
 } from '../../commandresults';
 import {
@@ -81,6 +83,16 @@ function replyWarning(context: Interaction.InteractionContext, content: string) 
   return replyErrorWarning(context, content, {ephemeral: true});
 }
 
+// the reply's language for the usage row, the settings it comes from are cached by now and it's never worth losing
+// the row over
+async function getUsageLocale(context: Interaction.InteractionContext): Promise<string | undefined> {
+  try {
+    return await I18n.getLanguage(context);
+  } catch(error) {
+    return undefined;
+  }
+}
+
 
 // shared by the url media options when no url was found, `notFound` is the error for an empty channel
 async function replyMediaUrlNotFound(
@@ -90,11 +102,15 @@ async function replyMediaUrlNotFound(
 ) {
   const { translate } = await I18n.getTranslator(context);
   if (url === null) {
+    setCommandReason(context, 'invalid_media');
     return replyWarning(context, translate('errors.invalid_user_or_url'));
   }
   if (!context.isBotPresent) {
+    // a user install where the bot can't look through the channel for media
+    setCommandReason(context, 'no_channel_history');
     return replyWarning(context, translate('errors.no_channel_history'));
   }
+  setCommandReason(context, 'no_media');
   return replyWarning(context, translate(notFound));
 }
 
@@ -345,6 +361,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
+    setCommandReason(context, 'cancel_run');
     const { translate } = await I18n.getTranslator(context);
     return replyWarning(context, translate('errors.cancel_run', {
       command: Markup.codestring(context.name),
@@ -439,20 +456,44 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       const messageResponseId = context.responseId;
       // a media job still polling (`run` returned with its thinking reply) counts once it ends, with how it ended
       const command = context.command;
-      await afterJobRuns(context, () => createUserCommand(
-        context,
-        context.userId,
-        commandId,
-        {
-          commandType,
-          channelId: context.channelId!,
-          guildId: context.guildId,
-          llmResponseId,
-          messageResponseId,
-          messageTriggerId: context.interactionId,
-          result: getRecordedCommandResult(context),
-        },
-      ), (error) => context.interactionCommandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));
+      await afterJobRuns(context, async () => {
+        const started: number | undefined = context.metadata && context.metadata.started;
+        const result = getRecordedCommandResult(context);
+        let contextType: string | undefined;
+        if (context.inDmWithBot) {
+          contextType = 'bot_dm';
+        } else if (context.inDm) {
+          contextType = 'private_channel';
+        } else if (context.guildId) {
+          contextType = 'guild';
+        }
+        let install: string | undefined;
+        if (context.isFromGuildInstall) {
+          install = 'guild';
+        } else if (context.isFromUserInstall) {
+          install = 'user';
+        }
+        await createUserCommand(
+          context,
+          context.userId,
+          commandId,
+          {
+            commandType,
+            channelId: context.channelId!,
+            contextType,
+            duration: (started) ? Math.max(Date.now() - started, 0) : undefined,
+            guildId: context.guildId,
+            install,
+            llmResponseId,
+            locale: await getUsageLocale(context),
+            // a components v2 result sent as a follow-up replaced (and deleted) the response (`replaceInteractionResponse`)
+            messageResponseId: (context.metadata && context.metadata.replacedResponseId) || messageResponseId,
+            messageTriggerId: context.interactionId,
+            reason: getRecordedCommandReason(context, result),
+            result,
+          },
+        );
+      }, (error) => context.interactionCommandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));
     }
   }
 
@@ -481,6 +522,7 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
+    setCommandReason(context, 'cancel_run');
     const { translate } = await I18n.getTranslator(context);
     return replyWarning(context, translate('errors.cancel_run', {
       command: Markup.codestring(context.name),
@@ -702,16 +744,21 @@ export class BaseInteractionMediasCommandOption extends BaseInteractionCommandOp
     const { translate } = await I18n.getTranslator(context);
     if (!args.urls.length) {
       if (!context.isBotPresent) {
+        setCommandReason(context, 'no_channel_history');
         return replyWarning(context, translate('errors.no_channel_history'));
       }
+      setCommandReason(context, 'no_media');
       return replyWarning(context, translate('errors.no_media_found'));
     } else if (args.urls.length < this.minAmount) {
       if (!context.isBotPresent) {
+        setCommandReason(context, 'no_channel_history');
         return replyWarning(context, translate('errors.no_channel_history_amount', {amount: this.minAmount}));
       }
+      setCommandReason(context, 'not_enough_media');
       return replyWarning(context, translate('errors.not_enough_media_found', {amount: this.minAmount}));
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
+      setCommandReason(context, 'too_many_media');
       return replyWarning(context, translate('errors.too_many_media_found'));
     }
     return super.onCancelRun(context, args);
@@ -753,6 +800,7 @@ export class BaseInteractionCommandOptionGroup extends Interaction.InteractionCo
   type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
+    setCommandReason(context, 'cancel_run');
     const { translate } = await I18n.getTranslator(context);
     return replyWarning(context, translate('errors.cancel_run', {
       command: Markup.codestring(context.name),

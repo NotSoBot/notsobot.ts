@@ -28,6 +28,8 @@ const FULL_LOAD_COOLDOWN = 10 * 60 * 1000;
 const MEMBER_REQUEST_TIMEOUT = 10000;
 // guild id -> when it was last loaded in full, dropped once the cooldown is over (it kept every server ever asked about)
 const fullLoads = new Collections.BaseCollection<string, number>({expire: FULL_LOAD_COOLDOWN});
+// the full load going for a server, requests at once for one wait on it instead of each asking for all its members
+const fullLoading = new Map<string, Promise<unknown>>();
 
 
 class ApiRequestError extends Error {
@@ -92,10 +94,23 @@ async function fetchGuildMember(cluster: ClusterClient, data: any): Promise<ApiG
         // the types want a `query`, it isn't sent along with `userIds`
         await guild.requestMembers({presences: false, query: '', timeout: MEMBER_REQUEST_TIMEOUT, userIds: [userId]});
       } else {
+        const loading = fullLoading.get(guild.id);
         const loadedAt = fullLoads.get(guild.id);
-        if (loadedAt === undefined || FULL_LOAD_COOLDOWN <= Date.now() - loadedAt) {
-          await requestAllGuildMembers(guild);
-          fullLoads.set(guild.id, Date.now());
+        if (loading) {
+          await loading;
+        } else if (loadedAt === undefined || FULL_LOAD_COOLDOWN <= Date.now() - loadedAt) {
+          const guildId = guild.id;
+          const promise = requestAllGuildMembers(guild).then(() => {
+            fullLoads.set(guildId, Date.now());
+          });
+          fullLoading.set(guildId, promise);
+          try {
+            await promise;
+          } finally {
+            if (fullLoading.get(guildId) === promise) {
+              fullLoading.delete(guildId);
+            }
+          }
         }
       }
     } catch(error) {

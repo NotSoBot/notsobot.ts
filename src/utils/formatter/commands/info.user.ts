@@ -3,7 +3,7 @@ import { InteractionCallbackTypes, MAX_ATTACHMENT_SIZE } from 'detritus-client/l
 import { Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
-import UserAvatarDecorations, { UserAvatarDecorationStored } from '../../../stores/useravatardecorations';
+import UserAvatarDecorations, { UserAvatarDecorationStored, getAvatarDecorationName } from '../../../stores/useravatardecorations';
 import UserStore from '../../../stores/users';
 
 import { fetchUser, utilitiesFetchMedia } from '../../../api';
@@ -146,8 +146,8 @@ export async function createMessage(
           bannerColor = `${Markup.codestring(intToHex(userWithBanner.accentColor, true))} ${Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`)}`;
         }
         lines.push(displayDetailsLine([
-          (avatarDecorationServer) && displayDetail(translate('user.avatar_decoration_server'), Markup.url(avatarDecorationServer.name, `<${avatarDecorationServer.url}>`)),
-          (avatarDecorationUser) && displayDetail(translate('user.avatar_decoration_user'), Markup.url(avatarDecorationUser.name, `<${avatarDecorationUser.url}>`)),
+          (avatarDecorationServer) && displayDetail(translate('user.avatar_decoration_server'), Markup.url(getAvatarDecorationName(avatarDecorationServer) || avatarDecorationServer.id, `<${avatarDecorationServer.url}>`)),
+          (avatarDecorationUser) && displayDetail(translate('user.avatar_decoration_user'), Markup.url(getAvatarDecorationName(avatarDecorationUser) || avatarDecorationUser.id, `<${avatarDecorationUser.url}>`)),
           (bannerColor) && displayDetail(translate('user.banner_color'), bannerColor),
         ]));
       }

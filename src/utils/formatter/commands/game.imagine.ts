@@ -1,5 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import {
+  DiscordAbortCodes,
   InteractionCallbackTypes,
   MessageComponentButtonStyles,
   MessageComponentInputTextStyles,
@@ -264,7 +265,12 @@ function refreshGame(game: Game): Promise<void> {
         try {
           await updateGame(game);
         } catch(error) {
-
+          // the game's message was deleted (a moderator): it ends, the channel said "already running" until its timer
+          // ran out otherwise (up to the lobby's 5 minutes)
+          if (error && (error.code === DiscordAbortCodes.UNKNOWN_MESSAGE || error.code === DiscordAbortCodes.UNKNOWN_WEBHOOK)) {
+            cleanupGame(game);
+            break;
+          }
         }
       }
       game.refreshing = null;
@@ -426,7 +432,9 @@ function createLobbyComponents(game: Game, translator: Translator): Components {
       game.phase = GamePhases.STARTING;
       // the image can take a bit, the lobby doesn't expire on them while it finishes (the job wait time still applies)
       game.timer.stop();
-      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      // the game is drawn through its own context, a failed acknowledgement (expired, a 5xx) mustn't leave it STARTING
+      // with no timer (stuck in `activeGames` until a restart)
+      await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => null);
       // shows that it's waiting on the image, if it isn't done yet
       if (!game.reference && !game.referenceError) {
         refreshGame(game);
@@ -807,20 +815,34 @@ async function startVoting(game: Game): Promise<void> {
     finishGame(game).catch(() => {});
   });
   await refreshGame(game);
+  // the run was cancelled (a prefixed trigger edited or deleted) during that edit, no vote nobody can finish
+  if (game.phase !== GamePhases.VOTING) {
+    return;
+  }
 
   // a new message so the gallery shows up at the bottom of the chat, the game message is up where it started
   const translator = await getTranslator(game.context);
   const message = await renderDisplay(game.context, createVotePayload(game, translator));
+  let voteMessage: Structures.Message | null;
   try {
     if (game.context instanceof Command.Context) {
-      game.voteMessage = await game.context.rest.createMessage(game.context.channelId, message);
+      voteMessage = await game.context.rest.createMessage(game.context.channelId, message);
     } else {
-      game.voteMessage = await game.context.createMessage(message);
+      voteMessage = await game.context.createMessage(message);
     }
   } catch(error) {
     const { translate } = translator;
     return failGame(game, translate('game.imagine.vote_failed'), error);
   }
+  // it ended while the gallery uploaded (the vote ran out or the run was cancelled), the game message already has the
+  // whole result, so the vote's buttons don't sit there doing nothing
+  if (game.phase !== GamePhases.VOTING) {
+    if (voteMessage) {
+      voteMessage.delete().catch(() => {});
+    }
+    return;
+  }
+  game.voteMessage = voteMessage;
 }
 
 

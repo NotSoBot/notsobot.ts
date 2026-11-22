@@ -31,8 +31,10 @@ class BotGuildsListener extends Listener {
   flushing = false;
 
   async syncShard(cluster: ClusterClient, shard: ShardClient): Promise<void> {
-    const guildIds = Array.from(shard.guilds.keys());
     for (let attempt = 0; attempt <= FULL_SYNC_RETRY_DELAYS.length; attempt++) {
+      // read again each try: the changes flushed meanwhile (joins, leaves, prunes) were undone by a retry of the list
+      // from READY until the next full sync
+      const guildIds = Array.from(shard.guilds.keys());
       try {
         await putInfoDiscordGuilds({client: shard}, {
           guildIds,

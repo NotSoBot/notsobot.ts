@@ -8,7 +8,7 @@ import { getApiError } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
 import { log } from '../../../log';
-import { displayReply, formatTime } from '../../../utils';
+import { displayReply, formatTime, isCommandRunCancelled } from '../../../utils';
 import { addExtraResponse, detachReply } from '../../commandresponses';
 import VoiceNode, { ListenEndReason, VoiceListenError } from '../../../voicenode';
 import { getTranslator } from '../../i18n';
@@ -46,8 +46,13 @@ interface Session {
   parentId: null | string,
   // said while a turn was being answered, the newest one goes next (older ones are dropped)
   pending: null | Buffer,
+  // `ai listen stop` (or the command message deleted) cut it off: sentences of an answer still streaming aren't said.
+  // `stopping` alone lets them play out (`{ai.listen.stop}`)
+  silenced: boolean,
   speeches: number,
-  // `{ai.listen.stop}` asked the node to stop, its answer plays out but nothing else is answered
+  // `{ai.listen.stop}` (or `ai listen stop`) asked the node to stop, its answer plays out but nothing else is answered.
+  // `ended` once the node said it's over (`onEnd`): starting → listening → stopping → ended, a session is in `sessions`
+  // from starting until ended
   stopping: boolean,
   // the command message's deletes, it ends the session (its replies go with it)
   subscriptions: Array<EventSubscription>,
@@ -85,17 +90,27 @@ export async function createMessage(context: Command.Context, args: CommandArgs)
     return displayReply(context, {description: translate(error)});
   }
 
+  // one still starting is in `sessions` too, its listen is taken already
+  if (sessions.has(guildId)) {
+    const { translate } = await getTranslator(context);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_listen.busy')}`});
+  }
+
   const session: Session = {
     busy: false,
     ended: null,
     id: `ai-listen:${guildId}:${context.messageId}`,
     parentId: null,
     pending: null,
+    silenced: false,
     speeches: 0,
     stopping: false,
     subscriptions: [],
     userId: context.userId,
   };
+  // before the node's asked, so `ai listen stop` (or NotSoAI saying goodbye) while it's starting stops it instead of
+  // finding nothing and it listening for the whole duration anyway
+  sessions.set(guildId, session);
   try {
     await VoiceNode.listen(context.client, guildId, channel.id, context.userId, LISTEN_DURATION, {
       onEnd: (reason) => {
@@ -109,6 +124,9 @@ export async function createMessage(context: Command.Context, args: CommandArgs)
       onUtterance: (audio) => onUtterance(context, guildId, session, audio),
     }, {utterances: true});
   } catch(error) {
+    if (sessions.get(guildId) === session) {
+      sessions.delete(guildId);
+    }
     const { translate } = await getTranslator(context);
     let description: string;
     if (error instanceof VoiceListenError) {
@@ -121,11 +139,14 @@ export async function createMessage(context: Command.Context, args: CommandArgs)
     }
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${description}`});
   }
-  // it ended before it started (the node couldn't)
+  // stopped while it was starting (`ai listen stop` said so already, the node's end can still be on its way)
+  if (session.ended === 'stopped' || (session.ended === null && session.stopping)) {
+    return displayReply(context, {description: 'NotSoAI stopped listening'});
+  }
+  // it ended before it started (the node couldn't, we left)
   if (session.ended !== null) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} NotSoAI couldn't start listening (${session.ended}), try again`});
   }
-  sessions.set(guildId, session);
   const onDeleted = (channelId: string, messageIds: Array<string>) => {
     if (channelId === context.channelId && messageIds.includes(context.messageId)) {
       stopSession(guildId, session);
@@ -157,6 +178,10 @@ function stopSession(guildId: string, session: Session): void {
   if (session.ended !== null || sessions.get(guildId) !== session) {
     return;
   }
+  // nothing else is answered, and one still starting says it stopped instead of listening
+  session.stopping = true;
+  session.silenced = true;
+  session.pending = null;
   VoiceNode.stopListening(guildId);
   VoiceNode.stopSpeaking(guildId).catch((error) => log.warn(`ai listen stop speaking ${guildId}`, error));
 }
@@ -190,6 +215,12 @@ function unsubscribe(session: Session): void {
 
 function onUtterance(context: Command.Context, guildId: string, session: Session, audio: Buffer) {
   if (session.ended !== null || session.stopping) {
+    return;
+  }
+  // the command message was edited (only a delete stopped it): this run's replies are cancelled, each heard turn was
+  // still paid for and said, and its reply moved the newer run's reply into this one's extras
+  if (isCommandRunCancelled(context)) {
+    stopSession(guildId, session);
     return;
   }
   if (session.busy) {
@@ -232,7 +263,7 @@ async function runTurn(context: Command.Context, guildId: string, session: Sessi
     const turn: TagGenerate.AIVoiceTurn = {
       heard: heard.slice(0, HEARD_MAX_LENGTH),
       onSpeech: (speech) => {
-        if (speech && session.ended === null) {
+        if (speech && session.ended === null && !session.silenced) {
           const id = `${SPEECH_ID_PREFIX}${Date.now().toString(36)}-${++session.speeches}`;
           VoiceNode.speak(guildId, id, speech, {turn: true}).catch((error) => log.warn(`ai listen speak ${guildId}`, error));
         }

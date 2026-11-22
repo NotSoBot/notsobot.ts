@@ -35,6 +35,8 @@ import {
   createDisplayLayout,
   displayPayloadFromEmbed,
   editOrReply,
+  getMediaReplyActionsTimeout,
+  isCommandRunCancelled,
   renderDisplay,
 } from './tools';
 
@@ -222,6 +224,8 @@ export class Paginator {
   ratelimit: number = 250;
   ratelimitTimeout = new Timers.Timeout();
   stopped: boolean = false;
+  // the page edit being sent (`renderPage`), a stop waits for it before clearing the buttons
+  rendering: Promise<void> | null = null;
   targets: Array<string> = [];
 
   onError?: OnErrorCallback;
@@ -301,9 +305,18 @@ export class Paginator {
     });
   }
 
+  // an interaction's response can only be edited for 15 minutes (its token), so the buttons go a bit before that
+  // instead of their cleanup failing after it (`Invalid Webhook Token`). from now, each page edit registers them again
+  get componentsTimeout(): number {
+    if (this.context instanceof Interaction.InteractionContext) {
+      return getMediaReplyActionsTimeout(this.context, this.expires);
+    }
+    return this.expires;
+  }
+
   get components() {
     const components = new Components({
-      timeout: this.expires,
+      timeout: this.componentsTimeout,
       onTimeout: this.onStop.bind(this),
       run: this.onButtonPress.bind(this),
     });
@@ -404,6 +417,12 @@ export class Paginator {
 
   set message(value: null | Structures.Message) {
     this._message = value;
+  }
+
+  // false once the message isn't this paginator's to change anymore: its prefixed trigger was edited (re-running the
+  // command into the same reply, whatever it replies with now) or deleted. stopping it then mustn't edit the message
+  get ownsMessage(): boolean {
+    return !(this.context instanceof Command.Context && isCommandRunCancelled(this.context));
   }
 
   get messageId(): string {
@@ -585,15 +604,22 @@ export class Paginator {
       }
       return;
     }
+    // another page is still being made (a go to page submit, the presses check it themselves)
+    if (this.loading) {
+      if (context && !context.responded) {
+        await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      }
+      return;
+    }
     const previous = this.page;
     this.page = pageNumber;
-
-    // todo: put this on a timer
-    if (context) {
-      await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-    }
+    // before any await, a second press arriving while this one is answered used to see it not loading and turn the
+    // page again from the page this one already moved to (skipping one), or move it while its press failed
     this.loading = true;
     try {
+      if (context) {
+        await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      }
       await this.renderPage(context);
     } catch(error) {
       // the page couldn't be made or sent, the message still shows the last one (and its buttons)
@@ -606,6 +632,14 @@ export class Paginator {
 
   // sends the current page again, for a page turn or when what the page shows changed (a responded to `context`)
   async renderPage(context?: PageContext): Promise<void> {
+    if (!this.stopped && !this.ownsMessage) {
+      // its trigger was edited or deleted, the message is the newer run's: a page now would go over its reply
+      await this.stop(false);
+      if (context && !context.responded) {
+        await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      }
+      return;
+    }
     if (this.stopped) {
       return;
     }
@@ -620,12 +654,22 @@ export class Paginator {
       return;
     }
     // `editOrReply` uploads big files separately first, like every other reply
-    if (context) {
-      await editOrReply(context, {...message, attachments: []});
-    } else if (this.context instanceof Interaction.InteractionContext) {
-      await editOrReply(this.context, {...message, attachments: []});
-    } else if (this.message) {
-      await this.message.edit({...message, attachments: []});
+    const sending = (async () => {
+      if (context) {
+        await editOrReply(context, {...message, attachments: []});
+      } else if (this.context instanceof Interaction.InteractionContext) {
+        await editOrReply(this.context, {...message, attachments: []});
+      } else if (this.message) {
+        await this.message.edit({...message, attachments: []});
+      }
+    })();
+    this.rendering = sending;
+    try {
+      await sending;
+    } finally {
+      if (this.rendering === sending) {
+        this.rendering = null;
+      }
     }
   }
 
@@ -650,6 +694,9 @@ export class Paginator {
   }
 
   async updateButtons(context?: ComponentContext): Promise<void> {
+    if (!this.stopped && !this.ownsMessage) {
+      await this.stop(false);
+    }
     if (!this.stopped) {
       const message = await this.getButtonsMessage();
       if (context) {
@@ -741,7 +788,7 @@ export class Paginator {
     const { translate } = await getTranslator(context);
     const hasLimit = this.pageLimit !== MAX_PAGE;
     const modal = new InteractionModal({
-      timeout: this.expires,
+      timeout: this.componentsTimeout,
       title: translate('paginator.go_to_page'),
       run: (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
         return this.onPageModal(modalContext, String(args.page || ''), translate);
@@ -822,6 +869,11 @@ export class Paginator {
         }
       }
 
+      // a page edit already on its way (a big file re-uploading) landed after the clear and put back buttons nothing
+      // listens to anymore, presses only acknowledged for good
+      if (this.rendering) {
+        await this.rendering.catch(() => null);
+      }
       if (deleteMessage) {
         // prefer the button press's own token, it's fresh and its `@original` is the message the button is on
         // (interaction responses aren't cached in group dms/user installs since we get no gateway events for them)
@@ -864,7 +916,7 @@ export class Paginator {
           } catch(error) {
 
           }
-        } else if (this.message && !this.message.deleted && this.message.components.length) {
+        } else if (this.message && !this.message.deleted && this.message.components.length && this.ownsMessage) {
           try {
             const message = await this.getButtonsMessage(false);
             if (this.context instanceof Interaction.InteractionContext) {
@@ -930,12 +982,18 @@ export class Paginator {
       if (PaginatorsStore.has(this.channelId)) {
         const stored = PaginatorsStore.get(this.channelId)!;
         for (let paginator of stored.normal) {
-          if (paginator.message === message) {
+          // the one this replaced on the same message (an edit re-ran the command into it), or one whose trigger was
+          // edited or deleted since: their buttons' listener went with the newer reply (without timing out), they'd
+          // only be stopped once pushed out of here, keeping their pages in memory until then
+          if ((message && paginator.messageId === message.id) || !paginator.ownsMessage) {
             await paginator.stop(false);
           }
         }
       }
-      PaginatorsStore.insert(this);
+      // stopped during those awaits (its Stop pressed), it'd take a slot from a live one until pushed out
+      if (!this.stopped) {
+        PaginatorsStore.insert(this);
+      }
     }
 
     if (message) {

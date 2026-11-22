@@ -85,7 +85,7 @@ async function confirmAddTag(
   const { translate, translateMaybe } = await getTranslator(context);
   const tagText = Markup.codestring(args.tag.name);
 
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: () => confirmer.expire(async () => {

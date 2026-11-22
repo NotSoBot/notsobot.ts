@@ -71,7 +71,14 @@ class VoiceNodeListener extends Listener {
       // the dashboard's pause/resume/skip/leave, live effects, speed and volume, every cluster gets it and only the one
       // playing in the server acts
       const subscription = apiEvents.subscribe(RedisChannels.MUSIC_CONTROL, (payload) => {
-        if (!payload || !VoiceNode.guilds.has(payload.guild_id) || MUSIC_CONTROL_MAX_AGE < Date.now() - payload.created) {
+        if (!payload || MUSIC_CONTROL_MAX_AGE < Date.now() - payload.created) {
+          return;
+        }
+        if (!VoiceNode.guilds.has(payload.guild_id)) {
+          // a 24/7 server waiting to rejoin (a node out of reach) leaves for good, it rejoined later otherwise
+          if (payload.action === 'leave') {
+            VoiceNode.cancelRecovered(payload.guild_id, true);
+          }
           return;
         }
         let promise: Promise<unknown>;
@@ -86,7 +93,7 @@ class VoiceNodeListener extends Listener {
             }
             promise = VoiceNode.setPaused(payload.guild_id, false);
           }; break;
-          case 'skip': promise = VoiceNode.skip(payload.guild_id); break;
+          case 'skip': promise = VoiceNode.skip(payload.guild_id, payload.item_id || undefined); break;
           case 'effect_add':
           case 'effect_clear':
           case 'effect_remove': promise = controlDashboardEffects(payload.guild_id, payload.action, payload.effect, payload.index); break;

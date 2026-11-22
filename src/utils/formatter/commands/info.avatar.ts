@@ -3,7 +3,7 @@ import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
-import UserAvatarDecorations from '../../../stores/useravatardecorations';
+import UserAvatarDecorations, { getAvatarDecorationName } from '../../../stores/useravatardecorations';
 
 import { utilitiesFetchMedia } from '../../../api';
 import { PresenceStatusColors } from '../../../constants';
@@ -77,10 +77,11 @@ export async function createMessage(
           context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset,
         );
         let name: string;
-        if (avatarDecoration.id === avatarDecoration.name) {
+        const decorationName = getAvatarDecorationName(avatarDecoration);
+        if (!decorationName) {
           name = `**${translate('info.avatar.server_decoration')}**`;
         } else {
-          name = `**${translate('info.avatar.server_decoration_named', {name: avatarDecoration.name})}**`;
+          name = `**${translate('info.avatar.server_decoration_named', {name: decorationName})}**`;
         }
         description.push(Markup.url(name, `<${avatarDecoration.url}>`));
       }
@@ -89,10 +90,11 @@ export async function createMessage(
           context.client, user.user.avatarDecorationData.skuId, user.user.avatarDecorationData.asset,
         );
         let name: string;
-        if (avatarDecoration.id === avatarDecoration.name) {
+        const decorationName = getAvatarDecorationName(avatarDecoration);
+        if (!decorationName) {
           name = `**${translate('info.avatar.user_decoration')}**`;
         } else {
-          name = `**${translate('info.avatar.user_decoration_named', {name: avatarDecoration.name})}**`;
+          name = `**${translate('info.avatar.user_decoration_named', {name: decorationName})}**`;
         }
         description.push(Markup.url(name, `<${avatarDecoration.url}>`));
       }
@@ -105,10 +107,11 @@ export async function createMessage(
           context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset,
         );
         let name: string;
-        if (avatarDecoration.id === avatarDecoration.name) {
+        const decorationName = getAvatarDecorationName(avatarDecoration);
+        if (!decorationName) {
           name = `**${translate('info.avatar.user_decoration')}**`;
         } else {
-          name = `**${translate('info.avatar.user_decoration_named', {name: avatarDecoration.name})}**`;
+          name = `**${translate('info.avatar.user_decoration_named', {name: decorationName})}**`;
         }
         description.push(Markup.url(name, `<${avatarDecoration.url}>`));
       }

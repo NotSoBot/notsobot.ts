@@ -178,10 +178,13 @@ export async function createMessage(
   // doesn't have anymore)
   const queue = async (result: RestResponsesRaw.MusicSearchResult): Promise<Queued> => {
     const { item, joined, resumed, started } = await VoiceNode.play(context, context.client, guildId, channel.id, result, context.userId);
+    // watched before anything else awaits: the queue may have started on the node already, an error during the fetch
+    // below was missed (the reply said it was playing)
+    const failed = trackFailed(item);
     // we just joined a 24/7 server: we'll stay, said once a join
     const stays = joined && musicStays(await fetchGuildMusic(context, guildId).catch(() => null));
     const note = displayDetails([resumedNote(resumed), (stays) ? musicStayNote(translate) : null]) || null;
-    return {failed: trackFailed(item), item, note, started};
+    return {failed, item, note, started};
   };
 
   // right away, the node can fail it before we reply (it's shown once we have)

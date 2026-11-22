@@ -39,7 +39,7 @@ export async function createMessage(
     return displayReply(context, {description: translate('tag_directory_verify.ok_canceled_pending_request', {tag: tagText})});
   }
 
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: () => confirmer.expire(async () => {

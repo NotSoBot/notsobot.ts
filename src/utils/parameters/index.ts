@@ -591,16 +591,20 @@ export async function pipingCommands(
       const attributes = {content, prefix: ''};
       const command = await commandClient.getCommand(attributes);
       if (command && command.metadata && command.metadata.id && isPipeableCommand(command.metadata)) {
+        // only while this step's args parse (its media is the pipe's), a step that fails to parse doesn't leave it on
         context.metadata = context.metadata || {};
         context.metadata.shouldSkipMediaCheck = true;
-
-        const {errors, parsed: commandArgs} = await command.getArgs(attributes, context as any);
+        let parsed: Awaited<ReturnType<typeof command.getArgs>>;
+        try {
+          parsed = await command.getArgs(attributes, context as any);
+        } finally {
+          context.metadata.shouldSkipMediaCheck = false;
+        }
+        const {errors, parsed: commandArgs} = parsed;
         if (Object.keys(errors).length) {
           throw new UserError(getCachedTranslator(context).translate('params.pipe_parse_error', {command: `\`${command.name}\``}));
         }
         pipers.push({command, commandArgs});
-
-        context.metadata.shouldSkipMediaCheck = false;
       } else {
         throw new UserError(getCachedTranslator(context).translate('media.pipe.not_pipeable', {command: content}));
       }

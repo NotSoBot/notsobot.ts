@@ -5384,6 +5384,7 @@ export const Korean: Translations = Object.freeze({
   'music_stay.stays': '대기열이 끝나도 음성 채널에 남아요 (24/7)',
   'music_tts.saying': '지금 말하는 중',
   'music_tts.saying_after': 'NotSoAI의 답변 다음에 말할게요',
+  'music_tts.too_long': '음악 위에 말하기에는 너무 길어요. 대기열 옵션을 사용하면 노래처럼 재생할 수 있어요',
   'music_volume.current': '음량은 {volume}이에요',
   'music_volume.needs_premium': '음량을 바꾸려면 프리미엄 서버가 필요해요',
   'music_volume.reset': '음량을 100%로 되돌렸어요',

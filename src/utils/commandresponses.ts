@@ -74,12 +74,13 @@ function sendExtraResponses(context: Command.Context, responseIds: Array<string>
 
 
 // deletes our responses that no other delete path got to first, one by one (they're usually a few, and the bulk
-// delete endpoint needs Manage Messages)
+// delete endpoint needs Manage Messages). gives the ones still there (their delete failed), they can be tried again
 export async function deleteResponses(
   shard: ShardClient,
   channelId: string,
   responseIds: Array<string>,
-): Promise<void> {
+): Promise<Array<string>> {
+  const failed: Array<string> = [];
   for (let responseId of responseIds) {
     if (!CommandResponsesStore.claimDeletion(responseId)) {
       continue;
@@ -87,7 +88,20 @@ export async function deleteResponses(
     try {
       await shard.rest.deleteMessage(channelId, responseId);
     } catch(error) {
-      // already deleted
+      // already deleted is done, anything else (no access right now, discord erroring) can be tried again later
+      if (!isUnknownMessageError(error)) {
+        CommandResponsesStore.releaseDeletion(responseId);
+        failed.push(responseId);
+      }
     }
   }
+  return failed;
+}
+
+
+// discord's error for a message that doesn't exist anymore
+const ERROR_CODE_UNKNOWN_MESSAGE = 10008;
+
+export function isUnknownMessageError(error: any): boolean {
+  return !!error && !!error.response && (error.response.statusCode === 404 || error.code === ERROR_CODE_UNKNOWN_MESSAGE);
 }

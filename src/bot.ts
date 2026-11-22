@@ -17,7 +17,7 @@ import ApiEventsClient from './apievents';
 import { NotSoCommandClient } from './commandclient';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
-import { CommandHooksListener, connectAllListeners } from './listeners';
+import { CommandHooksListener, ComponentsListener, connectAllListeners } from './listeners';
 import { log } from './log';
 import { incrementCounter } from './metrics';
 import {
@@ -52,7 +52,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // why this process is on its way out, null while it isn't. one exit per cause, a second one doesn't start another
-let exiting: null | 'authentication_failed' | 'uncaught_exception' = null;
+let exiting: null | 'authentication_failed' | 'startup_failed' | 'uncaught_exception' = null;
 
 // a thrown exception can leave things half updated (gateway sockets, caches, timers), so report it and exit, the
 // cluster manager respawns the process
@@ -194,7 +194,13 @@ function failStartupStage(stage: ClusterStartupStage, attempt: number, error: an
   }
 }
 
-async function runStartupStage(stage: ClusterStartupStage, run: (attempt: number) => Promise<void>): Promise<void> {
+// false once the stage can't be tried again in this process: it stays `failed` and the process exits (see
+// `exitAfterStartupFailed`)
+async function runStartupStage(
+  stage: ClusterStartupStage,
+  run: (attempt: number) => Promise<void>,
+  canRetry: (error: any) => boolean = () => true,
+): Promise<boolean> {
   for (let attempt = 1; ; attempt++) {
     setStartupStage(stage, attempt);
     try {
@@ -202,13 +208,42 @@ async function runStartupStage(stage: ClusterStartupStage, run: (attempt: number
       if (1 < attempt) {
         log.info(`Cluster startup recovered at ${stage} after ${attempt} attempts`);
       }
-      return;
+      return true;
     } catch(error) {
+      if (!canRetry(error)) {
+        failStartupStage(stage, attempt, error, null);
+        exitAfterStartupFailed(stage);
+        return false;
+      }
       const delay = STARTUP_RETRY_DELAYS[Math.min(attempt, STARTUP_RETRY_DELAYS.length) - 1];
       failStartupStage(stage, attempt, error, delay);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
+}
+
+// a stage that can't be retried in this process (shards half started) used to leave the cluster up for good without
+// listeners or commands, and `.refresh` skips a failed cluster. Exiting lets the manager respawn it, waited on first:
+// every respawn identifies all of its shards again, a failure that keeps happening shouldn't burn through identifies
+const STARTUP_FAILED_EXIT_CODE = 5;
+const STARTUP_FAILED_EXIT_DELAY = 60 * 1000;
+const STARTUP_FAILED_EXIT_JITTER = 60 * 1000;
+
+function exitAfterStartupFailed(stage: ClusterStartupStage): void {
+  if (exiting) {
+    return;
+  }
+  exiting = 'startup_failed';
+  const delay = STARTUP_FAILED_EXIT_DELAY + Math.round(Math.random() * STARTUP_FAILED_EXIT_JITTER);
+  log.warn(`Cluster startup can't be retried at ${stage} in this process, exiting in ${delay}ms to be respawned`);
+  setTimeout(async () => {
+    try {
+      await Sentry.flush(2000);
+    } catch(e) {
+
+    }
+    process.exit(STARTUP_FAILED_EXIT_CODE);
+  }, delay);
 }
 
 const cluster = new ClusterClient('', {
@@ -363,20 +398,22 @@ const cluster = new ClusterClient('', {
   }
   */
 
-  // the shards and our listeners aren't tried again, a failure there stays `failed` with the shards as they are
-  let stage: ClusterStartupStage = 'shards';
-  try {
+  // `run()` failing before it started a shard (fetching the gateway info) sets `ran` back and is tried again like the
+  // command stages, nothing identified for it. Failing after some started leaves them half set up, that one exits
+  const shardsStarted = await runStartupStage('shards', async () => {
     await cluster.run();
+  }, () => !cluster.ran);
+  if (!shardsStarted) {
+    return;
+  }
 
-    stage = 'listeners';
-    setStartupStage(stage);
+  // each part starts over on a second connect (`Listener.connect`/`Store.connect` stop first, the api events only
+  // start once), so a throw partway through is tried again in place
+  await runStartupStage('listeners', async () => {
     connectAllListeners(cluster);
     connectAllStores(cluster);
     ApiEventsClient.start({shardCount: cluster.shardCount, shardEnd: cluster.shardEnd, shardStart: cluster.shardStart});
-  } catch(error) {
-    failStartupStage(stage, 1, error, null);
-    return;
-  }
+  });
 
   log.debug('cluster ran', cluster.ran);
   const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
@@ -452,4 +489,6 @@ const cluster = new ClusterClient('', {
   });
 
   setClusterStartup({attempt: 1, error: null, phase: 'ready', retryAt: null, stage: null});
+  // guild report replies whose event came while this cluster was down
+  ComponentsListener.catchUpReportReplies(cluster);
 })();

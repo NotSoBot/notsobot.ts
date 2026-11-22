@@ -5384,6 +5384,7 @@ export const French: Translations = Object.freeze({
   'music_stay.stays': 'Reste en vocal quand la file se termine (24/7)',
   'music_tts.saying': 'Je le dis maintenant',
   'music_tts.saying_after': 'Je le dis après la réponse de NotSoAI',
+  'music_tts.too_long': 'Trop long pour le dire par-dessus la musique, utilise l\'option file d\'attente pour le jouer comme une chanson',
   'music_volume.current': 'Le volume est à {volume}',
   'music_volume.needs_premium': 'Changer le volume nécessite un serveur premium',
   'music_volume.reset': 'Volume revenu à 100 %',

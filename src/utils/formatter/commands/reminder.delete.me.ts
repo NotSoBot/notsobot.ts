@@ -81,7 +81,7 @@ export async function confirmReminderDeletion(
   payload.title = translate('reminder_delete_me.are_you_sure_you_want_to_delete');
   payload.description = describeReminder(context, reminder, translate).join('\n');
 
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({timeout: 5 * (60 * 1000)});
   components.createButton({
     label: translate('reminder_delete_me.continue'),

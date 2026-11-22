@@ -384,7 +384,7 @@ export async function createMessage(
     } else {
       // keep holding the prune lock until continue/cancel is pressed (or nobody answers), otherwise another large prune
       // could be started while this one is waiting on confirmation
-      const confirmer = new Confirmer();
+      const confirmer = new Confirmer(context);
       // detritus drops the buttons of a deleted message without calling `onTimeout`, so watch for it ourselves: deleting
       // the confirmation (or its trigger, which takes our reply with it) answers it like nobody pressing anything
       let confirmationId: string | undefined;

@@ -36,11 +36,12 @@ export default class PhoSimpCommand extends BaseImageOrVideoCommand {
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationPhoSimp.CommandArgs) {
-    return !!args.filters.length && super.onBeforeRun(context, args);
+    // no filters given at all leaves it unset, not an empty list
+    return !!(args.filters && args.filters.length) && super.onBeforeRun(context, args);
   }
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationPhoSimp.CommandArgs) {
-    if (!args.filters.length) {
+    if (!args.filters || !args.filters.length) {
       return BaseCommand.prototype.onCancelRun.call(this, context, args);
     }
     return super.onCancelRun(context, args);

@@ -59,7 +59,7 @@ export async function createMessage(
   };
 
   // a double click would send the report twice, the buttons are only gone once the first one's answered
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({timeout: CONFIRM_TIMEOUT});
   components.createButton({
     label: translate('report.confirm_send'),

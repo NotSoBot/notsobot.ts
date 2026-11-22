@@ -35,6 +35,7 @@ import {
   renderEphemeralDisplay,
 } from '../../../utils/tools';
 import { AutoEmbedSources, getAutoEmbedLink } from '../../autoembed';
+import { UserError } from '../../errors';
 import { Page, Paginator } from '../../paginator';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
@@ -332,7 +333,8 @@ function replyWithPages(
     const positions = galleryPositions(index);
     const collected = positions.map((position) => responses.get(position)).filter(Boolean) as Array<RestResponsesRaw.FileResponse>;
     if (!collected.length) {
-      throw error || new Error('None of this part of the post could be downloaded');
+      // the reply says it, nothing to report (a failed request's own error is still thrown as it is)
+      throw error || new UserError(translate('tools_embed.gallery_failed', {count: positions.length.toLocaleString(language)}));
     }
     return {failed: positions.length - collected.length, responses: collected};
   };

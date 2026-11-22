@@ -425,6 +425,11 @@ export function generateComponents(
   // the onTimeout script, or the components stripped (turned off for components v2)
   const expire = async () => {
     if (parsedTag.components && parsedTag.components.onTimeout) {
+      // fresh limits like a press gets, a tag that used up its iterations printed the script as raw text (and one that
+      // used up its function calls or requests errored). the files stay, the edit re-sends what the message shows
+      const files = parsedTag.files;
+      TagFormatter.resetTagLimits(parsedTag);
+      parsedTag.files = files;
       await TagFormatter.increaseComponentExecutions(parsedTag);
       const newParsedTag = await TagFormatter.parse(
         context,
@@ -489,13 +494,22 @@ export function generateComponents(
   const components = new Components({
     timeout: (hasAI) ? AI_COMPONENTS_TIMEOUT : 1 * (60 * 1000),
     onError: (componentContext: ComponentContext, error: Error) => {
-      return componentContext.editOrRespond(translate('tag_show.tagscript_error_has_occured', {error: error}));
+      const content = translate('tag_show.tagscript_error_has_occured', {error: error});
+      // a components v2 message can't have content, discord refused the edit and the press failed without a word
+      const pressed = componentContext.interaction.message;
+      if (pressed && pressed.hasFlagComponentsV2) {
+        const errorComponents = new Components();
+        errorComponents.createTextDisplay({content});
+        return componentContext.editOrRespond({components: errorComponents});
+      }
+      return componentContext.editOrRespond(content);
     },
     onTimeout: async () => {
       // NotSoAI's turn is on another message and leaves this one's listener as is, it expires once the turn is done.
-      // a tagscript press re-arms this listener when it turns the buttons off, and its result brings its own or times
-      // out again, so it's skipped. after a one-time pick the buttons are already off
-      if (state === 'continuing') {
+      // a tagscript press re-arms this listener when it turns the buttons off, but one running past it (premium tags
+      // run longer than the listener lasts) expires once it's done unless its result brought its own components. after
+      // a one-time pick the buttons are already off
+      if (state === 'continuing' || state === 'executing') {
         state = 'expired';
         return;
       }
@@ -624,6 +638,8 @@ export function generateComponents(
         }
 
         state = 'executing';
+        // whether the press's result put its own components (and listener) on the message
+        let replaced = false;
         // reset in a finally, otherwise one failed parse leaves every later click doing nothing
         try {
           for (let x of components.components) {
@@ -678,9 +694,17 @@ export function generateComponents(
             true,
             {isRoot: true},
           );
-          return await createTagMessage(context, newParsedTag, '', componentContext);
+          const result = await createTagMessage(context, newParsedTag, '', componentContext);
+          replaced = !!(newParsedTag.components && newParsedTag.components.components.length);
+          return result;
         } finally {
-          state = 'idle';
+          // the listener timed out while it ran (the cast undoes the narrowing to `executing`), its onTimeout script
+          // never ran. not when the result's own components took over, their listener times out on its own
+          const timedOut = (state as ComponentsState) === 'expired';
+          state = (timedOut) ? 'expired' : 'idle';
+          if (timedOut && !replaced) {
+            await expire().catch(() => {});
+          }
         }
       };
     }

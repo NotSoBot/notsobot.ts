@@ -7,12 +7,33 @@ import { deleteCommandsResponses, fetchCommandsResponses } from '../api';
 import { COMMAND_EDIT_DURATION } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import CommandResponsesStore from '../stores/commandresponses';
-import { deleteResponses } from '../utils/commandresponses';
+import { deleteResponses, isUnknownMessageError } from '../utils/commandresponses';
 
 import { Listener } from './listener';
 
 
+// discord's limit on how old a bulk deleted message can be
+const BULK_DELETE_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
+
+
 class MessageDeleteListener extends Listener {
+  // deletes responses this handler already claimed, one by one. gives the ones still there: their claim is released so a
+  // later delete path can try again (a claim kept on a failed delete blocked every later path for good)
+  async deleteClaimedResponses(shard: ShardClient, channelId: string, responseIds: Array<string>): Promise<Array<string>> {
+    const failed: Array<string> = [];
+    for (let responseId of responseIds) {
+      try {
+        await shard.rest.deleteMessage(channelId, responseId);
+      } catch(error) {
+        if (!isUnknownMessageError(error)) {
+          CommandResponsesStore.releaseDeletion(responseId);
+          failed.push(responseId);
+        }
+      }
+    }
+    return failed;
+  }
+
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
@@ -71,36 +92,51 @@ class MessageDeleteListener extends Listener {
           }
           */
 
+          // responses whose delete failed (claim released), their triggers' rows stay for a later try
+          const failed = new Set<string>();
           // i think discord only sends up to 100 message ids at a time?
           if (bulkToDelete.length) {
             if (me.canManageMessages) {
-              for (let i = 0; i < bulkToDelete.length; i += 100) {
-                const messageIds = bulkToDelete.slice(i, i + 100);
-                // one failed chunk (already deleted, too old for bulk delete, etc) shouldn't stop the rest
-                try {
-                  if (messageIds.length === 1) {
-                    await shard.rest.deleteMessage(channelId, messageIds[0]);
-                  } else {
-                    await shard.rest.bulkDeleteMessages(channelId, messageIds);
+              // discord refuses a bulk delete with any message over 14 days old in it (a minute's margin for the request
+              // itself), those go one by one so the rest of their chunk still goes in bulk
+              const minimumTimestamp = Date.now() - BULK_DELETE_MAX_AGE + 60 * 1000;
+              const tooOld = bulkToDelete.filter((responseId) => Snowflake.timestamp(responseId) <= minimumTimestamp);
+              if (tooOld.length) {
+                for (let responseId of await this.deleteClaimedResponses(shard, channelId, tooOld)) {
+                  failed.add(responseId);
+                }
+              }
+              const recent = bulkToDelete.filter((responseId) => minimumTimestamp < Snowflake.timestamp(responseId));
+              for (let i = 0; i < recent.length; i += 100) {
+                const messageIds = recent.slice(i, i + 100);
+                if (messageIds.length === 1) {
+                  for (let responseId of await this.deleteClaimedResponses(shard, channelId, messageIds)) {
+                    failed.add(responseId);
                   }
+                  continue;
+                }
+                // one failed chunk shouldn't stop the rest, and its messages are still there: tried one by one instead
+                try {
+                  await shard.rest.bulkDeleteMessages(channelId, messageIds);
                 } catch(error) {
-
+                  for (let responseId of await this.deleteClaimedResponses(shard, channelId, messageIds)) {
+                    failed.add(responseId);
+                  }
                 }
               }
             } else {
-              for (let messageId of bulkToDelete) {
-                try {
-                  await shard.rest.deleteMessage(channelId, messageId);
-                } catch(error) {
-
-                }
+              for (let responseId of await this.deleteClaimedResponses(shard, channelId, bulkToDelete)) {
+                failed.add(responseId);
               }
             }
           }
 
           // the responses are gone now, stop storing them
-          if (results.length) {
-            const triggerIds = results.map((result) => result.message_trigger_id);
+          const deletedResults = results.filter((result) => {
+            return !failed.has(result.message_response_id) && !(result.extra_response_ids || []).some((responseId) => failed.has(responseId));
+          });
+          if (deletedResults.length) {
+            const triggerIds = deletedResults.map((result) => result.message_trigger_id);
             for (let i = 0; i < triggerIds.length; i += 100) {
               try {
                 await deleteCommandsResponses({client: shard}, {channelId, triggerIds: triggerIds.slice(i, i + 100)});
@@ -120,8 +156,9 @@ class MessageDeleteListener extends Listener {
         // the other messages its run sent that this process remembers (the api may not have them all yet), whatever age.
         // read now, the api's copy below is gone once its row is deleted
         const remembered = CommandResponsesStore.takeExtraResponses(messageId);
-        // newer triggers still have their reply in the command client's memory, the COMMAND_DELETE handler covers those
-        if (Date.now() - Snowflake.timestamp(messageId) < COMMAND_EDIT_DURATION) {
+        // newer triggers still have their reply in the command client's memory, the COMMAND_DELETE handler covers those.
+        // only ones sent since this process started: right after a restart that memory's empty, they need the api
+        if (Date.now() - Snowflake.timestamp(messageId) < COMMAND_EDIT_DURATION && CommandResponsesStore.isTracked(shard, messageId)) {
           await deleteResponses(shard, channelId, remembered);
           return;
         }
@@ -150,9 +187,10 @@ class MessageDeleteListener extends Listener {
             responseIds.add(responseId);
           }
         }
-        // already deleted ones are skipped (an edit within the window may have stored it in memory too)
-        await deleteResponses(shard, channelId, Array.from(responseIds));
-        if (!results.length) {
+        // already deleted ones are skipped (an edit within the window may have stored it in memory too). one that's still
+        // there keeps the row, so it isn't forgotten
+        const failed = await deleteResponses(shard, channelId, Array.from(responseIds));
+        if (!results.length || failed.length) {
           return;
         }
 

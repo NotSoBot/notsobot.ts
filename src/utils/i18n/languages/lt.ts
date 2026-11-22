@@ -5384,6 +5384,7 @@ export const Lithuanian: Translations = Object.freeze({
   'music_stay.stays': 'Lieka balso kanale, kai eilė baigiasi (24/7)',
   'music_tts.saying': 'Sakau dabar',
   'music_tts.saying_after': 'Pasakysiu po NotSoAI atsakymo',
+  'music_tts.too_long': 'Per ilga pasakyti per muziką, naudok eilės parinktį, kad būtų grojama kaip daina',
   'music_volume.current': 'Garsumas yra {volume}',
   'music_volume.needs_premium': 'Garsumui keisti reikia premium serverio',
   'music_volume.reset': 'Garsumas grąžintas į 100 %',

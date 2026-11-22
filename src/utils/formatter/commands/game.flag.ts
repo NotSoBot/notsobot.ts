@@ -104,6 +104,8 @@ interface GameSession {
 interface Game {
   // its start was deleted (or a prefixed trigger edited into a new run), it stopped and took its message with it
   aborted: boolean,
+  // an aborted game whose message stays: an edited trigger's new run replies in it
+  abortKeepsResponse: boolean,
   channelId: string,
   context: GameContext,
   country: Country,
@@ -190,6 +192,7 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
   const country = pickCountry(session);
   const game: Game = {
     aborted: false,
+    abortKeepsResponse: false,
     channelId,
     context,
     country,
@@ -254,9 +257,12 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
   if (game.responseId && deletedWhilePosting.includes(game.responseId)) {
     abortGame(game, false);
   }
-  // its start was deleted while the flag was going up
+  // its start was deleted while the flag was going up (its id wasn't known to delete it then). Not when a prefixed
+  // trigger was edited meanwhile, the new run replies in this same message
   if (game.aborted) {
-    deleteResponse(game);
+    if (!game.abortKeepsResponse) {
+      deleteResponse(game);
+    }
     return;
   }
   // a guess (or skip) already ended it while the response id was fetched, no timers for a finished flag
@@ -378,6 +384,7 @@ function abortGame(game: Game, keepResponse: boolean): void {
     return;
   }
   game.aborted = true;
+  game.abortKeepsResponse = keepResponse;
   cleanupGame(game);
   if (!keepResponse && game.responseId) {
     deleteResponse(game);

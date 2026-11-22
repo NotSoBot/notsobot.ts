@@ -1,4 +1,5 @@
 import { ClusterClient, ShardClient } from 'detritus-client';
+import { ClientEvents } from 'detritus-client/lib/constants';
 import { Snowflake } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
 
@@ -45,11 +46,7 @@ class DecoyBaitScheduler extends Listener {
     if (!decoy) {
       return;
     }
-    const shard = cluster.shards.find((x) => x.guilds.has(guildId)) || null;
-    if (shard && !this.swept.has(decoy.channel_id)) {
-      this.swept.add(decoy.channel_id);
-      this.sweep(shard, decoy).catch((error) => log.error(`Decoy sweep failed for ${guildId}`, error));
-    }
+    this.sweepOnce(cluster, guildId, decoy);
     if (!decoy.bait_enabled || !decoy.webhook_id || !decoy.webhook_token) {
       return;
     }
@@ -128,6 +125,21 @@ class DecoyBaitScheduler extends Listener {
     });
   }
 
+  // once per start, when its channel is loaded: the store usually loads before READY (no shard has the server yet) or
+  // between READY and its GUILD_CREATE (the server's there, its channels aren't), it was skipped or marked swept without
+  // running then. `GUILD_CREATE` tries again
+  sweepOnce(cluster: ClusterClient, guildId: string, decoy: RestResponsesRaw.GuildDecoy): void {
+    if (this.swept.has(decoy.channel_id)) {
+      return;
+    }
+    const shard = cluster.shards.find((x) => x.guilds.has(guildId) && x.channels.has(decoy.channel_id)) || null;
+    if (!shard) {
+      return;
+    }
+    this.swept.add(decoy.channel_id);
+    this.sweep(shard, decoy).catch((error) => log.error(`Decoy sweep failed for ${guildId}`, error));
+  }
+
   // anything but the notice in the last messages goes, posted while I was offline
   async sweep(shard: ShardClient, decoy: RestResponsesRaw.GuildDecoy): Promise<void> {
     const channel = shard.channels.get(decoy.channel_id);
@@ -172,6 +184,16 @@ class DecoyBaitScheduler extends Listener {
       this.schedule(cluster, guildId, decoy, true);
     };
     DecoyStore.updateListeners.add(this.updateListener);
+    {
+      // the server (and its channels) loaded after the store, its sweep waited for it. the bait timer isn't moved
+      const subscription = cluster.subscribe(ClientEvents.GUILD_CREATE, (event) => {
+        const decoy = DecoyStore.get(event.guild.id);
+        if (decoy) {
+          this.sweepOnce(cluster, event.guild.id, decoy);
+        }
+      });
+      subscriptions.push(subscription);
+    }
     // the store may have loaded before this connected
     for (let [guildId, decoy] of DecoyStore) {
       this.schedule(cluster, guildId, decoy, true);

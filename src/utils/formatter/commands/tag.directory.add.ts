@@ -43,7 +43,7 @@ export async function createMessage(
   const tagText = Markup.codestring(args.tag.name);
 
   // the user has to confirm they made the tag's content (or have its owner's permission) before it goes public
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: () => confirmer.expire(async () => {

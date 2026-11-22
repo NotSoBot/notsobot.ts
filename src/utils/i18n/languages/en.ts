@@ -5382,6 +5382,7 @@ export const English = Object.freeze({
   'music_stay.stays': 'Stays in voice when the queue ends (24/7)',
   'music_tts.saying': 'Saying it now',
   'music_tts.saying_after': 'Saying it after NotSoAI\'s answer',
+  'music_tts.too_long': 'Too long to say over the music, use the queue option to play it like a song instead',
   'music_volume.current': 'The volume is {volume}',
   'music_volume.needs_premium': 'Changing the volume needs a premium server',
   'music_volume.reset': 'Volume back to 100%',

@@ -5384,6 +5384,7 @@ export const Bulgarian: Translations = Object.freeze({
   'music_stay.stays': 'Остава в гласовия канал, когато опашката свърши (24/7)',
   'music_tts.saying': 'Казвам го сега',
   'music_tts.saying_after': 'Ще го кажа след отговора на NotSoAI',
+  'music_tts.too_long': 'Твърде дълго е, за да го кажа върху музиката, използвай опцията за опашка, за да го пуснеш като песен',
   'music_volume.current': 'Силата на звука е {volume}',
   'music_volume.needs_premium': 'Промяната на силата на звука изисква премиум сървър',
   'music_volume.reset': 'Силата на звука е върната на 100%',

@@ -354,10 +354,16 @@ export async function replaceInteractionResponse(
     throw new CommandRunCancelledError();
   }
   await prepareFiles(context, options);
-  await context.createMessage({
+  const message = await context.createMessage({
     ...options,
     allowedMentions: {parse: [], ...options.allowedMentions},
   });
+  // the response that's recorded once the run's job ends (`onFinally`), the original's deleted below: `/undo` and a
+  // trigger's delete couldn't find the result otherwise
+  if (message) {
+    context.metadata = context.metadata || {};
+    context.metadata.replacedResponseId = message.id;
+  }
   // the result is already out, a response we couldn't delete shouldn't turn into a failure
   await context.deleteResponse().catch(() => {});
 }
@@ -2062,7 +2068,13 @@ const thinkingReplyOwnEdits = new AsyncLocalStorage<ThinkingReply>();
 // a prefix command's thinking reply: sent once the command has taken `after` (`THINKING_REPLY_AFTER`), and edited
 // whenever its status changes after that. the same random thinking text stays on top. interactions get nothing, they
 // already defer. every prefix command starts one (`BaseCommand.onTypingTrigger`), slow tags and NotSoAI make their own
-// with a status line, taking over the command's (its timer, or its reply if it's already out)
+// with a status line, taking over the command's (its timer, or its reply if it's already out). the latest one going is
+// in `thinkingReplies`, the others are `stopped`:
+//   waiting  `timeout` set, nothing sent yet (`sent` false)
+//   out      `sent`, status edits go one at a time through `pending`. `held` while something else is on it (`hold`)
+//   stopped  no more edits (the run's reply is coming, or a newer one took over), `stop` waits for edits in flight
+//   replaced the command's own reply went on its message (`editOrReply`), `finishThinkingReply` leaves it alone
+// a command's own (status-less) one never takes over one with a status that's still going, see the constructor
 export class ThinkingReply {
   context: Command.Context | Interaction.InteractionContext;
   // NotSoAI continuing from a press, its thinking text goes on that press's response instead of the command's reply
@@ -2101,6 +2113,13 @@ export class ThinkingReply {
       return;
     }
     const previous = thinkingReplies.get(context);
+    // the command's own one (no status, `onTypingTrigger` 2s into the run) coming after NotSoAI's or a slow tag's already
+    // started: that one keeps the reply. taking it over dropped its status line (and setStatus/hold on it did nothing
+    // after, so its confirmation could be put back to plain "Thinking..." by this one's timer). this one does nothing
+    if (!status && previous && !previous.replaced && !previous.stopped) {
+      this.stopped = true;
+      return;
+    }
     thinkingReplies.set(context, this);
     if (previous && !previous.replaced) {
       // the same text on the same message, a second one (a tag parsed after the command's) doesn't swap it
@@ -4296,8 +4315,11 @@ export async function createMediaReplyMessage(
 // Snowflakes cannot be larger than 9223372036854775807 (according to the api)
 // discord ids are 17-20 digits right now, keep some slack on both ends. parseInt used to accept trailing garbage
 // (`123...abc`), signs and hex
+// discord refuses ids past a signed 64 bit integer (`NUMBER_TYPE_MAX`), a long number someone typed isn't one
+const SNOWFLAKE_MAX = 9223372036854775807n;
+
 export function isSnowflake(value: string): boolean {
-  return /^[1-9]\d{15,20}$/.test(value);
+  return /^[1-9]\d{15,18}$/.test(value) && BigInt(value) <= SNOWFLAKE_MAX;
 }
 
 
@@ -4492,6 +4514,7 @@ async function addPrefixSlashTip(context: Command.Context, options: Command.Edit
     }
     components.addTextDisplay({content: tip});
     prefixSlashTipDisplays.add(list[list.length - 1]);
+    markPrefixSlashTipShown(context);
     return options;
   }
   // raw components v2 we'd have to rebuild
@@ -4502,12 +4525,20 @@ async function addPrefixSlashTip(context: Command.Context, options: Command.Edit
     if (2000 < options.content.length + tip.length + 1) {
       return options;
     }
+    markPrefixSlashTipShown(context);
     return {...options, content: (options.content) ? `${options.content}\n${tip}` : tip};
   }
   if (context.response && !context.response.deleted) {
     return options;
   }
+  markPrefixSlashTipShown(context);
   return {...options, content: tip};
+}
+
+// a reply of this run went out with the tip on it (it can be left off: no room, an error reply), recorded with the
+// run's usage so who saw it can be compared with who moved to slash commands or mentions
+function markPrefixSlashTipShown(context: Command.Context): void {
+  context.metadata = Object.assign(context.metadata || {}, {prefixSlashTipShown: true});
 }
 
 

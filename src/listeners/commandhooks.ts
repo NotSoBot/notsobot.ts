@@ -5,6 +5,7 @@ import { EventSubscription } from 'detritus-utils';
 import { Listener } from './listener';
 
 import { deleteCommandsResponses } from '../api';
+import CommandResponsesStore from '../stores/commandresponses';
 import { ApiEventsSpewer } from '../apievents';
 import { connectCommandResults } from '../commandresults';
 import { connectCommandErrorReporting } from '../sentry';
@@ -38,7 +39,20 @@ class CommandHooksListener extends Listener {
           // the messages it sent besides the reply go too (the message delete listener takes the in-memory ones as well,
           // whichever is first deletes each)
           const responseIds = (reply && !reply.deleted) ? [reply.id] : [];
-          await deleteResponses(context.client, context.channelId, responseIds);
+          // edited into something that isn't a command: no MESSAGE_DELETE takes its in-memory extras (`.ai listen`'s
+          // turns), and the api row listing the rest goes below
+          if (event === ClientEvents.MESSAGE_UPDATE) {
+            for (let responseId of CommandResponsesStore.takeExtraResponses(context.messageId)) {
+              if (!responseIds.includes(responseId)) {
+                responseIds.push(responseId);
+              }
+            }
+          }
+          const failed = await deleteResponses(context.client, context.channelId, responseIds);
+          if (failed.length) {
+            // still up, its row stays so `.undo` (or the stale cleanup) can find it again
+            return;
+          }
           try {
             await deleteCommandsResponses(context, {channelId: context.channelId, triggerIds: [context.messageId]});
           } catch(error) {

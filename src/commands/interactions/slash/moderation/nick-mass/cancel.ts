@@ -1,8 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import ServerExecutionsStore from '../../../../../stores/serverexecutions';
-import { I18n, displayReply } from '../../../../../utils';
+import { Formatter, I18n, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -25,9 +24,8 @@ export class ModerationNickMassCancelCommand extends BaseInteractionCommandOptio
   }
 
   async run(context: Interaction.InteractionContext) {
-    const isExecuting = ServerExecutionsStore.getOrCreate(context.guildId!);
-    if (isExecuting.nick) {
-      isExecuting.nick = false;
+    // stops the run itself like its Stop button, clearing only the server's flag left it renaming while a new one could start
+    if (Formatter.Commands.ModerationNickMass.stopNickMassRun(context.guildId!)) {
       return displayReply(context, {description: 'Canceled mass nickname changes'});
     }
     return displayReply(context, {description: 'Mass nickname isn\'t ongoing right now'});

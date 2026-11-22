@@ -90,7 +90,7 @@ export async function createMessage(
     return displayReply(context, {description: createResultText(translator, result)});
   }
 
-  const confirmer = new Confirmer();
+  const confirmer = new Confirmer(context);
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: () => confirmer.expire(async () => {

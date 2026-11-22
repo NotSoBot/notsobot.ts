@@ -81,6 +81,12 @@ class CommandResponsesStore extends Store<string, string> {
     return true;
   }
 
+  // the claimed delete failed and the message is still there (not discord's unknown message), so a later delete path
+  // (another `.undo`, the trigger's delete) can try it again
+  releaseDeletion(responseId: string): void {
+    this.deletedResponses.delete(responseId);
+  }
+
   insertLLMResponse(responseId: string, llmResponseId: string, userId: string): void {
     this.llmResponses.set(responseId, {id: llmResponseId, userId});
   }

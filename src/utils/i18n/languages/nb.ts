@@ -5384,6 +5384,7 @@ export const Norwegian: Translations = Object.freeze({
   'music_stay.stays': 'Blir i talekanalen når køen slutter (24/7)',
   'music_tts.saying': 'Sier det nå',
   'music_tts.saying_after': 'Sier det etter NotSoAIs svar',
+  'music_tts.too_long': 'For langt til å si over musikken, bruk kø-valget for å spille det som en sang i stedet',
   'music_volume.current': 'Volumet er {volume}',
   'music_volume.needs_premium': 'Å endre volumet krever en premium-server',
   'music_volume.reset': 'Volumet er tilbake på 100 %',

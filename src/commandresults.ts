@@ -56,6 +56,39 @@ export function getCommandResult(context: ContextWithMetadata): CommandResults |
   return (context.metadata && context.metadata.result) || null;
 }
 
+// why an attempt didn't run, for its usage row next to the result. the commands set the ones only they know (no media
+// found, the usage shown), the first one sticks like the result
+export function setCommandReason(context: ContextWithMetadata, reason: string): void {
+  const metadata = context.metadata = context.metadata || {};
+  if (!metadata.reason) {
+    metadata.reason = reason;
+  }
+}
+
+// what gets recorded with `result`: nothing for a clean run, otherwise what a command set, the gate that stopped it
+// (`premium`, `rule`, `nsfw`...), its trigger being edited or deleted, or how its job ended. '' when nothing said why
+export function getRecordedCommandReason(context: ContextWithMetadata, result: CommandResults): string {
+  const metadata = context.metadata;
+  if (!metadata || result === CommandResults.RAN) {
+    return '';
+  }
+  if (metadata.reason) {
+    return metadata.reason;
+  }
+  const gate: CommandGate | undefined = metadata.gate;
+  if (gate) {
+    return gate.kind;
+  }
+  if (metadata.cancelled) {
+    return 'trigger_changed';
+  }
+  const jobState: JobRunStates | undefined = metadata.jobState;
+  if (jobState && jobState !== JobRunStates.SUCCEEDED) {
+    return `job_${jobState}`;
+  }
+  return '';
+}
+
 // what gets recorded: nothing set means it stopped before running without an event saying why (`onBefore` or
 // `onBeforeRun` returning false, a dm-only block, a hook throwing before `run`), counted as cancelled like it always was
 export function getRecordedCommandResult(context: ContextWithMetadata): CommandResults {
@@ -158,6 +191,8 @@ export class JobRun {
     if (!metadata.result || metadata.result === CommandResults.RAN) {
       metadata.result = result;
     }
+    // the last job's, for the usage row's reason (`getRecordedCommandReason`)
+    metadata.jobState = state;
     if (metadata.jobRuns) {
       metadata.jobRuns.delete(this);
     }

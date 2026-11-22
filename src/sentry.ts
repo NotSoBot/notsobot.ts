@@ -68,29 +68,43 @@ const NETWORK_ERROR_MESSAGES: ReadonlyArray<[string, string]> = [
   ['Opening handshake has timed out', 'WS_HANDSHAKE_TIMEOUT'],
 ];
 
-// fingerprint -> when it was last sent
-const lastSentAt = new Map<string, number>();
+// kept on the process instead of this module (like metrics.ts' counters): an owner `.refresh` reloads this file but not
+// bot.ts or apievents.ts, which keep calling the first copy. With the storage per copy, the reloaded command clients ran
+// commands in the new one while bot.ts' rest response reporting read the old one, so every rest error after a refresh
+// lost its command, and the throttles/api down state were split in two
+interface SentryState {
+  // when this process first saw the api unreachable (a failed events connection or a 502 from it), until it answers again
+  apiUnreachableSince: number | null,
+  // the command whose run we're in, so errors reported away from it (rest responses) can still say which command it was
+  commandContextStorage: AsyncLocalStorage<SentryCommandContext>,
+  // the component listener -> the command it was registered under, see `connectComponentCommandContext()`
+  componentListenerContexts: WeakMap<object, SentryCommandContext>,
+  // fingerprint -> when it was last sent
+  lastSentAt: Map<string, number>,
+}
 
-// the command whose run we're in, so errors reported away from it (rest responses) can still say which command it was
-const commandContextStorage = new AsyncLocalStorage<SentryCommandContext>();
+const state: SentryState = (globalThis as any).notsobotSentryState = (globalThis as any).notsobotSentryState || {
+  apiUnreachableSince: null,
+  commandContextStorage: new AsyncLocalStorage<SentryCommandContext>(),
+  componentListenerContexts: new WeakMap<object, SentryCommandContext>(),
+  lastSentAt: new Map<string, number>(),
+};
+const { commandContextStorage, componentListenerContexts, lastSentAt } = state;
 
-
-// when this process first saw the api unreachable (a failed events connection or a 502 from it), until it answers again
-let apiUnreachableSince: number | null = null;
 
 export function markApiUnreachable(): void {
-  if (apiUnreachableSince === null) {
-    apiUnreachableSince = Date.now();
+  if (state.apiUnreachableSince === null) {
+    state.apiUnreachableSince = Date.now();
   }
 }
 
 export function markApiReachable(): void {
-  apiUnreachableSince = null;
+  state.apiUnreachableSince = null;
 }
 
 // unreachable for less than a deploy takes, not worth an event yet (the bot retries on its own)
 export function isApiRestarting(): boolean {
-  return apiUnreachableSince !== null && Date.now() - apiUnreachableSince < API_RESTART_GRACE;
+  return state.apiUnreachableSince !== null && Date.now() - state.apiUnreachableSince < API_RESTART_GRACE;
 }
 
 
@@ -110,7 +124,6 @@ export function getCommandContext(): SentryCommandContext | undefined {
 // timeout timer is started inside `insert` so it inherits it too, and a listener a click registers (the next result's
 // picker) gets the same one
 const COMPONENT_HANDLER_WRAPPED = Symbol.for('notsobot.sentry.componentHandlerWrapped');
-const componentListenerContexts = new WeakMap<object, SentryCommandContext>();
 
 export function connectComponentCommandContext(shard: ShardClient): void {
   const handler: any = shard.gatewayHandler._handlers.component;
@@ -122,6 +135,13 @@ export function connectComponentCommandContext(shard: ShardClient): void {
 
   const insert = handler.insert.bind(handler);
   handler.insert = (listener: any) => {
+    // detritus drops what a button's `run` throws when neither it nor its listener has an `onError` (a mass nick edit
+    // failing left its progress message stuck with nothing reported), those get reported like a command's error
+    if (listener && typeof(listener.onError) !== 'function') {
+      listener.onError = (_context: unknown, error: any) => {
+        captureCommandError(componentListenerContexts.get(listener), error, 'component');
+      };
+    }
     const context = commandContextStorage.getStore() || componentListenerContexts.get(listener);
     if (!context) {
       return insert(listener);
@@ -240,8 +260,12 @@ export function captureUnhandledError(error: unknown, type: 'onuncaughtexception
 
 // a command's `onRunError`, http errors were already reported by `captureRestResponse` and the rest are user facing
 // (cancelled runs are skipped by the caller). tag errors are the tag's own doing, like its code's `console.error`
-export function captureCommandError(context: SentryCommandContext, error: any, source: string = 'command_run'): void {
+export function captureCommandError(context: SentryCommandContext | undefined, error: any, source: string = 'command_run'): void {
   if (!error || error.response || isTagError(error)) {
+    return;
+  }
+  // detritus' own errors for what isn't a failure, like a paginator's channel not letting us send (in or out of the run)
+  if (EXPECTED_COMMAND_ERROR_MESSAGES.includes(error.message)) {
     return;
   }
   // the reply already says what's wrong (bad input, a disabled feature), or a newer run took over (also seen through
@@ -280,9 +304,6 @@ const EXPECTED_COMMAND_ERROR_MESSAGES: ReadonlyArray<string> = [
 export function connectCommandErrorReporting(client: CommandClient | InteractionCommandClient): Array<EventSubscription> {
   return [
     client.subscribe(ClientEvents.COMMAND_ERROR, ({context, error}: {context: SentryCommandContext, error: any}) => {
-      if (error && EXPECTED_COMMAND_ERROR_MESSAGES.includes(error.message)) {
-        return;
-      }
       captureCommandError(context, error, 'command_error');
     }),
     client.subscribe(ClientEvents.COMMAND_FAIL, ({context, error}: {context: SentryCommandContext, error: any}) => {
@@ -295,12 +316,17 @@ export function connectCommandErrorReporting(client: CommandClient | Interaction
 // discord's non-ok responses, minus the expected ones (missing/deleted things, no permissions, ratelimits the lib retries)
 const IGNORED_DISCORD_STATUSES: ReadonlyArray<number> = [403, 404, 429];
 // discord error codes that are the user's or server's doing: the user has DMs closed (like a ban's DM), or the server's
-// AutoMod blocked the message (its content or its title), or opening dms too fast (a 400, reminders retry it later).
-// still sent so they can be tracked, but as info and one issue per code instead of errors
-const EXPECTED_DISCORD_ERROR_CODES: ReadonlyArray<number> = [40003, 50007, 200000, 200001];
+// AutoMod blocked the message (its content or its title), opening dms too fast (a 400, reminders retry it later), or
+// an interaction already acknowledged (40060: discord answered a callback with a 5xx but took it, the retry is the
+// second one, the reply is already up). still sent so they can be tracked, but as info and one issue per code
+const EXPECTED_DISCORD_ERROR_CODES: ReadonlyArray<number> = [40003, 40060, 50007, 200000, 200001];
 // our api's own error responses are user facing (invalid tag, media too big, etc..), only its 5xx and responses without a
 // coded body are bugs. 502 and 520-523 without a body is the api restarting or cloudflare not reaching it
 const API_DOWN_STATUSES: ReadonlyArray<number> = [502, 520, 521, 522, 523];
+// discord's "Invalid Form Body" (a value it won't take, the `errors` say which)
+const DISCORD_INVALID_FORM_BODY = 50035;
+// the commands that send what a custom tag's script made
+const TAG_RUNNING_COMMANDS: ReadonlyArray<string> = ['tag.random', 'tag.show', 'tag.show.custom.command'];
 
 // webhook and interaction urls have their token in the path (`/webhooks/:id/:token`, `/interactions/:id/:token/callback`),
 // a logger's webhook token never expires and lets anyone post in that channel. interaction followups are under webhooks
@@ -331,6 +357,18 @@ export function captureRestResponse(options: {
       return;
     }
     const code = getErrorBodyCode(body);
+    // a custom tag's own output that discord won't take (an embed missing its field values, a color out of range,
+    // content over 2000), the tag's author has to fix it and the reply says why. one issue, as info
+    if (status === 400 && code === DISCORD_INVALID_FORM_BODY && context && TAG_RUNNING_COMMANDS.includes(getCommandId(context) || '')) {
+      captureError(new RestResponseError('Discord', status, method, route, code), {
+        context,
+        extra,
+        fingerprint: ['discord-rest-tag-output'],
+        level: 'info',
+        tags: {...tags, 'discord.code': code},
+      });
+      return;
+    }
     if (code !== null && EXPECTED_DISCORD_ERROR_CODES.includes(code)) {
       captureError(new RestResponseError('Discord', status, method, route, code), {
         context,
@@ -353,6 +391,11 @@ export function captureRestResponse(options: {
 
   const hasErrorCode = isCodedApiErrorBody(body);
   if (status < 500 && hasErrorCode) {
+    return;
+  }
+  // a service the api switched off on purpose (its `API_ML_DISABLED`, while a gpu is down) answers 503 with
+  // `disabled: true` to every request for it, the reply already says it's temporarily disabled
+  if (isDisabledServiceBody(body)) {
     return;
   }
   if (API_DOWN_STATUSES.includes(status) && !hasErrorCode) {
@@ -408,6 +451,31 @@ function isCodedApiErrorBody(body: string): boolean {
 }
 
 
+function isDisabledServiceBody(body: string): boolean {
+  try {
+    const information = JSON.parse(body);
+    return !!information && typeof(information) === 'object' && information.disabled === true;
+  } catch(error) {
+    return false;
+  }
+}
+
+
+// the command's id as it's tagged in sentry (`command`)
+function getCommandId(context: SentryCommandContext): string | null {
+  if (context instanceof Command.Context) {
+    const command = context.command;
+    return (command) ? command.metadata.id || command.fullName.split(' ').join('.') : null;
+  }
+  if (context instanceof Interaction.InteractionAutoCompleteContext) {
+    return context.name.split(' ').join('.');
+  }
+  const invoker = context.invoker;
+  const metadata = (invoker && invoker.metadata) || {};
+  return metadata.id || context.name.split(' ').join('.');
+}
+
+
 function applyCommandContext(scope: Sentry.Scope, context: SentryCommandContext): void {
   // a user's data deletion request has to cover sentry too, this is what lets them be found (`user.id:<id>`), see
   // notsobot.api `views/me.py`
@@ -420,26 +488,22 @@ function applyCommandContext(scope: Sentry.Scope, context: SentryCommandContext)
     scope.setTag('channel_id', context.channelId);
   }
 
+  const commandId = getCommandId(context);
+  if (commandId) {
+    scope.setTag('command', commandId);
+  }
   if (context instanceof Command.Context) {
-    const command = context.command;
     scope.setTag('command.type', 'prefixed');
-    if (command) {
-      scope.setTag('command', command.metadata.id || command.fullName.split(' ').join('.'));
-    }
     scope.setContext('command', {message_id: context.messageId});
   } else if (context instanceof Interaction.InteractionAutoCompleteContext) {
     scope.setTag('command.type', 'autocomplete');
-    scope.setTag('command', context.name.split(' ').join('.'));
     scope.setContext('command', {
       interaction_id: context.interactionId,
       name: context.name,
       option: (context.option) ? context.option.name : null,
     });
   } else {
-    const invoker = context.invoker;
-    const metadata = (invoker && invoker.metadata) || {};
     scope.setTag('command.type', 'interaction');
-    scope.setTag('command', metadata.id || context.name.split(' ').join('.'));
     // which options were given, not what was given
     scope.setContext('command', {
       interaction_id: context.interactionId,

@@ -67,7 +67,7 @@ export async function createMessage(
       if (shouldShowInput) {
         // 1024 - 10 ('```\n\n```')
         const parts = splitTextByAmount(text, 1014, '');
-        payload.fields!.push({name: fromLanguageTitle, value: Markup.codeblock(parts.shift() as string)});
+        payload.fields!.push({name: fromLanguageTitle, value: Markup.codeblock(parts.shift() || '')});
         for (let part of parts) {
           payload.fields!.push({name: '\u200b', value: Markup.codeblock(part)});
         }
@@ -81,7 +81,7 @@ export async function createMessage(
           // it's still the input text, google didn't translate it
           title = fromLanguageTitle;
         }
-        payload.fields!.push({name: title, value: Markup.codeblock(parts.shift() as string)});
+        payload.fields!.push({name: title, value: Markup.codeblock(parts.shift() || '')});
         for (let part of parts) {
           payload.fields!.push({name: '\u200b', value: Markup.codeblock(part)});
         }

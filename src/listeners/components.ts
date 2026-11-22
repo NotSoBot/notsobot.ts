@@ -21,6 +21,7 @@ import { RedisPayloads } from '../types';
 import { I18n, editOrReply, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
 import { MediaReplyEmbedFooter, createHostedExpiresText } from '../utils/tools';
 import {
+  deliverUndeliveredGuildReportMessages,
   onGuildReportComponent,
   onGuildReportMessageCreate,
   onGuildReportMuteComponent,
@@ -48,6 +49,20 @@ const REUPLOAD_DOWNLOAD_TIMEOUT = 5 * 60 * 1000;
 
 
 class ComponentsListener extends Listener {
+  // the guild report replies missed while this process was down went out (`catchUpReportReplies`)
+  reportRepliesCaughtUp = false;
+
+  // once per process, from the cluster's startup when it's ready (a `.refresh` doesn't run it again)
+  catchUpReportReplies(cluster: ClusterClient): void {
+    if (this.reportRepliesCaughtUp) {
+      return;
+    }
+    this.reportRepliesCaughtUp = true;
+    deliverUndeliveredGuildReportMessages(cluster).catch((error) => {
+      log.error('Failed to catch up on guild report replies', error);
+    });
+  }
+
   componentsProcessing = new Collections.BaseSet<string>();
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
@@ -342,12 +357,19 @@ class ComponentsListener extends Listener {
       // its attachments stay (and keep their names), the new ones get names none of them have
       const usedFilenames = new Set(message.attachments.map((attachment) => attachment.filename.toLowerCase()));
       const uploads = new Map<string, {file: RequestTypes.File, storage: RestResponsesRaw.FileResponseStorage}>();
-      await Promise.all(fits.map(async (storage) => {
+      // every download settles before the temp files are removed below: one failing rejected `Promise.all` straight
+      // away, the rest kept writing files nothing removed anymore (and the lock was let go for another click)
+      const downloads = await Promise.allSettled(fits.map(async (storage) => {
         const filepath = await createTempFilePath(clusterId, 'reupload');
         filepaths.push(filepath);
         const value = await downloadStorageToBlob(context, storage, filepath);
         uploads.set(storage.id, {file: {contentType: storage.metadata.mimetype, filename: '', value}, storage});
       }));
+      for (let download of downloads) {
+        if (download.status === 'rejected') {
+          throw download.reason;
+        }
+      }
       for (let storage of fits) {
         uploads.get(storage.id)!.file.filename = uniqueFilename(storage.filename_safe, usedFilenames);
       }

@@ -105,6 +105,15 @@ export async function createVoiceMessage(context: Command.Context, prompt: strin
   const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate));
   try {
     return await generateAndRunTag(context, {prompt}, thinking, undefined, voice);
+  } catch(error) {
+    // the run finished long ago, nothing else deletes a turn's "Thinking..." an api error (credits, a ratelimit) left
+    // up: it was filed with the command's extras and the error posted under it
+    await thinking.stop();
+    const message = thinking.message;
+    if (message && !thinking.replaced && !message.deleted) {
+      await message.delete().catch(() => null);
+    }
+    throw error;
   } finally {
     await thinking.stop();
   }
@@ -456,7 +465,7 @@ async function generateAndRunTag(
       [TagFormatter.PrivateVariables.SETTINGS]: {
         [TagFormatter.TagSettings.AI_MODEL]: args.model,
       },
-    } as any, {confirmAction});
+    } as any, {aiMemoryIds: response.memory_ids, confirmAction});
 
     // always say when NotSoAI changed what it remembers, instead of trusting it to mention it
     const memoryChanges = TagFormatter.getAIMemoryChanges(parsedTag);

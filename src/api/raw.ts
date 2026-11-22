@@ -178,25 +178,34 @@ function isRetryableMethodPath(method: string, path: string): boolean {
 // option, both are set on the `RestRequest` its `request` event hands out before sending
 const API_HOST = new URL(Api.URL).host;
 const API_PATH_PREFIX = Api.PATH;
-const restClientsWithLimitedRetries = new WeakSet<object>();
+// the listener a shard's rest client has, on the client itself: an owner `.refresh` reloads this file, a set of the
+// clients kept here started empty again and every refresh added one more listener (each holding on to its copy of this
+// module). a reloaded copy swaps its own listener in instead
+const API_RETRIES_LISTENER = Symbol.for('notsobot.api.retriesListener');
 function preventApiWriteRetries(client: ShardClient) {
-  const raw = client.rest.raw;
-  if (restClientsWithLimitedRetries.has(raw)) {
+  const raw = client.rest.raw as any;
+  const listener = raw[API_RETRIES_LISTENER];
+  if (listener === limitApiRetries) {
     return;
   }
-  restClientsWithLimitedRetries.add(raw);
-  raw.on(RestEvents.REQUEST, ({ request, restRequest }: {request: any, restRequest: any}) => {
-    const url: URL = request.parsedUrl;
-    if (url.host !== API_HOST) {
-      return;
-    }
-    const path = (url.pathname.startsWith(API_PATH_PREFIX)) ? url.pathname.slice(API_PATH_PREFIX.length) : url.pathname;
-    if (!isRetryableMethodPath(String(request.method).toUpperCase(), path)) {
-      restRequest.maxRetries = 0;
-    }
-    // beta.39's `shouldRetryStatus` still allows a 502 for anything, the other statuses and drops need `isIdempotent`
-    Object.defineProperty(restRequest, 'isIdempotent', {configurable: true, value: false});
-  });
+  if (listener) {
+    raw.removeListener(RestEvents.REQUEST, listener);
+  }
+  raw[API_RETRIES_LISTENER] = limitApiRetries;
+  raw.on(RestEvents.REQUEST, limitApiRetries);
+}
+
+function limitApiRetries({ request, restRequest }: {request: any, restRequest: any}): void {
+  const url: URL = request.parsedUrl;
+  if (url.host !== API_HOST) {
+    return;
+  }
+  const path = (url.pathname.startsWith(API_PATH_PREFIX)) ? url.pathname.slice(API_PATH_PREFIX.length) : url.pathname;
+  if (!isRetryableMethodPath(String(request.method).toUpperCase(), path)) {
+    restRequest.maxRetries = 0;
+  }
+  // beta.39's `shouldRetryStatus` still allows a 502 for anything, the other statuses and drops need `isIdempotent`
+  Object.defineProperty(restRequest, 'isIdempotent', {configurable: true, value: false});
 }
 
 
@@ -432,12 +441,20 @@ export async function createUserCommand(
   const body = {
     channel_id: options.channelId,
     command_type: options.commandType,
+    context: options.contextType || undefined,
+    duration: options.duration,
+    edited: options.edited || undefined,
     extra_response_ids: (options.extraResponseIds && options.extraResponseIds.length) ? options.extraResponseIds : undefined,
     guild_id: options.guildId,
+    install: options.install || undefined,
     llm_response_id: options.llmResponseId,
+    locale: options.locale || undefined,
     message_response_id: options.messageResponseId,
     message_trigger_id: options.messageTriggerId,
+    reason: options.reason || undefined,
     result: options.result,
+    tip: options.tip || undefined,
+    trigger: options.trigger || undefined,
   };
   const params = {userId, command};
   return request(context, {
@@ -835,9 +852,14 @@ export async function deleteUserLLMMemory(
   context: RequestContext,
   userId: string,
   position: number | string,
+  options: RestOptions.DeleteUserLLMMemory = {},
 ): Promise<RestResponsesRaw.DeleteUserLLMMemory> {
+  const query = {
+    id: options.id,
+  };
   const params = {userId, position};
   return request(context, {
+    query,
     route: {
       method: HTTPMethods.DELETE,
       path: Api.USER_LLM_MEMORY,
@@ -1190,6 +1212,7 @@ export async function editUserLLMMemory(
 ): Promise<RestResponsesRaw.EditUserLLMMemory> {
   const body = {
     content: options.content,
+    id: options.id,
   };
   const params = {userId, position};
   return request(context, {
@@ -1492,6 +1515,23 @@ export async function deleteGuildDecoy(
     route: {
       method: HTTPMethods.POST,
       path: Api.GUILD_DECOY_DELETE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function adoptGuildDecoyNotice(
+  context: RequestContext,
+  guildId: string,
+  userId: string,
+  messageId: string,
+): Promise<RestResponsesRaw.AdoptGuildDecoyNotice> {
+  return request(context, {
+    body: {message_id: messageId, user_id: userId},
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_DECOY_NOTICE_ADOPT,
       params: {guildId},
     },
   });
@@ -1926,6 +1966,26 @@ export async function deleteGuildTimedBan(
 }
 
 
+export async function postGuildTimedBanLifted(
+  context: RequestContext,
+  guildId: string,
+  userId: string,
+  options: RestOptions.PostGuildTimedBanLifted,
+): Promise<RestResponsesRaw.PostGuildTimedBanLifted> {
+  const body = {
+    timed_ban_id: options.timedBanId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_TIMED_BAN_LIFTED,
+      params: {guildId, userId},
+    },
+  });
+}
+
+
 export async function deleteGuildTimedBans(
   context: RequestContext,
   guildId: string,
@@ -2174,6 +2234,34 @@ export async function createGuildReportMessage(
       method: HTTPMethods.POST,
       path: Api.GUILD_REPORT_MESSAGES,
       params: {guildId, reportId},
+    },
+  });
+}
+
+
+export async function postGuildReportMessageDelivered(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  messageId: string,
+): Promise<RestResponsesRaw.PostGuildReportMessageDelivered> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_REPORT_MESSAGE_DELIVERED,
+      params: {guildId, messageId, reportId},
+    },
+  });
+}
+
+
+export async function fetchGuildReportMessagesUndelivered(
+  context: RequestContext,
+): Promise<RestResponsesRaw.FetchGuildReportMessagesUndelivered> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_REPORT_MESSAGES_UNDELIVERED,
     },
   });
 }
@@ -15829,16 +15917,17 @@ export async function utilitiesFetchText(
   options: RestOptions.UtilitiesFetchText,
 ): Promise<Response> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
+  // a body instead of a query, a tag's long url url encoded can be over nginx's uri limit (414)
+  const body = {
     max_file_size: maxFileSize,
     strip_html: options.stripHtml,
     url: options.url,
   };
   return request(context, {
+    body,
     dataOnly: false,
-    query,
     route: {
-      method: HTTPMethods.GET,
+      method: HTTPMethods.POST,
       path: Api.UTILITIES_FETCH_TEXT,
     },
   });

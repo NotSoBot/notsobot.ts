@@ -110,6 +110,23 @@ export namespace RestOptions {
     messageResponseId?: string,
     messageTriggerId?: string,
     result?: string,
+    // the rest is only for the usage stats (the api's `UserCommandUse`)
+    // where it was used: guild, bot_dm or private_channel
+    contextType?: string,
+    // milliseconds, through its job's end
+    duration?: number,
+    // editing the message ran it
+    edited?: boolean,
+    // which install it came through: guild or user
+    install?: string,
+    // the reply's language
+    locale?: string,
+    // why it didn't run (`getRecordedCommandReason`)
+    reason?: string,
+    // the reply had the prefix commands ending tip
+    tip?: boolean,
+    // auto_embed or ai_reply when nobody typed the command
+    trigger?: string,
   }
 
   // the server's saved font (the caller checked Manage Server) with `guildId`, the user's own without it
@@ -168,6 +185,11 @@ export namespace RestOptions {
   export interface DeleteTagSearch {
     name: string,
     serverId?: string,
+  }
+
+  export interface DeleteUserLLMMemory {
+    // the memory the prompt showed at the position (`GenerateTag.memory_ids`), the api acts on it instead
+    id?: string,
   }
 
   export interface DeleteTagVariable {
@@ -305,6 +327,8 @@ export namespace RestOptions {
 
   export interface EditUserLLMMemory {
     content: string,
+    // the memory the prompt showed at the position (`GenerateTag.memory_ids`), the api acts on it instead
+    id?: string,
   }
 
   export interface EditUserSettings {
@@ -405,6 +429,11 @@ export namespace RestOptions {
   export interface DeleteGuildTimedBan {
     // only delete it if it's still this one
     timedBanId?: string,
+  }
+
+  // the scheduler unbanned them, before it deletes the row (marked once, only while it's still this one)
+  export interface PostGuildTimedBanLifted {
+    timedBanId: string,
   }
 
   export interface DeleteGuildTimedBans {
@@ -2863,6 +2892,19 @@ export namespace RestResponsesRaw {
 
   export type DeleteGuildTimedBan = null;
 
+  export type PostGuildTimedBanLifted = TimedBan;
+
+  // false when someone (another cluster, the live event or a catch-up) already delivered it
+  export interface PostGuildReportMessageDelivered {
+    claimed: boolean,
+  }
+
+  // replies no cluster delivered in the last 15 minutes, oldest first (100 at most), each like its
+  // `GUILD_REPORT_MESSAGE_CREATE` event
+  export interface FetchGuildReportMessagesUndelivered {
+    messages: Array<{log_messages: Array<GuildReportLogMessage>, message: GuildReportMessage, report: GuildReport}>,
+  }
+
   export interface DeleteGuildTimedBans {
     timed_bans: Array<TimedBan>,
   }
@@ -3116,6 +3158,14 @@ export namespace RestResponsesRaw {
 
   export type EditGuildDecoy = PutGuildDecoy;
 
+  // `adopted` false: they weren't the one waited on anymore (a second post, or the bot's notice put back meanwhile)
+  export interface AdoptGuildDecoyNotice {
+    adopted: boolean,
+    decoy: GuildDecoy,
+    // the notice it replaced, to delete (read under the api's lock, the cached copy can be a step behind)
+    previous_message_id: null | string,
+  }
+
   export interface DeleteGuildDecoy {
     removed: boolean,
   }
@@ -3150,6 +3200,8 @@ export namespace RestResponsesRaw {
   export interface TimedBan {
     guild_id: string,
     id: string,
+    // the scheduler unbanned them (its delete hasn't gone through): only deleted, never unbanned again. Missing on an old api
+    lifted_at?: null | string,
     moderator_id: string,
     timestamp_end: string,
     user_id: string,
@@ -3259,6 +3311,9 @@ export namespace RestResponsesRaw {
     // replies between the reporter and the moderators (not status changes), and who sent the last one
     last_reply?: {author: 'moderator' | 'reporter', created: string} | null,
     replies?: number,
+    // bumped by every write to it (not by reply counts), a snapshot older than one already drawn is dropped. Missing on an
+    // old api
+    version?: number,
   }
 
   // false when the image wasn't kept (the report already has one, or it's too old). a message report's quote also comes
@@ -3583,6 +3638,9 @@ export namespace RestResponsesRaw {
     credits_alert?: CreditsAlert,
     external_id: string,
     id?: string,
+    // the ids of the memories the prompt listed, in its order (position 1 is the first), only when it had them. an
+    // older api leaves it out
+    memory_ids?: Array<string>,
     model: string,
     // `answer`, `tagscript`, `mixed` or `legacy` (the model ignored the block format)
     output_kind?: string,

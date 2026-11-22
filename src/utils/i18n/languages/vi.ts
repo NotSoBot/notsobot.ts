@@ -5384,6 +5384,7 @@ export const Vietnamese: Translations = Object.freeze({
   'music_stay.stays': 'Ở lại kênh thoại khi hàng chờ hết (24/7)',
   'music_tts.saying': 'Đang nói ngay',
   'music_tts.saying_after': 'Sẽ nói sau câu trả lời của NotSoAI',
+  'music_tts.too_long': 'Quá dài để nói đè lên nhạc, hãy dùng tùy chọn hàng chờ để phát như một bài hát',
   'music_volume.current': 'Âm lượng là {volume}',
   'music_volume.needs_premium': 'Đổi âm lượng cần máy chủ premium',
   'music_volume.reset': 'Âm lượng đã về 100%',

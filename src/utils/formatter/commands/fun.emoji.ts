@@ -6,6 +6,7 @@ import { regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import { CUSTOM } from '../../../api/endpoints';
+import { JobError } from '../../../api/errors';
 import { EmojiTypes, EmojiTypesToText, Mimetypes, StatusEmojis } from '../../../constants';
 import { displayReply, jobReply, jobWaitForResult, toCodePoint, toCodePointForTwemoji } from '../../../utils';
 import { getTranslator } from '../../i18n';
@@ -139,7 +140,8 @@ export async function createMessage(
               value: (file.value) ? Buffer.from(file.value, 'base64') : Buffer.alloc(0),
             });
           } else if (job.result.error) {
-            throw new Error(`Emoji Resize Job Failed: ${job.result.error}`);
+            // translated from its code like any other failed job (a twemoji the cdn doesn't have isn't an svg)
+            throw new JobError(job);
           } else {
             throw new Error('Emoji Resize Job Failed for some reason');
           }
