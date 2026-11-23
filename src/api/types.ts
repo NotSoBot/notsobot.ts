@@ -2459,6 +2459,10 @@ export namespace RestOptions {
     steps?: number,
   }
 
+  export interface UtilitiesMLInterrogate extends MediaBaseOptions {
+    model?: string,
+  }
+
   export interface UtilitiesMLMashup extends MediaBaseOptionsMultiple {
     model?: string,
     seed?: number,
@@ -4805,6 +4809,7 @@ export namespace RestResponsesRaw {
   }
 
   export interface UtilitiesMLInterrogate {
+    model: string,
     prompt: string,
   }
 

@@ -24,6 +24,7 @@ import { MusicSkipCommand } from './skip';
 import { MusicSpeedCommand } from './speed';
 import { MusicStatsCommand } from './stats';
 import { MusicStayCommand } from './stay';
+import { MusicStopCommand } from './stop';
 import { MusicVoteGroupCommand } from './vote';
 import { MusicVolumeCommand } from './volume';
 
@@ -67,6 +68,7 @@ export default class MusicCommand extends BaseSlashCommand {
         new MusicSkipCommand(),
         new MusicSpeedCommand(),
         new MusicStatsCommand(),
+        new MusicStopCommand(),
         new MusicVoteGroupCommand(),
         new MusicVolumeCommand(),
       ],

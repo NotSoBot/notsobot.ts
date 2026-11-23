@@ -16067,9 +16067,10 @@ export async function utilitiesMLImagine(
 
 export async function utilitiesMLInterrogate(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.UtilitiesMLInterrogate,
 ): Promise<RestResponsesRaw.UtilitiesMLInterrogate> {
   const query = {
+    model: options.model,
     url: options.url,
   };
   return request(context, {

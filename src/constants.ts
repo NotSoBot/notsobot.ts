@@ -2300,6 +2300,18 @@ export const MLDiffusionModelsToText = Object.freeze({
 });
 
 
+// api-ml-interrogate's models (the api's `MLInterrogateModels`)
+export enum MLInterrogateModels {
+  CLIP = 'CLIP',
+  FLORENCE = 'FLORENCE',
+}
+
+export const MLInterrogateModelsToText = Object.freeze({
+  [MLInterrogateModels.CLIP]: 'CLIP Interrogator (Prompt Tags)',
+  [MLInterrogateModels.FLORENCE]: 'Florence-2 (Detailed)',
+});
+
+
 export enum ProxyRequestMethods {
   DELETE = 'DELETE',
   GET = 'GET',

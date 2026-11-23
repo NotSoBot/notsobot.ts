@@ -108,6 +108,7 @@ import {
   Mimetypes,
   MLDiffusionModels,
   MLDiffusionModelsToText,
+  MLInterrogateModels,
   ProxyRequestMethods,
   ReportTypes,
   ScreenshotBrowsers,
@@ -6107,7 +6108,19 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.IMAGE_INTERROGATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // interrogate an image
-    // {interrogate:cake}
+    // {interrogate:cake} {interrogate:cake|clip} {interrogate:|clip} (last image)
+
+    // only a last part that's a model counts, a `|` in the url stays part of it
+    let model: MLInterrogateModels | undefined;
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const parts = split(arg);
+      const insensitive = parts[parts.length - 1].trim().toUpperCase();
+      if ((Object.values(MLInterrogateModels) as Array<string>).includes(insensitive)) {
+        model = insensitive as MLInterrogateModels;
+        parts.pop();
+        arg = parts.join(TagSymbols.SPLITTER_ARGUMENT);
+      }
+    }
 
     increaseNetworkRequests(tag);
 
@@ -6130,7 +6143,7 @@ const ScriptTags = Object.freeze({
 
     if (url) {
       try {
-        const response = await withDeadline(context, tag, () => utilitiesMLInterrogate(context, {url}));
+        const response = await withDeadline(context, tag, () => utilitiesMLInterrogate(context, {model, url}));
         tag.text += response.prompt;
       } catch(error) {
 

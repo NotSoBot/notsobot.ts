@@ -6113,7 +6113,7 @@ export async function utilitiesMLImagine(
 
 export async function utilitiesMLInterrogate(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.UtilitiesMLInterrogate,
 ) {
   return raw.utilitiesMLInterrogate(context, options);
 }

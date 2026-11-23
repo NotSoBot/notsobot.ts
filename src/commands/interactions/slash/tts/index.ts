@@ -7,6 +7,7 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { TTSGenerateCommand } from './generate';
 import { TTSPlayCommand } from './play';
+import { TTSStopCommand } from './stop';
 import { TTSVoiceGroupCommand } from './voice';
 import { TTSVoiceServerGroupCommand } from './voice-server';
 
@@ -31,6 +32,7 @@ export default class TTSCommand extends BaseSlashCommand {
       options: [
         new TTSGenerateCommand(),
         new TTSPlayCommand(),
+        new TTSStopCommand(),
         new TTSVoiceGroupCommand(),
         new TTSVoiceServerGroupCommand(),
       ],

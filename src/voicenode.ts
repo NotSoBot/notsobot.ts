@@ -948,6 +948,10 @@ export class VoiceNodeClient extends EventSpewer {
   // the clips sent to the node and not ended yet (`SPEAK_END`), by guild then id, with when they were sent. One whose end
   // never came (a node failover) stops counting after `SPEECH_UNENDED_MAX`
   private speechSent = new Map<string, Map<string, number>>();
+  // by clip id, told once when that clip is over (`SPEAK_END` whatever the reason, or `stopSpeech` taking it out of what
+  // was held). One whose end never comes (we left with it held, a node failover, this file reloaded) is never told,
+  // whoever listens gives up by itself (`tts play`'s Stop button has its own timeout)
+  private speechEndListeners = new Map<string, () => void>();
   // by queue item id (oldest first), told the node's error when it couldn't play that item (until the item ends, we
   // leave or `TRACK_ERROR_LISTEN_FOR`)
   trackErrorListeners = new Map<string, {addedAt: number, guildId: string, listener: (error: string) => void}>();
@@ -2337,6 +2341,7 @@ export class VoiceNodeClient extends EventSpewer {
         if (event.data.reason !== 'finished') {
           log.debug(`voice node speech ${guildId} ${event.data.id} ${event.data.reason}`);
         }
+        this.speechEnded(event.data.id);
         // the idle wait counts from when the speech ended, not from when it was sent (a long clip)
         const speakingGuild = this.guilds.get(guildId);
         if (speakingGuild) {
@@ -2578,6 +2583,91 @@ export class VoiceNodeClient extends EventSpewer {
       return stopping;
     }
     this.endSpeechTurn(guildId);
+  }
+
+  // the clips whose id starts with `prefix` that aren't over: being said, waiting their turn on the node, or held for
+  // NotSoAI's answer
+  speechIds(guildId: string, prefix: string = ''): Array<string> {
+    const ids: Array<string> = [];
+    const sent = this.speechSent.get(guildId);
+    if (sent) {
+      const now = Date.now();
+      for (const [id, at] of sent) {
+        if (now - at <= SPEECH_UNENDED_MAX && id.startsWith(prefix)) {
+          ids.push(id);
+        }
+      }
+    }
+    const turn = this.speechTurns.get(guildId);
+    if (turn) {
+      for (const clip of turn.held) {
+        if (clip.id.startsWith(prefix)) {
+          ids.push(clip.id);
+        }
+      }
+    }
+    return ids;
+  }
+
+  // stops the speech whose id starts with `prefix` (`tts stop`). What's held for NotSoAI's answer just isn't sent. On
+  // the node there's only stopping all of it (`speak: null`), so with one of them there everything said stops: other
+  // prefixes' clips waiting behind it too (NotSoAI's sentences sent so far, the rest of its answer still comes).
+  // Without one of them on the node nothing there is touched. False when there was nothing of it to stop
+  async stopSpeech(guildId: string, prefix: string): Promise<boolean> {
+    let stopped = false;
+    const turn = this.speechTurns.get(guildId);
+    if (turn) {
+      const dropped = turn.held.filter((clip) => clip.id.startsWith(prefix));
+      if (dropped.length) {
+        stopped = true;
+        turn.held = turn.held.filter((clip) => !clip.id.startsWith(prefix));
+        // nothing's held anymore, the turn ends with the answer (not early, `SPEECH_HOLD_MAX` from a clip that's gone)
+        if (!turn.held.length && turn.timeout) {
+          clearTimeout(turn.timeout);
+          turn.timeout = null;
+        }
+        for (const clip of dropped) {
+          this.speechEnded(clip.id);
+        }
+      }
+    }
+    const guild = this.guilds.get(guildId);
+    if (guild) {
+      // looked at inside the op: a clip whose send is still queued is marked by the time this runs
+      const onNode = await this.playerOp(guild, async () => {
+        if (this.guilds.get(guildId) !== guild || !this.isSpeaking(guildId, prefix)) {
+          return false;
+        }
+        await guild.node.updatePlayer(guildId, {speak: null});
+        this.speechSent.delete(guildId);
+        return true;
+      });
+      stopped = stopped || onNode;
+    }
+    return stopped;
+  }
+
+  // `listener` is told once when the clip `id` is over, call what's returned to stop waiting for it. Before the clip is
+  // sent (`speak`), one the node can't play ends before `speak` resolves
+  onSpeechEnd(id: string, listener: () => void): () => void {
+    this.speechEndListeners.set(id, listener);
+    return () => {
+      if (this.speechEndListeners.get(id) === listener) {
+        this.speechEndListeners.delete(id);
+      }
+    };
+  }
+
+  private speechEnded(id: string) {
+    const listener = this.speechEndListeners.get(id);
+    if (listener) {
+      this.speechEndListeners.delete(id);
+      try {
+        listener();
+      } catch(error) {
+        log.warn(`voice node speech end listener ${id}`, error);
+      }
+    }
   }
 
   // the node never ended it (or couldn't be asked to stop): it's over here, and we tell the node in case it's still going

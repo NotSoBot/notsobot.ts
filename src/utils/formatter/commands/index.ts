@@ -679,7 +679,9 @@ import * as MusicSkip from './music.skip';
 import * as MusicSpeed from './music.speed';
 import * as MusicStats from './music.stats';
 import * as MusicStay from './music.stay';
+import * as MusicStop from './music.stop';
 import * as MusicTTS from './music.tts';
+import * as MusicTTSStop from './music.tts.stop';
 import * as MusicVotePause from './music.votepause';
 import * as MusicVoteResume from './music.voteresume';
 import * as MusicVoteSkip from './music.voteskip';
@@ -1534,7 +1536,9 @@ export {
   MusicSpeed,
   MusicStats,
   MusicStay,
+  MusicStop,
   MusicTTS,
+  MusicTTSStop,
   MusicVotePause,
   MusicVoteResume,
   MusicVoteSkip,
