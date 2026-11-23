@@ -219,6 +219,8 @@ async function runBuild(): Promise<LibBuildResult> {
           removed++;
         }
       }
+      // the folders of a moved or deleted src folder, bot-build's `rsync --delete` leaves none either
+      await removeEmptyDirectories(LIB_DIRECTORY, built);
     } catch(error) {
       return {output: `writing ${LIB_DIRECTORY} failed: ${error.message}`, status: 'failed', synced: !!(changed || removed)};
     }
@@ -250,6 +252,33 @@ async function listFiles(directory: string, base: string = ''): Promise<Array<st
     }
   }
   return files;
+}
+
+
+// removes the folders under `directory` with nothing left in them, deepest first (so a tree of them goes whole). never
+// one a file of `built` is in: a bot-build rsync going at the same time may have just made it and not written into it yet
+async function removeEmptyDirectories(directory: string, built: Array<string>): Promise<void> {
+  const used = new Set<string>();
+  for (let file of built) {
+    for (let parent = path.dirname(file); parent !== '.'; parent = path.dirname(parent)) {
+      used.add(parent);
+    }
+  }
+
+  const prune = async (base: string): Promise<void> => {
+    for (let entry of await fs.promises.readdir(path.join(directory, base), {withFileTypes: true})) {
+      if (!entry.isDirectory()) {
+        continue;
+      }
+      const relative = path.join(base, entry.name);
+      await prune(relative);
+      if (!used.has(relative)) {
+        // rmdir only removes an empty one, one with a rename temp file or something that isn't a build's stays
+        await fs.promises.rmdir(path.join(directory, relative)).catch(() => {});
+      }
+    }
+  };
+  await prune('');
 }
 
 

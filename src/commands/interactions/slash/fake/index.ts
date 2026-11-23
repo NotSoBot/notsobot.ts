@@ -8,15 +8,18 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { GreentextCommand } from './greentext';
 import { QuoteCommand } from './quote';
-import { TruthCommand } from './truth';
-import { TweetCommand } from './tweet';
+import { SteamCommand } from './steam';
+import { TiktokCommand } from './tiktok';
+import { TwitchCommand } from './twitch';
+import { YtcommentCommand } from './ytcomment';
 
 
-// images made to look like a screenshot: a discord message, an x post, a truth social post. `quote` moved here from
-// /fun, its id is still `fun.quote`
+// images made to look like a screenshot of a message, a comment or a review: discord's (`quote`) and other sites'.
+// posts are in `/fake-post` and `/fake-feed`. `quote` moved here from /fun, its id is still `fun.quote`
 export default class FakeGroupCommand extends BaseSlashCommand {
-  description = 'Fake screenshots: a Discord message, an X post or a Truth Social post';
+  description = 'Fake screenshots of messages, comments and reviews';
   descriptionLocalizations = I18n.localizations('commands.fake.description');
   name = 'fake';
   nameLocalizations = I18n.localizations('commands.fake.name');
@@ -35,9 +38,12 @@ export default class FakeGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new GreentextCommand(),
         new QuoteCommand(),
-        new TruthCommand(),
-        new TweetCommand(),
+        new SteamCommand(),
+        new TiktokCommand(),
+        new TwitchCommand(),
+        new YtcommentCommand(),
       ],
     });
   }

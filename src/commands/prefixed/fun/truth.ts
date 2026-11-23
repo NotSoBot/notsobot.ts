@@ -25,12 +25,13 @@ export default class TruthCommand extends BaseCommand {
       aliases: ['truthsocial'],
       args: [
         {name: 'dark', type: Boolean, metadata: {description: 'truth social\'s dark theme'}},
-        {name: 'from', type: Parameters.string({maxLength: MAX_HANDLE_LENGTH + 1}), metadata: {description: 'a real truth social account\'s handle, its name, portrait and badge are copied'}},
+        {name: 'from', aliases: ['f'], type: Parameters.string({maxLength: MAX_HANDLE_LENGTH + 1}), metadata: {description: 'who it\'s from: a @mention, or a real truth social account\'s handle (its name, portrait and badge are copied)'}},
         {name: 'handle', type: Parameters.string({maxLength: MAX_HANDLE_LENGTH + 1}), metadata: {description: 'the @handle under the name'}},
         {name: 'image', aliases: ['i'], type: Parameters.mediaUrl({audio: false, onlyContent: true, video: false}), metadata: {description: 'an image under the text (or attach one)'}},
         {name: 'likes', type: Parameters.count, metadata: {description: 'how many likes, like 1234 or 12.5k'}},
         {name: 'name', aliases: ['n'], type: Parameters.string({maxLength: MAX_NAME_LENGTH}), metadata: {description: 'the display name'}},
         {name: 'portrait', aliases: ['p'], type: Parameters.mediaUrl({audio: false, onlyContent: true, video: false}), metadata: {description: 'the profile picture'}},
+        {name: 'quote', type: Parameters.string({maxLength: 2048}), metadata: {description: 'a link to a real post, shown quoted under the text'}},
         {name: 'replyto', type: Parameters.string({maxLength: 64}), metadata: {description: 'who it replies to, a user or a handle'}},
         {name: 'retruths', aliases: ['reposts'], type: Parameters.count, metadata: {description: 'how many ReTruths'}},
         {name: 'time', aliases: ['t'], type: Parameters.timestampAny, metadata: {description: 'when it was posted, like "jan 6 2021 9:41am" or "2 hours ago"'}},
@@ -38,7 +39,7 @@ export default class TruthCommand extends BaseCommand {
       ],
       label: 'target',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.FAKE,
         description: 'Make an image of a Truth Social post from you, someone here or any real account, with your own text and counts',
         examples: [
           `${COMMAND_NAME} What a GREAT day!`,
@@ -48,7 +49,7 @@ export default class TruthCommand extends BaseCommand {
           `${COMMAND_NAME} https://discord.com/channels/178313653177548800/178313653177548800/1563424004654633000`,
         ],
         id: Formatter.Commands.FunTruth.COMMAND_ID,
-        usage: '<text | @user [text] | message link [text]> (-from <handle>) (-name <text>) (-handle <text>) (-portrait <emoji,user,url>) (-image <url>) (-likes) (-retruths) (-verified) (-time <text>) (-replyto <user|handle>) (-dark)',
+        usage: '<text | @user [text] | message link [text]> (-from <@user|handle>) (-name <text>) (-handle <text>) (-portrait <emoji,user,url>) (-image <url>) (-likes) (-retruths) (-verified) (-quote <post link>) (-time <text>) (-replyto <user|handle>) (-dark)',
       },
       type: Parameters.postTarget,
     });

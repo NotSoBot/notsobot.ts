@@ -1217,6 +1217,9 @@ export namespace RestOptions {
   export type MediaICreatePostVerified = 'none' | 'blue' | 'gold' | 'grey';
 
   // a post drawn like its site does. the counts left out are made up by the api to fit the ones that are set
+  // which look of a site that has had two. `old` is always the earlier one, each site says which it draws by default
+  export type MediaICreatePostLayout = 'old' | 'new';
+
   export interface MediaICreatePost {
     // a real account on the site to copy the name, handle, avatar and badge from
     account?: null | string,
@@ -1233,12 +1236,59 @@ export namespace RestOptions {
       imageUrl?: null | string,
       timestamp?: string,
     },
+    // a real post by its link as the one it quotes, in place of `quote` (only the sites with a quoted post's card)
+    quoteUrl?: null | string,
     // the handle of the `Replying to` line
     replyTo?: null | string,
     reposts?: null | number,
     safe?: boolean,
     // already formatted the site's way
     timestamp?: string,
+    // whoever asked's, what a quoted real post's time is written in
+    timezone?: string,
+  }
+
+  // a real post by its link, drawn by its site's template. nothing of the post can be set, only how it's drawn
+  export interface MediaICreatePostUrl {
+    layout?: null | MediaICreatePostLayout,
+    safe?: boolean,
+    theme?: null | 'light' | 'dim' | 'dark',
+    // whoever asked's, what the post's time is written in
+    timezone?: string,
+    url: string,
+  }
+
+  // what `from` offers for the start of a handle on a site, empty for the ones shown before anything is typed
+  export interface MediaICreatePostAccounts {
+    query?: string,
+    site: 'bluesky' | 'mastodon' | 'threads' | 'steam' |'tiktok' | 'truth' | 'twitch' | 'x' | 'youtube',
+  }
+
+  // what a steam review's `game` offers for the start of a game's name
+  export interface MediaICreatePostGames {
+    query?: string,
+  }
+
+  // a steam review as the store shows one. the hours and counts left out are made up by the api
+  export interface MediaICreateSteamReview extends MediaICreatePost {
+    // the `Early Access Review` tag
+    earlyAccess?: boolean,
+    funny?: null | number,
+    // the game it's of: a name, a steam app id or a store link
+    game?: null | string,
+    helpful?: null | number,
+    // hours on record, to a tenth
+    hours?: null | number,
+    // the `(0.3 hrs at review time)` after them
+    hoursAtReview?: null | number,
+    // how many games the account has
+    products?: null | number,
+    // the `Product received for free` line
+    receivedFree?: boolean,
+    // thumbs up (the default) or down
+    recommended?: boolean,
+    // how many reviews the account wrote
+    reviews?: null | number,
   }
 
   export interface MediaICreateTweet extends MediaICreatePost {
@@ -1250,8 +1300,176 @@ export namespace RestOptions {
     views?: null | number,
   }
 
+  export interface MediaICreateBluesky extends MediaICreatePost {
+    // its saves
+    bookmarks?: null | number,
+    replies?: null | number,
+    theme?: 'light' | 'dim' | 'dark',
+  }
+
+  // an instagram post when it has an image, a comment when it has none. with `quote` that one is the post (or the
+  // comment) and this the comment (or reply) under it. nobody is looked up there, the name drawn is the author's `name`
+  export interface MediaICreateInstagram extends MediaICreatePost {
+    // the post's
+    comments?: null | number,
+    theme?: 'light' | 'dark',
+  }
+
+  export type MediaICreateFacebookReaction = 'like' | 'love' | 'care' | 'haha' | 'wow' | 'sad' | 'angry';
+
+  // a facebook post as its feed shows one. it has no accounts to copy, and `likes` is every reaction together
+  export interface MediaICreateFacebook extends MediaICreatePost {
+    comments?: null | number,
+    // the reaction discs beside the counts, the one on top first (three are drawn). made up when left out
+    // `old` is the card from before its one row: a line of counts over labelled Like, Comment and Share buttons
+    layout?: MediaICreatePostLayout,
+    reactions?: null | Array<MediaICreateFacebookReaction>,
+    shares?: null | number,
+    theme?: 'light' | 'dark',
+  }
+
   export interface MediaICreateTruth extends MediaICreatePost {
     theme?: 'light' | 'dark',
+  }
+
+  // a threads post, only the handle shows there
+  export interface MediaICreateThreads extends MediaICreatePost {
+    replies?: null | number,
+    // how many times it was sent on, the last of its four counts
+    shares?: null | number,
+    theme?: 'light' | 'dark',
+  }
+
+  // a mastodon post, its reposts are boosts. `account` may be `user@server`
+  export interface MediaICreateMastodon extends MediaICreatePost {
+    // `old` is the page 4.x servers show (every stable release so far), `new` is 5.0's. only the new one has a count
+    // of replies and the short age. `old` is the default here
+    layout?: MediaICreatePostLayout,
+    quotes?: null | number,
+    replies?: null | number,
+    theme?: 'light' | 'dark',
+    // the post's age beside the name (`4h`, `Jul 16`), `timestamp` is the whole date under the post
+    timestampShort?: string,
+  }
+
+  // how far a linkedin post's author is from whoever looks at the feed (`• 2nd`), a 1st has no Follow link
+  export type MediaICreateLinkedinDegree = '1st' | '2nd' | '3rd' | 'none';
+
+  // a linkedin post as the feed shows its card. nobody is looked up there, `likes` is every reaction
+  export interface MediaICreateLinkedin extends MediaICreatePost {
+    comments?: null | number,
+    degree?: MediaICreateLinkedinDegree,
+    // the line under the name, what they do and where
+    headline?: null | string,
+    // `old` is the card from before its one bar: a line of counts over labelled Like, Comment, Repost and Send buttons
+    layout?: MediaICreatePostLayout,
+    // the same line for the author of the post shown inside it
+    quoteHeadline?: null | string,
+    theme?: 'light' | 'dark',
+  }
+
+  export type MediaICreateTwitchBadge = 'broadcaster' | 'mod' | 'vip' | 'sub' | 'partner' | 'prime' | 'turbo' | 'bits' | 'staff';
+
+  // one twitch chat message drawn like the chat column draws it. not a post: no avatar, handle or counts
+  export interface MediaICreateTwitch {
+    // a real twitch account's login to copy the display name, name color and partner badge from
+    account?: null | string,
+    // the badges before the name, none for an empty list. left out, a partner's account gets that badge
+    badges?: null | Array<MediaICreateTwitchBadge>,
+    // one line, `/me ` at its start makes it an action
+    content: string,
+    name?: null | string,
+    // a color name, `#hex` or `r,g,b` as typed. the account's or one of twitch's defaults without it
+    nameColor?: null | string,
+    // the message it replies to, the line above it
+    reply?: null | {content?: string, name: string},
+    safe?: boolean,
+    style?: null | 'highlight' | 'first',
+    theme?: 'dark' | 'light',
+    // already formatted like chat writes it (`3:02`), nothing is drawn without it
+    timestamp?: string,
+  }
+
+  // what a 4chan post's `File:` line says, an upload's own (the url sent is discord's resized copy). the api reads
+  // what's left out off the image
+  export interface MediaICreateGreentextFile {
+    height?: null | number,
+    name?: null | string,
+    // in bytes
+    size?: null | number,
+    width?: null | number,
+  }
+
+  // one 4chan post, `Anonymous` without a name
+  export interface MediaICreateGreentextPost {
+    content?: string,
+    file?: null | MediaICreateGreentextFile,
+    imageUrl?: null | string,
+    name?: null | string,
+    subject?: null | string,
+    // unix seconds
+    time?: null | number,
+    // already formatted the site's way, `11/23/26(Mon)15:41:07`
+    timestamp?: string,
+    tripcode?: null | string,
+  }
+
+  // a 4chan post (`greentext`), under the post it replies to when there's a `parent`. the api makes up the numbers that
+  // aren't set and links the two posts
+  export interface MediaICreateGreentext {
+    // only picks the theme and how big the numbers are
+    board?: null | string,
+    // `post`'s, kept as typed
+    number?: null | string,
+    // the top post opened the thread
+    op?: boolean,
+    parent?: null | MediaICreateGreentextPost,
+    post: MediaICreateGreentextPost,
+    // how many backlinks `post` has
+    replies?: null | number,
+    safe?: boolean,
+    theme?: 'yotsuba' | 'yotsuba-b',
+  }
+
+  // a youtube comment, only its handle shows. with `quote` it's the reply under that comment
+  export interface MediaICreateYoutubeComment extends MediaICreatePost {
+    // the video's creator when that isn't the commenter: the heart's avatar, the handle of the `Pinned by` line
+    channel?: null | MediaICreatePostAuthor,
+    // the commenter is the video's creator (the pill around the handle)
+    creator?: boolean,
+    edited?: boolean,
+    heart?: boolean,
+    pinned?: boolean,
+    replies?: null | number,
+    theme?: 'light' | 'dark',
+  }
+
+  // a tiktok comment, `imageUrl` is its photo. with `quote` it's the reply under that comment. with `sticker` it's the
+  // reply bubble creators put over a video: `imageUrl` is what it's over, and with `quote` the bubble is the quoted
+  // comment and `content` the caption under it
+  export interface MediaICreateTikTok extends MediaICreatePost {
+    // `tag`: the commenter is the video's creator. `liked`: the creator liked the comment
+    creator?: null | 'tag' | 'liked',
+    replies?: null | number,
+    sticker?: boolean,
+    theme?: 'light' | 'dark',
+  }
+
+  // a reddit comment, or with a `title` a post. `quote` is what it's under: a comment (this one is the reply), or with a
+  // `title` the post (this one is a comment on it). the name drawn is the author's `handle`
+  export interface MediaICreateReddit extends MediaICreatePost {
+    // the post's
+    comments?: null | number,
+    // the pill under a post's title
+    flair?: null | string,
+    // without the `r/`, the author's own profile without one
+    subreddit?: null | string,
+    // `old` is old reddit, which has the one color: `theme` is only for today's site
+    layout?: MediaICreatePostLayout,
+    theme?: 'dark' | 'light',
+    title?: null | string,
+    // the score, under 0 too
+    upvotes?: null | number,
   }
 
   // a message component, in discord's own shape (sent as is): buttons and selects in action rows, components v2
@@ -4856,6 +5074,16 @@ export namespace RestResponsesRaw {
     },
     took: number,
     version: string,
+  }
+
+  export interface MediaICreatePostAccounts {
+    // `name` is null when only the handle is known
+    accounts: Array<{handle: string, name: null | string}>,
+  }
+
+  export interface MediaICreatePostGames {
+    // `id` is the game's steam app id
+    games: Array<{id: string, name: string}>,
   }
 
   export interface UtilitiesLocations {

@@ -7,14 +7,15 @@ import { Formatter, I18n, Parameters } from '../../../../utils';
 import { BaseInteractionCommandOption } from '../../basecommand';
 
 
-export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
+// the website screenshot, here from /tools with the id it always had
+export class ScreenshotWebsiteCommand extends BaseInteractionCommandOption {
   description = 'Take a screenshot of a website';
   descriptionLocalizations = I18n.localizations('commands.tools.screenshot.description');
   metadata = {
     id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
   };
-  name = 'screenshot';
-  nameLocalizations = I18n.localizations('commands.tools.screenshot.name');
+  name = 'website';
+  nameLocalizations = I18n.localizations('commands.screenshot.website.name');
 
   constructor() {
     super({

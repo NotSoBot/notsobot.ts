@@ -5,7 +5,7 @@ import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
-import { PostCommandArgs, countOption, postArgs, postEndOptions, postOptions } from './post';
+import { PostCommandArgs, countOption, postArgs, postEndOptions, postOptions, quoteOption } from './post';
 
 
 export const COMMAND_NAME = 'tweet';
@@ -32,7 +32,7 @@ export class TweetCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        ...postOptions(),
+        ...postOptions('x'),
         countOption('reposts', 'How many reposts, like 1234 or 12.5k (Default: made up)', 'reposts'),
         countOption('replies', 'How many replies, like 1234 or 12.5k (Default: made up)', 'replies'),
         countOption('views', 'How many views, like 1234 or 1.2m (Default: made up)', 'views'),
@@ -64,6 +64,7 @@ export class TweetCommand extends BaseInteractionCommandOption {
           maxLength: Formatter.Commands.FunTweet.MAX_NOTE_LENGTH,
           value: Parameters.string({maxLength: Formatter.Commands.FunTweet.MAX_NOTE_LENGTH}),
         },
+        quoteOption(),
         ...postEndOptions(),
       ],
     });

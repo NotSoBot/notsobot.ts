@@ -35,7 +35,7 @@ export default class QuoteCommand extends BaseCommand {
       ],
       label: 'target',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.FAKE,
         description: 'Turn a message (or some text) into an image of a Discord message, with any name, avatar, color, time and reactions',
         examples: [
           `${COMMAND_NAME} hello world`,

@@ -25,7 +25,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const post = await createPostOptions(context, args, TIMESTAMP_FORMAT);
+  const post = await createPostOptions(context, args, {timestamp: TIMESTAMP_FORMAT});
   if (!post) {
     const { translate } = await getTranslator(context);
     return displayReply(context, {description: translate('fun.post.nothing_to_post')});

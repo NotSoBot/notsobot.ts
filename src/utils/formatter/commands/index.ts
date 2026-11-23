@@ -17,9 +17,21 @@ import * as FunReverseText from './fun.reversetext';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
 import * as FunXD from './fun.xd';
+import * as FunBluesky from './fun.bluesky';
+import * as FunFacebook from './fun.facebook';
+import * as FunGreentext from './fun.greentext';
+import * as FunInstagram from './fun.instagram';
+import * as FunLinkedin from './fun.linkedin';
 import * as FunQuote from './fun.quote';
+import * as FunReddit from './fun.reddit';
+import * as FunSteamreview from './fun.steamreview';
+import * as FunTiktok from './fun.tiktok';
+import * as FunMastodon from './fun.mastodon';
+import * as FunThreads from './fun.threads';
 import * as FunTruth from './fun.truth';
 import * as FunTweet from './fun.tweet';
+import * as FunTwitch from './fun.twitch';
+import * as FunYtcomment from './fun.ytcomment';
 import * as FunZalgo from './fun.zalgo';
 
 import * as GameFlag from './game.flag';
@@ -829,6 +841,7 @@ import * as ToolsOCRTranslate from './tools.ocr.translate';
 import * as ToolsQrCreate from './tools.qr.create';
 import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsSafetyLabels from './tools.safety.labels';
+import * as ToolsPostshot from './tools.postshot';
 import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTone from './tools.tone';
 import * as ToolsTranscribe from './tools.transcribe';
@@ -877,9 +890,21 @@ export {
   FunTextwall,
   FunTTS,
   FunXD,
+  FunBluesky,
+  FunFacebook,
+  FunGreentext,
+  FunInstagram,
+  FunLinkedin,
   FunQuote,
+  FunReddit,
+  FunSteamreview,
+  FunTiktok,
+  FunMastodon,
+  FunThreads,
   FunTruth,
   FunTweet,
+  FunTwitch,
+  FunYtcomment,
   FunZalgo,
 
   GameFlag,
@@ -1689,6 +1714,7 @@ export {
   ToolsQrCreate,
   ToolsQrScan,
   ToolsSafetyLabels,
+  ToolsPostshot,
   ToolsScreenshot,
   ToolsTone,
   ToolsTranscribe,

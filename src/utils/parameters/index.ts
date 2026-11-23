@@ -1282,6 +1282,49 @@ export function count(value: string, context?: Command.Context | Interaction.Int
   return total;
 }
 
+// a count that can be under 0, like a reddit score: `-40`, `+7`, `-12.5k`. null when it isn't one
+export function parseSignedCount(value: string): null | number {
+  const match = value.trim().match(/^([+\-−]?)\s*(.*)$/);
+  const total = (match) ? parseCount(match[2]) : null;
+  if (total === null) {
+    return null;
+  }
+  // `-0` is 0
+  return (match && match[1] && match[1] !== '+' && total) ? -total : total;
+}
+
+export function signedCount(value: string, context?: Command.Context | Interaction.InteractionContext): number {
+  const total = parseSignedCount(value);
+  if (total === null) {
+    throw new UserError(getCachedTranslator(context).translate('params.invalid_count'));
+  }
+  return total;
+}
+
+
+// the most hours a steam review shows (the api's too)
+export const MAX_HOURS = 999_999.9;
+const REGEX_HOURS = /^(\d[\d,]*(?:\.\d+)?|\.\d+)\s*(k)?\s*(?:h|hrs?|hours?)?$/;
+
+// hours played the way people write them: `0.3`, `.3`, `4,812.5`, `4812.5h`, `12 hrs`, `1.2k`. kept to a tenth of an
+// hour like steam shows them, null when it isn't one
+export function parseHours(value: string): null | number {
+  const match = value.trim().toLowerCase().match(REGEX_HOURS);
+  if (!match) {
+    return null;
+  }
+  const total = Math.round(parseFloat(match[1].replace(/,/g, '')) * ((match[2]) ? 1_000 : 1) * 10) / 10;
+  return (Number.isFinite(total) && total <= MAX_HOURS) ? total : null;
+}
+
+export function hours(value: string, context?: Command.Context | Interaction.InteractionContext): number {
+  const total = parseHours(value);
+  if (total === null) {
+    throw new UserError(getCachedTranslator(context).translate('params.invalid_hours'));
+  }
+  return total;
+}
+
 
 export interface Reaction {
   count: number,
@@ -1352,6 +1395,43 @@ export function flagChoice<T extends string>(choices: ReadonlyArray<T>, fallback
     }
     const names = choices.map((choice) => Markup.codestring(choice)).join(', ');
     throw new UserError(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${names})`}));
+  };
+}
+
+
+// which look of a site that has had two (`-layout old`). `old` is always the earlier one, and the flag by itself is the
+// one the site doesn't draw by default (`fallback`)
+export function postLayout(fallback: 'old' | 'new', aliases: Record<string, 'old' | 'new'> = {}) {
+  return flagChoice(['old', 'new'] as const, fallback, aliases);
+}
+
+
+// a flag that names a few of its choices at once (`-badges mod sub`), split on spaces or commas, each one once and in
+// the order typed. `none` by itself is an empty list (asking for none isn't leaving the flag out). past `max` the rest
+// are dropped
+export function flagChoices<T extends string>(
+  choices: ReadonlyArray<T>,
+  options: {aliases?: Record<string, T>, max?: number} = {},
+) {
+  const aliases = options.aliases || {};
+  return (value: string, context?: Command.Context | Interaction.InteractionContext): Array<T> => {
+    const found: Array<T> = [];
+    const parts = value.trim().toLowerCase().split(/[\s,]+/).filter(Boolean);
+    if (parts.length === 1 && parts[0] === 'none') {
+      return found;
+    }
+    for (let part of (parts.length) ? parts : ['']) {
+      const choice = (part in aliases) ? aliases[part] : (((choices as ReadonlyArray<string>).includes(part)) ? part as T : null);
+      if (choice === null) {
+        // the flag with nothing after it too, there's no choice it could mean
+        const names = [...choices, 'none'].map((choice) => Markup.codestring(choice)).join(', ');
+        throw new UserError(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${names})`}));
+      }
+      if (!found.includes(choice)) {
+        found.push(choice);
+      }
+    }
+    return (options.max) ? found.slice(0, options.max) : found;
   };
 }
 

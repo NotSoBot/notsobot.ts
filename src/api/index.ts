@@ -1982,6 +1982,78 @@ export async function mediaICreateQuote(
 }
 
 
+export async function mediaICreatePostUrl(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePostUrl,
+) {
+  return raw.mediaICreatePostUrl(context, options);
+}
+
+
+export async function mediaICreateBluesky(
+  context: RequestContext,
+  options: RestOptions.MediaICreateBluesky,
+) {
+  return raw.mediaICreateBluesky(context, options);
+}
+
+
+export async function mediaICreateInstagram(
+  context: RequestContext,
+  options: RestOptions.MediaICreateInstagram,
+) {
+  return raw.mediaICreateInstagram(context, options);
+}
+
+
+export async function mediaICreateLinkedin(
+  context: RequestContext,
+  options: RestOptions.MediaICreateLinkedin,
+) {
+  return raw.mediaICreateLinkedin(context, options);
+}
+
+
+export async function mediaICreateGreentext(
+  context: RequestContext,
+  options: RestOptions.MediaICreateGreentext,
+) {
+  return raw.mediaICreateGreentext(context, options);
+}
+
+
+export async function mediaICreateTwitch(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTwitch,
+) {
+  return raw.mediaICreateTwitch(context, options);
+}
+
+
+export async function mediaICreatePostAccounts(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePostAccounts,
+) {
+  return raw.mediaICreatePostAccounts(context, options);
+}
+
+
+export async function mediaICreatePostGames(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePostGames,
+) {
+  return raw.mediaICreatePostGames(context, options);
+}
+
+
+export async function mediaICreateSteamReview(
+  context: RequestContext,
+  options: RestOptions.MediaICreateSteamReview,
+) {
+  return raw.mediaICreateSteamReview(context, options);
+}
+
+
 export async function mediaICreateTruth(
   context: RequestContext,
   options: RestOptions.MediaICreateTruth,
@@ -1990,11 +2062,59 @@ export async function mediaICreateTruth(
 }
 
 
+export async function mediaICreateThreads(
+  context: RequestContext,
+  options: RestOptions.MediaICreateThreads,
+) {
+  return raw.mediaICreateThreads(context, options);
+}
+
+
+export async function mediaICreateMastodon(
+  context: RequestContext,
+  options: RestOptions.MediaICreateMastodon,
+) {
+  return raw.mediaICreateMastodon(context, options);
+}
+
+
 export async function mediaICreateTweet(
   context: RequestContext,
   options: RestOptions.MediaICreateTweet,
 ) {
   return raw.mediaICreateTweet(context, options);
+}
+
+
+export async function mediaICreateYoutubeComment(
+  context: RequestContext,
+  options: RestOptions.MediaICreateYoutubeComment,
+) {
+  return raw.mediaICreateYoutubeComment(context, options);
+}
+
+
+export async function mediaICreateTikTok(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTikTok,
+) {
+  return raw.mediaICreateTikTok(context, options);
+}
+
+
+export async function mediaICreateFacebook(
+  context: RequestContext,
+  options: RestOptions.MediaICreateFacebook,
+) {
+  return raw.mediaICreateFacebook(context, options);
+}
+
+
+export async function mediaICreateReddit(
+  context: RequestContext,
+  options: RestOptions.MediaICreateReddit,
+) {
+  return raw.mediaICreateReddit(context, options);
 }
 
 

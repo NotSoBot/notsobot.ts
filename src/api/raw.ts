@@ -4993,10 +4993,236 @@ function postBody(options: RestOptions.MediaICreatePost) {
       image_url: quote.imageUrl || undefined,
       timestamp: quote.timestamp,
     } : undefined,
+    quote_url: options.quoteUrl || undefined,
     reply_to: options.replyTo || undefined,
     reposts: options.reposts ?? undefined,
     timestamp: options.timestamp,
+    timezone: options.timezone || undefined,
   };
+}
+
+export async function mediaICreatePostUrl(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePostUrl,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    layout: options.layout || undefined,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    safe: options.safe,
+    theme: options.theme || undefined,
+    timezone: options.timezone || undefined,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_POST_URL,
+    },
+  });
+}
+
+export async function mediaICreateBluesky(
+  context: RequestContext,
+  options: RestOptions.MediaICreateBluesky,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    bookmarks: options.bookmarks ?? undefined,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    replies: options.replies ?? undefined,
+    safe: options.safe,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_BLUESKY,
+    },
+  });
+}
+
+
+export async function mediaICreateInstagram(
+  context: RequestContext,
+  options: RestOptions.MediaICreateInstagram,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    comments: options.comments ?? undefined,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    safe: options.safe,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_INSTAGRAM,
+    },
+  });
+}
+
+export async function mediaICreateLinkedin(
+  context: RequestContext,
+  options: RestOptions.MediaICreateLinkedin,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    comments: options.comments ?? undefined,
+    degree: options.degree,
+    headline: options.headline || undefined,
+    layout: options.layout,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    quote_headline: options.quoteHeadline || undefined,
+    safe: options.safe,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_LINKEDIN,
+    },
+  });
+}
+
+function greentextPostBody(value: RestOptions.MediaICreateGreentextPost) {
+  const file = value.file;
+  return {
+    content: value.content,
+    file: (file) ? {
+      height: file.height || undefined,
+      name: file.name || undefined,
+      size: file.size || undefined,
+      width: file.width || undefined,
+    } : undefined,
+    image_url: value.imageUrl || undefined,
+    name: value.name || undefined,
+    subject: value.subject || undefined,
+    time: value.time ?? undefined,
+    timestamp: value.timestamp,
+    tripcode: value.tripcode || undefined,
+  };
+}
+
+export async function mediaICreateGreentext(
+  context: RequestContext,
+  options: RestOptions.MediaICreateGreentext,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    board: options.board || undefined,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    number: options.number || undefined,
+    op: options.op,
+    parent: (options.parent) ? greentextPostBody(options.parent) : undefined,
+    post: greentextPostBody(options.post),
+    // 0 is a count, only one that wasn't set is made up
+    replies: options.replies ?? undefined,
+    safe: options.safe,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_GREENTEXT,
+    },
+  });
+}
+
+export async function mediaICreateTwitch(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTwitch,
+): Promise<RestResponsesRaw.FileResponse> {
+  const reply = options.reply;
+  const body = {
+    account: options.account || undefined,
+    // an empty list is no badges, left out the api picks (a partner's check)
+    badges: options.badges ?? undefined,
+    content: options.content,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    name: options.name || undefined,
+    name_color: options.nameColor || undefined,
+    reply: (reply) ? {content: reply.content, name: reply.name} : undefined,
+    safe: options.safe,
+    style: options.style || undefined,
+    theme: options.theme,
+    timestamp: options.timestamp || undefined,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_TWITCH,
+    },
+  });
+}
+
+export async function mediaICreatePostAccounts(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePostAccounts,
+): Promise<RestResponsesRaw.MediaICreatePostAccounts> {
+  const query = {
+    query: options.query || undefined,
+    site: options.site,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MEDIA_I_CREATE_POST_ACCOUNTS,
+    },
+  });
+}
+
+export async function mediaICreatePostGames(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePostGames,
+): Promise<RestResponsesRaw.MediaICreatePostGames> {
+  const query = {
+    query: options.query || undefined,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MEDIA_I_CREATE_POST_GAMES,
+    },
+  });
+}
+
+// a review has no image, quoted post or reply, those stay out of the body whatever the shared options hold
+export async function mediaICreateSteamReview(
+  context: RequestContext,
+  options: RestOptions.MediaICreateSteamReview,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    early_access: options.earlyAccess || undefined,
+    funny: options.funny ?? undefined,
+    game: options.game || undefined,
+    helpful: options.helpful ?? undefined,
+    hours: options.hours ?? undefined,
+    hours_at_review: options.hoursAtReview ?? undefined,
+    image_url: undefined,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    products: options.products ?? undefined,
+    quote: undefined,
+    received_free: options.receivedFree || undefined,
+    recommended: options.recommended ?? undefined,
+    reply_to: undefined,
+    reviews: options.reviews ?? undefined,
+    safe: options.safe,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_STEAM_REVIEW,
+    },
+  });
 }
 
 export async function mediaICreateTruth(
@@ -5014,6 +5240,50 @@ export async function mediaICreateTruth(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_TRUTH,
+    },
+  });
+}
+
+export async function mediaICreateThreads(
+  context: RequestContext,
+  options: RestOptions.MediaICreateThreads,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    max_file_size: getDefaultMaxFileSize(context, options),
+    replies: options.replies ?? undefined,
+    safe: options.safe,
+    shares: options.shares ?? undefined,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_THREADS,
+    },
+  });
+}
+
+export async function mediaICreateMastodon(
+  context: RequestContext,
+  options: RestOptions.MediaICreateMastodon,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    layout: options.layout,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    quotes: options.quotes ?? undefined,
+    replies: options.replies ?? undefined,
+    safe: options.safe,
+    theme: options.theme,
+    timestamp_short: options.timestampShort || undefined,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_MASTODON,
     },
   });
 }
@@ -5037,6 +5307,107 @@ export async function mediaICreateTweet(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_TWEET,
+    },
+  });
+}
+
+
+export async function mediaICreateYoutubeComment(
+  context: RequestContext,
+  options: RestOptions.MediaICreateYoutubeComment,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    channel: (options.channel) ? postAuthorBody(options.channel) : undefined,
+    creator: options.creator,
+    edited: options.edited,
+    heart: options.heart,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    pinned: options.pinned,
+    replies: options.replies ?? undefined,
+    safe: options.safe,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_YOUTUBE_COMMENT,
+    },
+  });
+}
+
+
+export async function mediaICreateTikTok(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTikTok,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    creator: options.creator || undefined,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    replies: options.replies ?? undefined,
+    safe: options.safe,
+    sticker: options.sticker,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_TIKTOK,
+    },
+  });
+}
+
+
+export async function mediaICreateFacebook(
+  context: RequestContext,
+  options: RestOptions.MediaICreateFacebook,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    comments: options.comments ?? undefined,
+    layout: options.layout,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    // an empty list is a post with no discs, left out they're made up
+    reactions: options.reactions ?? undefined,
+    safe: options.safe,
+    shares: options.shares ?? undefined,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_FACEBOOK,
+    },
+  });
+}
+
+
+export async function mediaICreateReddit(
+  context: RequestContext,
+  options: RestOptions.MediaICreateReddit,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    comments: options.comments ?? undefined,
+    flair: options.flair || undefined,
+    layout: options.layout,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    safe: options.safe,
+    subreddit: options.subreddit || undefined,
+    theme: options.theme,
+    title: options.title || undefined,
+    // 0 and a score under it are scores
+    upvotes: options.upvotes ?? undefined,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_REDDIT,
     },
   });
 }

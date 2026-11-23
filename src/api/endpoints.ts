@@ -238,12 +238,42 @@ export const Api = Object.freeze({
     '/media/i/create/presidential',
   MEDIA_I_CREATE_QUOTE:
     '/media/i/create/quote',
+  MEDIA_I_CREATE_BLUESKY:
+    '/media/i/create/bluesky',
+  MEDIA_I_CREATE_INSTAGRAM:
+    '/media/i/create/instagram',
+  MEDIA_I_CREATE_LINKEDIN:
+    '/media/i/create/linkedin',
+  MEDIA_I_CREATE_FACEBOOK:
+    '/media/i/create/facebook',
+  MEDIA_I_CREATE_TWITCH:
+    '/media/i/create/twitch',
+  MEDIA_I_CREATE_GREENTEXT:
+    '/media/i/create/greentext',
+  MEDIA_I_CREATE_POST_ACCOUNTS:
+    '/media/i/create/post/accounts',
+  MEDIA_I_CREATE_POST_URL:
+    '/media/i/create/post/url',
+  MEDIA_I_CREATE_POST_GAMES:
+    '/media/i/create/post/games',
+  MEDIA_I_CREATE_STEAM_REVIEW:
+    '/media/i/create/steam-review',
   MEDIA_I_CREATE_REALFACT:
     '/media/i/create/realfact',
+  MEDIA_I_CREATE_THREADS:
+    '/media/i/create/threads',
+  MEDIA_I_CREATE_MASTODON:
+    '/media/i/create/mastodon',
   MEDIA_I_CREATE_TRUTH:
     '/media/i/create/truth',
   MEDIA_I_CREATE_TWEET:
     '/media/i/create/tweet',
+  MEDIA_I_CREATE_YOUTUBE_COMMENT:
+    '/media/i/create/youtube-comment',
+  MEDIA_I_CREATE_TIKTOK:
+    '/media/i/create/tiktok',
+  MEDIA_I_CREATE_REDDIT:
+    '/media/i/create/reddit',
   MEDIA_I_CREATE_LUCIA:
     '/media/i/create/lucia',
   MEDIA_I_CREATE_LUCIA_PORTRAIT:

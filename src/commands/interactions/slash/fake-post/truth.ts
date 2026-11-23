@@ -5,7 +5,7 @@ import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
-import { PostCommandArgs, countOption, postArgs, postEndOptions, postOptions } from './post';
+import { PostCommandArgs, countOption, postArgs, postEndOptions, postOptions, quoteOption } from './post';
 
 
 export const COMMAND_NAME = 'truth';
@@ -28,7 +28,7 @@ export class TruthCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        ...postOptions(),
+        ...postOptions('truth'),
         countOption('retruths', 'How many ReTruths, like 1234 or 12.5k (Default: made up)', 'retruths'),
         {
           name: 'verified',
@@ -46,6 +46,7 @@ export class TruthCommand extends BaseInteractionCommandOption {
             doNotSort: true,
           }),
         },
+        quoteOption(),
         ...postEndOptions(),
       ],
     });

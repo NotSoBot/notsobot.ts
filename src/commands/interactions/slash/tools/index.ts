@@ -14,7 +14,6 @@ import { ToolsMathCommand } from './math';
 import { ToolsOCRCommand } from './ocr';
 import { ToolsOCRTranslateCommand } from './ocr-translate';
 import { ToolsSafetyLabelsCommand } from './safety-labels';
-import { ToolsScreenshotCommand } from './screenshot';
 import { ToolsSSTVCommand } from './sstv';
 import { ToolsToneCommand } from './tone';
 import { ToolsTranscribeCommand } from './transcribe';
@@ -58,7 +57,6 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
         new ToolsOCRTranslateCommand(),
         new ToolsQrGroupCommand(),
         new ToolsSafetyLabelsCommand(),
-        new ToolsScreenshotCommand(),
         new ToolsSSTVCommand(),
         new ToolsToneCommand(),
         new ToolsTranscribeCommand(),

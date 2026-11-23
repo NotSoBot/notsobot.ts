@@ -403,6 +403,8 @@ export enum CommandCategories {
   AUDIO = 'AUDIO',
   CONVERSION = 'CONVERSION',
   EFFECTS = 'EFFECTS',
+  // images made to look like a screenshot of a message, post, comment or review (`quote`, `tweet`, ...)
+  FAKE = 'FAKE',
   FUN = 'FUN',
   GAMES = 'GAMES',
   INFO = 'INFO',
@@ -421,6 +423,7 @@ export const CommandCategoryNames: Record<CommandCategories, string> = Object.fr
   [CommandCategories.AUDIO]: 'Audio',
   [CommandCategories.CONVERSION]: 'Downloads & Media Tools',
   [CommandCategories.EFFECTS]: 'Image & Video Effects',
+  [CommandCategories.FAKE]: 'Fake Screenshots',
   [CommandCategories.FUN]: 'Fun',
   [CommandCategories.GAMES]: 'Games',
   [CommandCategories.INFO]: 'Info',
