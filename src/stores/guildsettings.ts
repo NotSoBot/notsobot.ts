@@ -17,6 +17,11 @@ import { RedisPayloads } from '../types';
 export const FETCH_TIMEOUT = 5 * 1000;
 // a failed fetch isn't retried for this long, every message in the server used to try again while the api was down
 export const FAILED_FETCH_RETRY_AFTER = 30 * 1000;
+// a 5xx or a dropped connection gets one more try first: they come in bursts of a minute or two (the bot host out of
+// memory, an api restart) and right after a restart there's no last copy, so only admins could use commands for those
+// 30 seconds. the put just upserts the name/icon, it's fine to send twice
+export const FETCH_ATTEMPTS = 2;
+export const FETCH_RETRY_DELAY = 1000;
 // how long the last copy of a server's settings is kept around after it expires, for when fetching it fails
 export const LAST_KNOWN_EXPIRE = 12 * 60 * 60 * 1000;
 // a server's settings are checked for deleted channels/roles at most this often (when they load)
@@ -112,15 +117,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         const guild = client.guilds.get(guildId) || guildPartial;
         const version = this.fetches.start(guildId);
         try {
-          let settings: GuildSettings;
-          if (guild) {
-            settings = await putGuildSettings(context, guildId, {
-              icon: guild.icon,
-              name: guild.name,
-            });
-          } else {
-            settings = await fetchGuildSettings(context, guildId);
-          }
+          const settings = await this.request(context, guildId, guild);
           if (this.fetches.end(guildId, version)) {
             this.insert(settings);
           } else {
@@ -148,6 +145,25 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       GuildSettingsPromisesStore.set(guildId, {promise, timeout});
     }
     return promise;
+  }
+
+  // the put also keeps the api's copy of the server's name/icon current, a server we don't have cached is only read
+  async request(context: RequestContext, guildId: string, guild: {icon: null | string, name: string} | undefined): Promise<GuildSettings> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        if (guild) {
+          return await putGuildSettings(context, guildId, {icon: guild.icon, name: guild.name});
+        }
+        return await fetchGuildSettings(context, guildId);
+      } catch(error: any) {
+        const statusCode = (error && error.response) ? error.response.statusCode : null;
+        const retryable = statusCode === null || 500 <= statusCode;
+        if (!retryable || FETCH_ATTEMPTS <= attempt) {
+          throw error;
+        }
+        await Timers.sleep(FETCH_RETRY_DELAY);
+      }
+    }
   }
 
   /**

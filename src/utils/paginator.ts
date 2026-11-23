@@ -27,6 +27,7 @@ import { StatusEmojis } from '../constants';
 import PaginatorsStore from '../stores/paginators';
 
 import { getTranslator, Translator } from './i18n';
+import { queueDeleteOf } from './messagedeletes';
 import {
   DISPLAY_BLOCKS_SEPARATOR_ID,
   DISPLAY_FOOTER_SECTION_ID,
@@ -763,7 +764,7 @@ export class Paginator {
             const message = this.context.message;
             if (!message.deleted && message.canDelete) {
               try {
-                await message.delete();
+                await queueDeleteOf(message);
               } catch(error) {
 
               }
@@ -896,7 +897,7 @@ export class Paginator {
           }
         } else if (this.message && !this.message.deleted) {
           try {
-            await this.message.delete();
+            await queueDeleteOf(this.message);
           } catch(error) {
 
           }

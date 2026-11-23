@@ -9,7 +9,7 @@ import { ClientEvents } from 'detritus-client/lib/constants';
 import { getResponseInteractionId } from 'detritus-client/lib/gateway/handlercomponent';
 
 import { JobError, isDiscordEdgeRatelimitError, isDiscordTokenRefusedError } from './api/errors';
-import { CommandRunCancelledError, UserError } from './utils/errors';
+import { CommandRunCancelledError, InteractionExpiredError, UserError } from './utils/errors';
 import { isTagError } from './utils/tags/exceptions';
 
 
@@ -271,6 +271,10 @@ export function captureCommandError(context: SentryCommandContext | undefined, e
   // the reply already says what's wrong (bad input, a disabled feature), or a newer run took over (also seen through
   // COMMAND_ERROR when a hook's reply is the one that gets cancelled)
   if (error instanceof UserError || error instanceof CommandRunCancelledError) {
+    return;
+  }
+  // a first response held back for coming after discord's 3 seconds, counted in the rest metrics instead
+  if (error instanceof InteractionExpiredError) {
     return;
   }
   // a failed job with an error code is a translated error, like the media being too big

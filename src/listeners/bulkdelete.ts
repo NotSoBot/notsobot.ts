@@ -7,31 +7,28 @@ import { deleteCommandsResponses, fetchCommandsResponses } from '../api';
 import { COMMAND_EDIT_DURATION } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import CommandResponsesStore from '../stores/commandresponses';
-import { deleteResponses, isUnknownMessageError } from '../utils/commandresponses';
+import { deleteResponses } from '../utils/commandresponses';
+import { queueMessageDelete } from '../utils/messagedeletes';
 
 import { Listener } from './listener';
 
 
-// discord's limit on how old a bulk deleted message can be
-const BULK_DELETE_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
-
-
 class MessageDeleteListener extends Listener {
-  // deletes responses this handler already claimed, one by one. gives the ones still there: their claim is released so a
-  // later delete path can try again (a claim kept on a failed delete blocked every later path for good)
+  // deletes responses this handler already claimed through their channel's delete queue, which bulk deletes the ones
+  // under 14 days old together when we can (Manage Messages) and the rest one at a time. gives the ones still there:
+  // their claim is released so a later delete path can try again (a claim kept on a failed delete blocked every later
+  // path for good)
   async deleteClaimedResponses(shard: ShardClient, channelId: string, responseIds: Array<string>): Promise<Array<string>> {
-    const failed: Array<string> = [];
-    for (let responseId of responseIds) {
+    const results = await Promise.all(responseIds.map(async (responseId) => {
       try {
-        await shard.rest.deleteMessage(channelId, responseId);
+        await queueMessageDelete(shard, channelId, responseId);
+        return null;
       } catch(error) {
-        if (!isUnknownMessageError(error)) {
-          CommandResponsesStore.releaseDeletion(responseId);
-          failed.push(responseId);
-        }
+        CommandResponsesStore.releaseDeletion(responseId);
+        return responseId;
       }
-    }
-    return failed;
+    }));
+    return results.filter((responseId): responseId is string => responseId !== null);
   }
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
@@ -93,43 +90,7 @@ class MessageDeleteListener extends Listener {
           */
 
           // responses whose delete failed (claim released), their triggers' rows stay for a later try
-          const failed = new Set<string>();
-          // i think discord only sends up to 100 message ids at a time?
-          if (bulkToDelete.length) {
-            if (me.canManageMessages) {
-              // discord refuses a bulk delete with any message over 14 days old in it (a minute's margin for the request
-              // itself), those go one by one so the rest of their chunk still goes in bulk
-              const minimumTimestamp = Date.now() - BULK_DELETE_MAX_AGE + 60 * 1000;
-              const tooOld = bulkToDelete.filter((responseId) => Snowflake.timestamp(responseId) <= minimumTimestamp);
-              if (tooOld.length) {
-                for (let responseId of await this.deleteClaimedResponses(shard, channelId, tooOld)) {
-                  failed.add(responseId);
-                }
-              }
-              const recent = bulkToDelete.filter((responseId) => minimumTimestamp < Snowflake.timestamp(responseId));
-              for (let i = 0; i < recent.length; i += 100) {
-                const messageIds = recent.slice(i, i + 100);
-                if (messageIds.length === 1) {
-                  for (let responseId of await this.deleteClaimedResponses(shard, channelId, messageIds)) {
-                    failed.add(responseId);
-                  }
-                  continue;
-                }
-                // one failed chunk shouldn't stop the rest, and its messages are still there: tried one by one instead
-                try {
-                  await shard.rest.bulkDeleteMessages(channelId, messageIds);
-                } catch(error) {
-                  for (let responseId of await this.deleteClaimedResponses(shard, channelId, messageIds)) {
-                    failed.add(responseId);
-                  }
-                }
-              }
-            } else {
-              for (let responseId of await this.deleteClaimedResponses(shard, channelId, bulkToDelete)) {
-                failed.add(responseId);
-              }
-            }
-          }
+          const failed = new Set(await this.deleteClaimedResponses(shard, channelId, bulkToDelete));
 
           // the responses are gone now, stop storing them
           const deletedResults = results.filter((result) => {

@@ -4,6 +4,7 @@ import { Snowflake } from 'detritus-client/lib/utils';
 import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
+import { onMessageGone } from '../utils/messagedeletes';
 
 
 // how long a command's trigger and response are remembered, anything older asks the api like before
@@ -141,19 +142,22 @@ class CommandResponsesStore extends Store<string, string> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE, ({messageId}) => {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE, ({channelId, message, messageId, shard}) => {
         if (this.responses.has(messageId)) {
           this.deletedResponses.set(messageId, true);
         }
+        // a queued delete of it is done, and one of ours isn't deleted again by a later path
+        onMessageGone(channelId, messageId, this.responses.has(messageId) || (!!message && message.author.id === shard.userId));
       });
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE_BULK, ({messages}) => {
-        for (let messageId of messages.keys()) {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE_BULK, ({channelId, messages, shard}) => {
+        for (let [messageId, message] of messages) {
           if (this.responses.has(messageId)) {
             this.deletedResponses.set(messageId, true);
           }
+          onMessageGone(channelId, messageId, this.responses.has(messageId) || (!!message && message.author.id === shard.userId));
         }
       });
       subscriptions.push(subscription);

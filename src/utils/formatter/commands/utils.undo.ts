@@ -1,20 +1,16 @@
 import { Command, Interaction } from 'detritus-client';
-import { Snowflake } from 'detritus-utils';
 
 import { deleteCommandsResponses, fetchCommandsResponses } from '../../../api';
 import { CommandTypes, StatusEmojis } from '../../../constants';
 import CommandResponsesStore from '../../../stores/commandresponses';
 import { getTranslator } from '../../i18n';
 import { displayReply } from '../../../utils';
-import { isUnknownMessageError } from '../../commandresponses';
+import { queueDeleteOf, queueMessageDelete } from '../../messagedeletes';
 
 
 export const COMMAND_ID = 'undo';
 
 export const MAX_AMOUNT = 5;
-
-// discord refuses to bulk delete messages older than 14 days
-export const BULK_DELETE_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
 
 export interface CommandArgs {
   amount: number,
@@ -82,48 +78,28 @@ export async function createMessage(
   }
 
   if (context instanceof Command.Context && context.message.canDelete && !context.message.deleted) {
-    try {
-      await context.message.delete();
-    } catch(error) {
-
-    }
+    // with the rest below, the channel's delete queue sends them together
+    queueDeleteOf(context.message).catch(() => null);
   }
 
+  // through the channel's delete queue, which bulk deletes the ones under 14 days old together when we can (Manage
+  // Messages) and the rest one at a time. a message that's already gone resolves, it was an `.undo` the trigger's own
+  // delete (or an ephemeral response) got to first
   let failed = 0;
   const keptTriggerIds = new Set<string>();
-  if (messageIds.length) {
-    let singleIds = messageIds;
-
-    if (canDeleteTriggers) {
-      const minimumTimestamp = Date.now() - BULK_DELETE_MAX_AGE;
-      const bulkIds = messageIds.filter((messageId) => minimumTimestamp < Snowflake.timestamp(messageId));
-      if (2 <= bulkIds.length) {
-        try {
-          await context.rest.bulkDeleteMessages(channelId, bulkIds);
-          singleIds = messageIds.filter((messageId) => !bulkIds.includes(messageId));
-        } catch(error) {
-          // fall back to deleting them one by one
-        }
+  await Promise.all(messageIds.map(async (messageId) => {
+    try {
+      await queueMessageDelete(context.client, channelId, messageId);
+    } catch(error) {
+      failed++;
+      // still there: unclaim it so another undo (or deleting its trigger) can try again
+      const triggerId = responseTriggerIds.get(messageId);
+      if (triggerId !== undefined) {
+        CommandResponsesStore.releaseDeletion(messageId);
+        keptTriggerIds.add(triggerId);
       }
     }
-
-    for (let messageId of singleIds) {
-      try {
-        await context.rest.deleteMessage(channelId, messageId);
-      } catch(error) {
-        // already deleted (or an ephemeral response) is fine
-        if (!isUnknownMessageError(error)) {
-          failed++;
-          // still there: unclaim it so another undo (or deleting its trigger) can try again
-          const triggerId = responseTriggerIds.get(messageId);
-          if (triggerId !== undefined) {
-            CommandResponsesStore.releaseDeletion(messageId);
-            keptTriggerIds.add(triggerId);
-          }
-        }
-      }
-    }
-  }
+  }));
 
   const deletedTriggerIds = triggerIds.filter((triggerId) => !keptTriggerIds.has(triggerId));
   if (deletedTriggerIds.length) {
@@ -153,13 +129,9 @@ export async function createMessage(
   }
 
   const message = await displayReply(context, {description: text});
-  setTimeout(async () => {
-    try {
-      if (message && !message.deleted) {
-        await message.delete();
-      }
-    } catch(error) {
-
+  setTimeout(() => {
+    if (message && !message.deleted) {
+      queueDeleteOf(message).catch(() => null);
     }
   }, 1000);
 }

@@ -45,6 +45,7 @@ import {
 import { captureCommandError, captureError } from '../../sentry';
 import { DefaultParameters, FindMediaUrlOptions, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
 import { fillApplicationCommandPermissions } from '../../utils/commandpermissions';
+import { InteractionExpiredError } from '../../utils/errors';
 
 import {
   createArgumentErrorPayload,
@@ -184,6 +185,17 @@ export function isDecoyChannelRun(context: Interaction.InteractionContext): bool
   return !!context.guildId && !!context.channelId && !!DecoyStore.getByChannel(context.channelId);
 }
 
+// the run got through every check (`onCommandCheck`, `onBefore`'s gates and its own private defer), the early defer
+// (`deferEarly` in interactioncommandclient.ts) uses the user's response setting from then on
+export function markInteractionChecksPassed(context: Interaction.InteractionContext): void {
+  const contextMetadata = context.metadata = context.metadata || {};
+  contextMetadata.checksPassed = true;
+}
+
+export function haveInteractionChecksPassed(context: Interaction.InteractionContext): boolean {
+  return !!(context.metadata && context.metadata.checksPassed);
+}
+
 
 export class BaseInteractionCommand extends Interaction.InteractionCommand {
   _commandIds?: Collections.BaseSet<string>;
@@ -209,6 +221,10 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   // kept as info to track how often (by command and cluster), it isn't a bug in the autocomplete itself. other http
   // errors were already seen by `captureRestResponse`
   onAutoCompleteError(context: Interaction.InteractionAutoCompleteContext, error: any) {
+    // it was already too late, the response wasn't sent (and its metric counted it)
+    if (error instanceof InteractionExpiredError) {
+      return;
+    }
     if (error && error.response && error.response.statusCode === 404) {
       captureError(error, {context, fingerprint: ['autocomplete-unknown-interaction'], level: 'info', tags: {source: 'autocomplete'}});
       return;
@@ -347,6 +363,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           }
         }
       }
+      markInteractionChecksPassed(context);
       return true;
     })();
   }
@@ -419,6 +436,11 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   }
 
   async onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
+    // its reply came too late for discord to take, an error reply would be just as late
+    if (error instanceof InteractionExpiredError) {
+      setCommandReason(context, 'interaction_expired');
+      return;
+    }
     captureCommandError(context, error);
     // a modal response has no message to edit or follow up on (detritus beta.136+ throws instead of asking discord), the
     // error is only reported

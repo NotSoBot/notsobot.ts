@@ -26,6 +26,7 @@ import {
 import { log } from '../log';
 import DecoyStore from '../stores/decoys';
 import GuildSettingsStore from '../stores/guildsettings';
+import { queueDeleteOf, queueMessageDelete } from '../utils/messagedeletes';
 import {
   Formatter,
   I18n,
@@ -133,8 +134,8 @@ class GracePrompt {
     this.updating = this.updating.then(async () => {
       const message = await this.message;
       if (message) {
-        // deleting it drops the buttons' listener too
-        await message.delete().catch(() => null);
+        // deleting it drops the buttons' listener too. queued with the channel's other deletes (a raid's posts)
+        await queueDeleteOf(message).catch(() => null);
       }
     });
   }
@@ -299,9 +300,11 @@ class DecoyListener extends Listener {
     this.repostChecks.clear();
   }
 
+  // through the channel's delete queue: a raid posts in the decoy all at once, its deletes go together as one bulk delete
+  // instead of a burst of single ones the channel's bucket answers with 429s
   async deleteMessage(message: Structures.Message): Promise<void> {
     if (message.canDelete) {
-      await message.delete().catch(() => null);
+      await queueDeleteOf(message).catch(() => null);
     }
   }
 
@@ -585,9 +588,9 @@ class DecoyListener extends Listener {
   }
 
   async deletePending(context: DecoyContext, pending: Array<{channelId: string, messageId: string}>): Promise<void> {
-    for (let { channelId, messageId } of pending) {
-      await context.rest.deleteMessage(channelId, messageId).catch(() => null);
-    }
+    await Promise.all(pending.map(({ channelId, messageId }) => {
+      return queueMessageDelete(context.client, channelId, messageId).catch(() => null);
+    }));
   }
 
   // how many different accounts posted in the decoy within the last minute, them included
@@ -703,7 +706,7 @@ class DecoyListener extends Listener {
         noticeUserId: message.author.id,
       });
       if (old && old !== message.id) {
-        await shard.rest.deleteMessage(decoy.channel_id, old).catch(() => null);
+        await queueMessageDelete(shard, decoy.channel_id, old).catch(() => null);
       }
       return;
     }
@@ -714,7 +717,7 @@ class DecoyListener extends Listener {
       return;
     }
     if (result.previous_message_id) {
-      await shard.rest.deleteMessage(decoy.channel_id, result.previous_message_id).catch(() => null);
+      await queueMessageDelete(shard, decoy.channel_id, result.previous_message_id).catch(() => null);
     }
   }
 

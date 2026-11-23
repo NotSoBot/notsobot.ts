@@ -939,9 +939,14 @@ class GuildLoggingListener extends Listener {
 
     {
       const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE_BULK, async (payload) => {
-        const { guildId, shard } = payload;
+        const { guildId, messages, shard } = payload;
+        // our own responses deleted together (`utils/messagedeletes.ts` bulk deletes what queued up in a channel) aren't
+        // logged, like they weren't as single deletes of a bot's message. any not in cache still logs it
+        const onlyOurs = !!messages.size && Array.from(messages.values()).every((message) => {
+          return !!message && message.author.id === shard.userId;
+        });
         // log if the message isnt in cache, so it's at least logged
-        if (guildId) {
+        if (guildId && !onlyOurs) {
           const happened = Date.now();
           const name = ClientEvents.MESSAGE_DELETE_BULK;
           return this.tryAdd(shard, {guildId, happened, name, payload});

@@ -5,11 +5,14 @@ import UserSettingsStore from '../stores/usersettings';
 
 import { GoogleLocales, GoogleLocaleFromDiscord, MEDIA_HISTORY_LIMIT, MLDiffusionModels } from '../constants';
 
+import { DiscordLinkError } from './errors';
+
 import {
   fetchMemberOrUserById,
   findCachedTagDirectoryIds,
   findMediaUrlInMessage,
   findMediaUrlsInMessage,
+  findUrlInMessage,
   findUrlInMessages,
   getCachedChannelMessages,
   getOrFetchRealUrl,
@@ -188,9 +191,50 @@ export function lastMediaUrl(
 
     const urls = await findLastMediaUrls(context, mediaSearchOptions, position);
     if (position <= urls.length) {
-      return getOrFetchRealUrl(context, urls[position - 1]);
+      // found in the channel's history, a message link that can't be used there is no media instead of an error
+      try {
+        return await getOrFetchRealUrl(context, urls[position - 1]);
+      } catch(error) {
+        if (error instanceof DiscordLinkError) {
+          return undefined;
+        }
+        throw error;
+      }
     }
   };
+}
+
+
+// a message link the user can't use (or with no media) found in the history is skipped, an older url is used instead.
+// only a few, each one checked costs discord requests
+const MAX_SKIPPED_HISTORY_LINKS = 3;
+
+async function findRealUrlInHistory(
+  context: Command.Context | Interaction.InteractionContext,
+  messages: Iterable<Structures.Message>,
+): Promise<string | null> {
+  let skipped = 0;
+  for (let message of messages) {
+    const url = findUrlInMessage(message);
+    if (!url) {
+      continue;
+    }
+    try {
+      const realUrl = await getOrFetchRealUrl(context, url);
+      if (realUrl) {
+        return realUrl;
+      }
+    } catch(error) {
+      if (!(error instanceof DiscordLinkError)) {
+        throw error;
+      }
+      skipped++;
+      if (MAX_SKIPPED_HISTORY_LINKS <= skipped) {
+        break;
+      }
+    }
+  }
+  return null;
 }
 
 
@@ -254,9 +298,9 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
       }
       return true;
     }).reverse();
-    const url = findUrlInMessages(messages);
+    const url = await findRealUrlInHistory(context, messages);
     if (url) {
-      return getOrFetchRealUrl(context, url);
+      return url;
     }
   }
 
@@ -265,9 +309,9 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
   );
   if (shouldFetchMessages) {
     const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
-    const url = findUrlInMessages(messages);
+    const url = await findRealUrlInHistory(context, messages.values());
     if (url) {
-      return getOrFetchRealUrl(context, url);
+      return url;
     }
   }
 

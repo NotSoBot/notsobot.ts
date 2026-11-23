@@ -11,6 +11,8 @@ import {
   BaseInteractionCommand,
   BaseInteractionCommandOption,
   InteractionCommandMetadata,
+  haveInteractionChecksPassed,
+  keepFollowUpsPrivate,
 } from './commands/interactions/basecommand';
 import { GuildRuleActions, GuildWarningAutoTriggers } from './constants';
 import {
@@ -25,8 +27,21 @@ import {
 } from './utils';
 import { acknowledgeUserWarnings } from './api';
 import type { GuildSettingsRule } from './api/structures/guildsettings';
-import { CommandResults, getCommandGate, getCommandGateMessage, setCommandGate, setCommandResult } from './commandresults';
+import {
+  CommandResults,
+  getCommandGate,
+  getCommandGateMessage,
+  setCommandGate,
+  setCommandReason,
+  setCommandResult,
+} from './commandresults';
 import { runWithCommandContext } from './sentry';
+import {
+  INTERACTION_EXPIRED_AGE,
+  getInteractionAge,
+  recordExpiredResponse,
+  startEarlyDefer,
+} from './utils/interactiondeadline';
 
 
 // discord's limit for a whole command (names, descriptions and choice values of it, its options and its choices)
@@ -104,6 +119,37 @@ function findDuplicateOptionNames(
 }
 
 
+// commands answering with a modal can't be deferred (a modal is only ever a first response), and the ones that turned
+// detritus' defer off (`triggerLoadingAfter` -1) answer on their own
+function shouldDeferEarly(context: Interaction.InteractionContext): boolean {
+  const invoker = context.invoker as any;
+  const command = context.command as any;
+  if (invoker.respondsWithModal || command.respondsWithModal) {
+    return false;
+  }
+  const after = invoker.triggerLoadingAfter;
+  return after !== undefined && 0 <= after;
+}
+
+// the defer for a command still unanswered at `INTERACTION_EARLY_DEFER_AGE`. past its checks it's the usual one (the
+// user's response setting), still in them it's private: a gate's answer can be personal (staff warnings, a block
+// reason) and the server's rules or a user install's turned off channel can still make the run private
+async function deferEarly(context: Interaction.InteractionContext): Promise<void> {
+  const invoker = context.invoker as any;
+  if (haveInteractionChecksPassed(context)) {
+    if (typeof(invoker.onLoadingTrigger) === 'function') {
+      await Promise.resolve(invoker.onLoadingTrigger(context));
+    } else {
+      const ephemeral = invoker.triggerLoadingAsEphemeral || (context.command as any).triggerLoadingAsEphemeral;
+      await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, (ephemeral) ? {flags: MessageFlags.EPHEMERAL} : undefined);
+    }
+    return;
+  }
+  await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+  keepFollowUpsPrivate(context);
+}
+
+
 export class NotSoInteractionClient extends InteractionCommandClient {
   // the option names discord will refuse for matching a sibling option's name in some language
   getDuplicateOptionNames(): Array<ApplicationCommandDuplicateName> {
@@ -136,7 +182,33 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     context: Interaction.InteractionContext,
     data: Structures.InteractionDataApplicationCommand,
   ) {
-    return runWithCommandContext(context, () => super.handleApplicationCommandContext(context, data));
+    return runWithCommandContext(context, async () => {
+      // it reached us too late to answer (the host stalled, a gateway backlog): every response would 404 and the user
+      // already sees it as failed, so it doesn't run at all instead of doing its work for no one (a ban, a song, a job)
+      if (INTERACTION_EXPIRED_AGE <= getInteractionAge(context.interactionId)) {
+        setCommandResult(context, CommandResults.CANCELLED);
+        setCommandReason(context, 'interaction_expired');
+        recordExpiredResponse();
+        return;
+      }
+      const stopEarlyDefer = (shouldDeferEarly(context)) ? startEarlyDefer(context, () => deferEarly(context)) : null;
+      try {
+        return await super.handleApplicationCommandContext(context, data);
+      } finally {
+        if (stopEarlyDefer) {
+          stopEarlyDefer();
+        }
+      }
+    });
+  }
+
+  // an autocomplete that reached us too late isn't answered, discord already gave up on it
+  async handleApplicationCommandAutoComplete(event: Parameters<InteractionCommandClient['handleApplicationCommandAutoComplete']>[0]) {
+    if (INTERACTION_EXPIRED_AGE <= getInteractionAge(event.interaction.id)) {
+      recordExpiredResponse();
+      return;
+    }
+    return super.handleApplicationCommandAutoComplete(event);
   }
 
   async onCommandCheck(context: Interaction.InteractionContext, command: Interaction.InteractionCommand) {
@@ -147,8 +219,11 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       return true;
     }
 
-    const { translate } = await I18n.getTranslator(context);
-    const user = await UserStore.getOrFetch(context, context.userId);
+    // at the same time, on a cold cache each is a request and all of it happens before the defer
+    const [ { translate }, user ] = await Promise.all([
+      I18n.getTranslator(context),
+      UserStore.getOrFetch(context, context.userId),
+    ]);
     if (!user) {
       return setCommandGate(context, {kind: 'user_fetch_failed', message: translate('blocked.user_fetch_failed')});
     }
@@ -226,8 +301,9 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       });
       if (match && !match.rule.allows) {
         if (invoker.blockedCommandShouldStillExecute) {
-          // a modal has to be the first response, and it's private anyway
-          if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
+          // a modal has to be the first response, and it's private anyway. the early defer (`deferEarly`) may have been
+          // first, it's private while the checks run
+          if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal && !context.responded) {
             await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
               flags: MessageFlags.EPHEMERAL,
             });

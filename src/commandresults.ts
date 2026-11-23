@@ -6,7 +6,7 @@ import { isContentBlockedError } from './api/errors';
 import type { GuildSettingsRule } from './api/structures/guildsettings';
 import type { UserWarningPending } from './api/structures/user';
 import type { DiscordSkuIds } from './constants';
-import { CommandRunCancelledError } from './utils/errors';
+import { CommandRunCancelledError, InteractionExpiredError } from './utils/errors';
 import { isTagError } from './utils/tags/exceptions';
 
 
@@ -113,6 +113,10 @@ export function connectCommandResults(client: CommandClient | InteractionCommand
 export async function getRunErrorResult(error: any): Promise<CommandResults> {
   // its trigger was edited or deleted, `cancelCommandRun` already set it as cancelled (this is for the metrics)
   if (error instanceof CommandRunCancelledError) {
+    return CommandResults.CANCELLED;
+  }
+  // its reply came after discord's 3 seconds, the command didn't fail
+  if (error instanceof InteractionExpiredError) {
     return CommandResults.CANCELLED;
   }
   if (isTagError(error)) {

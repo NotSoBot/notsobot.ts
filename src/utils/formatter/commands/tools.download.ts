@@ -36,6 +36,7 @@ import {
 } from '../../../utils/tools';
 import { AutoEmbedSources, getAutoEmbedLink } from '../../autoembed';
 import { UserError } from '../../errors';
+import { queueMessageDelete } from '../../messagedeletes';
 import { Page, Paginator } from '../../paginator';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 
@@ -775,7 +776,7 @@ export async function onAutoEmbedUndo(context: ComponentContext, userId: string,
   const message = context.interaction.message;
   if (message && !message.deleted) {
     try {
-      await context.rest.deleteMessage(context.channelId, message.id);
+      await queueMessageDelete(context.client, context.channelId, message);
     } catch(error) {
 
     }

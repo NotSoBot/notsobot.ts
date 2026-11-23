@@ -6,6 +6,7 @@ import {
 
 import { CommandRatelimits } from '../../../../constants';
 import {
+  DiscordLinkError,
   Formatter,
   I18n,
   displayReply,
@@ -17,6 +18,8 @@ import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../bas
 
 
 export interface DownloadCommandArgsBefore extends ContextMenuMessageArgs {
+  // why a message link in the message can't be used (the user can't read it, it has no media)
+  error?: string,
   url?: string | null,
 }
 
@@ -50,14 +53,24 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
   async onBeforeRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
 	args.url = findMediaUrlInMessages([args.message], undefined, undefined, false);
     if (args.url) {
-      args.url = await getOrFetchRealUrl(context, args.url);
+      // the message's text can be a message link, an error here would leave the interaction unanswered
+      try {
+        args.url = await getOrFetchRealUrl(context, args.url);
+      } catch(error) {
+        if (!(error instanceof DiscordLinkError)) {
+          throw error;
+        }
+        args.error = error.message;
+        args.url = null;
+      }
     }
     return !!args.url;
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return displayReply(context, {description: translate('commands.context.download.no_media'), ephemeral: true});
+    const description = args.error || translate('commands.context.download.no_media');
+    return displayReply(context, {description, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: DownloadCommandArgs) {

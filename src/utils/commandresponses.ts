@@ -2,6 +2,7 @@ import { Command, ShardClient, Structures } from 'detritus-client';
 
 import { createCommandResponseExtra } from '../api';
 import CommandResponsesStore from '../stores/commandresponses';
+import { isUnknownMessageError, queueMessageDelete } from './messagedeletes';
 
 
 // Messages a prefixed command's run sends on top of its reply (`.ai listen` replies to every turn, the reply detritus
@@ -73,35 +74,27 @@ function sendExtraResponses(context: Command.Context, responseIds: Array<string>
 }
 
 
-// deletes our responses that no other delete path got to first, one by one (they're usually a few, and the bulk
-// delete endpoint needs Manage Messages). gives the ones still there (their delete failed), they can be tried again
+// deletes our responses that no other delete path got to first, through their channel's delete queue (together they go
+// as one bulk delete when we can). gives the ones still there (their delete failed), they can be tried again
 export async function deleteResponses(
   shard: ShardClient,
   channelId: string,
   responseIds: Array<string>,
 ): Promise<Array<string>> {
-  const failed: Array<string> = [];
-  for (let responseId of responseIds) {
-    if (!CommandResponsesStore.claimDeletion(responseId)) {
-      continue;
-    }
+  const claimed = responseIds.filter((responseId) => CommandResponsesStore.claimDeletion(responseId));
+  const results = await Promise.all(claimed.map(async (responseId) => {
     try {
-      await shard.rest.deleteMessage(channelId, responseId);
+      await queueMessageDelete(shard, channelId, responseId);
+      return null;
     } catch(error) {
-      // already deleted is done, anything else (no access right now, discord erroring) can be tried again later
-      if (!isUnknownMessageError(error)) {
-        CommandResponsesStore.releaseDeletion(responseId);
-        failed.push(responseId);
-      }
+      // already deleted is done (the queue resolves those), anything else (no access right now, discord erroring) can
+      // be tried again later
+      CommandResponsesStore.releaseDeletion(responseId);
+      return responseId;
     }
-  }
-  return failed;
+  }));
+  return results.filter((responseId): responseId is string => responseId !== null);
 }
 
 
-// discord's error for a message that doesn't exist anymore
-const ERROR_CODE_UNKNOWN_MESSAGE = 10008;
-
-export function isUnknownMessageError(error: any): boolean {
-  return !!error && !!error.response && (error.response.statusCode === 404 || error.code === ERROR_CODE_UNKNOWN_MESSAGE);
-}
+export { isUnknownMessageError };

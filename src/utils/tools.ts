@@ -36,6 +36,7 @@ import {
   PermissionTools,
   intToHex,
   generateWaveform,
+  isValidAttachmentUrl,
   regex as discordRegex,
 } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints, RequestTypes } from 'detritus-client-rest';
@@ -50,7 +51,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
-import { CommandRunCancelledError } from './errors';
+import { CommandRunCancelledError, DiscordLinkError } from './errors';
 import { getTranslator, randomThinkingText, TranslationKey, Translator } from './i18n';
 
 import { Endpoints, deleteJob, fetchJob, moderationSafetyScan, moderationTextScan, utilitiesFetchMedia } from '../api';
@@ -95,6 +96,7 @@ import {
 } from '../constants';
 
 import * as Formatter from './formatter';
+import { queueDeleteOf } from './messagedeletes';
 // types only, paginator.ts imports this file
 import type { PageObject } from './paginator';
 import { getPremiumUpsellSku } from './premium';
@@ -1586,19 +1588,143 @@ export function getMemberJoinPosition(
 }
 
 
-// only allow message links the invoker could read themselves, otherwise the bot leaks messages from other servers/channels
-export async function canUserReadChannelMessage(
+// a message link, `https://discord.com/channels/:guildId/:channelId/:messageId` (`@me` for dms) on ptb/canary or the old
+// discordapp.com too. detritus' JUMP_CHANNEL_MESSAGE regex ends at the message id, so a trailing slash, query or
+// fragment made these links go to the api as a plain url
+const DISCORD_MESSAGE_LINK_REGEX = /^https?:\/\/(?:(?:www|canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)\/?(?:[?#]\S*)?$/i;
+
+// discord links that are never media: invites, channels without a message and events
+const DISCORD_NON_MEDIA_LINK_REGEX = /^https?:\/\/(?:(?:www\.)?discord\.gg\/|(?:(?:www|canary|ptb)\.)?(?:discord|discordapp)\.com\/(?:channels|events|invite)\/)/i;
+
+// attachment links on the cdn or media proxy, or discord(app).com ones (old links that redirected to the cdn)
+const DISCORD_ATTACHMENT_URL_REGEX = /^https?:\/\/(cdn\.discordapp\.com|media\.discordapp\.net|(?:(?:www|canary|ptb)\.)?(?:discord|discordapp)\.com)(\/(?:ephemeral-)?attachments\/\d+\/\d+\/[^\s?#]+)(\?[^\s#]*)?/i;
+
+export interface DiscordMessageLink {
+  channelId: string,
+  // `@me` for a dm
+  guildId: string,
+  messageId: string,
+}
+
+// markdown around a link (`(link)`, `<link>`, `||link||`) is left out, the url regexes keep a trailing `)` or `|`
+function stripLinkMarkdown(value: string): string {
+  return value.trim().replace(/^[<(|]+/, '').replace(/[)\]>|]+$/, '');
+}
+
+export function parseDiscordMessageLink(value: string): DiscordMessageLink | null {
+  const match = DISCORD_MESSAGE_LINK_REGEX.exec(stripLinkMarkdown(value));
+  if (!match) {
+    return null;
+  }
+  const [ , guildId, channelId, messageId ] = match;
+  return {channelId, guildId, messageId};
+}
+
+
+export function isDiscordNonMediaLink(value: string): boolean {
+  value = stripLinkMarkdown(value);
+  return !parseDiscordMessageLink(value) && DISCORD_NON_MEDIA_LINK_REGEX.test(value);
+}
+
+
+// attachment links without their signature (`ex`/`is`/`hm`) or with an expired one 404, discord signs them again. the
+// discord(app).com ones become cdn links. any other url comes back as is, so does the link when discord won't sign it
+export async function getOrRefreshAttachmentUrl(
+  context: Command.Context | Interaction.InteractionContext,
+  url: string,
+): Promise<string> {
+  const match = DISCORD_ATTACHMENT_URL_REGEX.exec(url);
+  if (!match) {
+    return url;
+  }
+  const [ , host, path, query ] = match;
+  const isMediaProxy = host.toLowerCase() === 'media.discordapp.net';
+  const isCdn = isMediaProxy || host.toLowerCase() === 'cdn.discordapp.com';
+  if (isCdn && isValidAttachmentUrl(url)) {
+    return url;
+  }
+  const attachmentUrl = `https://${(isMediaProxy) ? 'media.discordapp.net' : 'cdn.discordapp.com'}${path}${query || ''}`;
+  if (isValidAttachmentUrl(attachmentUrl)) {
+    return attachmentUrl;
+  }
+  try {
+    const { refreshed_urls: refreshedUrls } = await context.rest.refreshAttachmentUrls([attachmentUrl]);
+    const refreshed = refreshedUrls.find((item) => item.original === attachmentUrl) || refreshedUrls[0];
+    if (refreshed && refreshed.refreshed) {
+      return refreshed.refreshed;
+    }
+  } catch(error) {
+
+  }
+  return attachmentUrl;
+}
+
+
+// why a message link can or can't be used, each one besides `allowed` is `params.message_link_${access}`
+export type MessageLinkAccess = 'allowed' | 'bot_no_access' | 'bot_not_here' | 'fetch_failed' | 'no_access' | 'not_found' | 'other_server';
+
+// a discord request that failed for the link itself (403/404) or for another reason (ratelimited, discord erroring)
+function messageLinkFetchAccess(error: any, forbidden: MessageLinkAccess, notFound: MessageLinkAccess): MessageLinkAccess {
+  const statusCode = (error && error.response) ? error.response.statusCode : null;
+  switch (statusCode) {
+    case 403: return forbidden;
+    case 404: return notFound;
+  }
+  return 'fetch_failed';
+}
+
+// view channel + read message history from the server's roles and the channel's overwrites (a thread's are its
+// parent's). never `Channel.can(perms, member)` with the interaction's member: its permissions are the ones in the channel
+// it was used in (with that channel's overwrites), `can()` starts from those and only adds the other channel's overwrites
+function canMemberReadGuildChannel(
+  guild: Structures.Guild,
+  channel: Structures.Channel,
+  member: Structures.Member,
+): boolean {
+  const total = guild.permissionsFor(member, channel);
+  return PermissionTools.checkPermissions(total, [Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY]);
+}
+
+// only allow message links the invoker could read themselves, otherwise the bot leaks messages from other servers/channels.
+// the user needs view channel + read message history there (the bot too, the current channel included), `@me` links
+// only work for their dm with the bot
+export async function checkMessageLinkAccess(
   context: Command.Context | Interaction.InteractionContext,
   guildId: string | undefined,
   channelId: string,
-): Promise<boolean> {
-  if (channelId === context.channelId) {
-    return true;
+): Promise<MessageLinkAccess> {
+  const isCurrentChannel = (channelId === context.channelId);
+  if (isCurrentChannel) {
+    // a user install somewhere the bot isn't, it can't fetch messages from here
+    if (!context.isBotPresent) {
+      return 'bot_not_here';
+    }
+    // the user's dm with the bot
+    if (!context.guildId) {
+      return 'allowed';
+    }
+    guildId = context.guildId;
+  } else if (!guildId || guildId === '@me') {
+    let channel: Structures.Channel | null = context.channels.get(channelId) || null;
+    if (!channel) {
+      try {
+        channel = await context.rest.fetchChannel(channelId);
+      } catch(error) {
+        // the bot can only fetch its own dms, so this is someone else's (or a group dm)
+        return messageLinkFetchAccess(error, 'no_access', 'no_access');
+      }
+    }
+    if (channel && channel.isDmSingle && channel.recipients.has(context.userId)) {
+      return 'allowed';
+    }
+    return 'no_access';
   }
 
-  // dm links (`@me`) are only allowed for the current channel
-  if (!guildId || guildId === '@me') {
-    return false;
+  // permissions need the server's roles, a user install where the bot isn't in this server, a server the bot isn't in
+  // or one on another cluster has none here
+  const guild = context.guilds.get(guildId);
+  if (!guild) {
+    return (context.guildId === guildId) ? 'bot_not_here' : 'other_server';
   }
 
   let channel: Structures.Channel | null = context.channels.get(channelId) || null;
@@ -1606,21 +1732,22 @@ export async function canUserReadChannelMessage(
     try {
       channel = await context.rest.fetchChannel(channelId);
     } catch(error) {
-      return false;
+      // the server's channels are all cached, this is an uncached thread (or a deleted channel)
+      return messageLinkFetchAccess(error, 'bot_no_access', 'not_found');
     }
   }
   if (!channel || channel.guildId !== guildId) {
-    return false;
+    return 'not_found';
   }
 
   if (channel.isGuildThread) {
     // private threads need membership which we cannot reliably check, only allow them from inside the thread
-    if (channel.isGuildThreadPrivate) {
-      return false;
+    if (channel.isGuildThreadPrivate && !isCurrentChannel) {
+      return 'no_access';
     }
     const parent = (channel.parentId) ? context.channels.get(channel.parentId) : null;
     if (!parent) {
-      return false;
+      return 'no_access';
     }
     channel = parent;
   }
@@ -1634,15 +1761,34 @@ export async function canUserReadChannelMessage(
       try {
         member = await context.rest.fetchGuildMember(guildId, context.userId);
       } catch(error) {
-        return false;
+        // a 404 is not being in that server
+        return messageLinkFetchAccess(error, 'no_access', 'no_access');
       }
     }
   }
   if (!member) {
-    return false;
+    return 'no_access';
   }
 
-  return channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member);
+  // the user first, so whether the bot can see a channel isn't told to someone who can't
+  if (!canMemberReadGuildChannel(guild, channel, member)) {
+    return 'no_access';
+  }
+  // without the bot's member cached, fetching the message tells
+  const botMember = guild.me;
+  if (botMember && !canMemberReadGuildChannel(guild, channel, botMember)) {
+    return 'bot_no_access';
+  }
+  return 'allowed';
+}
+
+
+export async function canUserReadChannelMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  guildId: string | undefined,
+  channelId: string,
+): Promise<boolean> {
+  return (await checkMessageLinkAccess(context, guildId, channelId)) === 'allowed';
 }
 
 
@@ -1663,8 +1809,59 @@ export async function fetchMessageFromJumpLink(
 }
 
 
+export async function createDiscordLinkError(
+  context: Command.Context | Interaction.InteractionContext,
+  key: TranslationKey,
+): Promise<DiscordLinkError> {
+  const { translate } = await getTranslator(context);
+  return new DiscordLinkError(translate(key));
+}
+
+
+// a message link's message for media arguments, a `DiscordLinkError` saying why when it can't be used (the access check
+// above, deleted, the bot can't read it). the cache is checked before discord
+export async function fetchMessageLinkForMedia(
+  context: Command.Context | Interaction.InteractionContext,
+  link: DiscordMessageLink,
+): Promise<Structures.Message> {
+  const access = await checkMessageLinkAccess(context, link.guildId, link.channelId);
+  if (access !== 'allowed') {
+    throw await createDiscordLinkError(context, `params.message_link_${access}` as TranslationKey);
+  }
+  const cached = context.messages.get(link.messageId);
+  if (cached) {
+    if (cached.channelId === link.channelId) {
+      return cached;
+    }
+    throw await createDiscordLinkError(context, 'params.message_link_not_found');
+  }
+  try {
+    return await context.rest.fetchMessage(link.channelId, link.messageId);
+  } catch(error) {
+    const access = messageLinkFetchAccess(error, 'bot_no_access', 'not_found');
+    throw await createDiscordLinkError(context, `params.message_link_${access}` as TranslationKey);
+  }
+}
+
+
+// the url in a linked message's text, for when it has no media. never another message link or an invite
+export function findLinkedMessageTextUrl(
+  message: Structures.Message,
+  options?: FindMediaUrlOptions,
+): string | null {
+  const url = findUrlInMessages([message], options);
+  if (url && !parseDiscordMessageLink(url) && !isDiscordNonMediaLink(url)) {
+    return url;
+  }
+  return null;
+}
+
+
 const DEFAULT_FIND_URL_OPTIONS: FindMediaUrlOptions = Object.freeze({audio: true, image: true, text: true, video: true});
 
+// a url argument's real url. a message link is that message's media (with `options`' media types), the url in its text
+// only when it has none, and throws a `DiscordLinkError` when the user can't read it or it has neither. expired
+// attachment links get signed again
 export async function getOrFetchRealUrl(
   context: Command.Context | Interaction.InteractionContext,
   value: string,
@@ -1677,22 +1874,17 @@ export async function getOrFetchRealUrl(
   const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
   if (matches.length) {
     const [ { text } ] = matches;
-    const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-    if (messageLink.matches.length) {
-      const [ { channelId, guildId, messageId } ] = messageLink.matches;
-      if (channelId && messageId) {
-        try {
-          const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
-          if (message) {
-            return findUrlInMessages([message], options);
-          }
-        } catch(error) {
-
-        }
+    const link = parseDiscordMessageLink(text);
+    if (link) {
+      const message = await fetchMessageLinkForMedia(context, link);
+      const url = findMediaUrlInMessages([message], options) || findLinkedMessageTextUrl(message, options);
+      if (!url) {
+        throw await createDiscordLinkError(context, 'params.message_link_no_media');
       }
+      return getOrRefreshAttachmentUrl(context, url);
     }
     if (!onlyJumpMessage) {
-      return text;
+      return getOrRefreshAttachmentUrl(context, text);
     }
   }
 
@@ -1711,19 +1903,16 @@ export async function getOrFetchRealUrls(
   const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
   if (matches.length) {
     for (let { text } of matches) {
-      // if its a jump link, just return the results from that
-      const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-      if (messageLink.matches.length) {
-        const [ { channelId, guildId, messageId } ] = messageLink.matches;
-        if (channelId && messageId) {
-          try {
-            const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
-            if (message) {
-              return findUrlsInMessages([message], options);
-            }
-          } catch(error) {
-
+      // if its a jump link, just return the results from that (only from channels the user can read)
+      const messageLink = parseDiscordMessageLink(text);
+      if (messageLink) {
+        try {
+          const message = await fetchMessageFromJumpLink(context, messageLink.guildId, messageLink.channelId, messageLink.messageId);
+          if (message) {
+            return findUrlsInMessages([message], options);
           }
+        } catch(error) {
+
         }
       }
       if (!onlyJumpMessage) {
@@ -2381,7 +2570,8 @@ export async function finishThinkingReply(context: Command.Context): Promise<str
     return null;
   }
   try {
-    await message.delete();
+    // through its channel's delete queue, several runs ending together in a busy channel were a burst of deletes
+    await queueDeleteOf(message);
     return message.id;
   } catch(error) {
     return null;

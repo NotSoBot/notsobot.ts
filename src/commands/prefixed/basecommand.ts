@@ -43,6 +43,7 @@ import {
 } from '../../utils';
 import { getAutoEmbedLink } from '../../utils/autoembed';
 import { getCommandId, markRecorded } from '../../utils/commandresponses';
+import { queueDeleteOf } from '../../utils/messagedeletes';
 
 import {
   createArgumentErrorPayload,
@@ -297,7 +298,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         await Timers.sleep(Math.max(remaining / 2, 2000));
         item.replied = false;
         if (reply && !reply.deleted) {
-          await reply.delete();
+          await queueDeleteOf(reply);
         }
       } catch(e) {
         item.replied = false;
@@ -327,7 +328,8 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     const response = (context.response && context.response.id !== deletedThinkingId) ? context.response : null;
     if (context.message.deleted && response && !response.deleted) {
       try {
-        await response.delete();
+        // queued with the trigger's other deletes: the COMMAND_DELETE cleanup may have it on its way (or done) already
+        await queueDeleteOf(response);
       } catch(error) {
 
       }

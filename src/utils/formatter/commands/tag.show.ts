@@ -38,6 +38,7 @@ import {
   timeLimitParts,
 } from '../../../utils';
 import { UserError } from '../../errors';
+import { queueDeleteOf } from '../../messagedeletes';
 
 
 export const COMMAND_ID = 'tag.show';
@@ -252,9 +253,9 @@ async function deletePreviousReply(context: Command.Context | Interaction.Intera
   context.commandClient.replies.delete(context.messageId);
   if (!old.reply.deleted) {
     try {
-      await old.reply.delete();
+      await queueDeleteOf(old.reply);
     } catch(error) {
-      // already deleted
+      // no access anymore, the voice message still goes out
     }
   }
 }

@@ -155,7 +155,7 @@ import { parseMusicVolume } from '../formatter/commands/music.volume';
 import { getAIPersonality } from '../formatter/commands/tag.generate';
 import { increaseUsage } from '../formatter/commands/tag.show';
 
-import { CommandRunCancelledError } from '../errors';
+import { CommandRunCancelledError, DiscordLinkError } from '../errors';
 import * as DefaultParameters from '../defaultparameters';
 import { Translator, getCachedTranslator } from '../i18n';
 import { MathSession, MATH_ERROR_TIMEOUT_MESSAGE } from '../math';
@@ -177,6 +177,7 @@ import {
   jobWaitForResponse,
   jobWaitForResult,
   languageCodeToText,
+  parseDiscordMessageLink,
   randomFromArray,
   randomFromIterator,
   requestAllGuildMembers,
@@ -204,12 +205,30 @@ const findChannel = (
 ): Structures.Channel | null => findChannelParameter(value.toLowerCase(), context);
 const findMemberOrUser = Parameters.memberOrUser();
 
-const lastAudioUrl = Parameters.lastMediaUrl({image: false, video: false});
-const lastAudioOrVideoUrl = Parameters.lastMediaUrl({image: false});
-const lastImageUrl = Parameters.lastMediaUrl({audio: false, video: false});
-const lastImageOrVideoUrl = Parameters.lastMediaUrl({audio: false});
-const lastMediaUrl = Parameters.lastMediaUrl();
-const lastVideoUrl = Parameters.lastMediaUrl({audio: false, image: false});
+// a message link the user can't use (or an invite) is no media in a tag, so the function's own `Cannot find any media`
+// or MEDIA_IV_FALLBACK runs instead of the parser's `DiscordLinkError` failing the whole tag
+function withoutDiscordLinkErrors<T, F>(
+  parse: (value: string, context: Command.Context | Interaction.InteractionContext) => Promise<T>,
+  fallback: F,
+): (value: string, context: Command.Context | Interaction.InteractionContext) => Promise<T | F> {
+  return async (value, context) => {
+    try {
+      return await parse(value, context);
+    } catch(error) {
+      if (error instanceof DiscordLinkError) {
+        return fallback;
+      }
+      throw error;
+    }
+  };
+}
+
+const lastAudioUrl = withoutDiscordLinkErrors(Parameters.lastMediaUrl({image: false, video: false}), null);
+const lastAudioOrVideoUrl = withoutDiscordLinkErrors(Parameters.lastMediaUrl({image: false}), null);
+const lastImageUrl = withoutDiscordLinkErrors(Parameters.lastMediaUrl({audio: false, video: false}), null);
+const lastImageOrVideoUrl = withoutDiscordLinkErrors(Parameters.lastMediaUrl({audio: false}), null);
+const lastMediaUrl = withoutDiscordLinkErrors(Parameters.lastMediaUrl(), null);
+const lastVideoUrl = withoutDiscordLinkErrors(Parameters.lastMediaUrl({audio: false, image: false}), null);
 
 // `{medialist}`'s type argument, the same filters as {media}, {audio}, {av}, {image}, {iv} and {video}
 const MEDIA_LIST_TYPES: Record<string, Parameters.FindMediaUrlsOptions> = {
@@ -7822,16 +7841,13 @@ const ScriptTags = Object.freeze({
     // channel until `max`, without the message's own or the reply's (`{medialist:video|10|LINK}`, NotSoAI uses it to go
     // back to an earlier turn's media)
     const parts = Parameters.stringArguments((text || '').trim(), true);
-    const links = parts.map((part) => {
-      const { matches } = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, part) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-      return (matches.length) ? matches[0] : null;
-    });
+    const links = parts.map((part) => parseDiscordMessageLink(part));
     if (links.some(Boolean)) {
       const options = MEDIA_LIST_TYPES[typeString];
       const urls = new Set<string>();
       let start: Structures.Message | null = null;
       for (let link of links) {
-        if (link && link.channelId && link.messageId) {
+        if (link) {
           let message: Structures.Message | null = null;
           try {
             message = await fetchMessageFromJumpLink(context, link.guildId, link.channelId, link.messageId);
@@ -7849,7 +7865,7 @@ const ScriptTags = Object.freeze({
       // mentions, urls and emoji next to the links
       const rest = parts.filter((part, i) => !links[i]);
       if (rest.length && urls.size < maxAmount) {
-        const parseContent = Parameters.mediaUrlsFromContent(maxAmount - urls.size, options);
+        const parseContent = withoutDiscordLinkErrors(Parameters.mediaUrlsFromContent(maxAmount - urls.size, options), []);
         for (let url of await parseContent(rest.join(' '), context)) {
           urls.add(url);
         }
@@ -7879,7 +7895,7 @@ const ScriptTags = Object.freeze({
     }
 
     // `minAmount` stays 0, at 1 it would run the user's image search fallback and look through the channel's history
-    const parse = Parameters.mediaUrls({...MEDIA_LIST_TYPES[typeString], maxAmount});
+    const parse = withoutDiscordLinkErrors(Parameters.mediaUrls({...MEDIA_LIST_TYPES[typeString], maxAmount}), []);
     const urls = await parse((text || '').trim(), context) as Array<string>;
     tag.text += JSON.stringify(Array.from(new Set(urls)));
 

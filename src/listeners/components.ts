@@ -301,18 +301,22 @@ class ComponentsListener extends Listener {
     const { translate } = translator;
     let storage: RestResponsesRaw.FileResponseStorage;
 
+    // deferred before the api is asked about the file, on a busy host (or api) the press ran out of its 3 seconds
+    // first. what goes wrong from here is a private follow-up
+    await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+
     try {
       storage = await fetchFile(context, fileId);
     } catch(error) {
       // if 404, replace entire message maybe?
-      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+      return context.createMessage(renderEphemeralDisplay(context, translator, {
         description: translate('media.reupload_missing'),
       }));
     }
 
     if (context.maxAttachmentSize < storage.metadata.size) {
       // only allow it if the person who clicked it has enough attachment size to upload it (e.g. nitro)
-      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+      return context.createMessage(renderEphemeralDisplay(context, translator, {
         description: translate('media.reupload_too_big'),
       }));
     }
@@ -321,7 +325,7 @@ class ComponentsListener extends Listener {
     const clusterId = (context.cluster) ? context.cluster.clusterId : 0;
     if (!(await hasTempDiskSpace(clusterId, storage.metadata.size))) {
       log.warn(`Not enough disk space to re-upload ${storage.id} (${storage.metadata.size} bytes)`);
-      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {
+      return context.createMessage(renderEphemeralDisplay(context, translator, {
         description: translate('media.reupload_failed'),
       }));
     }
@@ -333,7 +337,6 @@ class ComponentsListener extends Listener {
     // its text (like a post's author, caption, site and counts) is only on the reply, read before it's replaced
     const text = findReuploadText(context.interaction.message, storage);
 
-    await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     await context.createMessage(renderEphemeralDisplay(context, translator, {description: translate('media.reupload_started')}));
     // send a message saying reuploading
 
@@ -397,8 +400,11 @@ class ComponentsListener extends Listener {
   async makeGalleryPermanentUsingNitroLocked(context: ComponentContext) {
     const translator = I18n.getCachedTranslator(context);
     const { translate } = translator;
+    // deferred before the api is asked about the files, on a busy host (or api) the press ran out of its 3 seconds
+    // first. what goes wrong from here is a private follow-up
+    await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     const respondEphemeral = (description: string) => {
-      return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, renderEphemeralDisplay(context, translator, {description}));
+      return context.createMessage(renderEphemeralDisplay(context, translator, {description}));
     };
 
     // the layout `mediaReplyFiles` sends: one container with the gallery in it
@@ -451,7 +457,6 @@ class ComponentsListener extends Listener {
       return respondEphemeral(translate('media.reupload_failed'));
     }
 
-    await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     await context.createMessage(renderEphemeralDisplay(context, translator, {description: translate('media.reupload_started')}));
 
     const filepaths: Array<string> = [];

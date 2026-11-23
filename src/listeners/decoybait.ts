@@ -9,6 +9,7 @@ import { log } from '../log';
 import DecoyStore from '../stores/decoys';
 import { Formatter } from '../utils';
 import { createDecoyWebhookName, pickDecoyBait } from '../utils/decoy';
+import { queueMessageDelete } from '../utils/messagedeletes';
 
 import { Listener } from './listener';
 
@@ -101,7 +102,7 @@ class DecoyBaitScheduler extends Listener {
       await shard.rest.deleteWebhookTokenMessage(webhookId, webhookToken, messageId);
     } catch(error) {
       // the webhook went in between, I can still delete it myself with manage messages
-      await shard.rest.deleteMessage(decoy.channel_id, messageId).catch(() => null);
+      await queueMessageDelete(shard, decoy.channel_id, messageId).catch(() => null);
     }
   }
 

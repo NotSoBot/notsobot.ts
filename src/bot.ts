@@ -34,6 +34,7 @@ import {
 import { connectAllStores } from './stores';
 import { clearClusterTempDirectory } from './tempfiles';
 import { ClusterStartupStage, setClusterStartup } from './utils/clusterstartup';
+import { guardInteractionResponses } from './utils/interactiondeadline';
 
 
 import { setGlobalDispatcher, Agent } from 'undici';
@@ -43,6 +44,8 @@ setGlobalDispatcher(new Agent({
 }));
 
 initSentry('cluster');
+// first responses already past discord's 3 seconds aren't sent, they'd only come back as 404 Unknown interaction
+guardInteractionResponses();
 
 // without a handler node kills the whole cluster (and its 8 shards) on any stray rejection, so log + report and keep going
 process.on('unhandledRejection', (reason) => {

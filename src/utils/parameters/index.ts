@@ -55,9 +55,12 @@ import {
   DefaultParameters,
   TagFormatter,
   durationToMilliseconds,
+  createDiscordLinkError,
   fetchMemberOrUserById,
   fetchMessageFromJumpLink,
+  fetchMessageLinkForMedia,
   findFileUrlInMessage,
+  findLinkedMessageTextUrl,
   findMediaUrlInEmbed,
   findMediaUrlInMessage,
   findMediaUrlsInMessage,
@@ -70,11 +73,14 @@ import {
   getCachedChannelMessages,
   getOrFetchRealUrl,
   getOrFetchRealUrls,
+  getOrRefreshAttachmentUrl,
   getTimezoneAbbreviation,
   getTimezoneFromContext,
+  isDiscordNonMediaLink,
   isFileAttachment,
   isSnowflake,
   jobWaitForResult,
+  parseDiscordMessageLink,
   parseTagDirectoryUrl,
   searchTimezones,
   toCodePointForTwemoji,
@@ -89,7 +95,7 @@ import * as ContextMenu from './context-menu';
 import * as Prefixed from './prefixed';
 import * as Slash from './slash';
 import { SAVED_FONT_NAME, normalizeSavedFontName } from './fonts';
-import { UserError } from '../errors';
+import { DiscordLinkError, UserError } from '../errors';
 
 export { AutoComplete, ContextMenu, Prefixed, Slash };
 
@@ -1173,11 +1179,10 @@ export async function quote(
   const rest = value.slice(first.length).trim();
 
   // https://discord.com/channels/:guildId/:channelId/:messageId, only from channels the user can read
-  const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, first) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-  if (messageLink.matches.length) {
-    const [ { channelId, guildId, messageId } ] = messageLink.matches;
+  const messageLink = parseDiscordMessageLink(first);
+  if (messageLink) {
     try {
-      target.message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+      target.message = await fetchMessageFromJumpLink(context, messageLink.guildId, messageLink.channelId, messageLink.messageId);
     } catch(error) {}
     if (target.message) {
       target.text = '';
@@ -1220,28 +1225,25 @@ export async function targetText(
 
       // if its https://discord.com/channels/:guildId/:channelId/:messageId
       {
-        const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-        if (messageLink.matches.length) {
-          const [ { channelId, guildId, messageId } ] = messageLink.matches;
-          if (channelId && messageId) {
-            const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
-            if (!message) {
-              // the user can't read that channel, don't leak it
-            } else if (message.content) {
-              value = message.content;
-            } else if (message.embeds.length) {
-              for (let [embedId, embed] of message.embeds) {
-                if (embed.description) {
-                  value = embed.description;
-                  if (value.startsWith('```') && value.endsWith('```')) {
-                    value = value.slice(3, -3).trim();
-                    const newLineIndex = value.indexOf('\n');
-                    if (newLineIndex !== -1) {
-                      value = value.slice(newLineIndex).trim();
-                    }
+        const messageLink = parseDiscordMessageLink(text);
+        if (messageLink) {
+          const message = await fetchMessageFromJumpLink(context, messageLink.guildId, messageLink.channelId, messageLink.messageId);
+          if (!message) {
+            // the user can't read that channel, don't leak it
+          } else if (message.content) {
+            value = message.content;
+          } else if (message.embeds.length) {
+            for (let [embedId, embed] of message.embeds) {
+              if (embed.description) {
+                value = embed.description;
+                if (value.startsWith('```') && value.endsWith('```')) {
+                  value = value.slice(3, -3).trim();
+                  const newLineIndex = value.indexOf('\n');
+                  if (newLineIndex !== -1) {
+                    value = value.slice(newLineIndex).trim();
                   }
-                  break;
                 }
+                break;
               }
             }
           }
@@ -1891,7 +1893,7 @@ export function mediaUrl(
             if (message) {
               const url = findUrlInMessages([message], mediaSearchOptions);
               if (url) {
-                return getOrFetchRealUrl(context, url, mediaSearchOptions);
+                return await getOrFetchRealUrl(context, url, mediaSearchOptions);
               }
             }
           }
@@ -1908,23 +1910,17 @@ export function mediaUrl(
         {
           const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
           if (matches.length) {
-            const [ { text } ] = matches;
-  
-            // if its https://discord.com/channels/:guildId/:channelId/:messageId
-            {
-              const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-              if (messageLink.matches.length) {
-                const [ { channelId, guildId, messageId } ] = messageLink.matches;
-                if (channelId && messageId) {
-                  const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
-                  const url = (message) ? findMediaUrlInMessages([message], mediaSearchOptions) : null;
-                  if (url) {
-                    return url;
-                  }
-                }
-                return null;
-              }
+            let [ { text } ] = matches;
+
+            // a message link is that message's media (the url in its text without any). the user has to be able to
+            // read it, a `DiscordLinkError` says why not
+            if (parseDiscordMessageLink(text)) {
+              return await getOrFetchRealUrl(context, text, mediaSearchOptions);
             }
+            if (isDiscordNonMediaLink(text)) {
+              throw await createDiscordLinkError(context, 'params.media_discord_link');
+            }
+            text = await getOrRefreshAttachmentUrl(context, text);
 
             if (context instanceof Command.Context && (!findAudio && !findVideo)) {
               if (!context.message.embeds.length) {
@@ -2071,6 +2067,9 @@ export function mediaUrl(
         }
       }
     } catch(error) {
+      if (error instanceof DiscordLinkError) {
+        throw error;
+      }
       return null;
     }
     return null;
@@ -2183,22 +2182,27 @@ export function mediaUrls(
             const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, part) as {matches: Array<{text: string}>};
             if (matches.length) {
               const [ { text } ] = matches;
-    
-              // if its https://discord.com/channels/:guildId/:channelId/:messageId
-              {
-                const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-                if (messageLink.matches.length) {
-                  const [ { channelId, guildId, messageId } ] = messageLink.matches;
-                  if (channelId && messageId) {
-                    const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
-                    const url = (message) ? findMediaUrlInMessages([message], mediaSearchOptions) : null;
-                    if (url) {
-                      foundFromText = true;
-                      urls.push(url);
-                    }
+
+              // a message link is that message's media (the url in its text without any). the user has to be able to
+              // read it, a `DiscordLinkError` says why not
+              const messageLink = parseDiscordMessageLink(text);
+              if (messageLink) {
+                const message = await fetchMessageLinkForMedia(context, messageLink);
+                const found = findMediaUrlsInMessage(message, mediaSearchOptions);
+                if (!found.length) {
+                  // the url in its text only when it has no media
+                  const textUrl = findLinkedMessageTextUrl(message, mediaSearchOptions);
+                  if (!textUrl) {
+                    throw await createDiscordLinkError(context, 'params.message_link_no_media');
                   }
-                  continue;
+                  found.push(textUrl);
                 }
+                foundFromText = true;
+                urls.push(...found);
+                continue;
+              }
+              if (isDiscordNonMediaLink(text)) {
+                throw await createDiscordLinkError(context, 'params.media_discord_link');
               }
 
               if (context instanceof Command.Context && (!findAudio && !findVideo)) {
@@ -2304,7 +2308,9 @@ export function mediaUrls(
             }
           }
         } catch(error) {
-
+          if (error instanceof DiscordLinkError) {
+            throw error;
+          }
         }
       }
 
@@ -2626,23 +2632,17 @@ export function mediaUrlPositional(
         {
           const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
           if (matches.length) {
-            const [ { text } ] = matches;
-  
-            // if its https://discord.com/channels/:guildId/:channelId/:messageId
-            {
-              const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-              if (messageLink.matches.length) {
-                const [ { channelId, guildId, messageId } ] = messageLink.matches;
-                if (channelId && messageId) {
-                  const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
-                  const url = (message) ? findMediaUrlInMessages([message], mediaSearchOptions) : null;
-                  if (url) {
-                    return url;
-                  }
-                }
-                return null;
-              }
+            let [ { text } ] = matches;
+
+            // a message link is that message's media (the url in its text without any). the user has to be able to
+            // read it, a `DiscordLinkError` says why not
+            if (parseDiscordMessageLink(text)) {
+              return await getOrFetchRealUrl(context, text, mediaSearchOptions);
             }
+            if (isDiscordNonMediaLink(text)) {
+              throw await createDiscordLinkError(context, 'params.media_discord_link');
+            }
+            text = await getOrRefreshAttachmentUrl(context, text);
 
             if (context instanceof Command.Context && (!findAudio && !findVideo)) {
               if (!context.message.embeds.length) {
@@ -2729,6 +2729,9 @@ export function mediaUrlPositional(
         return [true, await customLastMediaUrl(context) || undefined];
       }
     } catch(error) {
+      if (error instanceof DiscordLinkError) {
+        throw error;
+      }
       return null;
     }
     return await customLastMediaUrl(context) || undefined;
