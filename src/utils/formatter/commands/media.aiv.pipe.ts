@@ -1,5 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, InteractionModalContext, Markup } from 'detritus-client/lib/utils';
 import { RequestFile, Response } from 'detritus-rest';
 
 import { utilitiesMediascript } from '../../../api';
@@ -150,9 +150,11 @@ async function replyScript(
   return displayReply(context, {files: [{filename: 'pipe.mediascript.txt', value: Buffer.from(code)}]});
 }
 
+// `replyTo`: a press (or a modal from one) the result is sent through as its own message, like Edit Media's menu
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+  replyTo?: ComponentContext | InteractionModalContext,
 ) {
   const safe = DefaultParameters.safe(context);
   const { translate } = await getTranslator(context);
@@ -211,7 +213,7 @@ export async function createMessage(
       if (!job.result.response) {
         throw new Error('Job Failed for some reason');
       }
-      return mediaReply(context, job.result.response, {description});
+      return mediaReply(context, job.result.response, {description, replyTo});
     } catch(error) {
       if (error instanceof PipeTimeoutError) {
         throw new UserError(translate('media.pipe.took_too_long_script', {max: (maxTime / 1000).toLocaleString()}));
@@ -293,7 +295,7 @@ export async function createMessage(
       }
       // show what the steps before it made
       const description = `piped: ${pipers.slice(0, step).map((x) => x.command.name).join(' -> ')}\n${message}`;
-      return mediaReply(context, fileResponse, {description});
+      return mediaReply(context, fileResponse, {description, replyTo});
     }
 
     if (fileResponse) {
@@ -307,8 +309,8 @@ export async function createMessage(
   }
 
   if (fileResponse) {
-    return mediaReply(context, fileResponse, {description: `piped: ${pipers.map((x) => x.command.name).join(' -> ')}`});
+    return mediaReply(context, fileResponse, {description: `piped: ${pipers.map((x) => x.command.name).join(' -> ')}`, replyTo});
   }
 
-  return displayReply(context, {description: translate('media.pipe.failed')});
+  return displayReply(context, {description: translate('media.pipe.failed')}, {replyTo});
 }

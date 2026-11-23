@@ -4933,8 +4933,12 @@ function quoteBody(options: RestOptions.MediaICreateQuote) {
       thumbnail_url: embed.thumbnailUrl,
       title: embed.title,
     } : undefined,
+    image_url: options.imageUrl || undefined,
     light: options.light,
     mentions: options.mentions,
+    name_color: options.nameColor || undefined,
+    portrait_url: options.portraitUrl || undefined,
+    reactions: options.reactions,
     reply: (reply) ? {
       attachment: reply.attachment,
       author: (reply.author) ? author(reply.author) : undefined,
@@ -4959,6 +4963,80 @@ export async function mediaICreateQuote(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_QUOTE,
+    },
+  });
+}
+
+
+function postAuthorBody(value: RestOptions.MediaICreatePostAuthor) {
+  return {
+    avatar_url: value.avatarUrl || undefined,
+    handle: value.handle || undefined,
+    name: value.name || undefined,
+    verified: value.verified || undefined,
+  };
+}
+
+// what `tweet` and `truth` share. a count that wasn't set stays out of the body (the api makes it up), 0 is a count
+function postBody(options: RestOptions.MediaICreatePost) {
+  const quote = options.quote;
+  return {
+    account: options.account || undefined,
+    author: (options.author) ? postAuthorBody(options.author) : undefined,
+    content: options.content,
+    image_url: options.imageUrl || undefined,
+    likes: options.likes ?? undefined,
+    portrait_url: options.portraitUrl || undefined,
+    quote: (quote) ? {
+      author: postAuthorBody(quote.author),
+      content: quote.content,
+      image_url: quote.imageUrl || undefined,
+      timestamp: quote.timestamp,
+    } : undefined,
+    reply_to: options.replyTo || undefined,
+    reposts: options.reposts ?? undefined,
+    timestamp: options.timestamp,
+  };
+}
+
+export async function mediaICreateTruth(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTruth,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    max_file_size: getDefaultMaxFileSize(context, options),
+    safe: options.safe,
+    theme: options.theme,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_TRUTH,
+    },
+  });
+}
+
+export async function mediaICreateTweet(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTweet,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    ...postBody(options),
+    bookmarks: options.bookmarks ?? undefined,
+    max_file_size: getDefaultMaxFileSize(context, options),
+    note: options.note || undefined,
+    replies: options.replies ?? undefined,
+    safe: options.safe,
+    theme: options.theme,
+    views: options.views ?? undefined,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_TWEET,
     },
   });
 }

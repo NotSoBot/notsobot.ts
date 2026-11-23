@@ -411,8 +411,9 @@ function replyWithPages(
 }
 
 
-// why a page couldn't be shown, only to whoever pressed it (the reply keeps the last page)
-async function replyPageError(
+// why a page couldn't be shown, only to whoever pressed it (the reply keeps the last page). Edit Media's menu uses it
+// for a pick that failed too
+export async function replyPageError(
   ctx: ComponentContext | InteractionModalContext,
   context: Command.Context | Interaction.InteractionContext,
   translator: Translator,

@@ -35,7 +35,30 @@ const ABSOLUTE_TIME_FORMAT = 'MM/DD/YYYY h:mm A';
 
 const REGEX_TOKEN = /<(?:@!?|@&|#)\d{15,21}>|<t:-?\d{1,13}(?::[tTdDfFR])?>/g;
 
-export interface CommandArgs {
+// the APP tag after a name: a plain one, a verified app's (with the check), or none on an app's message
+export const APP_TAGS = ['app', 'verified', 'none'] as const;
+export type AppTag = typeof APP_TAGS[number];
+
+export const MAX_NAME_LENGTH = 80;
+export const MAX_COLOR_LENGTH = 32;
+
+// what can be put over a quote's own details, each one only when it's set. they work on a real message too
+export interface QuoteOverrides {
+  app?: null | AppTag,
+  // the name's color: a color name, `#hex` or `r,g,b` (the api reads it like every other color)
+  color?: null | string,
+  edited?: boolean,
+  // one image under the text in place of the message's own, any url
+  image?: null | string,
+  // the display name, a mention is that user's name
+  name?: null | string,
+  // the avatar, any url
+  portrait?: null | string,
+  reactions?: null | Array<RestOptions.MediaICreateQuoteReaction>,
+  time?: null | Date,
+}
+
+export interface CommandArgs extends QuoteOverrides {
   // discord's compact mode, no avatar and the name inline with the text
   compact?: boolean,
   light?: boolean,
@@ -66,10 +89,19 @@ export async function createMessage(
   }
 
   const options = await createQuoteOptions(context, translator, message, {
+    app: args.app,
     author: args.user,
+    color: args.color,
     compact: args.compact,
+    edited: args.edited,
+    // an image sent with the command goes under typed text (a real message keeps its own unless one was named)
+    image: args.image || ((message) ? null : firstImageUrl(context)),
     light: args.light,
+    name: args.name,
+    portrait: args.portrait,
+    reactions: args.reactions,
     text,
+    time: args.time,
   });
   if (!options) {
     return displayReply(context, {description: translate('fun.quote.nothing_to_quote')});
@@ -87,7 +119,7 @@ export async function createQuoteOptions(
   context: Command.Context | Interaction.InteractionContext,
   translator: Translator,
   message: null | Structures.Message,
-  args: {
+  args: QuoteOverrides & {
     // the date and time instead of "Today at", for an image that's looked at later
     absoluteTime?: boolean,
     author?: null | Structures.Member | Structures.User,
@@ -110,21 +142,36 @@ export async function createQuoteOptions(
     ...media.map((embed) => resizedProxyUrl(embed.thumbnail!.proxyUrl, embed.thumbnail!.width, embed.thumbnail!.height)),
   ].filter((url): url is string => !!url).slice(0, MAX_ATTACHMENTS) : [];
   const components = (message) ? quoteComponents(message) : [];
-  if (!content && !embed && !attachments.length && !components.length) {
+  if (!content && !embed && !attachments.length && !components.length && !args.image) {
     return null;
   }
 
   const reply = (message) ? await quoteReply(context, translator, message) : null;
-  const time = createTimestampMomentFromContext((message) ? message.createdAtUnix : Date.now(), {guildId: context.guildId, userId: context.userId});
+  const timestamp = (args.time) ? args.time.getTime() : ((message) ? message.createdAtUnix : Date.now());
+  const time = createTimestampMomentFromContext(timestamp, {guildId: context.guildId, userId: context.userId});
+  const quoted = quoteAuthor(author, true);
+  if (args.name) {
+    // a mention there is that user's name, without the sign
+    const replaceMentions = await createMentionsReplacer(context, [args.name]);
+    quoted.name = replaceMentions(args.name, true).slice(0, MAX_NAME_LENGTH) || quoted.name;
+  }
+  if (args.app) {
+    quoted.bot = args.app !== 'none';
+    quoted.verified = args.app === 'verified';
+  }
   return {
     attachments,
-    author: quoteAuthor(author, true),
+    author: quoted,
     compact: !!args.compact,
     components,
     content,
-    edited: !!(message && message.editedTimestamp),
+    edited: !!args.edited || !!(message && message.editedTimestamp),
     embed,
+    imageUrl: args.image || undefined,
     light: !!args.light,
+    nameColor: args.color || undefined,
+    portraitUrl: args.portrait || undefined,
+    reactions: (args.reactions && args.reactions.length) ? args.reactions : undefined,
     // everything drawn with markdown, the embed's title and fields and the reply line too
     mentions: await quoteMentions(context, message, [
       content,
@@ -366,7 +413,7 @@ function componentTexts(components: Array<RestOptions.MediaICreateQuoteComponent
 
 // discord's media proxy url for an image, resized to fit `MAX_IMAGE_SIDE` (its original size when it doesn't say). a
 // video's is its thumbnail (`format=png` makes the proxy give its first frame), drawn like discord shows the player
-function resizedProxyUrl(proxyUrl?: null | string, width?: number, height?: number, video: boolean = false): null | string {
+export function resizedProxyUrl(proxyUrl?: null | string, width?: number, height?: number, video: boolean = false): null | string {
   if (!proxyUrl) {
     return null;
   }
@@ -383,6 +430,26 @@ function resizedProxyUrl(proxyUrl?: null | string, width?: number, height?: numb
   }
   const separator = (proxyUrl.includes('?')) ? '&' : '?';
   return `${proxyUrl}${separator}${params.join('&')}`;
+}
+
+
+// the first image (or a video's first frame) attached to a message, as discord's media proxy gives it resized
+export function firstAttachmentImageUrl(message: Structures.Message): null | string {
+  for (let attachment of message.attachments.values()) {
+    if (attachment.isImage || attachment.isVideo) {
+      const url = resizedProxyUrl(attachment.proxyUrl || attachment.url, attachment.width, attachment.height, attachment.isVideo);
+      if (url) {
+        return url;
+      }
+    }
+  }
+  return null;
+}
+
+
+// the image sent along with a prefixed command, there's none on a slash command (its options carry it)
+export function firstImageUrl(context: Command.Context | Interaction.InteractionContext): null | string {
+  return (context instanceof Command.Context) ? firstAttachmentImageUrl(context.message) : null;
 }
 
 

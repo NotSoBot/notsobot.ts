@@ -248,6 +248,9 @@ export type CommandGate = (
   | {kind: 'rule', message: null | string, rule: GuildSettingsRule}
   // the server's settings couldn't be loaded and there's no older copy, so its rules can't be checked
   | {kind: 'settings_fetch_failed', message?: string}
+  // a prefixed command after prefix commands ended (`PREFIX_COMMANDS_END`), the client's cancel hook replies with how
+  // else to run it
+  | {kind: 'prefix_ended', message?: undefined}
   // the server turned NotSoBot off in this channel (a user install's public command)
   | {kind: 'channel_turned_off', message: string}
   | {kind: 'nsfw', message: string}

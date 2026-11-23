@@ -185,6 +185,16 @@ export function isDecoyChannelRun(context: Interaction.InteractionContext): bool
   return !!context.guildId && !!context.channelId && !!DecoyStore.getByChannel(context.channelId);
 }
 
+// what `onBefore`'s private defer goes by: NotSoBot's turned off in the channel, or the user's response setting. for
+// commands that post more than their own response (Edit Media's results), those have to stay private too
+export async function isPrivateRun(context: Interaction.InteractionContext): Promise<boolean> {
+  if (await isBlockedUserInstallRun(context) || isDecoyChannelRun(context)) {
+    return true;
+  }
+  const settings = UserSettingsStore.get(context.userId);
+  return !!settings && settings.application_command_response_type === UserSettingsApplicationCommandResponseTypes.EPHEMERAL;
+}
+
 // the run got through every check (`onCommandCheck`, `onBefore`'s gates and its own private defer), the early defer
 // (`deferEarly` in interactioncommandclient.ts) uses the user's response setting from then on
 export function markInteractionChecksPassed(context: Interaction.InteractionContext): void {

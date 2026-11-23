@@ -15,6 +15,7 @@ import { Timers } from 'detritus-utils';
 import * as juration from 'juration';
 import MiniSearch from 'minisearch';
 import * as moment from 'moment';
+import 'moment-timezone';
 
 import { getServerPremiumUsers } from '../../stores/premiumservers';
 import SavedFontsStore from '../../stores/savedfonts';
@@ -1211,6 +1212,147 @@ export async function quote(
     }
   }
   return target;
+}
+
+
+// `tweet` and `truth`'s target: like `quote`'s, but the text after a message's link (or beside a reply) is kept. a
+// message with text beside it is quoted under that text, one by itself is the post
+export async function postTarget(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<QuoteTarget> {
+  value = value.trim();
+  const target: QuoteTarget = {message: null, text: value, user: null};
+  if (context instanceof Command.Context) {
+    target.message = await fetchReplyMessage(context);
+  }
+  if (!value) {
+    return target;
+  }
+
+  const [ first ] = value.split(/\s+/, 1);
+  const rest = value.slice(first.length).trim();
+
+  const messageLink = parseDiscordMessageLink(first);
+  if (messageLink) {
+    let message: null | Structures.Message = null;
+    try {
+      message = await fetchMessageFromJumpLink(context, messageLink.guildId, messageLink.channelId, messageLink.messageId);
+    } catch(error) {}
+    if (message) {
+      target.message = message;
+      target.text = rest;
+      return target;
+    }
+  }
+
+  const mention = discordRegex(DiscordRegexNames.MENTION_USER, first) as {matches: Array<{id: string}>};
+  if (mention.matches.length) {
+    try {
+      target.user = await fetchMemberOrUserById(context, mention.matches[0].id);
+    } catch(error) {}
+    if (target.user) {
+      target.text = rest;
+    }
+  }
+  return target;
+}
+
+
+// the most a post's count can be (the api's too)
+export const MAX_POST_COUNT = 999_999_999_999;
+const COUNT_UNITS: Record<string, number> = {b: 1_000_000_000, k: 1_000, m: 1_000_000};
+const REGEX_COUNT = /^(\d[\d,]*(?:\.\d+)?)([kmb])?$/;
+
+// a whole number the way people write a post's counts: `1234`, `1,234`, `12.5k`, `3m`, `1.2b`. null when it isn't one
+export function parseCount(value: string): null | number {
+  const match = value.trim().toLowerCase().match(REGEX_COUNT);
+  if (!match) {
+    return null;
+  }
+  const total = Math.round(parseFloat(match[1].replace(/,/g, '')) * ((match[2]) ? COUNT_UNITS[match[2]] : 1));
+  return (Number.isFinite(total) && total <= MAX_POST_COUNT) ? total : null;
+}
+
+export function count(value: string, context?: Command.Context | Interaction.InteractionContext): number {
+  const total = parseCount(value);
+  if (total === null) {
+    throw new UserError(getCachedTranslator(context).translate('params.invalid_count'));
+  }
+  return total;
+}
+
+
+export interface Reaction {
+  count: number,
+  // a custom emoji as `<:name:id>`, a unicode one as is
+  emoji: string,
+}
+
+export const MAX_REACTIONS = 10;
+const REGEX_REACTION_CUSTOM_EMOJI = /^<a?:\w{2,32}:\d{15,21}>$/;
+// one emoji and nothing else: flags, keycaps, and pictographs with their skin tones, variation selectors and zwj joins
+const REGEX_REACTION_UNICODE_EMOJI = /^(?:[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\u200D\p{Extended_Pictographic})*)$/u;
+
+// `quote`'s reactions: emojis each followed by how many reacted (1 when left out), like `👍 12 😂 3.4k <:pog:123> 40`
+export function reactions(value: string, context?: Command.Context | Interaction.InteractionContext): Array<Reaction> {
+  const found: Array<Reaction> = [];
+  let counted = true;
+  for (let part of value.trim().split(/\s+/).filter(Boolean)) {
+    if (REGEX_REACTION_CUSTOM_EMOJI.test(part) || REGEX_REACTION_UNICODE_EMOJI.test(part)) {
+      found.push({count: 1, emoji: part});
+      counted = false;
+      continue;
+    }
+    // a number belongs to the emoji before it, once
+    const total = (counted) ? null : parseCount(part);
+    if (total === null || total < 1) {
+      throw new UserError(getCachedTranslator(context).translate('params.invalid_reactions', {max: MAX_REACTIONS}));
+    }
+    found[found.length - 1].count = Math.min(total, 999_999_999);
+    counted = true;
+  }
+  if (!found.length || MAX_REACTIONS < found.length) {
+    throw new UserError(getCachedTranslator(context).translate('params.invalid_reactions', {max: MAX_REACTIONS}));
+  }
+  return found;
+}
+
+
+// a point in time from text, past ones too (`jan 6 2021 9:41am`, `2 hours ago`, `yesterday at 5`), in their timezone
+export function timestampAny(value: string, context: Command.Context | Interaction.InteractionContext): Date {
+  const instant = (context instanceof Interaction.InteractionContext) ? context.interaction.createdAt : (context.message.editedAt || context.message.createdAt);
+  const timezone = getTimezoneFromContext(context);
+  // how far their clock is from utc right now, what chrono reads every clock time with
+  const offset = moment.tz(instant, timezone).utcOffset();
+  const results = customChrono.parse(value, {instant, timezone: offset});
+  if (!results.length) {
+    throw new UserError(getCachedTranslator(context).translate('params.no_time'));
+  }
+  // a date in the other half of the year has another offset there (daylight saving), `jul 20 8:17pm` asked for in
+  // november came out as 9:17pm. the clock time chrono read is put on that date in their timezone instead
+  const clock = moment.utc(results[0].start.date()).add(offset, 'minutes').format('YYYY-MM-DDTHH:mm:ss');
+  return moment.tz(clock, timezone).toDate();
+}
+
+
+// a flag that's on by itself and can name one of a few values (`-verified`, `-verified gold`): `fallback` with nothing
+// after it, else the choice that was named
+export function flagChoice<T extends string>(choices: ReadonlyArray<T>, fallback: T, aliases: Record<string, T> = {}) {
+  return (value: string, context?: Command.Context | Interaction.InteractionContext): T => {
+    const text = value.trim().toLowerCase();
+    if (!text) {
+      return fallback;
+    }
+    if (text in aliases) {
+      return aliases[text];
+    }
+    if ((choices as ReadonlyArray<string>).includes(text)) {
+      return text as T;
+    }
+    const names = choices.map((choice) => Markup.codestring(choice)).join(', ');
+    throw new UserError(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${names})`}));
+  };
 }
 
 
@@ -2748,6 +2890,12 @@ export function lastMediaUrl(
   const customLastMediaUrl = DefaultParameters.lastMediaUrl(mediaSearchOptions);
 
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    // a pipe step's media is the pipe's, like `mediaUrl`. a step without one typed used to search the channel's history
+    // (fetching it when the cache had no media) for a url the pipe then replaced
+    if (context.metadata && context.metadata.shouldSkipMediaCheck) {
+      return 'https://notsobot.com';
+    }
+
     // `^2` counts the slash attachments itself
     const position = (value) ? DefaultParameters.lastMediaPosition(value) : null;
     if (context instanceof Interaction.InteractionContext && !(position && 1 < position)) {

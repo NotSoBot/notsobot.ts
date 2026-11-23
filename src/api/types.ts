@@ -1175,9 +1175,17 @@ export namespace RestOptions {
       thumbnailUrl?: null | string,
       title?: null | string,
     },
+    // one image under the content in place of `attachments`, from any url (someone picked it)
+    imageUrl?: null | string,
     light?: boolean,
     // what `<@id>`, `<@&id>`, `<#id>` and `<t:...>` in the content show as, by the token
     mentions?: Record<string, string>,
+    // the name's color in place of the author's: a color name, `#hex` or `r,g,b` as typed
+    nameColor?: null | string,
+    // the avatar in place of the author's, from any url
+    portraitUrl?: null | string,
+    // the pills under the message, a custom emoji as `<:name:id>`
+    reactions?: Array<MediaICreateQuoteReaction>,
     // the line above a reply: who it replied to and the start of what they said
     reply?: null | {
       // only files, `content` is `Click to see attachment`
@@ -1190,6 +1198,60 @@ export namespace RestOptions {
     safe?: boolean,
     // already formatted, like `Today at 3:41 PM`
     timestamp?: string,
+  }
+
+  export interface MediaICreateQuoteReaction {
+    count: number,
+    emoji: string,
+  }
+
+  // who a post (`tweet`, `truth`) is from. with the post's `account` only what was set by hand, the rest is the account's
+  export interface MediaICreatePostAuthor {
+    avatarUrl?: null | string,
+    // without the `@`
+    handle?: null | string,
+    name?: null | string,
+    verified?: null | MediaICreatePostVerified,
+  }
+
+  export type MediaICreatePostVerified = 'none' | 'blue' | 'gold' | 'grey';
+
+  // a post drawn like its site does. the counts left out are made up by the api to fit the ones that are set
+  export interface MediaICreatePost {
+    // a real account on the site to copy the name, handle, avatar and badge from
+    account?: null | string,
+    author?: MediaICreatePostAuthor,
+    content?: string,
+    imageUrl?: null | string,
+    likes?: null | number,
+    // the avatar when someone picked one, an error when it can't be loaded
+    portraitUrl?: null | string,
+    // a post shown inside it
+    quote?: null | {
+      author: MediaICreatePostAuthor,
+      content?: string,
+      imageUrl?: null | string,
+      timestamp?: string,
+    },
+    // the handle of the `Replying to` line
+    replyTo?: null | string,
+    reposts?: null | number,
+    safe?: boolean,
+    // already formatted the site's way
+    timestamp?: string,
+  }
+
+  export interface MediaICreateTweet extends MediaICreatePost {
+    bookmarks?: null | number,
+    // a community note under the post
+    note?: null | string,
+    replies?: null | number,
+    theme?: 'light' | 'dim' | 'dark',
+    views?: null | number,
+  }
+
+  export interface MediaICreateTruth extends MediaICreatePost {
+    theme?: 'light' | 'dark',
   }
 
   // a message component, in discord's own shape (sent as is): buttons and selects in action rows, components v2

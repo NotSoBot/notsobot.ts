@@ -18,6 +18,8 @@ import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
 import * as FunXD from './fun.xd';
 import * as FunQuote from './fun.quote';
+import * as FunTruth from './fun.truth';
+import * as FunTweet from './fun.tweet';
 import * as FunZalgo from './fun.zalgo';
 
 import * as GameFlag from './game.flag';
@@ -63,6 +65,7 @@ import * as MediaAIVManipulationVeg from './media.aiv.manipulation.veg';
 import * as MediaAIVManipulationVep from './media.aiv.manipulation.vep';
 import * as MediaAIVManipulationWlmp from './media.aiv.manipulation.wlmp';
 
+import * as MediaAIVEdit from './media.aiv.edit';
 import * as MediaAIVPipe from './media.aiv.pipe';
 
 import * as MediaAIVToolsFFMPEG from './media.aiv.tools.ffmpeg';
@@ -875,6 +878,8 @@ export {
   FunTTS,
   FunXD,
   FunQuote,
+  FunTruth,
+  FunTweet,
   FunZalgo,
 
   GameFlag,
@@ -920,6 +925,7 @@ export {
   MediaAIVManipulationVep,
   MediaAIVManipulationWlmp,
 
+  MediaAIVEdit,
   MediaAIVPipe,
 
   MediaAIVToolsFFMPEG,

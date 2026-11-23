@@ -31,10 +31,14 @@ import {
 import {
   Formatter,
   I18n,
+  PrefixCommandsPhases,
   cancelCommandRun,
+  createPrefixCommandsEndedNotice,
   displayReply,
+  editOrReply,
   getCommandCategory,
   getCommandIdFromInvoker,
+  getPrefixCommandsPhase,
   isGuildRulesCommandId,
   resolveGuildRule,
   trackCommandRun,
@@ -51,6 +55,26 @@ const MENTION_AI_WORDS = new Set(['how', 'im']);
 
 export class NotSoCommandClient extends CommandClient {
   async onCommandCheck(context: Command.Context, command: Command.Command) {
+    const allowed = await this.checkCommandAccess(context, command);
+    // prefix commands ended: one that would've ran gets the notice in its place (`onCommandCancel`). after the access
+    // checks, so blocked users and servers stay unanswered and a command the server's rules block still acts like one
+    if (allowed && this.isEndedPrefixCommand(context, command)) {
+      return setCommandGate(context, {kind: 'prefix_ended'});
+    }
+    return allowed;
+  }
+
+  // a command typed with a prefix (not a mention) while those get the notice. not the custom command fallback (no name,
+  // discord still allows custom commands), an auto-embed or a reply to the ai (no prefix)
+  isEndedPrefixCommand(context: Command.Context, command: Command.Command): boolean {
+    if (!command.name || getPrefixCommandsPhase() !== PrefixCommandsPhases.NOTICE) {
+      return false;
+    }
+    const prefix = commandPrefixes.get(context);
+    return !!prefix && !this.prefixes.mention.has(prefix);
+  }
+
+  async checkCommandAccess(context: Command.Context, command: Command.Command) {
     const contextMetadata = context.metadata = context.metadata || {};
     contextMetadata.started = Date.now();
 
@@ -255,6 +279,11 @@ export class NotSoCommandClient extends CommandClient {
   async getCommand(attributes: CommandAttributes, context?: Command.Context): Promise<Command.Command | null> {
     let command: Command.Command | null = null;
 
+    if (context) {
+      // detritus only sets `context.prefix` once the checks passed, `isEndedPrefixCommand` needs it in the check
+      commandPrefixes.set(context, attributes.prefix);
+    }
+
     if (context && getAutoEmbedLink(context)) {
       // `attributes.content` is the link, which is what `download` takes
       return this.commands.find((x) => x.name === 'download') || null;
@@ -276,6 +305,14 @@ export class NotSoCommandClient extends CommandClient {
     }
     if (!command) {
       command = await Promise.resolve(super.getCommand(attributes, context));
+      // a month after prefix commands ended they aren't answered at all: nothing is looked up, replied or recorded. the
+      // name still isn't a custom command's to take, so it doesn't go on to the fallback either
+      if (
+        command && command.name && attributes.prefix && !this.prefixes.mention.has(attributes.prefix) &&
+        getPrefixCommandsPhase() === PrefixCommandsPhases.SILENT
+      ) {
+        return null;
+      }
     }
     // the custom command fallback, only when there could be a custom command to find. every prefixed message that
     // matched nothing (`...`, `.-.`) used to go through the whole command check (looking up the user, their settings)
@@ -430,6 +467,10 @@ export class NotSoCommandClient extends CommandClient {
     if (!gate || !command.name || getAutoEmbedLink(context)) {
       return;
     }
+    if (gate.kind === 'prefix_ended') {
+      await this.replyPrefixCommandsEnded(context, command);
+      return;
+    }
     if (gate.kind === 'warnings_pending') {
       if (!context.canReply) {
         return;
@@ -493,6 +534,22 @@ export class NotSoCommandClient extends CommandClient {
       await replyWarning(context, translate('blocked.server_fetch_failed'));
     } catch(error) {
 
+    }
+  }
+
+  // why their prefixed command didn't run and how else to run it, once per user every so often (their other tries in
+  // between get nothing, they were just told). it's the run's stored reply: editing the trigger into a mention edits
+  // the command's result over it, deleting the trigger deletes it
+  async replyPrefixCommandsEnded(context: Command.Context, command: Command.Command): Promise<void> {
+    if (!context.canReply || prefixEndedNotices.has(context.userId)) {
+      return;
+    }
+    prefixEndedNotices.set(context.userId, true);
+    try {
+      await editOrReply(context, {content: await createPrefixCommandsEndedNotice(context, command)});
+    } catch(error) {
+      // it never reached them, their next try gets it
+      prefixEndedNotices.delete(context.userId);
     }
   }
 
@@ -656,6 +713,13 @@ const blockedMessageReplies = new Collections.BaseCollection<string, number>({ex
 // `channel id.user id.command name` -> when we last reacted to them using a blocked command
 const NOT_ALLOWED_REACTION_INTERVAL = 5 * 60 * 1000;
 const notAllowedReactions = new Collections.BaseCollection<string, number>({expire: NOT_ALLOWED_REACTION_INTERVAL});
+
+// user id -> told that prefix commands ended, per cluster
+const PREFIX_ENDED_NOTICE_INTERVAL = 10 * 60 * 1000;
+const prefixEndedNotices = new Collections.BaseCollection<string, true>({expire: PREFIX_ENDED_NOTICE_INTERVAL});
+
+// the prefix each message's command was typed with (`getCommand`), '' for an auto-embed or a reply to the ai
+const commandPrefixes = new WeakMap<Command.Context, string>();
 
 // getAttributes and getCommand both check the same reply, only hit the api once per message
 const aiResponseChecks = new WeakMap<Structures.Message, Promise<boolean>>();

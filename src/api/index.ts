@@ -1982,6 +1982,22 @@ export async function mediaICreateQuote(
 }
 
 
+export async function mediaICreateTruth(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTruth,
+) {
+  return raw.mediaICreateTruth(context, options);
+}
+
+
+export async function mediaICreateTweet(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTweet,
+) {
+  return raw.mediaICreateTweet(context, options);
+}
+
+
 export async function mediaICreateTombstone(
   context: RequestContext,
   options: RestOptions.MediaICreateTombstone,

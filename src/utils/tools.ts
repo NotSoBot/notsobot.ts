@@ -3824,6 +3824,10 @@ export interface MediaReplyResponseOptions {
   hideDetails?: boolean,
   // components v2: beside the invoked by line (auto-embed's Undo), the other displays put it with `buttons`
   invokerButton?: ComponentButton,
+  // a button/select menu press (or a modal submitted from one) to send it through, like `displayReply`'s: the display
+  // setting and "took" still come from the command's context, and it gets an invoker line (the press's message has no
+  // "used /command" header)
+  replyTo?: ComponentContext | InteractionModalContext,
   spoiler?: boolean,
 }
 
@@ -3845,6 +3849,7 @@ function mediaReplyResponseOptions(
     actions: options.actions,
     buttons: options.buttons,
     content: options.content,
+    context: options.replyTo,
     description: options.description,
     descriptionBelow: options.descriptionBelow,
     details: options.details,
@@ -4233,7 +4238,8 @@ export interface MediaReplyOptions {
   // alt text for the media, `description` is shown as text above it
   altText?: string,
   content?: string,
-  context?: ComponentContext,
+  // the press (or modal) it's sent through instead of `context`
+  context?: ComponentContext | InteractionModalContext,
   description?: string,
   // under the media in components v2 (like a post's site and stats), the other displays add it after `description`
   descriptionBelow?: string,
@@ -4294,7 +4300,9 @@ export async function createMediaReplyMessage(
   value: any,
   options: MediaReplyOptions,
 ): Promise<MediaReplyMessage> {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  // sent through a press (`options.context`) it's a new message without the command's "used /command" header, so it
+  // gets the invoker line like a prefixed reply does
+  const isFromInteraction = (context instanceof Interaction.InteractionContext) && !options.context;
   const isFromPrefix = (context instanceof Command.Context);
   const { language, translate } = await getTranslator(context);
   if (options.variableFrameSizes) {
@@ -4746,15 +4754,53 @@ export function findSlashCommandFullName(context: Command.Context, commandId: st
 // year (a mention keeps working, discord still sends us messages that mention us). until then a prefixed command's reply
 // says when they end and how else to run it, once a day per user, and in december counts down to the day
 export const PREFIX_COMMANDS_END = Date.UTC(2027, 0, 1);
+// for a month after that a prefixed command gets a notice in place of its result (why, and how else to run it), from
+// this day on it gets nothing
+export const PREFIX_COMMANDS_SILENT = Date.UTC(2027, 1, 1);
+
+export enum PrefixCommandsPhases {
+  RUNNING = 'running',
+  NOTICE = 'notice',
+  SILENT = 'silent',
+}
+
+export function getPrefixCommandsPhase(now: number = Date.now()): PrefixCommandsPhases {
+  if (now < PREFIX_COMMANDS_END) {
+    return PrefixCommandsPhases.RUNNING;
+  }
+  return (now < PREFIX_COMMANDS_SILENT) ? PrefixCommandsPhases.NOTICE : PrefixCommandsPhases.SILENT;
+}
 
 // the day itself, written out in the user's language. not a discord `<t:…:D>` timestamp: that shows midnight utc in
 // the reader's timezone, so the whole americas would read "december 31, 2026"
-export function formatPrefixCommandsEndDate(language: string): string {
+export function formatPrefixCommandsEndDate(language: string, timestamp: number = PREFIX_COMMANDS_END): string {
   try {
-    return new Intl.DateTimeFormat(language, {dateStyle: 'long', timeZone: 'UTC'}).format(PREFIX_COMMANDS_END);
+    return new Intl.DateTimeFormat(language, {dateStyle: 'long', timeZone: 'UTC'}).format(timestamp);
   } catch(error) {
-    return new Intl.DateTimeFormat('en-US', {dateStyle: 'long', timeZone: 'UTC'}).format(PREFIX_COMMANDS_END);
+    return new Intl.DateTimeFormat('en-US', {dateStyle: 'long', timeZone: 'UTC'}).format(timestamp);
   }
+}
+
+// how to run a prefixed command without its prefix: its slash command when it has one, and a mention. the mention is
+// written out in a codestring (a real mention can't sit inside one), typing "@name" picks the bot from autocomplete
+function formatPrefixCommandAlternatives(
+  context: Command.Context,
+  command: Command.Command,
+  translate: Translator['translate'],
+): {commands: string, slashName: string | null} {
+  const slashName = findSlashCommandFullName(context, getCommandIdFromInvoker(command));
+  const botName = (context.client.user) ? context.client.user.username : 'NotSoBot';
+  const mention = Markup.codestring(`@${botName} ${command.name}`);
+  const commands = (slashName) ? translate('prefix_slash_tip.or', {mention, slash: slashCommandMention(context, slashName)}) : mention;
+  return {commands, slashName};
+}
+
+// what a prefixed command gets in place of its result between `PREFIX_COMMANDS_END` and `PREFIX_COMMANDS_SILENT`
+export async function createPrefixCommandsEndedNotice(context: Command.Context, command: Command.Command): Promise<string> {
+  const { language, translate } = await getTranslator(context);
+  const { commands } = formatPrefixCommandAlternatives(context, command, translate);
+  const date = formatPrefixCommandsEndDate(language, PREFIX_COMMANDS_SILENT);
+  return `${translate('prefix_ended.notice', {commands})}\n-# ${translate('prefix_ended.silent_on', {date})}`;
 }
 const PREFIX_SLASH_TIP_COUNTDOWN_START = Date.UTC(2026, 11, 1);
 const PREFIX_SLASH_TIP_EVERY = 24 * 60 * 60 * 1000;
@@ -4804,11 +4850,7 @@ async function createPrefixSlashTip(context: Command.Context): Promise<PrefixSla
   prefixSlashTipShown.set(context.userId, true);
 
   const { language, translate } = await getTranslator(context);
-  const slashName = findSlashCommandFullName(context, getCommandIdFromInvoker(command));
-  // written out in a codestring (a real mention can't sit inside one), typing "@name" picks the bot from autocomplete
-  const botName = (context.client.user) ? context.client.user.username : 'NotSoBot';
-  const mention = Markup.codestring(`@${botName} ${command.name}`);
-  const commands = (slashName) ? translate('prefix_slash_tip.or', {mention, slash: slashCommandMention(context, slashName)}) : mention;
+  const { commands, slashName } = formatPrefixCommandAlternatives(context, command, translate);
   let textWithoutNitro: string;
   if (now < PREFIX_SLASH_TIP_COUNTDOWN_START) {
     textWithoutNitro = `-# ${translate('prefix_slash_tip.ending_on', {commands, date: formatPrefixCommandsEndDate(language)})}`;
