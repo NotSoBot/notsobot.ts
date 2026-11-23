@@ -443,6 +443,32 @@ async function quoteMentions(
 }
 
 
+// writes the mentions and timestamps of the texts out like that, for text that's drawn into an image (`.lucia`). what
+// nothing was found for reads like discord shows it. `bare` leaves the sign off (`<@123>` is `name`, not `@name`), for
+// where a name goes by itself
+export async function createMentionsReplacer(
+  context: Command.Context | Interaction.InteractionContext,
+  texts: Array<string>,
+): Promise<(text: string, bare?: boolean) => string> {
+  const message = (context instanceof Command.Context) ? context.message : null;
+  const mentions = await quoteMentions(context, message, texts);
+  return (text: string, bare: boolean = false) => text.replace(REGEX_TOKEN, (token) => {
+    if (token.startsWith('<t:')) {
+      return mentions[token] || token;
+    }
+    let name: string;
+    if (token in mentions) {
+      name = mentions[token];
+    } else if (token.startsWith('<@&')) {
+      name = '@deleted-role';
+    } else {
+      name = (token.startsWith('<#')) ? '#unknown' : '@unknown-user';
+    }
+    return (bare) ? name.slice(1) : name;
+  });
+}
+
+
 // like discord shows them: `Today at 3:41 PM`, `Yesterday at 11:02 PM`, `10/24/2026 3:41 PM`, compact only the time
 function messageTimeText(translator: Translator, time: moment.Moment, compact: boolean): string {
   const clock = time.format('h:mm A');

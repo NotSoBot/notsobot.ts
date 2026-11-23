@@ -4812,19 +4812,44 @@ export async function mediaICreateWoodenSign(
 
 export async function mediaICreateLucia(
   context: RequestContext,
-  options: RestOptions.MediaICreateText,
+  options: RestOptions.MediaICreateLucia,
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     max_file_size: maxFileSize,
+    name: options.name,
     safe: options.safe,
     text: options.text,
+    title: options.title,
   };
   return request(context, {
     body,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_LUCIA,
+    },
+  });
+}
+
+
+export async function mediaICreateLuciaPortrait(
+  context: RequestContext,
+  options: RestOptions.MediaICreateLuciaPortrait,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    name: options.name,
+    safe: options.safe,
+    text: options.text,
+    title: options.title,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_LUCIA_PORTRAIT,
     },
   });
 }

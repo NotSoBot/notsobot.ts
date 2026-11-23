@@ -2300,15 +2300,24 @@ export const MLDiffusionModelsToText = Object.freeze({
 });
 
 
-// api-ml-interrogate's models (the api's `MLInterrogateModels`)
+// api-ml-interrogate's models (the api's `MLInterrogateModels`), Florence-2 first since it's the default. Typed as
+// `clip-negative` too (TagScript turns `-` into `_`, the prefix arg's search splits both)
 export enum MLInterrogateModels {
-  CLIP = 'CLIP',
   FLORENCE = 'FLORENCE',
+  FLORENCE_MEDIUM = 'FLORENCE_MEDIUM',
+  FLORENCE_SHORT = 'FLORENCE_SHORT',
+  CLIP = 'CLIP',
+  CLIP_CLASSIC = 'CLIP_CLASSIC',
+  CLIP_NEGATIVE = 'CLIP_NEGATIVE',
 }
 
 export const MLInterrogateModelsToText = Object.freeze({
-  [MLInterrogateModels.CLIP]: 'CLIP Interrogator (Prompt Tags)',
-  [MLInterrogateModels.FLORENCE]: 'Florence-2 (Detailed)',
+  [MLInterrogateModels.FLORENCE]: 'Florence-2: Detailed (Default)',
+  [MLInterrogateModels.FLORENCE_MEDIUM]: 'Florence-2: Medium (2-3 Sentences)',
+  [MLInterrogateModels.FLORENCE_SHORT]: 'Florence-2: Short (One Sentence)',
+  [MLInterrogateModels.CLIP]: 'CLIP: Prompt Tags',
+  [MLInterrogateModels.CLIP_CLASSIC]: 'CLIP: Classic Prompt',
+  [MLInterrogateModels.CLIP_NEGATIVE]: 'CLIP: Negative Prompt',
 });
 
 

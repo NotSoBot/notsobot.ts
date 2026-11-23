@@ -28,6 +28,7 @@ export default class InterrogateCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -model clip`,
+          `${COMMAND_NAME} notsobot -model florence-short`,
         ],
         id: Formatter.Commands.ToolsMLInterrogate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-model <choice>)',

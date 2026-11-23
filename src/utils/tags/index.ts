@@ -6108,13 +6108,13 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.IMAGE_INTERROGATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // interrogate an image
-    // {interrogate:cake} {interrogate:cake|clip} {interrogate:|clip} (last image)
+    // {interrogate:cake} {interrogate:cake|clip} {interrogate:|florence-short} (last image), `-` or `_` in a model
 
     // only a last part that's a model counts, a `|` in the url stays part of it
     let model: MLInterrogateModels | undefined;
     if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       const parts = split(arg);
-      const insensitive = parts[parts.length - 1].trim().toUpperCase();
+      const insensitive = parts[parts.length - 1].trim().toUpperCase().replace(/-/g, '_');
       if ((Object.values(MLInterrogateModels) as Array<string>).includes(insensitive)) {
         model = insensitive as MLInterrogateModels;
         parts.pop();

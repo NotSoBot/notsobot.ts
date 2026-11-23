@@ -1944,9 +1944,17 @@ export async function mediaICreateWoodenSign(
 
 export async function mediaICreateLucia(
   context: RequestContext,
-  options: RestOptions.MediaICreateText,
+  options: RestOptions.MediaICreateLucia,
 ) {
   return raw.mediaICreateLucia(context, options);
+}
+
+
+export async function mediaICreateLuciaPortrait(
+  context: RequestContext,
+  options: RestOptions.MediaICreateLuciaPortrait,
+) {
+  return raw.mediaICreateLuciaPortrait(context, options);
 }
 
 

@@ -1129,6 +1129,18 @@ export namespace RestOptions {
     text: string,
   }
 
+  export interface MediaICreateLucia extends MediaICreateText {
+    // who "will appreciate this" (Default: Lucia)
+    name?: string,
+    // the headline (Default: PLAY WITH <name>)
+    title?: string,
+  }
+
+  export interface MediaICreateLuciaPortrait extends MediaICreateLucia {
+    // the image or video for the portrait, one that moves makes the card move
+    url: string,
+  }
+
   export interface MediaICreateTextLines extends MediaICreateText {
     text2?: string,
   }
