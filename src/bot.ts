@@ -34,10 +34,14 @@ import {
 import { connectAllStores } from './stores';
 import { clearClusterTempDirectory } from './tempfiles';
 import { ClusterStartupStage, setClusterStartup } from './utils/clusterstartup';
+import { installDnsCache } from './utils/dnscache';
 import { guardInteractionResponses } from './utils/interactiondeadline';
 
 
 import { setGlobalDispatcher, Agent } from 'undici';
+
+// before anything connects, every connection after this resolves through it
+installDnsCache();
 
 setGlobalDispatcher(new Agent({
   allowH2: false,

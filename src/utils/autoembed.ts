@@ -98,7 +98,7 @@ const SITE_MATCHERS: Array<{site: GuildAutoEmbedSites, test: (hostname: string, 
   },
   {
     site: GuildAutoEmbedSites.THREADS,
-    test: (hostname, url) => (isHost(hostname, 'threads.net') || isHost(hostname, 'threads.com')) && /^\/@[^/]+\/post\/[\w-]+/.test(url.pathname),
+    test: (hostname, url) => (isHost(hostname, 'threads.net') || isHost(hostname, 'threads.com')) && /^\/(?:@[^/]+\/post\/[\w-]+|share\/[\w-]+)/.test(url.pathname),
   },
   {
     site: GuildAutoEmbedSites.TIKTOK,
