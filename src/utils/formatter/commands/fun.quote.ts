@@ -40,6 +40,8 @@ export const APP_TAGS = ['app', 'verified', 'none'] as const;
 export type AppTag = typeof APP_TAGS[number];
 
 export const MAX_NAME_LENGTH = 80;
+// the most colors a display name style's effect has (the api takes this many)
+const MAX_NAME_STYLE_COLORS = 8;
 export const MAX_COLOR_LENGTH = 32;
 
 // what can be put over a quote's own details, each one only when it's set. they work on a real message too
@@ -195,10 +197,12 @@ export function createQuoteMemberOptions(author: Structures.Member | Structures.
 }
 
 
-// their name, top role color and avatar, with `details` the frame around their avatar, their server tag, their top
-// role's icon and the new member sprout too (a reply line only shows the name and a small avatar)
+// their name (with the font and effect of their display name style), top role color and avatar, with `details` the
+// frame around their avatar, their server tag, their top role's icon and the new member sprout too (a reply line only
+// shows the name and a small avatar)
 function quoteAuthor(author: Structures.Member | Structures.User, details: boolean): RestOptions.MediaICreateQuoteAuthor {
   const member = (author instanceof Structures.Member) ? author : null;
+  const user = (member) ? member.user : author as Structures.User;
   const options: RestOptions.MediaICreateQuoteAuthor = {
     avatarUrl: author.avatarUrlFormat('png', {size: (details) ? 128 : 32}),
     bot: author.bot,
@@ -206,12 +210,19 @@ function quoteAuthor(author: Structures.Member | Structures.User, details: boole
     name: author.name,
     verified: author.bot && author.hasVerifiedBot,
   };
+  // their server one, or their own (the same for everything of theirs below)
+  const nameStyles = (member && member.displayNameStyles) || user.displayNameStyles;
+  if (nameStyles) {
+    options.displayNameStyles = {
+      colors: (nameStyles.colors || []).filter((color) => Number.isInteger(color) && 0 <= color && color <= 0xffffff).slice(0, MAX_NAME_STYLE_COLORS),
+      effectId: nameStyles.effectId || 0,
+      fontId: nameStyles.fontId || 0,
+    };
+  }
   if (!details) {
     return options;
   }
 
-  // their server one, or their own
-  const user = (member) ? member.user : author as Structures.User;
   const decoration = (member && member.avatarDecorationData) || user.avatarDecorationData;
   if (decoration && decoration.asset) {
     options.decorationUrl = `https://cdn.discordapp.com/avatar-decoration-presets/${decoration.asset}.png?size=96&passthrough=false`;

@@ -222,6 +222,8 @@ export namespace RestOptions {
     autoEmbedGallery?: PostGalleryTypes | null,
     // members with premium can auto-embed their own links for the sites the server doesn't, null resets it to on
     autoEmbedMembers?: boolean | null,
+    // a post that's only text is drawn as a screenshot of it, null resets it to off
+    autoEmbedScreenshot?: boolean | null,
     // null resets it to on
     autoEmbedText?: boolean | null,
     // seconds, null resets it to 1 day
@@ -335,6 +337,8 @@ export namespace RestOptions {
     applicationCommandResponseType?: null | UserSettingsApplicationCommandResponseTypes,
     // replaces the `GuildAutoEmbedSites` their own links get auto-embedded for, empty or null turns it off
     autoEmbed?: Array<string> | null,
+    // a post that's only text is drawn as a screenshot of it, null resets it to off
+    autoEmbedScreenshot?: boolean | null,
     // null resets it to on
     autoEmbedText?: boolean | null,
     downloadQuality?: null | string,
@@ -856,6 +860,12 @@ export namespace RestOptions {
     vertical?: boolean,
   }
 
+  export interface MediaAIVManipulationKine extends MediaBaseOptions {
+    // the .kine as an upload or a url, one of them is needed
+    kineFile?: RequestFile,
+    kineUrl?: string,
+  }
+
   export interface MediaAIVManipulationOverlay extends MediaBaseOptionsMultiple {
     blend?: number,
     color?: string,
@@ -1251,6 +1261,9 @@ export namespace RestOptions {
   // a real post by its link, drawn by its site's template. nothing of the post can be set, only how it's drawn
   export interface MediaICreatePostUrl {
     layout?: null | MediaICreatePostLayout,
+    // a post with only text that a download of `url` just gave (auto-embed's screenshot of a text post), the api draws
+    // it from this without asking the site again. never from anything someone typed
+    post?: RestResponsesRaw.FetchMediaPost,
     safe?: boolean,
     theme?: null | 'light' | 'dim' | 'dark',
     // whoever asked's, what the post's time is written in
@@ -1464,8 +1477,9 @@ export namespace RestOptions {
     flair?: null | string,
     // without the `r/`, the author's own profile without one
     subreddit?: null | string,
-    // `old` is old reddit, which has the one color: `theme` is only for today's site
+    // `old` is old reddit
     layout?: MediaICreatePostLayout,
+    // left out it's dark on today's site and light on old reddit
     theme?: 'dark' | 'light',
     title?: null | string,
     // the score, under 0 too
@@ -1499,6 +1513,8 @@ export namespace RestOptions {
     color?: null | string,
     // the frame around their avatar
     decorationUrl?: null | string,
+    // discord's display name style, the font and effect on their name (discord's own ids)
+    displayNameStyles?: null | {colors: Array<number>, effectId: number, fontId: number},
     // the server tag beside their name and its badge
     guildTag?: null | string,
     guildTagBadgeUrl?: null | string,
@@ -2655,7 +2671,7 @@ export namespace RestOptions {
   export interface CommandPreview {
     // what it shows, as typed without the prefix
     example: string,
-    inputs: Array<'b1' | 'bordered' | 'captioned' | 'displacement' | 'face' | 'face2' | 'funface' | 'grade' | 'gradient' | 'greenscreen' | 'movie' | 'music' | 'photo' | 'preview1280' | 'qr' | 'quiet' | 'stereo' | 'twirl' | 'video' | 'video2' | 'voice'>,
+    inputs: Array<'b1' | 'bordered' | 'captioned' | 'displacement' | 'face' | 'face2' | 'funface' | 'grade' | 'gradient' | 'greenscreen' | 'movie' | 'music' | 'photo' | 'preview1280' | 'preview2' | 'qr' | 'quiet' | 'stereo' | 'twirl' | 'video' | 'video2' | 'voice'>,
     script: string,
   }
 
@@ -4030,6 +4046,7 @@ export namespace RestResponsesRaw {
       auto_embed: Array<string>,
       auto_embed_gallery: number | null,
       auto_embed_members: boolean,
+      auto_embed_screenshot: boolean,
       auto_embed_text: boolean,
       ban_clean: number,
       media_font: string | null,
@@ -4522,130 +4539,33 @@ export namespace RestResponsesRaw {
     results: Array<SearchRedditResult>,
   }
 
+  // read from reddit's search page since 2026-11 (its json is refused), so only what the page shows: the keys are the
+  // json's, the optional ones are there when the page had them. no post text, upvote ratio or downvotes anymore
   export interface SearchRedditResult {
-    all_awards: Array<any>,
-    allow_live_comments: boolean,
-    approved_at_utc: number | null,
-    approved_by: string | null,
-    archived: boolean,
-    author: string,
-    author_flair_background_color: null | any,
-    author_flair_css_class: string | null,
-    author_flair_richtext: Array<any>,
-    author_flair_template_id: string,
-    author_flair_text: string,
-    author_flair_text_color: string,
-    author_flair_type: string,
-    author_fullname: string,
-    author_patreon_flair: boolean,
-    author_premium: boolean,
-    awarders: Array<any>,
-    banned_at_utc: number | null,
-    banned_by: string | null,
-    can_gild: boolean,
-    can_mod_post: boolean,
-    category: null | any,
-    clicked: boolean,
-    content_categories: null | any,
-    contest_mode: boolean,
-    created: number,
-    created_utc: number,
-    discussion_type: null | any,
-    distinguished: null | any,
-    domain: string,
-    downs: number,
-    edited: boolean,
-    gilded: number,
-    gildings: {},
-    hidden: boolean,
-    hide_score: boolean,
+    author?: string,
+    created?: number,
+    created_utc?: number,
     id: string,
-    is_crosspostable: boolean,
-    is_meta: boolean,
-    is_original_content: boolean,
-    is_reddit_media_domain: boolean,
-    is_robot_indexable: boolean,
-    is_self: boolean,
     is_video: boolean,
-    likes: null | any,
-    link_flair_background_color: string,
-    link_flair_css_class: string,
-    link_flair_richtext: Array<any>,
-    link_flair_text: string,
-    link_flair_text_color: string,
-    link_flair_type: string,
-    locked: boolean,
-    media: any,
-    media_embed: {},
-    media_only: boolean,
-    mod_note: null | any,
-    mod_reason_by: null | any,
-    mod_reason_title: null | any,
-    mod_reports: Array<any>,
     name: string,
-    no_follow: boolean,
-    num_comments: number,
-    num_crossposts: number,
-    num_reports: null | any,
-    over_18: boolean,
-    parent_whitelist_status: string,
+    num_comments?: number,
+    over_18?: boolean,
     permalink: string,
-    pinned: boolean,
-    post_hint: string,
-    preview: {
-      enabled: boolean,
+    post_hint?: string,
+    preview?: {
       images: Array<{
-        id: string,
-        resolutions: Array<{
-          height: number,
-          url: string,
-          width: number,
-        }>,
         source: {
-          height: number,
           url: string,
-          width: number,
         },
-        variants: {},
       }>,
     },
-    pwls: number,
-    quarantine: boolean,
-    removal_reason: null | any,
-    removed_by: null | any,
-    removed_by_category: null | any,
-    report_reasons: null | any,
-    saved: boolean,
-    score: number,
-    secure_media: null | any,
-    secure_media_embed: {},
+    score?: number,
     selftext: string,
-    selftext_html: string | null,
-    send_replies: boolean,
-    spoiler: boolean,
-    stickied: boolean,
     subreddit: string,
-    subreddit_id: string,
     subreddit_name_prefixed: string,
-    subreddit_subscribers: number,
-    subreddit_type: string,
-    suggested_sort: null | any,
-    thumbnail: string,
-    thumbnail_height: number,
-    thumbnail_width: number,
     title: string,
-    top_awarded_type: null | any,
-    total_awards_received: number,
-    treatment_tags: Array<any>,
-    ups: number,
-    upvote_ratio: number,
+    ups?: number,
     url: string,
-    url_overridden_by_dest: string,
-    user_reports: Array<any>,
-    view_count: null | any,
-    visited: boolean,
-    whitelist_status: string,
-    wls: number,
   }
 
 
@@ -5355,6 +5275,8 @@ export namespace RestResponsesRaw {
     application_command_response_type: number,
     // the `GuildAutoEmbedSites` their own links get auto-embedded for (a premium perk), empty: off
     auto_embed: Array<string>,
+    // their auto-embeds draw a post that's only text as a screenshot of it (missing from an api older than the setting)
+    auto_embed_screenshot?: boolean,
     auto_embed_text: boolean,
     download_quality: string | null,
     fallbacks_media_image: number,

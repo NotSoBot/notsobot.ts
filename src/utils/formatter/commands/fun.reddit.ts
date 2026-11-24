@@ -28,9 +28,10 @@ export interface CommandArgs extends Omit<PostCommandArgs, 'handle' | 'likes' | 
   comments?: null | number,
   // the pill under a post's title
   flair?: null | string,
-  // `old` is old reddit, which has the one color (the theme is only for today's site)
+  // `old` is old reddit
   layout?: null | RestOptions.MediaICreatePostLayout,
   subreddit?: null | string,
+  // without one it's what each look is known by: dark on today's site, light on old reddit (the api picks)
   theme?: null | RestOptions.MediaICreateReddit['theme'],
   title?: null | string,
   // the score, under 0 too
@@ -131,7 +132,7 @@ export async function createMessage(
     flair: (typedTitle && typedFlair) ? post.replaceMentions(typedFlair).slice(0, MAX_FLAIR_LENGTH) : undefined,
     layout: args.layout || 'new',
     subreddit: (typedTitle) ? cleanSubreddit(args.subreddit) : undefined,
-    theme: args.theme || 'dark',
+    theme: args.theme || undefined,
     title: (typedTitle) ? post.replaceMentions(typedTitle).slice(0, MAX_TITLE_LENGTH) : undefined,
     upvotes: args.upvotes,
   });

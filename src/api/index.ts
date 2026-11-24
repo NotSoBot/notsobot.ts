@@ -1478,6 +1478,14 @@ export async function mediaAIVManipulationJoin(
 }
 
 
+export async function mediaAIVManipulationKine(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationKine,
+) {
+  return raw.mediaAIVManipulationKine(context, options);
+}
+
+
 export async function mediaAIVManipulationOverlay(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationOverlay,

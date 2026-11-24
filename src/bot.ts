@@ -261,6 +261,11 @@ const cluster = new ClusterClient('', {
       browser: 'Discord iOS',
     },
     intents: 'ALL',
+    // detritus kills a shard for good after `reconnectMax` failed reconnects in a row (default 5, about 2.5 minutes of
+    // retries). A longer network outage (2026-11-24, ~6 minutes) killed every shard and the bot stayed offline until a
+    // restart, so never give up, the backoff caps at 60s. Before client-socket beta.26 detritus voice read this too
+    // (beta.26 gives it `voiceReconnectMax`), this bot plays through the voice node (`voicenode.ts`) either way
+    reconnectMax: Infinity,
     presence: {
       activity: {
         name: 'for .',

@@ -12,7 +12,6 @@ import {
   createPaginatorMediaCache,
   displayDetails,
   displayDetailsLine,
-  displayLinks,
   displayReply,
   displayTimestamp,
   htmlDecode,
@@ -62,38 +61,22 @@ export async function createMessage(
         }
 
         {
-          const author = Markup.url(data.author, `<https://reddit.com/u/${data.author}>`);
+          // the results are read from reddit's search page, each line only when the page had it for this post
           const subreddit = Markup.url(data.subreddit_name_prefixed, `<https://reddit.com/${data.subreddit_name_prefixed}>`);
 
-          let videoUrl: string | null = null;
-          if (data.is_video) {
-            // crossposts have no media of their own, fall back to the parent post's
-            let media: any = data.media;
-            if (!media || !media.reddit_video) {
-              const parents: Array<any> | undefined = (data as any).crosspost_parent_list;
-              if (Array.isArray(parents) && parents.length) {
-                media = parents[0].media;
-              }
-            }
-            if (media && media.reddit_video && media.reddit_video.fallback_url) {
-              videoUrl = media.reddit_video.fallback_url;
-            }
-          }
-
           details = displayDetails([
-            translate('search_reddit.created_in_by', {author: author, subreddit: subreddit}),
+            (data.author)
+              ? translate('search_reddit.created_in_by', {
+                author: Markup.url(data.author, `<https://reddit.com/u/${data.author}>`),
+                subreddit: subreddit,
+              })
+              : subreddit,
             displayDetailsLine([
-              translate('search_reddit.upvotes', {ups: data.ups.toLocaleString(language)}),
-              translate('search_reddit.downvotes', {downs: data.downs.toLocaleString(language)}),
-              translate('search_reddit.ratio_upvotes', {upvote_ratio: data.upvote_ratio * 100}),
-            ]),
-            displayDetailsLine([
-              translate('search_reddit.comments', {num_comments: data.num_comments.toLocaleString(language)}),
-              (data.total_awards_received) && translate('search_reddit.awards', {total_awards_received: data.total_awards_received.toLocaleString(language)}),
-              translate('search_reddit.created', {timestamp: displayTimestamp(data.created * 1000)}),
+              (data.ups !== undefined) && translate('search_reddit.upvotes', {ups: data.ups.toLocaleString(language)}),
+              (data.num_comments !== undefined) && translate('search_reddit.comments', {num_comments: data.num_comments.toLocaleString(language)}),
+              (data.created !== undefined) && translate('search_reddit.created', {timestamp: displayTimestamp(data.created * 1000)}),
               (data.over_18) && translate('search_reddit.nsfw', {over_18: translate('common.yes')}),
             ]),
-            displayLinks([['Video URL', videoUrl]]),
           ]);
         }
 

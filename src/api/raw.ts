@@ -968,6 +968,7 @@ export async function editGuildSettings(
     auto_embed: options.autoEmbed,
     auto_embed_gallery: options.autoEmbedGallery,
     auto_embed_members: options.autoEmbedMembers,
+    auto_embed_screenshot: options.autoEmbedScreenshot,
     auto_embed_text: options.autoEmbedText,
     ban_clean: options.banClean,
     blocked: options.blocked,
@@ -1234,6 +1235,7 @@ export async function editUserSettings(
   const body = {
     application_command_response_type: options.applicationCommandResponseType,
     auto_embed: options.autoEmbed,
+    auto_embed_screenshot: options.autoEmbedScreenshot,
     auto_embed_text: options.autoEmbedText,
     download_quality: options.downloadQuality,
     fallbacks_media_image: options.fallbacksMediaImage,
@@ -3452,6 +3454,33 @@ export async function mediaAIVManipulationJoin(
 }
 
 
+export async function mediaAIVManipulationKine(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationKine,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    kine_url: options.kineUrl,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    // the api tells the .kine upload apart from the media by its key
+    files: (options.kineFile) ? [{...options.kineFile, key: 'kine_file'}] : undefined,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_KINE,
+    },
+  });
+}
+
+
 export async function mediaAIVManipulationOverlay(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationOverlay,
@@ -4896,11 +4925,13 @@ export async function mediaICreateThonkify(
 
 
 function quoteAuthorBody(value: RestOptions.MediaICreateQuoteAuthor) {
+  const styles = value.displayNameStyles;
   return {
     avatar_url: value.avatarUrl,
     bot: value.bot,
     color: value.color,
     decoration_url: value.decorationUrl,
+    display_name_styles: (styles) ? {colors: styles.colors, effect_id: styles.effectId, font_id: styles.fontId} : undefined,
     guild_tag: value.guildTag,
     guild_tag_badge_url: value.guildTagBadgeUrl,
     name: value.name,
@@ -5008,6 +5039,7 @@ export async function mediaICreatePostUrl(
   const body = {
     layout: options.layout || undefined,
     max_file_size: getDefaultMaxFileSize(context, options),
+    post: options.post || undefined,
     safe: options.safe,
     theme: options.theme || undefined,
     timezone: options.timezone || undefined,

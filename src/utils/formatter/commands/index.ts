@@ -66,6 +66,7 @@ import * as MediaAIVManipulationFadeOut from './media.aiv.manipulation.fade.out'
 import * as MediaAIVManipulationFadeOverlay from './media.aiv.manipulation.fade.overlay';
 import * as MediaAIVManipulationInterpolate from './media.aiv.manipulation.interpolate';
 import * as MediaAIVManipulationJoin from './media.aiv.manipulation.join';
+import * as MediaAIVManipulationKine from './media.aiv.manipulation.kine';
 import * as MediaAIVManipulationOverlay from './media.aiv.manipulation.overlay';
 import * as MediaAIVManipulationRepeat from './media.aiv.manipulation.repeat';
 import * as MediaAIVManipulationReverse from './media.aiv.manipulation.reverse';
@@ -939,6 +940,7 @@ export {
   MediaAIVManipulationFadeOverlay,
   MediaAIVManipulationInterpolate,
   MediaAIVManipulationJoin,
+  MediaAIVManipulationKine,
   MediaAIVManipulationOverlay,
   MediaAIVManipulationRepeat,
   MediaAIVManipulationReverse,

@@ -15,6 +15,8 @@ export const COMMAND_ID = 'settings.set.autoembed';
 export interface CommandArgs {
   // turns auto-embed of their own links (for every site, or just `site`) on or off
   embed?: boolean,
+  // a post that's only text is drawn as a screenshot of the post, not posted as its text (off by default)
+  screenshot?: boolean,
   site?: GuildAutoEmbedSites,
   // posts the post's text (author, caption) with the media too (on by default)
   text?: boolean,
@@ -30,7 +32,9 @@ function formatAutoEmbed(translator: Translator, settings: RestResponsesRaw.User
   return [
     translate('settings_set_autoembed.sites', {sites: displayDetailsLine(enabled.map((x) => GuildAutoEmbedSitesToText[x.site]))}),
     translate((settings.auto_embed_text !== false) ? 'settings_server_autoembed.text_on' : 'settings_server_autoembed.text_off'),
-  ].join('\n-> ');
+    // off is the default and changes nothing, only said when it's on (and the text is, it replaces the text reply)
+    (settings.auto_embed_screenshot === true && settings.auto_embed_text !== false) ? translate('settings_server_autoembed.screenshot_on') : '',
+  ].filter(Boolean).join('\n-> ');
 }
 
 // auto-embed for their own links (a premium perk, any tier): a message of theirs whose only link is to a post on one of the sites
@@ -46,17 +50,18 @@ export async function createMessage(
 
   const changingEmbed = args.embed !== undefined && args.embed !== null;
   const changingText = args.text !== undefined && args.text !== null;
+  const changingScreenshot = args.screenshot !== undefined && args.screenshot !== null;
   if (args.site && !changingEmbed) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('settings_server_autoembed.site_without_embed')}`, ephemeral: true});
   }
 
   let settings: RestResponsesRaw.UserSettings | null;
   let title: string;
-  if (changingEmbed || changingText) {
+  if (changingEmbed || changingText || changingScreenshot) {
     // one site flips on top of what's there, so that needs the current sites too
     let sites: Array<string> | undefined;
     if (!changingEmbed) {
-      // only the text changes
+      // only the text or screenshot setting changes
     } else if (args.site) {
       const current = await UserSettingsStore.getOrFetch(context, context.userId);
       if (!current) {
@@ -71,6 +76,7 @@ export async function createMessage(
     }
     settings = await editUserSettings(context, context.userId, {
       autoEmbed: sites,
+      autoEmbedScreenshot: (changingScreenshot) ? args.screenshot : undefined,
       autoEmbedText: (changingText) ? args.text : undefined,
     });
     UserSettingsStore.insert(context.userId, settings);

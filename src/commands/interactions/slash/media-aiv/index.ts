@@ -18,6 +18,7 @@ import { MediaAIVFadeOutCommand } from './fade-out';
 import { MediaAIVFadeOverlayCommand } from './fade-overlay';
 import { MediaAIVInterpolateCommand } from './interpolate';
 import { MediaAIVJoinCommand } from './join';
+import { MediaAIVKineCommand } from './kine';
 import { MediaAIVOverlayCommand } from './overlay';
 import { MediaAIVPipeCommand } from './pipe';
 import { MediaAIVRepeatCommand } from './repeat';
@@ -59,6 +60,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
         new MediaAIVFadeOverlayCommand(),
         new MediaAIVInterpolateCommand(),
         new MediaAIVJoinCommand(),
+        new MediaAIVKineCommand(),
         new MediaAIVOverlayCommand(),
         new MediaAIVPipeCommand(),
         new MediaAIVRepeatCommand(),

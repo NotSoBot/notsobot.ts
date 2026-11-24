@@ -6,7 +6,7 @@ import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserSettingsStore from '../../../stores/usersettings';
 
-import { utilitiesFetchMedia } from '../../../api';
+import { mediaICreatePostUrl, utilitiesFetchMedia } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { CONTENT_BLOCKED_API_ERRORS, JobError, getApiError } from '../../../api/errors';
 import {
@@ -32,6 +32,7 @@ import {
   getMediaReplyActionsTimeout,
   getPostGallery,
   getResponseDisplayForReply,
+  getTimezoneFromContext,
   renderEphemeralDisplay,
 } from '../../../utils/tools';
 import { AutoEmbedSources, getAutoEmbedLink } from '../../autoembed';
@@ -39,6 +40,8 @@ import { UserError } from '../../errors';
 import { queueMessageDelete } from '../../messagedeletes';
 import { Page, Paginator } from '../../paginator';
 import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
+
+import { realPostSite } from './fun.tweet';
 
 
 export const COMMAND_ID = 'tools.download';
@@ -81,6 +84,15 @@ export async function createMessage(
             throw error;
           }
           return;
+        }
+        // their screenshot setting: the post is drawn as a screenshot of it (`postshot`) in place of the text reply, so
+        // it only does anything with the text setting on. one that linked to media we couldn't get isn't only text,
+        // and a post that can't be drawn is posted as its text like before
+        if (autoEmbed && !textOnly.mediaFailed && isAutoEmbedScreenshotOn(context as Command.Context)) {
+          const sent = await postScreenshotReply(context as Command.Context, args.url, textOnly.post, autoEmbed.spoiler);
+          if (sent) {
+            return sent.reply;
+          }
         }
         return postTextReply(context, textOnly, (autoEmbed) ? autoEmbed.spoiler : !!args.spoiler, !!autoEmbed);
       }
@@ -494,6 +506,19 @@ function isAutoEmbedTextOn(context: Command.Context): boolean {
 }
 
 
+// the auto-embed screenshot setting of whoever's auto-embed it is, like `isAutoEmbedTextOn` (which has to be on too,
+// the caller checks it first). off when it's somehow not cached, that's the default
+function isAutoEmbedScreenshotOn(context: Command.Context): boolean {
+  const autoEmbed = getAutoEmbedLink(context);
+  if (autoEmbed && autoEmbed.source === AutoEmbedSources.USER) {
+    const userSettings = UserSettingsStore.get(context.userId);
+    return !!userSettings && userSettings.auto_embed_screenshot === true;
+  }
+  const settings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
+  return !!settings && !!settings.settings && settings.settings.autoEmbedScreenshot === true;
+}
+
+
 interface TextOnlyPost {
   // it linked to media that couldn't be downloaded (a link card's video), not just a post with only text
   mediaFailed: boolean,
@@ -544,6 +569,46 @@ async function postTextReply(
     await suppressLinkEmbed(context);
   }
   return reply;
+}
+
+
+// an auto-embed's post that's only text, drawn as a screenshot of the post by its site's template (the api's `postshot`
+// route). the post the download already came back with is sent along, so the site isn't asked for it a second time.
+// who posted it, its text, time and counts are all in the picture, only the link to it goes under it. null when the
+// link's site has no template or the picture couldn't be made: the caller shows the post some other way
+async function postScreenshotReply(
+  context: Command.Context,
+  url: string,
+  post: RestResponsesRaw.FetchMediaPost,
+  spoiler: boolean,
+): Promise<{reply: Awaited<ReturnType<typeof mediaReply>>} | null> {
+  if (!realPostSite(url)) {
+    return null;
+  }
+  let response: RestResponsesRaw.FileResponse;
+  try {
+    response = await mediaICreatePostUrl(context, {
+      post,
+      safe: DefaultParameters.safe(context),
+      // the post's time is written in the timezone of whoever posted the link
+      timezone: getTimezoneFromContext({guildId: context.guildId, userId: context.userId}),
+      url,
+    });
+  } catch(error) {
+    return null;
+  }
+  const translator = await getTranslator(context);
+  const site = formatPostSite(post);
+  const reply = await mediaReply(context, response, {
+    descriptionBelow: (site) ? `-# ${site}` : undefined,
+    embedFooter: (post.site) ? {iconUrl: getPostSiteIconUrl(post), text: post.site} : undefined,
+    filename: 'post',
+    hideDetails: true,
+    invokerButton: createAutoEmbedUndoButton(context, translator),
+    spoiler,
+  });
+  await suppressLinkEmbed(context);
+  return {reply};
 }
 
 
@@ -607,6 +672,16 @@ function getPostSiteIconUrl(post: RestResponsesRaw.FetchMediaPost): string | und
   return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(match[2], (match[1]) ? 'gif' : 'png');
 }
 
+// where a post is from, linked to it: `[icon] [X](<post>)`
+function formatPostSite(post: RestResponsesRaw.FetchMediaPost): string | undefined {
+  if (!post.site) {
+    return undefined;
+  }
+  const emoji = getPostSiteEmoji(post);
+  const text = (post.url) ? Markup.url(post.site, `<${post.url}>`) : Markup.escape.all(post.site);
+  return (emoji) ? `${emoji} ${text}` : text;
+}
+
 export interface FormattedPost {
   // above the media: what it is and who posted it, then its text
   above?: string,
@@ -668,10 +743,9 @@ export function formatPost(
   }
 
   const below: Array<string> = [];
-  if (post.site) {
-    const emoji = getPostSiteEmoji(post);
-    const text = (post.url) ? Markup.url(post.site, `<${post.url}>`) : Markup.escape.all(post.site);
-    below.push((emoji) ? `${emoji} ${text}` : text);
+  const site = formatPostSite(post);
+  if (site) {
+    below.push(site);
   }
   if (post.timestamp) {
     below.push(Markup.timestamp(post.timestamp * 1000, MarkupTimestampStyles.RELATIVE));

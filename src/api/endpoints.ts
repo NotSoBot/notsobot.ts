@@ -112,6 +112,8 @@ export const Api = Object.freeze({
     '/media/aiv/manipulation/interpolate',
   MEDIA_AIV_MANIPULATION_JOIN:
     '/media/aiv/manipulation/join',
+  MEDIA_AIV_MANIPULATION_KINE:
+    '/media/aiv/manipulation/kine',
   MEDIA_AIV_MANIPULATION_OVERLAY:
     '/media/aiv/manipulation/overlay',
   MEDIA_AIV_MANIPULATION_REVERSE:

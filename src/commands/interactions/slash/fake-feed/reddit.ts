@@ -71,13 +71,12 @@ export class RedditCommand extends BaseInteractionCommandOption {
           name: 'theme',
           description: 'The site\'s color theme',
           ...I18n.optionLocalizations('commands.fun.post.theme'),
+          // neither is marked the default: it's dark on today's site and light on old reddit
           choices: Parameters.Slash.oneOf({
             choices: {DARK: 'dark', LIGHT: 'light'},
-            defaultChoice: 'dark',
             doNotSort: true,
           }),
         },
-        // old reddit has the one color, the theme is only for today's site
         layoutOption('new'),
         ...postEndOptions(['reply-to']),
       ],

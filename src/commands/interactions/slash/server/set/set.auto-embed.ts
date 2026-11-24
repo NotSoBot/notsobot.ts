@@ -41,6 +41,12 @@ export class ServerSetAutoEmbedCommand extends BaseInteractionCommandOption {
           type: Boolean,
         },
         {
+          name: 'screenshot',
+          description: 'Draw text-only posts as a screenshot of the post (Default: off)',
+          ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.screenshot'),
+          type: Boolean,
+        },
+        {
           name: 'site',
           description: 'Only turn this site on or off (Default: all of them)',
           ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.site'),

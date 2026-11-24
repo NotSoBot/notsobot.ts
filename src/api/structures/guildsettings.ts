@@ -328,6 +328,7 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.AUTO_EMBED,
   NotSoApiKeys.AUTO_EMBED_GALLERY,
   NotSoApiKeys.AUTO_EMBED_MEMBERS,
+  NotSoApiKeys.AUTO_EMBED_SCREENSHOT,
   NotSoApiKeys.AUTO_EMBED_TEXT,
   NotSoApiKeys.BAN_CLEAN,
   NotSoApiKeys.MEDIA_FONT,
@@ -358,6 +359,8 @@ export class GuildSettingsChild extends BaseStructure {
   autoEmbedGallery: PostGalleryTypes | null = null;
   // members with premium can auto-embed their own links (`UserSettings.auto_embed`) for the sites the server doesn't
   autoEmbedMembers: boolean = true;
+  // auto-embeds draw a post that's only text as a screenshot of it, not as its text (only with `autoEmbedText` on)
+  autoEmbedScreenshot: boolean = false;
   // auto-embeds post the post's text (author, caption) with the media too
   autoEmbedText: boolean = true;
   // seconds of a member's messages `ban` deletes when the moderator doesn't pick (0: none)

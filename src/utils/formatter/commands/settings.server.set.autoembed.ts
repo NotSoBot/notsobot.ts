@@ -45,6 +45,8 @@ export interface CommandArgs {
   gallery?: PostGalleryTypes | null,
   // members with premium can auto-embed their own links for the sites the server doesn't (on by default)
   members?: boolean,
+  // a post that's only text is drawn as a screenshot of the post, not posted as its text (off by default)
+  screenshot?: boolean,
   site?: GuildAutoEmbedSites,
   // posts the post's text (author, caption) with the media too
   text?: boolean,
@@ -94,6 +96,20 @@ export function membersParser(value: string, context: Command.Context | Interact
     return false;
   }
   throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_members'));
+}
+
+export function screenshotParser(value: string, context: Command.Context | Interaction.InteractionContext): boolean | undefined {
+  const text = value.trim().toLowerCase();
+  if (!text) {
+    return undefined;
+  }
+  if (EMBED_ON_VALUES.includes(text)) {
+    return true;
+  }
+  if (EMBED_OFF_VALUES.includes(text)) {
+    return false;
+  }
+  throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_screenshot'));
 }
 
 // `gallery`, `pages`, or `default` (each poster's setting), the prefixed command's `-gallery` and the slash choices
@@ -152,13 +168,15 @@ export function formatAutoEmbed(translator: Translator, settings: GuildSettingsC
     const lines = [
       translate('settings_server_autoembed.sites', {sites: displayDetailsLine(enabled.map((x) => GuildAutoEmbedSitesToText[x.site]))}),
       translate((settings.autoEmbedText) ? 'settings_server_autoembed.text_on' : 'settings_server_autoembed.text_off'),
+      // off is the default and changes nothing, only said when it's on (and the text is, it replaces the text reply)
+      (settings.autoEmbedScreenshot && settings.autoEmbedText) ? translate('settings_server_autoembed.screenshot_on') : '',
       translate(
         (settings.autoEmbedGallery === PostGalleryTypes.GALLERY) ? 'settings_server_autoembed.gallery_gallery' :
         (settings.autoEmbedGallery === PostGalleryTypes.PAGES) ? 'settings_server_autoembed.gallery_pages' :
         'settings_server_autoembed.gallery_default',
       ),
       members,
-    ];
+    ].filter(Boolean);
     return lines.join('\n-> ');
   }
   return [translate('settings_server_autoembed.sites_none'), members].join('\n-> ');
@@ -178,7 +196,8 @@ export async function createMessage(
   const changingMembers = args.members !== undefined && args.members !== null;
   // null is a change too, back to each poster's setting
   const changingGallery = args.gallery !== undefined;
-  const changing = changingEmbed || changingText || changingMembers || changingGallery;
+  const changingScreenshot = args.screenshot !== undefined && args.screenshot !== null;
+  const changing = changingEmbed || changingText || changingMembers || changingGallery || changingScreenshot;
   if (args.site && !changingEmbed) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('settings_server_autoembed.site_without_embed')}`, ephemeral: true});
   }
@@ -189,7 +208,7 @@ export async function createMessage(
     // one site flips on top of what's there, so that needs the current sites too
     let sites: Array<string> | undefined;
     if (!changingEmbed) {
-      // only the text, gallery or members setting changes
+      // only the text, gallery, members or screenshot setting changes
     } else if (args.site) {
       const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
       if (!guildSettings) {
@@ -206,6 +225,7 @@ export async function createMessage(
       autoEmbed: sites,
       autoEmbedGallery: (changingGallery) ? args.gallery : undefined,
       autoEmbedMembers: (changingMembers) ? args.members : undefined,
+      autoEmbedScreenshot: (changingScreenshot) ? args.screenshot : undefined,
       autoEmbedText: (changingText) ? args.text : undefined,
     }));
     title = translate('settings_server_autoembed.updated');

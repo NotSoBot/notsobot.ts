@@ -38,6 +38,7 @@ const STRING_SAMPLES = {
   fillcolor: 'red',
   flyImage: SAMPLE('photo.jpg'),
   font: 'IMPACT',
+  kine: SAMPLE('preview2.kine'),
   notes: 'C4 E4 G4:2',
   options: '-vf negate -af "volume=2"',
   resize: 'fit(mw, mh)',
