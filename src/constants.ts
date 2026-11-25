@@ -463,6 +463,8 @@ export const SLASH_COMMAND_CATEGORY_FALLBACKS: ReadonlyArray<[string, CommandCat
   ['game.', CommandCategories.GAMES],
   ['owner.', CommandCategories.OWNER],
   ['help', CommandCategories.UTILITY],
+  // `/editor`, beside Edit Media/Edit Avatar (`media.aiv.edit`)
+  ['editor', CommandCategories.CONVERSION],
 ] as Array<[string, CommandCategories]>);
 
 
