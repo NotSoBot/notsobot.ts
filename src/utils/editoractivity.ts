@@ -61,6 +61,8 @@ export async function launchEditor(
     instanceId = await context.launchActivity();
   } catch(error) {
     log.warn('editor activity launch failed', {surface: options.surface, error: (error instanceof Error) ? error.message : String(error)});
+    // discord's reason (its error body) ends up in sentry with the surface, a refused launch was only a log line before
+    captureError(error, {extra: {surface: options.surface}, tags: {source: 'editor.activity.launch'}});
     const { translate } = await getTranslator(context);
     await replyPrivately(context, translate('editor_activity.launch_failed', {url: editorWebUrl(options.mediaUrl)}), true).catch(() => {});
     return null;

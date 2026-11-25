@@ -49,12 +49,16 @@ export default class LaunchCommand extends BaseInteractionCommand {
   }
 
   async run(context: Interaction.InteractionContext) {
-    const { translate } = await I18n.getTranslator(context);
+    // the launch has to be this interaction's first answer within discord's 3 seconds, and nothing defers it: so the
+    // checks that need no network come first and the translations (which can wait on the api) only for a message
     if (!canUseEditor(context)) {
+      const { translate } = await I18n.getTranslator(context);
       return replyPrivately(context, translate('editor_activity.not_ready'));
     }
-    // the server turned NotSoBot off here, or it's the decoy channel: an activity would post that it started
-    if (await isBlockedUserInstallRun(context) || isDecoyChannelRun(context)) {
+    // the server turned NotSoBot off here, or it's the decoy channel: an activity would post that it started. owners
+    // skip the user-install check without waiting on it
+    if (isDecoyChannelRun(context) || await isBlockedUserInstallRun(context)) {
+      const { translate } = await I18n.getTranslator(context);
       return replyPrivately(context, translate('editor_activity.channel_turned_off'), true);
     }
     await launchEditor(context, {surface: 'entry_point'});

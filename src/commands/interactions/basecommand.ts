@@ -323,13 +323,20 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       }
 
       context.metadata = context.metadata || {};
-      const { translate } = await I18n.getTranslator(context);
-  
+      // only fetched for a gate's message: getting it can wait on the api (the user's and server's settings), and a
+      // command that never defers (a modal, an activity launch) has to answer within discord's 3 seconds
+      let translateCached: I18n.Translator['translate'] | null = null;
+      const translate: I18n.Translator['translate'] = (...args) => translateCached!(...args);
+      const loadTranslate = async () => {
+        translateCached = translateCached || (await I18n.getTranslator(context)).translate;
+      };
+
       const metadata = context.invoker.metadata;
       if (metadata) {
         if (metadata.nsfw) {
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
+            await loadTranslate();
             return setCommandGate(context, {kind: 'nsfw', message: warning(translate('errors.not_nsfw_channel'))});
           }
         }
@@ -369,6 +376,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           }
 
           if (!hasPremium) {
+            await loadTranslate();
             let message: string;
             if (metadata.premiumServer) {
               message = warning(translate('errors.premium_server_required', {command: Markup.codestring(context.name)}));
