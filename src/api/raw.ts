@@ -1184,6 +1184,31 @@ export async function acknowledgeUserWarnings(
 }
 
 
+export async function storeEditorActivityLaunch(
+  context: RequestContext,
+  instanceId: string,
+  options: RestOptions.StoreEditorActivityLaunch,
+): Promise<void> {
+  const body = {
+    channel_id: options.channelId || undefined,
+    guild_id: options.guildId || undefined,
+    locale: options.locale || undefined,
+    media_url: options.mediaUrl || undefined,
+    surface: options.surface,
+    user_id: options.userId,
+  };
+  const params = {instanceId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.EDITOR_ACTIVITY_LAUNCH,
+      params,
+    },
+  });
+}
+
+
 export async function editGuildLLMKnowledge(
   context: RequestContext,
   guildId: string,

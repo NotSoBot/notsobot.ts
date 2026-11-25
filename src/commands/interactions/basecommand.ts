@@ -44,6 +44,7 @@ import {
 } from '../../constants';
 import { captureCommandError, captureError } from '../../sentry';
 import { DefaultParameters, FindMediaUrlOptions, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
+import { canUseEditor } from '../../utils/editoractivity';
 import { fillApplicationCommandPermissions } from '../../utils/commandpermissions';
 import { InteractionExpiredError } from '../../utils/errors';
 
@@ -183,6 +184,15 @@ export async function isBlockedUserInstallRun(context: Interaction.InteractionCo
 // counts as not one
 export function isDecoyChannelRun(context: Interaction.InteractionContext): boolean {
   return !!context.guildId && !!context.channelId && !!DecoyStore.getByChannel(context.channelId);
+}
+
+// whether Edit Media/Edit Avatar offer "Open editor": who can use the editor yet, and not where NotSoBot is turned off
+// or the decoy channel (an activity posts that it started, for everyone)
+export async function canLaunchEditorHere(context: Interaction.InteractionContext): Promise<boolean> {
+  if (!canUseEditor(context)) {
+    return false;
+  }
+  return !(await isBlockedUserInstallRun(context)) && !isDecoyChannelRun(context);
 }
 
 // what `onBefore`'s private defer goes by: NotSoBot's turned off in the channel, or the user's response setting. for

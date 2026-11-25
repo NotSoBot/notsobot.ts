@@ -4,7 +4,7 @@ import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-c
 import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n } from '../../../../utils';
 
-import { BaseContextMenuUserCommand, ContextMenuUserArgs, isPrivateRun } from '../../basecommand';
+import { BaseContextMenuUserCommand, ContextMenuUserArgs, canLaunchEditorHere, isPrivateRun } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'Edit Avatar';
@@ -35,6 +35,7 @@ export default class EditAvatarCommand extends BaseContextMenuUserCommand {
     const user = args.member || args.user;
     return Formatter.Commands.MediaAIVEdit.createMessage(context, {
       isPrivate: await isPrivateRun(context),
+      editorSurface: (await canLaunchEditorHere(context)) ? 'edit_avatar' : undefined,
       kind: 'image',
       url: user.avatarUrlFormat(null, {size: 1024}),
     });

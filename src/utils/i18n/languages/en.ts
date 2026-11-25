@@ -5069,6 +5069,13 @@ export const English = Object.freeze({
   'media_edit_pick.prompt': 'Pick what to run on the media, or type your own commands',
   'media_edit_pick.public_note': 'Each result is posted here for everyone to see',
   'media_edit_pick.timed_out': 'This menu timed out, open it again to keep editing',
+  'media_edit_pick.open_editor': 'Open editor',
+
+  // the media editor's discord activity (English only while it's owner-only, translated when it rolls out)
+  'commands.activity.launch.description': 'Edit media with effects, text and drawings',
+  'editor_activity.not_ready': 'The media editor isn’t open to everyone yet, it’s coming soon.',
+  'editor_activity.launch_failed': 'The editor couldn’t open here. [Use it on the web]({url}) instead.',
+  'editor_activity.channel_turned_off': 'NotSoBot is turned off in this channel, so the editor can’t open here.',
   'pixelart.back_to_grid': 'Back to grid',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'You cannot view the history of that channel',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Cannot view the history of that channel',

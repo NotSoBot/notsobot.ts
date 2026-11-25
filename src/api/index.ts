@@ -649,6 +649,15 @@ export async function acknowledgeUserWarnings(
 }
 
 
+export async function storeEditorActivityLaunch(
+  context: RequestContext,
+  instanceId: string,
+  options: RestOptions.StoreEditorActivityLaunch,
+) {
+  return raw.storeEditorActivityLaunch(context, instanceId, options);
+}
+
+
 export async function editUserSettings(
   context: RequestContext,
   userId: string,

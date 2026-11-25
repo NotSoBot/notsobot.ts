@@ -17,6 +17,7 @@ import {
 import { EmbedColors } from '../../../constants';
 import { Parameters, displayReply, findMediaUrlInMessages, renderEphemeralDisplay } from '../../../utils';
 import { TranslationKey, getTranslator } from '../../i18n';
+import { EditorLaunchSurface, launchEditor } from '../../editoractivity';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
 import { replyPageError } from './tools.download';
@@ -29,6 +30,8 @@ export type MediaKind = 'audio' | 'image' | 'video';
 export interface CommandArgs {
   // the results only show to whoever used it, like the menu (their response setting, or NotSoBot's turned off here)
   isPrivate?: boolean,
+  // offers "Open editor" (the media editor activity), from where. unset where it can't open (`canLaunchEditorHere`)
+  editorSurface?: EditorLaunchSurface,
   // which menus fit the media
   kind: MediaKind,
   url: string,
@@ -239,11 +242,26 @@ export async function createMessage(context: Interaction.InteractionContext, arg
     });
     components.addActionRow(row);
   }
-  components.createActionRow().createButton({
+  const buttons = components.createActionRow();
+  buttons.createButton({
     label: translate('media_edit_pick.custom'),
     run: onCustom,
     style: MessageComponentButtonStyles.SECONDARY,
   });
+  if (args.editorSurface) {
+    const surface = args.editorSurface;
+    // the media editor activity on this media, launched in this channel by the button's interaction
+    buttons.createButton({
+      label: translate('media_edit_pick.open_editor'),
+      run: async (ctx: ComponentContext) => {
+        if (state === 'expired' || ctx.userId !== context.userId) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
+        }
+        await launchEditor(ctx, {surface, mediaUrl: args.url});
+      },
+      style: MessageComponentButtonStyles.PRIMARY,
+    });
+  }
 
   return displayReply(context, {
     components,

@@ -7,7 +7,7 @@ import {
 import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n, displayReply } from '../../../../utils';
 
-import { BaseContextMenuMessageCommand, ContextMenuMessageArgs, isPrivateRun } from '../../basecommand';
+import { BaseContextMenuMessageCommand, ContextMenuMessageArgs, canLaunchEditorHere, isPrivateRun } from '../../basecommand';
 
 
 export interface EditMediaCommandArgs extends ContextMenuMessageArgs {
@@ -52,6 +52,7 @@ export default class EditMediaCommand extends BaseContextMenuMessageCommand {
   async run(context: Interaction.InteractionContext, args: EditMediaCommandArgs) {
     return Formatter.Commands.MediaAIVEdit.createMessage(context, {
       isPrivate: await isPrivateRun(context),
+      editorSurface: (await canLaunchEditorHere(context)) ? 'edit_media' : undefined,
       ...args.media!,
     });
   }

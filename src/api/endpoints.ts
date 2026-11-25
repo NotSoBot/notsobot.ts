@@ -1466,6 +1466,10 @@ export const Api = Object.freeze({
   USER_WARNINGS_ACKNOWLEDGE:
     '/users/:userId/warnings/acknowledge',
 
+  // the media editor activity's launch context, from the bot right after it launched it
+  EDITOR_ACTIVITY_LAUNCH:
+    '/editor/activity/:instanceId/launch',
+
   UTILITIES_CODE_RUN:
     '/utilities/code/run',
   UTILITIES_FETCH_MEDIA:

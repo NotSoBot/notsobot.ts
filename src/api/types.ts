@@ -308,6 +308,16 @@ export namespace RestOptions {
     reason: string,
   }
 
+  export interface StoreEditorActivityLaunch {
+    channelId?: string | null,
+    guildId?: string | null,
+    locale?: string | null,
+    // the media it was opened on (Edit Media / Edit Avatar), the activity can't read the channel itself
+    mediaUrl?: string | null,
+    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command',
+    userId: string,
+  }
+
   export interface AcknowledgeUserWarnings {
     // only these, none: every pending one
     warningIds?: Array<string>,
