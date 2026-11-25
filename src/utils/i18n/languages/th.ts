@@ -5071,6 +5071,14 @@ export const Thai: Translations = Object.freeze({
   'media_edit_pick.prompt': 'เลือกสิ่งที่จะใช้กับสื่อ หรือพิมพ์คำสั่งของคุณเอง',
   'media_edit_pick.public_note': 'ผลลัพธ์แต่ละรายการจะถูกโพสต์ที่นี่ให้ทุกคนเห็น',
   'media_edit_pick.timed_out': 'เมนูนี้หมดเวลาแล้ว เปิดใหม่อีกครั้งเพื่อแก้ไขต่อ',
+  'media_edit_pick.open_editor': 'เปิดตัวแก้ไข',
+  'media_edit_pick.edit_on_web': 'หรือ [แก้ไขบนเว็บ]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'แก้ไขสื่อด้วยเอฟเฟกต์ ข้อความ และภาพวาด',
+  'editor_activity.not_ready': 'ตัวแก้ไขสื่อยังไม่เปิดให้ทุกคนใช้ จะมาเร็วๆ นี้',
+  'editor_activity.launch_failed': 'ไม่สามารถเปิดตัวแก้ไขที่นี่ได้ [ใช้งานบนเว็บแทน]({url})',
+  'editor_activity.channel_turned_off': 'NotSoBot ถูกปิดในช่องนี้ จึงไม่สามารถเปิดตัวแก้ไขที่นี่ได้',
   'pixelart.back_to_grid': 'กลับไปที่ตาราง',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'คุณไม่สามารถดูประวัติของช่องนั้นได้',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'ไม่สามารถดูประวัติของช่องนั้นได้',

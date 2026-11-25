@@ -5070,8 +5070,9 @@ export const English = Object.freeze({
   'media_edit_pick.public_note': 'Each result is posted here for everyone to see',
   'media_edit_pick.timed_out': 'This menu timed out, open it again to keep editing',
   'media_edit_pick.open_editor': 'Open editor',
+  'media_edit_pick.edit_on_web': 'Or [edit it on the web]({url})',
 
-  // the media editor's discord activity (English only while it's owner-only, translated when it rolls out)
+  // the media editor's discord activity
   'commands.activity.launch.description': 'Edit media with effects, text and drawings',
   'editor_activity.not_ready': 'The media editor isn’t open to everyone yet, it’s coming soon.',
   'editor_activity.launch_failed': 'The editor couldn’t open here. [Use it on the web]({url}) instead.',

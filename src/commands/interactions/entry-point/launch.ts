@@ -6,19 +6,19 @@ import {
   InteractionContextTypes,
 } from 'detritus-client/lib/constants';
 
-import { I18n } from '../../utils';
-import { canUseEditor, launchEditor, replyPrivately } from '../../utils/editoractivity';
+import { I18n } from '../../../utils';
+import { canUseEditor, launchEditor, replyPrivately } from '../../../utils/editoractivity';
 
-import { BaseInteractionCommand, isBlockedUserInstallRun, isDecoyChannelRun } from '../interactions/basecommand';
+import { BaseInteractionCommand, isBlockedUserInstallRun, isDecoyChannelRun } from '../basecommand';
 
 
 export const COMMAND_ID = 'activity.launch';
 
 
 // The app's "Launch" entry point (`PRIMARY_ENTRY_POINT`), handled by the bot (`APP_HANDLER`) instead of Discord so it
-// can check who's launching and save where it came from. Discord only takes an entry point on an app with Activities
-// turned on, so bot.ts adds this only when `NOTSOBOT_ACTIVITY_ENTRY_POINT=true` (it isn't in commands/interactions,
-// which is loaded whole). Without it the sync keeps Discord's own "Launch" as it is
+// can check who's launching and save where it came from. Discord makes its own "Launch" when Activities are turned on,
+// and the sync only ever updates that one (detritus-client never creates an entry point): on an app with Activities
+// off this is simply left out
 export default class LaunchCommand extends BaseInteractionCommand {
   error = 'Launch';
   metadata = {

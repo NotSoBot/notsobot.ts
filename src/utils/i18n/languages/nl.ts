@@ -5071,6 +5071,14 @@ export const Dutch: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Kies wat er op de media wordt uitgevoerd, of typ je eigen commando\'s',
   'media_edit_pick.public_note': 'Elk resultaat wordt hier geplaatst, zichtbaar voor iedereen',
   'media_edit_pick.timed_out': 'Dit menu is verlopen, open het opnieuw om verder te bewerken',
+  'media_edit_pick.open_editor': 'Editor openen',
+  'media_edit_pick.edit_on_web': 'Of [bewerk het op het web]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Bewerk media met effecten, tekst en tekeningen',
+  'editor_activity.not_ready': 'De media-editor is nog niet voor iedereen open, hij komt binnenkort.',
+  'editor_activity.launch_failed': 'De editor kon hier niet openen. [Gebruik hem op het web]({url}) in plaats daarvan.',
+  'editor_activity.channel_turned_off': 'NotSoBot staat uit in dit kanaal, dus de editor kan hier niet openen.',
   'pixelart.back_to_grid': 'Terug naar raster',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Je kunt de geschiedenis van dat kanaal niet zien',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan de geschiedenis van dat kanaal niet zien',

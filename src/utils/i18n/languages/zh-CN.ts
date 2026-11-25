@@ -5071,6 +5071,14 @@ export const ChineseSimplified: Translations = Object.freeze({
   'media_edit_pick.prompt': '选择要对媒体执行的操作，或输入你自己的命令',
   'media_edit_pick.public_note': '每个结果都会发布在这里，所有人可见',
   'media_edit_pick.timed_out': '此菜单已过期，请重新打开以继续编辑',
+  'media_edit_pick.open_editor': '打开编辑器',
+  'media_edit_pick.edit_on_web': '或[在网页上编辑]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': '用效果、文字和绘图编辑媒体',
+  'editor_activity.not_ready': '媒体编辑器尚未对所有人开放，即将推出。',
+  'editor_activity.launch_failed': '无法在这里打开编辑器。请改为[在网页上使用]({url})。',
+  'editor_activity.channel_turned_off': '此频道已关闭 NotSoBot，因此无法在这里打开编辑器。',
   'pixelart.back_to_grid': '返回网格',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '你无法查看那个频道的消息历史',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '无法查看那个频道的消息历史',

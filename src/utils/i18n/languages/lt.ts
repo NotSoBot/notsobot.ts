@@ -5071,6 +5071,14 @@ export const Lithuanian: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Pasirink, ką paleisti su medija, arba įvesk savo komandas',
   'media_edit_pick.public_note': 'Kiekvienas rezultatas paskelbiamas čia ir matomas visiems',
   'media_edit_pick.timed_out': 'Šio meniu laikas baigėsi, atidaryk jį iš naujo ir tęsk redagavimą',
+  'media_edit_pick.open_editor': 'Atidaryti redaktorių',
+  'media_edit_pick.edit_on_web': 'Arba [redaguok internete]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Redaguoti mediją su efektais, tekstu ir piešiniais',
+  'editor_activity.not_ready': 'Medijos redaktorius dar neatviras visiems, jis netrukus pasirodys.',
+  'editor_activity.launch_failed': 'Redaktoriaus čia atidaryti nepavyko. Vietoj to [naudok jį internete]({url}).',
+  'editor_activity.channel_turned_off': 'Šiame kanale NotSoBot išjungtas, todėl redaktoriaus čia atidaryti negalima.',
   'pixelart.back_to_grid': 'Atgal į tinklelį',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Tu negali matyti to kanalo istorijos',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Negaliu matyti to kanalo istorijos',

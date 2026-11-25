@@ -5071,6 +5071,14 @@ export const Ukrainian: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Виберіть, що застосувати до медіа, або введіть власні команди',
   'media_edit_pick.public_note': 'Кожен результат публікується тут і видимий усім',
   'media_edit_pick.timed_out': 'Час дії цього меню минув, відкрийте його знову, щоб продовжити',
+  'media_edit_pick.open_editor': 'Відкрити редактор',
+  'media_edit_pick.edit_on_web': 'Або [відредагуйте в браузері]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Редагувати медіа з ефектами, текстом і малюнками',
+  'editor_activity.not_ready': 'Медіаредактор поки відкритий не для всіх, він скоро з\'явиться.',
+  'editor_activity.launch_failed': 'Не вдалося відкрити редактор тут. [Скористайтеся ним у браузері]({url}).',
+  'editor_activity.channel_turned_off': 'NotSoBot вимкнено в цьому каналі, тому редактор тут відкрити не можна.',
   'pixelart.back_to_grid': 'Назад до сітки',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Ви не можете переглядати історію цього каналу',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Не вдається переглянути історію цього каналу',

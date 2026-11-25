@@ -5071,6 +5071,14 @@ export const Croatian: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Odaberi što pokrenuti na mediju ili upiši vlastite naredbe',
   'media_edit_pick.public_note': 'Svaki se rezultat objavljuje ovdje da ga svi vide',
   'media_edit_pick.timed_out': 'Ovaj je izbornik istekao, otvori ga ponovno za nastavak uređivanja',
+  'media_edit_pick.open_editor': 'Otvori uređivač',
+  'media_edit_pick.edit_on_web': 'Ili ga [uredi na webu]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Uređuj medije efektima, tekstom i crtežima',
+  'editor_activity.not_ready': 'Uređivač medija još nije otvoren za sve, uskoro stiže.',
+  'editor_activity.launch_failed': 'Uređivač se ovdje nije mogao otvoriti. [Umjesto toga koristi ga na webu]({url}).',
+  'editor_activity.channel_turned_off': 'NotSoBot je isključen u ovom kanalu, pa se uređivač ovdje ne može otvoriti.',
   'pixelart.back_to_grid': 'Natrag na mrežu',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Ne možeš vidjeti povijest tog kanala',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Ne mogu vidjeti povijest tog kanala',

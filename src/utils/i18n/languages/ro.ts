@@ -5071,6 +5071,14 @@ export const Romanian: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Alege ce să rulezi pe conținut sau scrie propriile comenzi',
   'media_edit_pick.public_note': 'Fiecare rezultat este postat aici, vizibil pentru toată lumea',
   'media_edit_pick.timed_out': 'Acest meniu a expirat, deschide-l din nou ca să continui editarea',
+  'media_edit_pick.open_editor': 'Deschide editorul',
+  'media_edit_pick.edit_on_web': 'Sau [editează pe web]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Editează media cu efecte, text și desene',
+  'editor_activity.not_ready': 'Editorul media nu este încă deschis pentru toată lumea, vine în curând.',
+  'editor_activity.launch_failed': 'Editorul nu s-a putut deschide aici. [Folosește-l pe web]({url}) în schimb.',
+  'editor_activity.channel_turned_off': 'NotSoBot este dezactivat în acest canal, așa că editorul nu se poate deschide aici.',
   'pixelart.back_to_grid': 'Înapoi la grilă',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nu poți vedea istoricul acelui canal',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nu pot vedea istoricul acelui canal',

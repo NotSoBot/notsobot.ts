@@ -5071,6 +5071,14 @@ export const Swedish: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Välj vad som ska köras på mediet, eller skriv egna kommandon',
   'media_edit_pick.public_note': 'Varje resultat läggs upp här så att alla kan se det',
   'media_edit_pick.timed_out': 'Den här menyn har gått ut, öppna den igen för att fortsätta redigera',
+  'media_edit_pick.open_editor': 'Öppna redigeraren',
+  'media_edit_pick.edit_on_web': 'Eller [redigera på webben]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Redigera media med effekter, text och teckningar',
+  'editor_activity.not_ready': 'Medieredigeraren är inte öppen för alla än, den kommer snart.',
+  'editor_activity.launch_failed': 'Redigeraren kunde inte öppnas här. [Använd den på webben]({url}) i stället.',
+  'editor_activity.channel_turned_off': 'NotSoBot är avstängd i den här kanalen, så redigeraren kan inte öppnas här.',
   'pixelart.back_to_grid': 'Tillbaka till rutnätet',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Du kan inte se historiken i den kanalen',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan inte se historiken i den kanalen',

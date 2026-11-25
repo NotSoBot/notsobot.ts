@@ -15,7 +15,6 @@ import { ApplicationCommandsSyncError, ImportedCommandsError } from 'detritus-cl
 
 import ApiEventsClient from './apievents';
 import { NotSoCommandClient } from './commandclient';
-import LaunchCommand from './commands/entrypoint/launch';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
 import { CommandHooksListener, ComponentsListener, connectAllListeners } from './listeners';
@@ -471,11 +470,6 @@ const cluster = new ClusterClient('', {
       CommandHooksListener.reconnect(cluster);
     }
     await addCommandsIn(notSoInteractionBot, './commands/interactions', shardsText);
-    // the media editor activity's "Launch" entry point, only on an app with Activities turned on (beta for now),
-    // Discord refuses an entry point anywhere else. without it the sync leaves Discord's own one as it is
-    if (process.env.NOTSOBOT_ACTIVITY_ENTRY_POINT === 'true') {
-      notSoInteractionBot.add(new LaunchCommand());
-    }
     for (let x of notSoInteractionBot.getOversizedCommands()) {
       log.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
     }

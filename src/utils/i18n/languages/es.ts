@@ -5071,6 +5071,14 @@ export const Spanish: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Elige qué ejecutar sobre el contenido, o escribe tus propios comandos',
   'media_edit_pick.public_note': 'Cada resultado se publica aquí para que todos lo vean',
   'media_edit_pick.timed_out': 'Este menú caducó, ábrelo de nuevo para seguir editando',
+  'media_edit_pick.open_editor': 'Abrir editor',
+  'media_edit_pick.edit_on_web': 'O [edítalo en la web]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Edita multimedia con efectos, texto y dibujos',
+  'editor_activity.not_ready': 'El editor multimedia aún no está abierto para todos, llegará pronto.',
+  'editor_activity.launch_failed': 'El editor no pudo abrirse aquí. [Úsalo en la web]({url}) en su lugar.',
+  'editor_activity.channel_turned_off': 'NotSoBot está desactivado en este canal, así que el editor no puede abrirse aquí.',
   'pixelart.back_to_grid': 'Volver a la cuadrícula',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'No puedes ver el historial de ese canal',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'No se puede ver el historial de ese canal',

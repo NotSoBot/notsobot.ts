@@ -5071,6 +5071,14 @@ export const Bulgarian: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Избери какво да се изпълни върху медията или въведи свои команди',
   'media_edit_pick.public_note': 'Всеки резултат се публикува тук и го виждат всички',
   'media_edit_pick.timed_out': 'Това меню изтече, отвори го отново, за да продължиш да редактираш',
+  'media_edit_pick.open_editor': 'Отвори редактора',
+  'media_edit_pick.edit_on_web': 'Или [редактирай онлайн]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Редактирай медия с ефекти, текст и рисунки',
+  'editor_activity.not_ready': 'Медийният редактор все още не е отворен за всички, очаквай го скоро.',
+  'editor_activity.launch_failed': 'Редакторът не можа да се отвори тук. [Използвай го онлайн]({url}) вместо това.',
+  'editor_activity.channel_turned_off': 'NotSoBot е изключен в този канал, затова редакторът не може да се отвори тук.',
   'pixelart.back_to_grid': 'Обратно към мрежата',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Не можеш да виждаш историята на този канал',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Не мога да виждам историята на този канал',

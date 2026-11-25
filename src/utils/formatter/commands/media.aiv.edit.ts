@@ -17,7 +17,7 @@ import {
 import { EmbedColors } from '../../../constants';
 import { Parameters, displayReply, findMediaUrlInMessages, renderEphemeralDisplay } from '../../../utils';
 import { TranslationKey, getTranslator } from '../../i18n';
-import { EditorLaunchSurface, launchEditor } from '../../editoractivity';
+import { EditorLaunchSurface, canUseEditor, editorWebUrl, launchEditor } from '../../editoractivity';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
 import { replyPageError } from './tools.download';
@@ -263,10 +263,16 @@ export async function createMessage(context: Interaction.InteractionContext, arg
     });
   }
 
+  // the web editor on the same media, for whoever the editor's open to (a link: it works even where the activity can't
+  // launch, the menu's private either way)
+  const description = (canUseEditor(context))
+    ? `${translate('media_edit_pick.prompt')}\n${translate('media_edit_pick.edit_on_web', {url: editorWebUrl(args.url)})}`
+    : translate('media_edit_pick.prompt');
+
   return displayReply(context, {
     components,
     componentsInside: true,
-    description: translate('media_edit_pick.prompt'),
+    description,
     ephemeral: true,
     note: (args.isPrivate) ? undefined : translate('media_edit_pick.public_note'),
   });

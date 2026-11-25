@@ -5071,6 +5071,14 @@ export const Hungarian: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Válaszd ki, mi fusson a médián, vagy írd be a saját parancsaidat',
   'media_edit_pick.public_note': 'Minden eredmény ide kerül ki, mindenki láthatja',
   'media_edit_pick.timed_out': 'Ez a menü lejárt, nyisd meg újra a szerkesztés folytatásához',
+  'media_edit_pick.open_editor': 'Szerkesztő megnyitása',
+  'media_edit_pick.edit_on_web': 'Vagy [szerkeszd a weben]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Média szerkesztése effektekkel, szöveggel és rajzokkal',
+  'editor_activity.not_ready': 'A médiaszerkesztő még nem érhető el mindenkinek, hamarosan jön.',
+  'editor_activity.launch_failed': 'A szerkesztőt nem sikerült itt megnyitni. [Használd inkább a weben]({url}).',
+  'editor_activity.channel_turned_off': 'A NotSoBot ki van kapcsolva ebben a csatornában, ezért a szerkesztő itt nem nyitható meg.',
   'pixelart.back_to_grid': 'Vissza a rácshoz',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nem látod annak a csatornának az előzményeit',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nem látom annak a csatornának az előzményeit',

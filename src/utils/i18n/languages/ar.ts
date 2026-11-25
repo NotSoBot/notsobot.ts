@@ -5071,6 +5071,14 @@ export const Arabic: Translations = Object.freeze({
   'media_edit_pick.prompt': 'اختر ما تريد تشغيله على الوسائط، أو اكتب أوامرك الخاصة',
   'media_edit_pick.public_note': 'تُنشر كل نتيجة هنا ليراها الجميع',
   'media_edit_pick.timed_out': 'انتهت مهلة هذه القائمة، افتحها مجددًا لمواصلة التعديل',
+  'media_edit_pick.open_editor': 'فتح المحرر',
+  'media_edit_pick.edit_on_web': 'أو [عدّلها على الويب]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'تعديل الوسائط بالمؤثرات والنصوص والرسومات',
+  'editor_activity.not_ready': 'محرر الوسائط غير متاح للجميع بعد، سيتوفر قريبًا.',
+  'editor_activity.launch_failed': 'تعذّر فتح المحرر هنا. [استخدمه على الويب]({url}) بدلًا من ذلك.',
+  'editor_activity.channel_turned_off': 'تم إيقاف NotSoBot في هذه القناة، لذا لا يمكن فتح المحرر هنا.',
   'pixelart.back_to_grid': 'العودة إلى الشبكة',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'لا يمكنك عرض سجل تلك القناة',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'لا يمكن عرض سجل تلك القناة',

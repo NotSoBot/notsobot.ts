@@ -5071,6 +5071,14 @@ export const Vietnamese: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Chọn thứ sẽ chạy trên phương tiện, hoặc tự nhập lệnh của bạn',
   'media_edit_pick.public_note': 'Mỗi kết quả được đăng tại đây cho mọi người cùng xem',
   'media_edit_pick.timed_out': 'Menu này đã hết hạn, hãy mở lại để tiếp tục chỉnh sửa',
+  'media_edit_pick.open_editor': 'Mở trình chỉnh sửa',
+  'media_edit_pick.edit_on_web': 'Hoặc [chỉnh sửa trên web]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Chỉnh sửa phương tiện với hiệu ứng, chữ và hình vẽ',
+  'editor_activity.not_ready': 'Trình chỉnh sửa phương tiện chưa mở cho mọi người, sắp ra mắt.',
+  'editor_activity.launch_failed': 'Không thể mở trình chỉnh sửa ở đây. Hãy [dùng nó trên web]({url}).',
+  'editor_activity.channel_turned_off': 'NotSoBot đã bị tắt trong kênh này, nên không thể mở trình chỉnh sửa ở đây.',
   'pixelart.back_to_grid': 'Quay lại lưới',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Bạn không thể xem lịch sử của kênh đó',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Không thể xem lịch sử của kênh đó',

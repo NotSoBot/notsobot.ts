@@ -24,9 +24,10 @@ export type EditorLaunchSurface = RestOptions.StoreEditorActivityLaunch['surface
 type LaunchContext = Interaction.InteractionContext | ComponentContext;
 
 
-// NotSoBot owners only until the editor rolls out, the api's `/editor` routes and the site's page are locked the same way
+// NotSoBot owners only until `NOTSOBOT_EDITOR_PUBLIC=true`, set together with the api's `EDITOR_PUBLIC` (its `/editor`
+// routes and the site's page go by that one)
 export function canUseEditor(context: {user: Structures.User}): boolean {
-  return context.user.isClientOwner;
+  return process.env.NOTSOBOT_EDITOR_PUBLIC === 'true' || context.user.isClientOwner;
 }
 
 

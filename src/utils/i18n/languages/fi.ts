@@ -5071,6 +5071,14 @@ export const Finnish: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Valitse, mitä medialle tehdään, tai kirjoita omat komentosi',
   'media_edit_pick.public_note': 'Jokainen tulos julkaistaan täällä kaikkien nähtäväksi',
   'media_edit_pick.timed_out': 'Tämä valikko vanheni, avaa se uudelleen jatkaaksesi muokkaamista',
+  'media_edit_pick.open_editor': 'Avaa editori',
+  'media_edit_pick.edit_on_web': 'Tai [muokkaa sitä verkossa]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Muokkaa mediaa tehosteilla, tekstillä ja piirroksilla',
+  'editor_activity.not_ready': 'Mediaeditori ei ole vielä kaikkien käytössä, se tulee pian.',
+  'editor_activity.launch_failed': 'Editoria ei voitu avata täällä. [Käytä sitä verkossa]({url}) sen sijaan.',
+  'editor_activity.channel_turned_off': 'NotSoBot on poistettu käytöstä tällä kanavalla, joten editoria ei voi avata täällä.',
   'pixelart.back_to_grid': 'Takaisin ruudukkoon',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Et näe tuon kanavan historiaa',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Tuon kanavan historiaa ei voi nähdä',

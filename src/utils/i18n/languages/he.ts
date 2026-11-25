@@ -5071,6 +5071,14 @@ export const Hebrew: Translations = Object.freeze({
   'media_edit_pick.prompt': 'בחרו מה להריץ על המדיה, או הקלידו פקודות משלכם',
   'media_edit_pick.public_note': 'כל תוצאה מתפרסמת כאן לעיני כולם',
   'media_edit_pick.timed_out': 'התפריט הזה פג, פתחו אותו שוב כדי להמשיך לערוך',
+  'media_edit_pick.open_editor': 'פתיחת העורך',
+  'media_edit_pick.edit_on_web': 'או [ערכו אותה באתר]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'עריכת מדיה עם אפקטים, טקסט וציורים',
+  'editor_activity.not_ready': 'עורך המדיה עדיין לא פתוח לכולם, הוא יגיע בקרוב.',
+  'editor_activity.launch_failed': 'לא ניתן היה לפתוח כאן את העורך. [השתמשו בו באתר]({url}) במקום.',
+  'editor_activity.channel_turned_off': 'NotSoBot כבוי בערוץ הזה, ולכן לא ניתן לפתוח כאן את העורך.',
   'pixelart.back_to_grid': 'חזרה לרשת',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'אתה לא יכול לראות את ההיסטוריה של הערוץ הזה',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'לא יכול לראות את ההיסטוריה של הערוץ הזה',

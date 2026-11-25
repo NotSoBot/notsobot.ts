@@ -12,6 +12,9 @@ export interface CommandArgs {
 }
 
 export const COMMAND_NAME = 'code';
+// the api takes up to 4 MiB of code (`CodeRunNotSoCode`), a bigger text file isn't read into the bot (a nitro upload
+// is up to 500 MB against a 2 GB heap), it's still given to the run as an input file
+const MAX_CODE_ATTACHMENT_SIZE = 4 * 1024 * 1024;
 
 export default class CodeCommand extends BaseCommand {
   constructor(client: CommandClient) {
@@ -45,7 +48,9 @@ export default class CodeCommand extends BaseCommand {
     const attachments = Array.from(context.message.attachments.values());
     let codeAttachmentId: string | null = null;
     if (!code.trim()) {
-      const attachment = attachments.find((x) => x.contentType && x.contentType.split('/')[0] === 'text');
+      const attachment = attachments.find((x) => {
+        return x.contentType && x.contentType.split('/')[0] === 'text' && x.size <= MAX_CODE_ATTACHMENT_SIZE;
+      });
       if (attachment) {
         codeAttachmentId = attachment.id;
         const response = await context.rest.get(attachment.url, {dataOnly: false});

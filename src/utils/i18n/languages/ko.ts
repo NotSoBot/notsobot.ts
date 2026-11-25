@@ -5071,6 +5071,14 @@ export const Korean: Translations = Object.freeze({
   'media_edit_pick.prompt': '미디어에 실행할 것을 고르거나 직접 명령어를 입력하세요',
   'media_edit_pick.public_note': '각 결과는 모두가 볼 수 있도록 여기에 게시됩니다',
   'media_edit_pick.timed_out': '이 메뉴가 만료되었습니다. 계속 편집하려면 다시 여세요',
+  'media_edit_pick.open_editor': '편집기 열기',
+  'media_edit_pick.edit_on_web': '또는 [웹에서 편집하기]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': '효과, 텍스트, 그림으로 미디어를 편집해요',
+  'editor_activity.not_ready': '미디어 편집기는 아직 모두에게 공개되지 않았습니다. 곧 출시됩니다.',
+  'editor_activity.launch_failed': '여기서는 편집기를 열 수 없었습니다. 대신 [웹에서 사용하세요]({url}).',
+  'editor_activity.channel_turned_off': '이 채널에서는 NotSoBot이 꺼져 있어 여기서 편집기를 열 수 없습니다.',
   'pixelart.back_to_grid': '그리드로 돌아가기',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '해당 채널의 기록을 볼 수 없어요',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '해당 채널의 기록을 볼 수 없어요',

@@ -5071,6 +5071,14 @@ export const Norwegian: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Velg hva som skal kjøres på mediet, eller skriv dine egne kommandoer',
   'media_edit_pick.public_note': 'Hvert resultat legges ut her slik at alle kan se det',
   'media_edit_pick.timed_out': 'Denne menyen er utløpt, åpne den igjen for å redigere videre',
+  'media_edit_pick.open_editor': 'Åpne editor',
+  'media_edit_pick.edit_on_web': 'Eller [rediger det på nettet]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Rediger medier med effekter, tekst og tegninger',
+  'editor_activity.not_ready': 'Medieeditoren er ikke åpen for alle ennå, den kommer snart.',
+  'editor_activity.launch_failed': 'Editoren kunne ikke åpnes her. [Bruk den på nettet]({url}) i stedet.',
+  'editor_activity.channel_turned_off': 'NotSoBot er slått av i denne kanalen, så editoren kan ikke åpnes her.',
   'pixelart.back_to_grid': 'Tilbake til rutenettet',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Du kan ikke se historikken til den kanalen',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan ikke se historikken til den kanalen',

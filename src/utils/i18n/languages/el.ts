@@ -5071,6 +5071,14 @@ export const Greek: Translations = Object.freeze({
   'media_edit_pick.prompt': 'Διάλεξε τι θα εκτελεστεί στα πολυμέσα ή πληκτρολόγησε δικές σου εντολές',
   'media_edit_pick.public_note': 'Κάθε αποτέλεσμα δημοσιεύεται εδώ για να το δουν όλοι',
   'media_edit_pick.timed_out': 'Αυτό το μενού έληξε, άνοιξέ το ξανά για να συνεχίσεις την επεξεργασία',
+  'media_edit_pick.open_editor': 'Άνοιγμα επεξεργαστή',
+  'media_edit_pick.edit_on_web': 'Ή [επεξεργάσου τα στο διαδίκτυο]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'Επεξεργασία πολυμέσων με εφέ, κείμενο και σχέδια',
+  'editor_activity.not_ready': 'Ο επεξεργαστής πολυμέσων δεν είναι ακόμα ανοιχτός για όλους, έρχεται σύντομα.',
+  'editor_activity.launch_failed': 'Ο επεξεργαστής δεν μπόρεσε να ανοίξει εδώ. [Χρησιμοποίησέ τον καλύτερα στο διαδίκτυο]({url}).',
+  'editor_activity.channel_turned_off': 'Το NotSoBot είναι απενεργοποιημένο σε αυτό το κανάλι, οπότε ο επεξεργαστής δεν μπορεί να ανοίξει εδώ.',
   'pixelart.back_to_grid': 'Πίσω στο πλέγμα',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Δεν μπορείς να δεις το ιστορικό αυτού του καναλιού',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Δεν είναι δυνατή η προβολή του ιστορικού αυτού του καναλιού',

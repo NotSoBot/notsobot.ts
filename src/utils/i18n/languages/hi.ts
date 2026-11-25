@@ -5071,6 +5071,14 @@ export const Hindi: Translations = Object.freeze({
   'media_edit_pick.prompt': 'चुनें कि मीडिया पर क्या चलाना है, या अपने कमांड टाइप करें',
   'media_edit_pick.public_note': 'हर नतीजा यहाँ सबके देखने के लिए पोस्ट होता है',
   'media_edit_pick.timed_out': 'इस मेनू का समय समाप्त हो गया, संपादन जारी रखने के लिए इसे फिर से खोलें',
+  'media_edit_pick.open_editor': 'एडिटर खोलें',
+  'media_edit_pick.edit_on_web': 'या [इसे वेब पर संपादित करें]({url})',
+
+  // the media editor's discord activity
+  'commands.activity.launch.description': 'इफ़ेक्ट, टेक्स्ट और ड्रॉइंग से मीडिया संपादित करें',
+  'editor_activity.not_ready': 'मीडिया एडिटर अभी सबके लिए उपलब्ध नहीं है, यह जल्द आ रहा है।',
+  'editor_activity.launch_failed': 'एडिटर यहाँ नहीं खुल सका। इसके बजाय [इसे वेब पर इस्तेमाल करें]({url})।',
+  'editor_activity.channel_turned_off': 'इस चैनल में NotSoBot बंद है, इसलिए एडिटर यहाँ नहीं खुल सकता।',
   'pixelart.back_to_grid': 'ग्रिड पर वापस जाएँ',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'आप उस चैनल की हिस्ट्री नहीं देख सकते',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'उस चैनल की हिस्ट्री नहीं देखी जा सकती',
