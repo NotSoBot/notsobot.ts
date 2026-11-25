@@ -316,7 +316,8 @@ export namespace RestOptions {
     mediaUrl?: string | null,
     // `/editor template:`, its steps go on the media (or whatever's picked on the start screen)
     templateCode?: string | null,
-    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command',
+    // `join`: the Join button on the launch message, it never posts one of its own
+    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command' | 'join',
     userId: string,
   }
 

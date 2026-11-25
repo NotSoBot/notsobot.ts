@@ -2189,6 +2189,9 @@ export enum MessageComponentCustomIds {
   // `auto-embed-undo.{userId}.{messageId}`, the Undo button on an auto-embed: deletes it and brings back the link's own
   // preview on their message
   AUTO_EMBED_UNDO = 'auto-embed-undo',
+  // the Join button on the message an editor launch posts: launches the activity in that channel (Discord joins the one
+  // already running there)
+  EDITOR_JOIN = 'editor-join',
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
   // a gallery's one button for every hosted item that fits the clicker's upload limit, found from the message itself
   // (ten file ids don't fit in a custom id)

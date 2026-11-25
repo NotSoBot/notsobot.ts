@@ -1,15 +1,18 @@
 import { Interaction, Structures } from 'detritus-client';
-import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { ComponentContext } from 'detritus-client/lib/utils';
+import { ChannelTypes, InteractionCallbackTypes, MessageComponentButtonStyles, MessageComponentTypes, Permissions } from 'detritus-client/lib/constants';
+import { ComponentContext, Markup } from 'detritus-client/lib/utils';
 
 import { storeEditorActivityLaunch } from '../api';
 import type { RestOptions } from '../api/types';
-import { EmbedColors } from '../constants';
+import { EmbedColors, MessageComponentCustomIds, UserSettingsApplicationCommandResponseTypes } from '../constants';
+import UserSettingsStore from '../stores/usersettings';
+// a cycle (basecommand imports this module), fine for a function only called at runtime, never copied at load
+import { isPrivateRun } from '../commands/interactions/basecommand';
 import { log } from '../log';
 import { captureError } from '../sentry';
 
 import { getTranslator } from './i18n';
-import { displayReply, renderEphemeralDisplay } from './tools';
+import { displayReply, renderEphemeralDisplay, slashCommandMention } from './tools';
 
 
 // The media editor's Discord Activity: launching it from the "Launch" entry point or Edit Media's "Open editor", and
@@ -88,6 +91,13 @@ export async function launchEditor(
     return null;
   }
 
+  if (instanceId && options.surface !== 'join') {
+    // the channel hears about it (once per running instance), a failed post changes nothing about the launch
+    announceLaunch(context, instanceId).catch((error) => {
+      log.warn('editor launch message failed', {instanceId, error: (error instanceof Error) ? error.message : String(error)});
+    });
+  }
+
   if (instanceId) {
     // the launch already happened, a failed save only means the editor opens on its start screen
     storeEditorActivityLaunch(context, instanceId, {
@@ -103,4 +113,104 @@ export async function launchEditor(
     });
   }
   return instanceId;
+}
+
+
+// ---- the launch message ----
+
+// one message per running instance: launching where one runs joins it, a second message would only repeat the first.
+// per process is enough, a channel's interactions come to its shard's process
+const ANNOUNCED_TTL = 6 * 60 * 60 * 1000;
+const announced = new Map<string, number>();
+
+function claimAnnouncement(instanceId: string): boolean {
+  const now = Date.now();
+  for (let [ id, at ] of announced) {
+    if (ANNOUNCED_TTL < now - at) {
+      announced.delete(id);
+    }
+  }
+  if (announced.has(instanceId)) {
+    return false;
+  }
+  announced.set(instanceId, now);
+  return true;
+}
+
+
+const THREAD_TYPES: Array<number> = [ChannelTypes.GUILD_NEWS_THREAD, ChannelTypes.GUILD_PUBLIC_THREAD, ChannelTypes.GUILD_PRIVATE_THREAD];
+
+// Whether the launch message goes up at all, by the same rules that keep the bot's replies private: never where NotSoBot
+// is turned off or the decoy channel (`/editor` doesn't launch there anyway), not for someone whose setting is private
+// replies (a message only they'd see is pointless), and not where they can't post themselves (a follow-up would post
+// where they couldn't). The permissions are the interaction's own, worked out by Discord for this channel
+async function canAnnounce(context: LaunchContext): Promise<boolean> {
+  if (context instanceof Interaction.InteractionContext) {
+    if (await isPrivateRun(context)) {
+      return false;
+    }
+  } else {
+    const settings = UserSettingsStore.get(context.userId);
+    if (settings && settings.application_command_response_type === UserSettingsApplicationCommandResponseTypes.EPHEMERAL) {
+      return false;
+    }
+  }
+  const member = context.member;
+  if (!context.guildId || !member) {
+    // a DM or group DM with the user, they can always post there
+    return true;
+  }
+  const permissions = member.permissions;
+  if ((permissions & Permissions.ADMINISTRATOR) === Permissions.ADMINISTRATOR) {
+    return true;
+  }
+  const channelType = (context.interaction as any).channel?.type ?? context.channel?.type;
+  const needed = (THREAD_TYPES.includes(channelType)) ? Permissions.SEND_MESSAGES_IN_THREADS : Permissions.SEND_MESSAGES;
+  return (permissions & needed) === needed;
+}
+
+
+// Posted in the channel after a launch (a follow-up, the launch itself can't carry a message): who's editing, that it's
+// `/editor`, and a Join button for everyone else. Nobody's pinged
+export async function announceLaunch(context: LaunchContext, instanceId: string): Promise<void> {
+  if (!await canAnnounce(context) || !claimAnnouncement(instanceId)) {
+    return;
+  }
+  const { translate } = await getTranslator(context);
+  const name = context.member?.nick || context.user.globalName || context.user.username;
+  // clickable where the command client's ids are known (slash and context menus), the plain name from a button
+  const command = (context instanceof Interaction.InteractionContext) ? slashCommandMention(context, 'editor') : Markup.codestring('/editor');
+  await context.createMessage({
+    allowedMentions: {parse: []},
+    content: translate('editor_activity.launched', {name: Markup.escape.all(name), command}),
+    components: [{
+      type: MessageComponentTypes.ACTION_ROW,
+      components: [
+        {
+          type: MessageComponentTypes.BUTTON,
+          style: MessageComponentButtonStyles.PRIMARY,
+          label: translate('editor_activity.join'),
+          customId: MessageComponentCustomIds.EDITOR_JOIN,
+        },
+        {
+          type: MessageComponentTypes.BUTTON,
+          style: MessageComponentButtonStyles.LINK,
+          label: translate('editor_activity.open_web'),
+          url: EDITOR_WEB_URL,
+        },
+      ],
+    }],
+  } as any);
+}
+
+
+// the launch message's Join: the activity in that channel (the running one, Discord joins it). answered by launching,
+// nothing may await before it (3 seconds)
+export async function onEditorJoin(context: ComponentContext): Promise<void> {
+  if (!canUseEditor(context)) {
+    const { translate } = await getTranslator(context);
+    await replyPrivately(context, translate('editor_activity.not_ready'), true);
+    return;
+  }
+  await launchEditor(context, {surface: 'join'});
 }

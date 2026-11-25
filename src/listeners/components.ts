@@ -43,6 +43,7 @@ import {
 
 import { createTempFilePath, hasTempDiskSpace, removeTempFile } from '../tempfiles';
 
+import { onEditorJoin } from '../utils/editoractivity';
 import { Listener } from './listener';
 import { onReportRespondComponent } from './reportmessages';
 
@@ -81,6 +82,13 @@ class ComponentsListener extends Listener {
             // read before anything is awaited: the shard runs the press's listener right after this event, a button
             // that ends its listener (a paginator's stop) would look stale afterwards
             const stale = isStalePress(shard, interaction);
+            if (context.customId === MessageComponentCustomIds.EDITOR_JOIN) {
+              try {
+                return await onEditorJoin(context);
+              } catch(error) {
+                log.warn(`editor join ${context.guildId}`, error);
+              }
+            }
             if (context.customId.startsWith(MessageComponentCustomIds.AUTO_EMBED_UNDO + '.')) {
               try {
                 // `auto-embed-undo.{userId}.{messageId}`, on an auto-embed
@@ -685,7 +693,8 @@ interface ReuploadText {
   content?: string,
   description?: string,
   descriptionBelow?: string,
-  // the reply's own details line, kept as it was (with how long it took), `hideDetails` when it had none
+  // the reply's own details line, kept as it was (with how long it took). `hideDetails` is set with it, or the size and
+  // dimensions line the re-upload builds again would be added after it a second time
   details?: string,
   embedFooter?: MediaReplyEmbedFooter,
   hideDetails?: boolean,
@@ -734,10 +743,9 @@ function findReuploadText(
     text.descriptionBelow = children.slice(mediaIndex + 1, end).map(textOf).filter(Boolean).join('\n') || undefined;
     // the invoked by and expiry lines are bold, the details line isn't
     const details = children.slice(end + 1).map(textOf).find((x) => !!x && x.startsWith('-# ') && !x.startsWith('-# **'));
+    text.hideDetails = true;
     if (details) {
       text.details = details.slice(3);
-    } else {
-      text.hideDetails = true;
     }
     return text;
   }
@@ -754,10 +762,11 @@ function findReuploadText(
       // a post's, which never has the details line
       text.embedFooter = {iconUrl: (footer && footer.iconUrl) || undefined, text: (footer && footer.text) || undefined, timestamp};
       text.hideDetails = true;
-    } else if (footer && footer.text) {
-      text.details = footer.text;
     } else {
       text.hideDetails = true;
+      if (footer && footer.text) {
+        text.details = footer.text;
+      }
     }
     return text;
   }
