@@ -7,7 +7,7 @@ import {
 
 import { CommandRatelimits } from '../../../constants';
 import { I18n } from '../../../utils';
-import { canUseEditor, editorTemplateIdOf, launchEditor, replyPrivately } from '../../../utils/editoractivity';
+import { canUseEditor, editorTemplateCodeOf, launchEditor, replyPrivately } from '../../../utils/editoractivity';
 
 import { BaseSlashCommand, isBlockedUserInstallRun, isDecoyChannelRun } from '../basecommand';
 
@@ -104,11 +104,11 @@ export default class EditorCommand extends BaseSlashCommand {
       const { translate } = await I18n.getTranslator(context);
       return replyPrivately(context, translate('editor_activity.bad_url'), true);
     }
-    const templateId = (args.template) ? editorTemplateIdOf(args.template) : null;
-    if (args.template && !templateId) {
+    const templateCode = (args.template) ? editorTemplateCodeOf(args.template) : null;
+    if (args.template && !templateCode) {
       const { translate } = await I18n.getTranslator(context);
       return replyPrivately(context, translate('editor_activity.bad_template'), true);
     }
-    await launchEditor(context, {surface: 'command', mediaUrl: mediaUrlOf(args), templateId});
+    await launchEditor(context, {surface: 'command', mediaUrl: mediaUrlOf(args), templateCode});
   }
 }

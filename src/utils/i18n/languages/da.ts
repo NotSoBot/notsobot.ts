@@ -5083,7 +5083,7 @@ export const Danish: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Editoren kunne ikke åbne her. [Brug den på nettet]({url}) i stedet.',
   'editor_activity.channel_turned_off': 'NotSoBot er slået fra i denne kanal, så editoren kan ikke åbne her.',
   'editor_activity.bad_url': 'Det er ikke et link, indsæt et der starter med https://',
-  'editor_activity.bad_template': 'Det er ikke en editorskabelon, indsæt dens link (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Det er ikke en editorskabelon, indsæt dens link (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Tilbage til gitteret',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Du kan ikke se den kanals historik',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan ikke se den kanals historik',

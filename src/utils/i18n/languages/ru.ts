@@ -5083,7 +5083,7 @@ export const Russian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Не удалось открыть редактор здесь. [Используйте его в браузере]({url}).',
   'editor_activity.channel_turned_off': 'NotSoBot отключён в этом канале, поэтому редактор здесь открыть нельзя.',
   'editor_activity.bad_url': 'Это не ссылка, вставь ссылку, которая начинается с https://',
-  'editor_activity.bad_template': 'Это не шаблон редактора, вставь его ссылку (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Это не шаблон редактора, вставь его ссылку (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Назад к сетке',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Вы не можете просматривать историю этого канала',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Не удаётся просмотреть историю этого канала',

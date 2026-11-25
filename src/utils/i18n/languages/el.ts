@@ -5083,7 +5083,7 @@ export const Greek: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Ο επεξεργαστής δεν μπόρεσε να ανοίξει εδώ. [Χρησιμοποίησέ τον καλύτερα στο διαδίκτυο]({url}).',
   'editor_activity.channel_turned_off': 'Το NotSoBot είναι απενεργοποιημένο σε αυτό το κανάλι, οπότε ο επεξεργαστής δεν μπορεί να ανοίξει εδώ.',
   'editor_activity.bad_url': 'Αυτό δεν είναι σύνδεσμος, επικόλλησε έναν που ξεκινά με https://',
-  'editor_activity.bad_template': 'Αυτό δεν είναι πρότυπο επεξεργαστή, επικόλλησε τον σύνδεσμό του (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Αυτό δεν είναι πρότυπο επεξεργαστή, επικόλλησε τον σύνδεσμό του (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Πίσω στο πλέγμα',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Δεν μπορείς να δεις το ιστορικό αυτού του καναλιού',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Δεν είναι δυνατή η προβολή του ιστορικού αυτού του καναλιού',

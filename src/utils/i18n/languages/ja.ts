@@ -5083,7 +5083,7 @@ export const Japanese: Translations = Object.freeze({
   'editor_activity.launch_failed': 'ここではエディターを開けませんでした。代わりに[Webで使ってください]({url})。',
   'editor_activity.channel_turned_off': 'このチャンネルではNotSoBotがオフになっているため、ここではエディターを開けません。',
   'editor_activity.bad_url': 'それはリンクではありません。https://で始まるリンクを貼り付けてください',
-  'editor_activity.bad_template': 'エディターテンプレートではありません。リンクを貼り付けてください (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'エディターテンプレートではありません。リンクを貼り付けてください (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'グリッドに戻る',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'あなたはそのチャンネルの履歴を見られません',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'そのチャンネルの履歴を見られません',

@@ -5083,7 +5083,7 @@ export const Hungarian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'A szerkesztőt nem sikerült itt megnyitni. [Használd inkább a weben]({url}).',
   'editor_activity.channel_turned_off': 'A NotSoBot ki van kapcsolva ebben a csatornában, ezért a szerkesztő itt nem nyitható meg.',
   'editor_activity.bad_url': 'Ez nem link, illessz be egy https:// kezdetű linket',
-  'editor_activity.bad_template': 'Ez nem szerkesztősablon, illeszd be a linkjét (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Ez nem szerkesztősablon, illeszd be a linkjét (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Vissza a rácshoz',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nem látod annak a csatornának az előzményeit',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nem látom annak a csatornának az előzményeit',

@@ -5083,7 +5083,7 @@ export const Hebrew: Translations = Object.freeze({
   'editor_activity.launch_failed': 'לא ניתן היה לפתוח כאן את העורך. [השתמשו בו באתר]({url}) במקום.',
   'editor_activity.channel_turned_off': 'NotSoBot כבוי בערוץ הזה, ולכן לא ניתן לפתוח כאן את העורך.',
   'editor_activity.bad_url': 'זה לא קישור, הדבק קישור שמתחיל ב-https://',
-  'editor_activity.bad_template': 'זו לא תבנית עורך, הדבק את הקישור שלה (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'זו לא תבנית עורך, הדבק את הקישור שלה (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'חזרה לרשת',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'אתה לא יכול לראות את ההיסטוריה של הערוץ הזה',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'לא יכול לראות את ההיסטוריה של הערוץ הזה',

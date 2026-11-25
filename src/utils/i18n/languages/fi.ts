@@ -5083,7 +5083,7 @@ export const Finnish: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Editoria ei voitu avata täällä. [Käytä sitä verkossa]({url}) sen sijaan.',
   'editor_activity.channel_turned_off': 'NotSoBot on poistettu käytöstä tällä kanavalla, joten editoria ei voi avata täällä.',
   'editor_activity.bad_url': 'Tuo ei ole linkki, liitä sellainen, joka alkaa https://',
-  'editor_activity.bad_template': 'Tämä ei ole editorimalli, liitä sen linkki (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Tämä ei ole editorimalli, liitä sen linkki (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Takaisin ruudukkoon',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Et näe tuon kanavan historiaa',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Tuon kanavan historiaa ei voi nähdä',

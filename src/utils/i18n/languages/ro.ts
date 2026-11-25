@@ -5083,7 +5083,7 @@ export const Romanian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Editorul nu s-a putut deschide aici. [Folosește-l pe web]({url}) în schimb.',
   'editor_activity.channel_turned_off': 'NotSoBot este dezactivat în acest canal, așa că editorul nu se poate deschide aici.',
   'editor_activity.bad_url': 'Acela nu e un link, lipește unul care începe cu https://',
-  'editor_activity.bad_template': 'Acesta nu este un șablon de editor, lipește linkul lui (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Acesta nu este un șablon de editor, lipește linkul lui (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Înapoi la grilă',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nu poți vedea istoricul acelui canal',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nu pot vedea istoricul acelui canal',

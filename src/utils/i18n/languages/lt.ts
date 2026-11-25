@@ -5083,7 +5083,7 @@ export const Lithuanian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Redaktoriaus čia atidaryti nepavyko. Vietoj to [naudok jį internete]({url}).',
   'editor_activity.channel_turned_off': 'Šiame kanale NotSoBot išjungtas, todėl redaktoriaus čia atidaryti negalima.',
   'editor_activity.bad_url': 'Tai ne nuoroda, įklijuok tokią, kuri prasideda https://',
-  'editor_activity.bad_template': 'Tai ne redaktoriaus šablonas, įklijuok jo nuorodą (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Tai ne redaktoriaus šablonas, įklijuok jo nuorodą (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Atgal į tinklelį',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Tu negali matyti to kanalo istorijos',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Negaliu matyti to kanalo istorijos',

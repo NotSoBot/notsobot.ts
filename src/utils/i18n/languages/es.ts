@@ -5083,7 +5083,7 @@ export const Spanish: Translations = Object.freeze({
   'editor_activity.launch_failed': 'El editor no pudo abrirse aquí. [Úsalo en la web]({url}) en su lugar.',
   'editor_activity.channel_turned_off': 'NotSoBot está desactivado en este canal, así que el editor no puede abrirse aquí.',
   'editor_activity.bad_url': 'Eso no es un enlace, pega uno que empiece por https://',
-  'editor_activity.bad_template': 'Eso no es una plantilla del editor, pega su enlace (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Eso no es una plantilla del editor, pega su enlace (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Volver a la cuadrícula',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'No puedes ver el historial de ese canal',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'No se puede ver el historial de ese canal',

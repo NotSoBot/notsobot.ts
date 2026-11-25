@@ -5083,7 +5083,7 @@ export const Vietnamese: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Không thể mở trình chỉnh sửa ở đây. Hãy [dùng nó trên web]({url}).',
   'editor_activity.channel_turned_off': 'NotSoBot đã bị tắt trong kênh này, nên không thể mở trình chỉnh sửa ở đây.',
   'editor_activity.bad_url': 'Đó không phải là link, hãy dán link bắt đầu bằng https://',
-  'editor_activity.bad_template': 'Đó không phải mẫu trình chỉnh sửa, hãy dán liên kết của nó (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Đó không phải mẫu trình chỉnh sửa, hãy dán liên kết của nó (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Quay lại lưới',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Bạn không thể xem lịch sử của kênh đó',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Không thể xem lịch sử của kênh đó',

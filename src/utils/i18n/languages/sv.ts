@@ -5083,7 +5083,7 @@ export const Swedish: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Redigeraren kunde inte öppnas här. [Använd den på webben]({url}) i stället.',
   'editor_activity.channel_turned_off': 'NotSoBot är avstängd i den här kanalen, så redigeraren kan inte öppnas här.',
   'editor_activity.bad_url': 'Det är ingen länk, klistra in en som börjar med https://',
-  'editor_activity.bad_template': 'Det är ingen redigeringsmall, klistra in dess länk (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Det är ingen redigeringsmall, klistra in dess länk (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Tillbaka till rutnätet',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Du kan inte se historiken i den kanalen',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan inte se historiken i den kanalen',

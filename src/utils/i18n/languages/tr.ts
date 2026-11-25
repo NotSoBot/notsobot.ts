@@ -5083,7 +5083,7 @@ export const Turkish: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Düzenleyici burada açılamadı. Bunun yerine [web\'de kullan]({url}).',
   'editor_activity.channel_turned_off': 'NotSoBot bu kanalda kapalı, bu yüzden düzenleyici burada açılamaz.',
   'editor_activity.bad_url': 'Bu bir bağlantı değil, https:// ile başlayan bir bağlantı yapıştır',
-  'editor_activity.bad_template': 'Bu bir düzenleyici şablonu değil, bağlantısını yapıştır (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Bu bir düzenleyici şablonu değil, bağlantısını yapıştır (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Izgaraya dön',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'O kanalın geçmişini göremezsin',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'O kanalın geçmişi görüntülenemiyor',

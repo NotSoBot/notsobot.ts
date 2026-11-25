@@ -5083,7 +5083,7 @@ export const French: Translations = Object.freeze({
   'editor_activity.launch_failed': 'L\'éditeur n\'a pas pu s\'ouvrir ici. [Utilise-le plutôt sur le web]({url}).',
   'editor_activity.channel_turned_off': 'NotSoBot est désactivé dans ce salon, l\'éditeur ne peut donc pas s\'ouvrir ici.',
   'editor_activity.bad_url': 'Ce n\'est pas un lien, colle un lien qui commence par https://',
-  'editor_activity.bad_template': 'Ce n’est pas un modèle de l’éditeur, colle son lien (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Ce n’est pas un modèle de l’éditeur, colle son lien (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Retour à la grille',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Tu ne peux pas voir l\'historique de ce salon',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Impossible de voir l\'historique de ce salon',

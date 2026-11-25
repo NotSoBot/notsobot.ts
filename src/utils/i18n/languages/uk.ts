@@ -5083,7 +5083,7 @@ export const Ukrainian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Не вдалося відкрити редактор тут. [Скористайтеся ним у браузері]({url}).',
   'editor_activity.channel_turned_off': 'NotSoBot вимкнено в цьому каналі, тому редактор тут відкрити не можна.',
   'editor_activity.bad_url': 'Це не посилання, встав посилання, що починається з https://',
-  'editor_activity.bad_template': 'Це не шаблон редактора, встав його посилання (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Це не шаблон редактора, встав його посилання (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Назад до сітки',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Ви не можете переглядати історію цього каналу',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Не вдається переглянути історію цього каналу',

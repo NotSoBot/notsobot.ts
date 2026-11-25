@@ -5083,7 +5083,7 @@ export const Korean: Translations = Object.freeze({
   'editor_activity.launch_failed': '여기서는 편집기를 열 수 없었습니다. 대신 [웹에서 사용하세요]({url}).',
   'editor_activity.channel_turned_off': '이 채널에서는 NotSoBot이 꺼져 있어 여기서 편집기를 열 수 없습니다.',
   'editor_activity.bad_url': '링크가 아니에요. https://로 시작하는 링크를 붙여 넣어 주세요',
-  'editor_activity.bad_template': '에디터 템플릿이 아닙니다. 템플릿 링크를 붙여넣으세요 (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': '에디터 템플릿이 아닙니다. 템플릿 링크를 붙여넣으세요 (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': '그리드로 돌아가기',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '해당 채널의 기록을 볼 수 없어요',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '해당 채널의 기록을 볼 수 없어요',

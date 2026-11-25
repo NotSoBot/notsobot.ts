@@ -5083,7 +5083,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'editor_activity.launch_failed': '无法在这里打开编辑器。请改为[在网页上使用]({url})。',
   'editor_activity.channel_turned_off': '此频道已关闭 NotSoBot，因此无法在这里打开编辑器。',
   'editor_activity.bad_url': '这不是链接，请粘贴以 https:// 开头的链接',
-  'editor_activity.bad_template': '这不是编辑器模板，请粘贴它的链接 (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': '这不是编辑器模板，请粘贴它的链接 (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': '返回网格',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '你无法查看那个频道的消息历史',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '无法查看那个频道的消息历史',

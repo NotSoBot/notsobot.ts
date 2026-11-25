@@ -5083,7 +5083,7 @@ export const Czech: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Editor se tu nepodařilo otevřít. [Použij ho raději na webu]({url}).',
   'editor_activity.channel_turned_off': 'NotSoBot je v tomto kanálu vypnutý, takže se tu editor nemůže otevřít.',
   'editor_activity.bad_url': 'Tohle není odkaz, vlož takový, který začíná na https://',
-  'editor_activity.bad_template': 'To není šablona editoru, vlož její odkaz (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'To není šablona editoru, vlož její odkaz (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Zpět na mřížku',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Nevidíš historii tohoto kanálu',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Nevidím historii tohoto kanálu',

@@ -5083,7 +5083,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'editor_activity.launch_failed': '無法在這裡開啟編輯器。請改為[在網頁上使用]({url})。',
   'editor_activity.channel_turned_off': '此頻道已關閉 NotSoBot，因此無法在這裡開啟編輯器。',
   'editor_activity.bad_url': '這不是連結，請貼上以 https:// 開頭的連結',
-  'editor_activity.bad_template': '這不是編輯器範本，請貼上它的連結 (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': '這不是編輯器範本，請貼上它的連結 (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': '返回網格',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': '你無法查看那個頻道的訊息記錄',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': '無法查看那個頻道的訊息記錄',

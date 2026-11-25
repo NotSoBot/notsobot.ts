@@ -37,16 +37,19 @@ export function editorWebUrl(mediaUrl?: string | null): string {
 }
 
 
-// a template's id from its share link (`notsobot.com/editor/t/<id>`, `/es/` and `/pt/` too) or the bare id
-export function editorTemplateIdOf(value: string): string | null {
+// a template's code from its share link (`notsobot.com/editor/template/<code>`, `/es/` and `/pt/` too) or the bare code:
+// its id in letters (A-Z then a-z, at most 12 for a bigint), the api's `shortcode.py`
+const TEMPLATE_CODE = /^[A-Za-z]{1,12}$/;
+
+export function editorTemplateCodeOf(value: string): string | null {
   const text = value.trim().replace(/^<(.*)>$/, '$1');
-  if (/^\d{1,20}$/.test(text)) {
+  if (TEMPLATE_CODE.test(text)) {
     return text;
   }
   try {
     const url = new URL(text);
     const host = url.hostname.replace(/^www\./, '');
-    const match = url.pathname.match(/^(?:\/[a-z]{2})?\/editor\/t\/(\d{1,20})\/?$/);
+    const match = url.pathname.match(/^(?:\/[a-z]{2})?\/editor\/template\/([A-Za-z]{1,12})\/?$/);
     return (host === 'notsobot.com' && match) ? match[1] : null;
   } catch {
     return null;
@@ -71,7 +74,7 @@ export async function replyPrivately(context: LaunchContext, description: string
 // can't run) gets the web editor's link instead. Returns the instance id
 export async function launchEditor(
   context: LaunchContext,
-  options: {surface: EditorLaunchSurface, mediaUrl?: string | null, templateId?: string | null},
+  options: {surface: EditorLaunchSurface, mediaUrl?: string | null, templateCode?: string | null},
 ): Promise<string | null> {
   let instanceId: string | null = null;
   try {
@@ -93,7 +96,7 @@ export async function launchEditor(
       locale: context.interaction.locale || null,
       mediaUrl: options.mediaUrl || null,
       surface: options.surface,
-      templateId: options.templateId || null,
+      templateCode: options.templateCode || null,
       userId: context.userId,
     }).catch((error) => {
       captureError(error, {extra: {instanceId, surface: options.surface}, tags: {source: 'editor.activity'}});

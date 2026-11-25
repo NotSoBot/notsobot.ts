@@ -5083,7 +5083,7 @@ export const Hindi: Translations = Object.freeze({
   'editor_activity.launch_failed': 'एडिटर यहाँ नहीं खुल सका। इसके बजाय [इसे वेब पर इस्तेमाल करें]({url})।',
   'editor_activity.channel_turned_off': 'इस चैनल में NotSoBot बंद है, इसलिए एडिटर यहाँ नहीं खुल सकता।',
   'editor_activity.bad_url': 'यह लिंक नहीं है, https:// से शुरू होने वाला लिंक पेस्ट करें',
-  'editor_activity.bad_template': 'यह एडिटर टेम्पलेट नहीं है, उसका लिंक पेस्ट करें (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'यह एडिटर टेम्पलेट नहीं है, उसका लिंक पेस्ट करें (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'ग्रिड पर वापस जाएँ',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'आप उस चैनल की हिस्ट्री नहीं देख सकते',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'उस चैनल की हिस्ट्री नहीं देखी जा सकती',

@@ -5083,7 +5083,7 @@ export const Indonesian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Editor tidak bisa dibuka di sini. [Gunakan di web]({url}) saja.',
   'editor_activity.channel_turned_off': 'NotSoBot dinonaktifkan di channel ini, jadi editor tidak bisa dibuka di sini.',
   'editor_activity.bad_url': 'Itu bukan tautan, tempel tautan yang diawali https://',
-  'editor_activity.bad_template': 'Itu bukan template editor, tempel tautannya (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Itu bukan template editor, tempel tautannya (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Kembali ke grid',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Kamu tidak bisa melihat riwayat channel itu',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Tidak bisa melihat riwayat channel itu',

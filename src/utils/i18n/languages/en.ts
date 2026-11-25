@@ -5081,7 +5081,7 @@ export const English = Object.freeze({
   'editor_activity.launch_failed': 'The editor couldn’t open here. [Use it on the web]({url}) instead.',
   'editor_activity.channel_turned_off': 'NotSoBot is turned off in this channel, so the editor can’t open here.',
   'editor_activity.bad_url': 'That isn’t a link, paste one that starts with https://',
-  'editor_activity.bad_template': 'That isn’t an editor template, paste its link (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'That isn’t an editor template, paste its link (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Back to grid',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'You cannot view the history of that channel',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Cannot view the history of that channel',

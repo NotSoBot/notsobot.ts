@@ -5083,7 +5083,7 @@ export const Thai: Translations = Object.freeze({
   'editor_activity.launch_failed': 'ไม่สามารถเปิดตัวแก้ไขที่นี่ได้ [ใช้งานบนเว็บแทน]({url})',
   'editor_activity.channel_turned_off': 'NotSoBot ถูกปิดในช่องนี้ จึงไม่สามารถเปิดตัวแก้ไขที่นี่ได้',
   'editor_activity.bad_url': 'นั่นไม่ใช่ลิงก์ วางลิงก์ที่ขึ้นต้นด้วย https://',
-  'editor_activity.bad_template': 'นี่ไม่ใช่เทมเพลตตัวแก้ไข วางลิงก์ของเทมเพลต (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'นี่ไม่ใช่เทมเพลตตัวแก้ไข วางลิงก์ของเทมเพลต (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'กลับไปที่ตาราง',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'คุณไม่สามารถดูประวัติของช่องนั้นได้',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'ไม่สามารถดูประวัติของช่องนั้นได้',

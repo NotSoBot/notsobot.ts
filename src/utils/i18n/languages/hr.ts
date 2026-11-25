@@ -5083,7 +5083,7 @@ export const Croatian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Uređivač se ovdje nije mogao otvoriti. [Umjesto toga koristi ga na webu]({url}).',
   'editor_activity.channel_turned_off': 'NotSoBot je isključen u ovom kanalu, pa se uređivač ovdje ne može otvoriti.',
   'editor_activity.bad_url': 'To nije poveznica, zalijepi onu koja počinje s https://',
-  'editor_activity.bad_template': 'To nije predložak uređivača, zalijepi njegovu poveznicu (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'To nije predložak uređivača, zalijepi njegovu poveznicu (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Natrag na mrežu',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Ne možeš vidjeti povijest tog kanala',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Ne mogu vidjeti povijest tog kanala',

@@ -5083,7 +5083,7 @@ export const Norwegian: Translations = Object.freeze({
   'editor_activity.launch_failed': 'Editoren kunne ikke åpnes her. [Bruk den på nettet]({url}) i stedet.',
   'editor_activity.channel_turned_off': 'NotSoBot er slått av i denne kanalen, så editoren kan ikke åpnes her.',
   'editor_activity.bad_url': 'Det er ikke en lenke, lim inn en som starter med https://',
-  'editor_activity.bad_template': 'Det er ikke en redigeringsmal, lim inn lenken (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Det er ikke en redigeringsmal, lim inn lenken (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Tilbake til rutenettet',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Du kan ikke se historikken til den kanalen',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan ikke se historikken til den kanalen',

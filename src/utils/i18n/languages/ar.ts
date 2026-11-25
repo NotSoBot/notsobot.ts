@@ -5083,7 +5083,7 @@ export const Arabic: Translations = Object.freeze({
   'editor_activity.launch_failed': 'تعذّر فتح المحرر هنا. [استخدمه على الويب]({url}) بدلًا من ذلك.',
   'editor_activity.channel_turned_off': 'تم إيقاف NotSoBot في هذه القناة، لذا لا يمكن فتح المحرر هنا.',
   'editor_activity.bad_url': 'هذا ليس رابطًا، الصق رابطًا يبدأ بـ https://',
-  'editor_activity.bad_template': 'هذا ليس قالب محرر، الصق رابطه (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'هذا ليس قالب محرر، الصق رابطه (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'العودة إلى الشبكة',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'لا يمكنك عرض سجل تلك القناة',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'لا يمكن عرض سجل تلك القناة',

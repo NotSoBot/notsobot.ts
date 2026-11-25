@@ -5083,7 +5083,7 @@ export const Dutch: Translations = Object.freeze({
   'editor_activity.launch_failed': 'De editor kon hier niet openen. [Gebruik hem op het web]({url}) in plaats daarvan.',
   'editor_activity.channel_turned_off': 'NotSoBot staat uit in dit kanaal, dus de editor kan hier niet openen.',
   'editor_activity.bad_url': 'Dat is geen link, plak er een die begint met https://',
-  'editor_activity.bad_template': 'Dat is geen editorsjabloon, plak de link ervan (notsobot.com/editor/t/…)',
+  'editor_activity.bad_template': 'Dat is geen editorsjabloon, plak de link ervan (notsobot.com/editor/template/…)',
   'pixelart.back_to_grid': 'Terug naar raster',
   'media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that': 'Je kunt de geschiedenis van dat kanaal niet zien',
   'media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel': 'Kan de geschiedenis van dat kanaal niet zien',
