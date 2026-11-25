@@ -169,7 +169,7 @@ async function createMediaMessage(
   const describeEmbedFooter = (response: RestResponsesRaw.FileResponse) => {
     return (options.post && response.items[0].post) ? formatPost(translator, response.items[0].post, {spoiler: !!args.spoiler}).footer : undefined;
   };
-  // the same text on every page, which page it is replaces the size line when it's one of a post's. `.embed` has no
+  // the same text on every page, which page it is goes in front of the size line when it's one of a post's. `.embed` has no
   // size line at all (it's the post, like auto-embed), only the page
   const replyOptions = (response: RestResponsesRaw.FileResponse, pageText?: string) => ({
     description: describe(response),
@@ -255,7 +255,7 @@ export interface GalleryPage {
 interface PageRenderers {
   // one media of a post the gallery can't show
   single: (response: RestResponsesRaw.FileResponse, pageText: string) => Promise<Page>,
-  // up to ten of them, `pageText` only when there's more than one ten. which page it is replaces the size line
+  // up to ten of them, `pageText` only when there's more than one ten. which page it is goes in front of the size line
   gallery: (gallery: GalleryPage, pageText?: string) => Promise<Page>,
 }
 

@@ -3809,6 +3809,12 @@ export async function displayReply(
 }
 
 
+// a media reply's small line: `details` (which page of a post it is) in front of its size/dimensions/took, or alone
+// with `hideDetails` (auto-embed, `.embed`)
+function joinMediaDetails(details: string | undefined, footer: string, hideDetails?: boolean): string {
+  return [details, (hideDetails) ? '' : footer].filter(Boolean).join(' • ');
+}
+
 export interface MediaReplyResponseOptions {
   actions?: MediaReplyActions,
   // buttons answered by the components listener (static custom ids, like auto-embed's Undo), next to the reupload one
@@ -3816,7 +3822,7 @@ export interface MediaReplyResponseOptions {
   content?: string,
   description?: string,
   descriptionBelow?: string,
-  // in place of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
+  // in front of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
   details?: string,
   embedFooter?: MediaReplyEmbedFooter,
   filename?: string,
@@ -3923,7 +3929,7 @@ export interface MediaReplyFilesOptions {
   buttons?: Array<ComponentButton>,
   description?: string,
   descriptionBelow?: string,
-  // in place of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
+  // in front of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
   details?: string,
   embedFooter?: MediaReplyEmbedFooter,
   // no size/dimensions/took line (auto-embed, the media should look like the link's own preview)
@@ -4044,11 +4050,7 @@ async function createMediaReplyFilesMessage(
       footer = `${footer}, ${translate('media.took', {seconds})}`;
     }
   }
-  if (options.details !== undefined) {
-    footer = options.details;
-  } else if (options.hideDetails) {
-    footer = '';
-  }
+  footer = joinMediaDetails(options.details, footer, options.hideDetails);
   const invokedBy = (isFromInteraction) ? '' : `-# **${translate('media.invoked_by', {user: `<@${context.userId}>`})}**`;
 
   // ones too big to attach are hosted on nsb.gg, a temporary one stops loading once it expires
@@ -4243,7 +4245,7 @@ export interface MediaReplyOptions {
   description?: string,
   // under the media in components v2 (like a post's site and stats), the other displays add it after `description`
   descriptionBelow?: string,
-  // in place of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
+  // in front of the size/dimensions/took line (a gallery post's page), shown even with `hideDetails`
   details?: string,
   // the embed display shows this in its footer instead of `descriptionBelow`
   embedFooter?: MediaReplyEmbedFooter,
@@ -4358,6 +4360,7 @@ export async function createMediaReplyMessage(
     footer += `${translate('media.frames', {count: options.framecount.toLocaleString(language)})}, `;
   }
   footer += formatMemory(options.size, 2);
+  let tookText = '';
   if (options.took) {
     let took = options.took;
     if (context.metadata && context.metadata.started) {
@@ -4365,15 +4368,13 @@ export async function createMediaReplyMessage(
     }
     if (2000 <= took) {
       const seconds = (took / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
-      footer = `${footer}, ${translate('media.took', {seconds})}`;
+      tookText = translate('media.took', {seconds});
+      footer = `${footer}, ${tookText}`;
     }
   }
-  // the details line, or what replaces it
-  const hasDetails = (options.details !== undefined);
-  if (hasDetails) {
-    footer = options.details!;
-  }
-  const showDetails = !!footer && (hasDetails || !options.hideDetails);
+  // the details line, with the page in front of it when it's one of a post's
+  footer = joinMediaDetails(options.details, footer, options.hideDetails);
+  const showDetails = !!footer;
 
   let reuploadButton: ComponentButton | null = null;
   if (!options.reuploading && options.storage && options.storage.temporary && context instanceof Command.Context) {
@@ -4582,18 +4583,8 @@ export async function createMediaReplyMessage(
   }
 
   if (options.storage) {
-    // the embed has the dimensions/duration/filesize already, we just want to display the took
-    footer = (hasDetails) ? options.details! : '';
-    if (!hasDetails && options.took && !options.hideDetails) {
-      let took = options.took;
-      if (context.metadata && context.metadata.started) {
-        took = Date.now() - context.metadata.started;
-      }
-      if (2000 <= took) {
-        const seconds = (took / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
-        footer = translate('media.took', {seconds});
-      }
-    }
+    // the embed has the dimensions/duration/filesize already, we just want to display the took (after the page)
+    footer = joinMediaDetails(options.details, tookText, options.hideDetails);
 
     // `?embed=true` gets nsb.gg's regular embed instead of its components v2 one, since this response is meant to be text.
     // In the same order as components v2: what it's about, the link, who used it, when it expires, then its details

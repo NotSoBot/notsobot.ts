@@ -24,16 +24,33 @@ export type EditorLaunchSurface = RestOptions.StoreEditorActivityLaunch['surface
 type LaunchContext = Interaction.InteractionContext | ComponentContext;
 
 
-// NotSoBot owners only until `NOTSOBOT_EDITOR_PUBLIC=true`, set together with the api's `EDITOR_PUBLIC` (its `/editor`
-// routes and the site's page go by that one)
+// everyone (public since 2026-11-25), or only NotSoBot owners with `NOTSOBOT_EDITOR_PUBLIC=false`, set together with the
+// api's `EDITOR_PUBLIC=false` (its `/editor` routes and the site's page go by that one)
 export function canUseEditor(context: {user: Structures.User}): boolean {
-  return process.env.NOTSOBOT_EDITOR_PUBLIC === 'true' || context.user.isClientOwner;
+  return process.env.NOTSOBOT_EDITOR_PUBLIC !== 'false' || context.user.isClientOwner;
 }
 
 
 // the site's editor, opened on `mediaUrl` when there's one
 export function editorWebUrl(mediaUrl?: string | null): string {
   return (mediaUrl) ? `${EDITOR_WEB_URL}?url=${encodeURIComponent(mediaUrl)}` : EDITOR_WEB_URL;
+}
+
+
+// a template's id from its share link (`notsobot.com/editor/t/<id>`, `/es/` and `/pt/` too) or the bare id
+export function editorTemplateIdOf(value: string): string | null {
+  const text = value.trim().replace(/^<(.*)>$/, '$1');
+  if (/^\d{1,20}$/.test(text)) {
+    return text;
+  }
+  try {
+    const url = new URL(text);
+    const host = url.hostname.replace(/^www\./, '');
+    const match = url.pathname.match(/^(?:\/[a-z]{2})?\/editor\/t\/(\d{1,20})\/?$/);
+    return (host === 'notsobot.com' && match) ? match[1] : null;
+  } catch {
+    return null;
+  }
 }
 
 
@@ -54,7 +71,7 @@ export async function replyPrivately(context: LaunchContext, description: string
 // can't run) gets the web editor's link instead. Returns the instance id
 export async function launchEditor(
   context: LaunchContext,
-  options: {surface: EditorLaunchSurface, mediaUrl?: string | null},
+  options: {surface: EditorLaunchSurface, mediaUrl?: string | null, templateId?: string | null},
 ): Promise<string | null> {
   let instanceId: string | null = null;
   try {
@@ -76,6 +93,7 @@ export async function launchEditor(
       locale: context.interaction.locale || null,
       mediaUrl: options.mediaUrl || null,
       surface: options.surface,
+      templateId: options.templateId || null,
       userId: context.userId,
     }).catch((error) => {
       captureError(error, {extra: {instanceId, surface: options.surface}, tags: {source: 'editor.activity'}});

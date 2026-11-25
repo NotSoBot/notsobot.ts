@@ -30,9 +30,9 @@ export default class LaunchCommand extends BaseInteractionCommand {
   description = 'Edit media with effects, text and drawings';
   descriptionLocalizations = I18n.localizations('commands.activity.launch.description');
 
-  // a launch has to be the interaction's first response, like a modal: nothing defers it first (`shouldDeferEarly`,
-  // `onBefore`), so the channel checks a defer would have done are made in `run`
-  respondsWithModal = true;
+  // the launch is the interaction's first answer, nothing defers it first (`answersItselfFirst`), so the channel checks a
+  // defer would have done are made in `run`
+  launchesActivity = true;
 
   contexts = [
     InteractionContextTypes.GUILD,

@@ -1195,6 +1195,7 @@ export async function storeEditorActivityLaunch(
     locale: options.locale || undefined,
     media_url: options.mediaUrl || undefined,
     surface: options.surface,
+    template_id: options.templateId || undefined,
     user_id: options.userId,
   };
   const params = {instanceId};

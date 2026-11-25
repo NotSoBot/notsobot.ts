@@ -195,6 +195,14 @@ export async function canLaunchEditorHere(context: Interaction.InteractionContex
   return !(await isBlockedUserInstallRun(context)) && !isDecoyChannelRun(context);
 }
 
+// a modal or an activity launch: its own first answer, nothing may defer the interaction before it (onBefore's defers,
+// the early defer and detritus' loading trigger all skip it)
+export function answersItselfFirst(context: Interaction.InteractionContext): boolean {
+  const invoker = context.invoker as any;
+  const command = context.command as any;
+  return !!(invoker.respondsWithModal || command.respondsWithModal || invoker.launchesActivity || command.launchesActivity);
+}
+
 // what `onBefore`'s private defer goes by: NotSoBot's turned off in the channel, or the user's response setting. for
 // commands that post more than their own response (Edit Media's results), those have to stay private too
 export async function isPrivateRun(context: Interaction.InteractionContext): Promise<boolean> {
@@ -224,6 +232,9 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   ignoresEphemeralSetting = false;
   // commands that answer with a modal can't be deferred first (a deferred interaction can't open a modal)
   respondsWithModal = false;
+  // the same for launching a discord activity (`context.launchActivity()`): it has to be the interaction's first answer,
+  // within 3 seconds and with nothing deferring it. the command defers itself when it ends up not launching
+  launchesActivity = false;
   error = 'Command';
 
   get commandIds() {
@@ -291,24 +302,24 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     // an async iife instead of `new Promise(async ...)`, anything thrown in there (like the defer failing on an expired
     // interaction) never settled the promise and left the command hanging forever
     return (async () => {
-      const respondsWithModal = !!(context.invoker as any).respondsWithModal || !!(context.command as any).respondsWithModal;
+      const answersFirst = answersItselfFirst(context);
       const ignoresEphemeralSetting = !!(context.invoker as any).ignoresEphemeralSetting;
       // the server turned NotSoBot off here (see `isBlockedUserInstallRun`). the modal ones (reports) already answer
       // privately in every reply
-      const blocked = !respondsWithModal && await isBlockedUserInstallRun(context);
+      const blocked = !answersFirst && await isBlockedUserInstallRun(context);
       if (blocked && ignoresEphemeralSetting) {
         // for everyone in the channel (games), only the one that ran it would see it
         const { translate } = await I18n.getTranslator(context);
         const message = warning(translate('errors.channel_turned_off_public', {command: Markup.codestring(context.name)}));
         return setCommandGate(context, {kind: 'channel_turned_off', message});
       }
-      const decoy = !respondsWithModal && isDecoyChannelRun(context);
+      const decoy = !answersFirst && isDecoyChannelRun(context);
       if (decoy && ignoresEphemeralSetting) {
         const { translate } = await I18n.getTranslator(context);
         const message = warning(translate('errors.decoy_channel_public', {command: Markup.codestring(context.name)}));
         return setCommandGate(context, {kind: 'channel_turned_off', message});
       }
-      if (!context.responded && !respondsWithModal) {
+      if (!context.responded && !answersFirst) {
         let ephemeral = blocked || decoy;
         if (!ephemeral && !ignoresEphemeralSetting && UserSettingsStore.has(context.userId)) {
           const settings = UserSettingsStore.get(context.userId)!;
@@ -924,6 +935,7 @@ export class BaseSlashCommandFromOption extends BaseSlashCommand {
     this.descriptionLocalizations = option.descriptionLocalizations;
     this.ignoresEphemeralSetting = option.ignoresEphemeralSetting;
     this.respondsWithModal = !!(option as any).respondsWithModal;
+    this.launchesActivity = !!(option as any).launchesActivity;
     this.triggerLoadingAsEphemeral = option.triggerLoadingAsEphemeral;
   }
 }

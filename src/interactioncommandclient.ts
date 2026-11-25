@@ -11,6 +11,7 @@ import {
   BaseInteractionCommand,
   BaseInteractionCommandOption,
   InteractionCommandMetadata,
+  answersItselfFirst,
   haveInteractionChecksPassed,
   keepFollowUpsPrivate,
 } from './commands/interactions/basecommand';
@@ -124,7 +125,7 @@ function findDuplicateOptionNames(
 function shouldDeferEarly(context: Interaction.InteractionContext): boolean {
   const invoker = context.invoker as any;
   const command = context.command as any;
-  if (invoker.respondsWithModal || command.respondsWithModal) {
+  if (answersItselfFirst(context)) {
     return false;
   }
   const after = invoker.triggerLoadingAfter;
@@ -303,7 +304,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         if (invoker.blockedCommandShouldStillExecute) {
           // a modal has to be the first response, and it's private anyway. the early defer (`deferEarly`) may have been
           // first, it's private while the checks run
-          if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal && !context.responded) {
+          if (!answersItselfFirst(context) && !context.responded) {
             await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
               flags: MessageFlags.EPHEMERAL,
             });

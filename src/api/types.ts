@@ -314,6 +314,8 @@ export namespace RestOptions {
     locale?: string | null,
     // the media it was opened on (Edit Media / Edit Avatar), the activity can't read the channel itself
     mediaUrl?: string | null,
+    // `/editor template:`, its steps go on the media (or whatever's picked on the start screen)
+    templateId?: string | null,
     surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command',
     userId: string,
   }
