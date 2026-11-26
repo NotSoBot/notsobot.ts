@@ -1192,6 +1192,7 @@ export async function storeEditorActivityLaunch(
   const body = {
     channel_id: options.channelId || undefined,
     guild_id: options.guildId || undefined,
+    invite_code: options.inviteCode || undefined,
     locale: options.locale || undefined,
     media_url: options.mediaUrl || undefined,
     surface: options.surface,

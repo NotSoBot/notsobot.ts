@@ -24,6 +24,15 @@ export const EDITOR_WEB_URL = 'https://notsobot.com/editor';
 
 export type EditorLaunchSurface = RestOptions.StoreEditorActivityLaunch['surface'];
 
+// `/games` and its Join: the same activity, opened on its game rooms instead of the editor
+const GAMES_SURFACES: ReadonlyArray<EditorLaunchSurface> = ['games', 'games_join'];
+// the launch message's own Join buttons, they never post another one, and an invite's Join (the card is its message)
+const JOIN_SURFACES: ReadonlyArray<EditorLaunchSurface> = ['join', 'games_join', 'invite'];
+
+export function isGamesSurface(surface: EditorLaunchSurface): boolean {
+  return GAMES_SURFACES.includes(surface);
+}
+
 type LaunchContext = Interaction.InteractionContext | ComponentContext;
 
 
@@ -77,7 +86,7 @@ export async function replyPrivately(context: LaunchContext, description: string
 // can't run) gets the web editor's link instead. Returns the instance id
 export async function launchEditor(
   context: LaunchContext,
-  options: {surface: EditorLaunchSurface, mediaUrl?: string | null, templateCode?: string | null},
+  options: {surface: EditorLaunchSurface, mediaUrl?: string | null, templateCode?: string | null, inviteCode?: string | null},
 ): Promise<string | null> {
   let instanceId: string | null = null;
   try {
@@ -87,13 +96,22 @@ export async function launchEditor(
     // discord's reason (its error body) ends up in sentry with the surface, a refused launch was only a log line before
     captureError(error, {extra: {surface: options.surface}, tags: {source: 'editor.activity.launch'}});
     const { translate } = await getTranslator(context);
-    await replyPrivately(context, translate('editor_activity.launch_failed', {url: editorWebUrl(options.mediaUrl)}), true).catch(() => {});
+    // the games have no web version to send them to, and an invite's room (either kind) is only in the activity
+    let text: string;
+    if (options.surface === 'invite') {
+      text = translate('activity_invite.launch_failed');
+    } else if (isGamesSurface(options.surface)) {
+      text = translate('games_activity.launch_failed');
+    } else {
+      text = translate('editor_activity.launch_failed', {url: editorWebUrl(options.mediaUrl)});
+    }
+    await replyPrivately(context, text, true).catch(() => {});
     return null;
   }
 
-  if (instanceId && options.surface !== 'join') {
+  if (instanceId && !JOIN_SURFACES.includes(options.surface)) {
     // the channel hears about it (once per running instance), a failed post changes nothing about the launch
-    announceLaunch(context, instanceId).catch((error) => {
+    announceLaunch(context, instanceId, options.surface).catch((error) => {
       log.warn('editor launch message failed', {instanceId, error: (error instanceof Error) ? error.message : String(error)});
     });
   }
@@ -103,6 +121,7 @@ export async function launchEditor(
     storeEditorActivityLaunch(context, instanceId, {
       channelId: context.channelId || null,
       guildId: context.guildId || null,
+      inviteCode: options.inviteCode || null,
       locale: context.interaction.locale || null,
       mediaUrl: options.mediaUrl || null,
       surface: options.surface,
@@ -171,35 +190,44 @@ async function canAnnounce(context: LaunchContext): Promise<boolean> {
 
 
 // Posted in the channel after a launch (a follow-up, the launch itself can't carry a message): who's editing, that it's
-// `/editor`, and a Join button for everyone else. Nobody's pinged
-export async function announceLaunch(context: LaunchContext, instanceId: string): Promise<void> {
+// `/editor`, and a Join button for everyone else. A `/games` launch says they're playing with `/games` instead, its Join
+// opens the game rooms and there's no web link. Nobody's pinged
+export async function announceLaunch(
+  context: LaunchContext,
+  instanceId: string,
+  surface: EditorLaunchSurface = 'command',
+): Promise<void> {
   if (!await canAnnounce(context) || !claimAnnouncement(instanceId)) {
     return;
   }
   const { translate } = await getTranslator(context);
   const name = context.member?.nick || context.user.globalName || context.user.username;
+  const games = isGamesSurface(surface);
+  const commandName = (games) ? 'games' : 'editor';
   // clickable where the command client's ids are known (slash and context menus), the plain name from a button
-  const command = (context instanceof Interaction.InteractionContext) ? slashCommandMention(context, 'editor') : Markup.codestring('/editor');
+  const command = (context instanceof Interaction.InteractionContext) ? slashCommandMention(context, commandName) : Markup.codestring(`/${commandName}`);
+  const buttons: Array<any> = [
+    {
+      type: MessageComponentTypes.BUTTON,
+      style: MessageComponentButtonStyles.PRIMARY,
+      label: translate('editor_activity.join'),
+      customId: (games) ? MessageComponentCustomIds.GAMES_JOIN : MessageComponentCustomIds.EDITOR_JOIN,
+    },
+  ];
+  if (!games) {
+    buttons.push({
+      type: MessageComponentTypes.BUTTON,
+      style: MessageComponentButtonStyles.LINK,
+      label: translate('editor_activity.open_web'),
+      url: EDITOR_WEB_URL,
+    });
+  }
   await context.createMessage({
     allowedMentions: {parse: []},
-    content: translate('editor_activity.launched', {name: Markup.escape.all(name), command}),
-    components: [{
-      type: MessageComponentTypes.ACTION_ROW,
-      components: [
-        {
-          type: MessageComponentTypes.BUTTON,
-          style: MessageComponentButtonStyles.PRIMARY,
-          label: translate('editor_activity.join'),
-          customId: MessageComponentCustomIds.EDITOR_JOIN,
-        },
-        {
-          type: MessageComponentTypes.BUTTON,
-          style: MessageComponentButtonStyles.LINK,
-          label: translate('editor_activity.open_web'),
-          url: EDITOR_WEB_URL,
-        },
-      ],
-    }],
+    content: (games) ?
+      translate('games_activity.launched', {name: Markup.escape.all(name), command}) :
+      translate('editor_activity.launched', {name: Markup.escape.all(name), command}),
+    components: [{type: MessageComponentTypes.ACTION_ROW, components: buttons}],
   } as any);
 }
 
@@ -213,4 +241,47 @@ export async function onEditorJoin(context: ComponentContext): Promise<void> {
     return;
   }
   await launchEditor(context, {surface: 'join'});
+}
+
+
+// the `/games` launch message's Join: the activity in that channel, opened on its game rooms. answered by launching,
+// nothing may await before it (3 seconds)
+export async function onGamesJoin(context: ComponentContext): Promise<void> {
+  if (!canUseEditor(context)) {
+    const { translate } = await getTranslator(context);
+    await replyPrivately(context, translate('games_activity.not_ready'), true);
+    return;
+  }
+  await launchEditor(context, {surface: 'games_join'});
+}
+
+
+// Try it on a template card the api posted ("Post in chat" in the activity): the activity in that channel, opened on the
+// template's steps. answered by launching, nothing may await before it (3 seconds)
+export async function onEditorTemplate(context: ComponentContext, value: string): Promise<void> {
+  const templateCode = editorTemplateCodeOf(value);
+  if (!canUseEditor(context) || !templateCode) {
+    const { translate } = await getTranslator(context);
+    await replyPrivately(context, translate('editor_activity.not_ready'), true);
+    return;
+  }
+  await launchEditor(context, {surface: 'template_post', templateCode});
+}
+
+
+// a room invite's code (notsobot.api `invites.py`: `secrets.token_urlsafe(9)`), whether it's still good is the
+// activity's to find out when it redeems it
+const INVITE_CODE = /^[A-Za-z0-9_-]{12}$/;
+
+// Join on a room invite's card the api posted (the activity's "Post in this channel"): the activity in that channel,
+// opened in the invite's room, an editor lobby or a game room. answered by launching, nothing may await before it (3
+// seconds). No launch message, the card already says who's in there
+export async function onActivityInvite(context: ComponentContext, value: string): Promise<void> {
+  if (!canUseEditor(context) || !INVITE_CODE.test(value)) {
+    const { translate } = await getTranslator(context);
+    const text = (INVITE_CODE.test(value)) ? translate('editor_activity.not_ready') : translate('activity_invite.invalid');
+    await replyPrivately(context, text, true);
+    return;
+  }
+  await launchEditor(context, {surface: 'invite', inviteCode: value});
 }

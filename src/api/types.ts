@@ -316,8 +316,13 @@ export namespace RestOptions {
     mediaUrl?: string | null,
     // `/editor template:`, its steps go on the media (or whatever's picked on the start screen)
     templateCode?: string | null,
-    // `join`: the Join button on the launch message, it never posts one of its own
-    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command' | 'join',
+    // `invite`: the room invite's code, the activity redeems it and opens in its room
+    inviteCode?: string | null,
+    // `join`: the Join button on the launch message, it never posts one of its own. `template_post`: Try it on a
+    // template the api posted for someone (the activity's "Post in chat"). `games`: `/games`, the activity opens on its
+    // game rooms, and `games_join` the Join button on the message that posts. `invite`: Join on a room invite's card,
+    // never posts one either
+    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command' | 'join' | 'template_post' | 'games' | 'games_join' | 'invite',
     userId: string,
   }
 

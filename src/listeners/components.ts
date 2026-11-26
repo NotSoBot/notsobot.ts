@@ -43,7 +43,7 @@ import {
 
 import { createTempFilePath, hasTempDiskSpace, removeTempFile } from '../tempfiles';
 
-import { onEditorJoin } from '../utils/editoractivity';
+import { onActivityInvite, onEditorJoin, onEditorTemplate, onGamesJoin } from '../utils/editoractivity';
 import { Listener } from './listener';
 import { onReportRespondComponent } from './reportmessages';
 
@@ -87,6 +87,27 @@ class ComponentsListener extends Listener {
                 return await onEditorJoin(context);
               } catch(error) {
                 log.warn(`editor join ${context.guildId}`, error);
+              }
+            }
+            if (context.customId === MessageComponentCustomIds.GAMES_JOIN) {
+              try {
+                return await onGamesJoin(context);
+              } catch(error) {
+                log.warn(`games join ${context.guildId}`, error);
+              }
+            }
+            if (context.customId.startsWith(MessageComponentCustomIds.EDITOR_TEMPLATE + '.')) {
+              try {
+                return await onEditorTemplate(context, context.customId.slice(MessageComponentCustomIds.EDITOR_TEMPLATE.length + 1));
+              } catch(error) {
+                log.warn(`editor template ${context.guildId}`, error);
+              }
+            }
+            if (context.customId.startsWith(MessageComponentCustomIds.ACTIVITY_INVITE + '.')) {
+              try {
+                return await onActivityInvite(context, context.customId.slice(MessageComponentCustomIds.ACTIVITY_INVITE.length + 1));
+              } catch(error) {
+                log.warn(`activity invite ${context.guildId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.AUTO_EMBED_UNDO + '.')) {

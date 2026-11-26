@@ -465,6 +465,8 @@ export const SLASH_COMMAND_CATEGORY_FALLBACKS: ReadonlyArray<[string, CommandCat
   ['help', CommandCategories.UTILITY],
   // `/editor`, beside Edit Media/Edit Avatar (`media.aiv.edit`)
   ['editor', CommandCategories.CONVERSION],
+  // `/games`, the activity's game rooms (the in-chat ones are `game.`)
+  ['games', CommandCategories.GAMES],
 ] as Array<[string, CommandCategories]>);
 
 
@@ -2208,6 +2210,13 @@ export enum MessageComponentCustomIds {
   // the Join button on the message an editor launch posts: launches the activity in that channel (Discord joins the one
   // already running there)
   EDITOR_JOIN = 'editor-join',
+  // the Join button on the message a `/games` launch posts: the same activity, opened on its game rooms
+  GAMES_JOIN = 'games-join',
+  // `editor-template.<code>`: Try it on a template card the api posts (notsobot.api utilities/tools/editor/sharing.py)
+  EDITOR_TEMPLATE = 'editor-template',
+  // `activity-invite.<code>`: Join on a room invite's card the api posts, the activity opens in that room (notsobot.api
+  // utilities/tools/activity/invites.py)
+  ACTIVITY_INVITE = 'activity-invite',
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
   // a gallery's one button for every hosted item that fits the clicker's upload limit, found from the message itself
   // (ten file ids don't fit in a custom id)

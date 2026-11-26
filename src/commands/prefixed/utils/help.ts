@@ -125,7 +125,9 @@ export default class HelpCommand extends BaseCommand {
             payload.fields!.push({inline: true, name: translate('help.aliases'), value: names.join('\n')});
           }
           if (metadata.examples && metadata.examples.length) {
-            payload.fields!.push({inline: true, name: translate('help.examples'), value: Markup.escape.mentions(metadata.examples.join('\n'))});
+            // <url> keeps the links clickable without discord unfurling the sample media under the help page
+            const examples = metadata.examples.map((example) => example.replace(/(?<!<)\bhttps?:\/\/[^\s<>]+/g, (url) => `<${url}>`));
+            payload.fields!.push({inline: true, name: translate('help.examples'), value: Markup.escape.mentions(examples.join('\n'))});
           }
           {
             const description: Array<string> = [];
