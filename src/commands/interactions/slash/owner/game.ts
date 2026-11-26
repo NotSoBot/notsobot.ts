@@ -2,10 +2,10 @@ import { I18n } from '../../../../utils';
 
 import { BaseInteractionCommandOptionGroup } from '../../basecommand';
 
-import { GameImagineCommand } from '../game/imagine';
+import { GameImagineCommand } from '../games/imagine';
 
 
-// the games still being tested, they move into `/game` once they're public
+// the games still being tested, they move into `/games` once they're public
 export class OwnerGameGroupCommand extends BaseInteractionCommandOptionGroup {
   description = 'Games to play with everyone in the channel';
   descriptionLocalizations = I18n.localizations('commands.game.description');

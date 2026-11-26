@@ -40,7 +40,7 @@ export default class OwnerGroupCommand extends BaseSlashCommand {
         new OwnerBlockGroupCommand(),
         new OwnerEmojisCommand(),
         new OwnerEvalCommand(),
-        // the games being tested, `/game` once they're public
+        // the games being tested, `/games` once they're public
         new OwnerGameGroupCommand(),
         new OwnerGuildFeaturesGroupCommand(),
         new OwnerRefreshCommand(),

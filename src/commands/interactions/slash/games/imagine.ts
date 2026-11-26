@@ -5,7 +5,7 @@ import { Formatter, I18n } from '../../../../utils';
 import { BaseOwnerCommandOption } from '../owner/base';
 
 
-// owner only while it's tested, `BaseInteractionCommandOption` (and in `/game` instead of `/owner game`) once it's public
+// owner only while it's tested, `BaseInteractionCommandOption` (and in `/games` instead of `/owner game`) once it's public
 export class GameImagineCommand extends BaseOwnerCommandOption {
   description = 'Recreate a secret AI image with your own prompt, then vote on who came closest';
   descriptionLocalizations = I18n.localizations('commands.game.imagine.description');

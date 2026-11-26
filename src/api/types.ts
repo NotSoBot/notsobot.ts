@@ -319,10 +319,11 @@ export namespace RestOptions {
     // `invite`: the room invite's code, the activity redeems it and opens in its room
     inviteCode?: string | null,
     // `join`: the Join button on the launch message, it never posts one of its own. `template_post`: Try it on a
-    // template the api posted for someone (the activity's "Post in chat"). `games`: `/games`, the activity opens on its
-    // game rooms, and `games_join` the Join button on the message that posts. `invite`: Join on a room invite's card,
-    // never posts one either
-    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command' | 'join' | 'template_post' | 'games' | 'games_join' | 'invite',
+    // template the api posted for someone (the activity's "Post in chat"). `games`: `/games play`, the activity opens on
+    // its game rooms, and `games_join` the Join button on the message that posts. `flag_guesser`: Open in Activity on
+    // Flag Guesser's messages in chat, straight to its rooms (posts the same message as `games`). `invite`: Join on a
+    // room invite's card, never posts one either
+    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command' | 'join' | 'template_post' | 'games' | 'games_join' | 'flag_guesser' | 'invite',
     userId: string,
   }
 

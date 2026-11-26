@@ -465,7 +465,7 @@ export const SLASH_COMMAND_CATEGORY_FALLBACKS: ReadonlyArray<[string, CommandCat
   ['help', CommandCategories.UTILITY],
   // `/editor`, beside Edit Media/Edit Avatar (`media.aiv.edit`)
   ['editor', CommandCategories.CONVERSION],
-  // `/games`, the activity's game rooms (the in-chat ones are `game.`)
+  // `/games play`, the activity's game rooms (the in-chat games under `/games` kept their `game.` ids)
   ['games', CommandCategories.GAMES],
 ] as Array<[string, CommandCategories]>);
 
@@ -1437,7 +1437,7 @@ export enum MusicStatsSorts {
   TIME = 'time',
 }
 
-// `/game flag`'s pools, each one has the flags of the ones before it too
+// `/games flag-guesser`'s pools, each one has the flags of the ones before it too
 export enum GameFlagDifficulties {
   EASY = 'easy',
   MEDIUM = 'medium',
@@ -2210,8 +2210,11 @@ export enum MessageComponentCustomIds {
   // the Join button on the message an editor launch posts: launches the activity in that channel (Discord joins the one
   // already running there)
   EDITOR_JOIN = 'editor-join',
-  // the Join button on the message a `/games` launch posts: the same activity, opened on its game rooms
+  // the Join button on the message a `/games play` launch posts: the same activity, opened on its game rooms
   GAMES_JOIN = 'games-join',
+  // Open in Activity on Flag Guesser's messages in chat (`/games flag-guesser`): the activity in that channel, opened on
+  // Flag Guesser's rooms
+  FLAG_GUESSER_ACTIVITY = 'flag-guesser-activity',
   // `editor-template.<code>`: Try it on a template card the api posts (notsobot.api utilities/tools/editor/sharing.py)
   EDITOR_TEMPLATE = 'editor-template',
   // `activity-invite.<code>`: Join on a room invite's card the api posts, the activity opens in that room (notsobot.api

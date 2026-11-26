@@ -181,8 +181,8 @@ export async function isBlockedUserInstallRun(context: Interaction.InteractionCo
 
 // the server's decoy channel: anything posted there should be a spam account's, so a slash run (which never goes
 // through the decoy, it's the bot's message) answers privately instead of leaving public replies in it. still loading
-// counts as not one
-export function isDecoyChannelRun(context: Interaction.InteractionContext): boolean {
+// counts as not one. a button press too (Flag Guesser's Open in Activity)
+export function isDecoyChannelRun(context: {channelId?: string | null, guildId?: string | null}): boolean {
   return !!context.guildId && !!context.channelId && !!DecoyStore.getByChannel(context.channelId);
 }
 

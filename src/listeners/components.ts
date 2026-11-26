@@ -43,7 +43,7 @@ import {
 
 import { createTempFilePath, hasTempDiskSpace, removeTempFile } from '../tempfiles';
 
-import { onActivityInvite, onEditorJoin, onEditorTemplate, onGamesJoin } from '../utils/editoractivity';
+import { onActivityInvite, onEditorJoin, onEditorTemplate, onFlagGuesserActivity, onGamesJoin } from '../utils/editoractivity';
 import { Listener } from './listener';
 import { onReportRespondComponent } from './reportmessages';
 
@@ -94,6 +94,13 @@ class ComponentsListener extends Listener {
                 return await onGamesJoin(context);
               } catch(error) {
                 log.warn(`games join ${context.guildId}`, error);
+              }
+            }
+            if (context.customId === MessageComponentCustomIds.FLAG_GUESSER_ACTIVITY) {
+              try {
+                return await onFlagGuesserActivity(context);
+              } catch(error) {
+                log.warn(`flag guesser activity ${context.guildId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.EDITOR_TEMPLATE + '.')) {

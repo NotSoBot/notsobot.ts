@@ -16,7 +16,7 @@ import {
 import { EventSubscription, Timers } from 'detritus-utils';
 
 import { fetchGameFlag } from '../../../api';
-import { EmbedColors, GameFlagDifficulties, StatusEmojis } from '../../../constants';
+import { EmbedColors, GameFlagDifficulties, MessageComponentCustomIds, StatusEmojis } from '../../../constants';
 import {
   Countries,
   Country,
@@ -27,6 +27,7 @@ import {
   countryName,
   countryRegion,
 } from '../../countries';
+import { canUseEditor } from '../../editoractivity';
 import { getTranslator, TranslationKey, Translator } from '../../i18n';
 import {
   DisplayPayload,
@@ -504,6 +505,7 @@ function createGameComponents(game: Game): Components {
     },
   });
 
+  addActivityButton(game, components);
   return components;
 }
 
@@ -525,7 +527,23 @@ function createPlayAgainComponents(game: Game): Components {
       await startGame(ctx, game.session);
     },
   });
+  addActivityButton(game, components);
   return components;
+}
+
+
+// Open in Activity, Flag Guesser's rooms in the activity (`onFlagGuesserActivity`). a static id the components listener
+// answers, so it keeps working after this message's buttons stop listening. Left out while the activity is only open to
+// NotSoBot owners and whoever started this flag isn't one, a press would only say it's not ready
+function addActivityButton(game: Game, components: Components): void {
+  if (!canUseEditor(game.context)) {
+    return;
+  }
+  components.createButton({
+    customId: MessageComponentCustomIds.FLAG_GUESSER_ACTIVITY,
+    label: game.translator.translate('game.flag.open_activity'),
+    style: MessageComponentButtonStyles.SECONDARY,
+  });
 }
 
 

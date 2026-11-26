@@ -1,5 +1,6 @@
-// the flags `/game flag` can show, with what counts as naming them. Country names come from `Intl.DisplayNames`, so
-// every language the bot speaks gets them for free, `aliases` are the english names people actually type
+// the flags `/games flag-guesser` can show, with what counts as naming them. Country names come from
+// `Intl.DisplayNames`, so every language the bot speaks gets them for free, `aliases` are the english names people
+// actually type
 
 
 export enum CountryTiers {
@@ -278,8 +279,9 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 ] as Array<Country>);
 
 
-// the first hint `/game flag` gives, roughly the un's regions (the caribbean and central america are north america,
-// the middle east, turkey and the caucasus are asia, remote territories go with the nearest continent, antarctica is its own)
+// the first hint `/games flag-guesser` gives, roughly the un's regions (the caribbean and central america are north
+// america, the middle east, turkey and the caucasus are asia, remote territories go with the nearest continent,
+// antarctica is its own)
 export enum CountryRegions {
   AFRICA = 'africa',
   ANTARCTICA = 'antarctica',
