@@ -649,6 +649,15 @@ export async function acknowledgeUserWarnings(
 }
 
 
+export async function deleteEditorBannedUserRooms(
+  context: RequestContext,
+  guildId: string,
+  userId: string,
+) {
+  return raw.deleteEditorBannedUserRooms(context, guildId, userId);
+}
+
+
 export async function storeEditorActivityLaunch(
   context: RequestContext,
   instanceId: string,
@@ -2564,6 +2573,22 @@ export async function mediaIVManipulationFaceFeaturesSwap(
   options: RestOptions.MediaIVManipulationFaceFeaturesSwap,
 ) {
   return raw.mediaIVManipulationFaceFeaturesSwap(context, options);
+}
+
+
+export async function mediaIVManipulationFaceBigHead(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceBigHead,
+) {
+  return raw.mediaIVManipulationFaceBigHead(context, options);
+}
+
+
+export async function mediaIVManipulationFaceFilter(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceFilter,
+) {
+  return raw.mediaIVManipulationFaceFilter(context, options);
 }
 
 
@@ -4972,6 +4997,14 @@ export async function mediaIVManipulationOverlayPat(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayPat(context, options);
+}
+
+
+export async function mediaIVManipulationOverlaySpeechBubble(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlaySpeechBubble,
+) {
+  return raw.mediaIVManipulationOverlaySpeechBubble(context, options);
 }
 
 

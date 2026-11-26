@@ -1210,6 +1210,22 @@ export async function storeEditorActivityLaunch(
 }
 
 
+export async function deleteEditorBannedUserRooms(
+  context: RequestContext,
+  guildId: string,
+  userId: string,
+): Promise<{deleted: number}> {
+  const params = {guildId, userId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.EDITOR_GUILD_USER_ROOMS,
+      params,
+    },
+  });
+}
+
+
 export async function editGuildLLMKnowledge(
   context: RequestContext,
   guildId: string,
@@ -6724,6 +6740,50 @@ export async function mediaIVManipulationFaceFeaturesSwap(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_FACE_FEATURES_SWAP,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFaceBigHead(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceBigHead,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    size: options.size,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_BIG_HEAD,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFaceFilter(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceFilter,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    filter: options.filter,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_FILTER,
     },
   });
 }
@@ -13155,6 +13215,29 @@ export async function mediaIVManipulationOverlayPat(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PAT,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlaySpeechBubble(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlaySpeechBubble,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    direction: options.direction,
+    transparent: options.transparent,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SPEECH_BUBBLE,
     },
   });
 }

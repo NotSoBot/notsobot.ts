@@ -7,6 +7,7 @@ export { default as ChannelDeleteListener } from './channeldelete';
 export { default as CommandHooksListener } from './commandhooks';
 export { default as DecoyListener } from './decoy';
 export { default as DecoyBaitScheduler } from './decoybait';
+export { default as EditorRoomsListener } from './editorrooms';
 export { default as BotGuildsListener } from './botguilds';
 export { default as ClusterInfoInterval } from './clusterinfointerval';
 export { default as ComponentsListener } from './components';

@@ -14,6 +14,7 @@ import { MediaIVMemeKirbyCommand } from './kirby';
 import { MediaIVMemePatCommand } from './pat';
 import { MediaIVMemePerfectionCommand } from './perfection';
 import { MediaIVMemeRTXCommand } from './rtx';
+import { MediaIVMemeSpeechBubbleCommand } from './speech-bubble';
 import { MediaIVMemeThinkingCommand } from './thinking';
 import { MediaIVMemeWheezeCommand } from './wheeze';
 import { MediaIVMemeZuckerberg1Command } from './zuckerberg';
@@ -39,6 +40,7 @@ export class MediaIVMemeFormatGroupCommand extends BaseInteractionCommandOptionG
         new MediaIVMemePatCommand(),
         new MediaIVMemePerfectionCommand(),
         new MediaIVMemeRTXCommand(),
+        new MediaIVMemeSpeechBubbleCommand(),
         new MediaIVMemeThinkingCommand(),
         new MediaIVTriggeredCommand(),
         new MediaIVLabelsTriggered2Command(),

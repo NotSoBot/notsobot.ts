@@ -4641,9 +4641,11 @@ export async function createMediaReplyMessage(
       (showDetails) ? `-# ${footer}` : '',
     ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, title, value},
-    // the action rows (like pixel art's sprite buttons) and the reupload button, only when there are any so a reply
-    // without them doesn't send an empty list
-    components: (components.components.length) ? components : undefined,
+    // the action rows (like pixel art's sprite buttons) and the reupload button, sent even when there are none like the
+    // other displays: an edit that leaves them out keeps the message's old ones (a re-upload kept the Make Permanent
+    // button that was just used), and an explicit `undefined` also overrode detritus' `components: []` default for an
+    // edited trigger's reply
+    components,
   };
   return {isComponentsV2: false, message, replacesResponse};
 }

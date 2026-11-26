@@ -1769,6 +1769,22 @@ export enum MediaFaceAnimeEyes {
   RED = 'RED',
 }
 
+export enum MediaFaceFilters {
+  DOG = 'DOG',
+  DALMATIAN = 'DALMATIAN',
+  HEARTS = 'HEARTS',
+  PIG = 'PIG',
+  FLOWERS = 'FLOWERS',
+  WIG = 'WIG',
+}
+
+export enum MediaSpeechBubbleDirections {
+  AUTO = 'AUTO',
+  LEFT = 'LEFT',
+  CENTER = 'CENTER',
+  RIGHT = 'RIGHT',
+}
+
 export enum MediaFaceHalloweenHats {
   WITCH = 'WITCH',
   WITCH_BUCKLE = 'WITCH_BUCKLE',

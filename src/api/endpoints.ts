@@ -410,6 +410,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/face/features/expression/mood/:mood:',
   MEDIA_IV_MANIPULATION_FACE_FEATURES_SWAP:
     '/media/iv/manipulation/face/features/swap',
+  MEDIA_IV_MANIPULATION_FACE_BIG_HEAD:
+    '/media/iv/manipulation/face/big-head',
+  MEDIA_IV_MANIPULATION_FACE_FILTER:
+    '/media/iv/manipulation/face/filter',
   MEDIA_IV_MANIPULATION_FACE_HALLOWEEN_HAT:
     '/media/iv/manipulation/face/halloween-hat',
   MEDIA_IV_MANIPULATION_FACE_JOY:
@@ -1014,6 +1018,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/keep-item',
   MEDIA_IV_MANIPULATION_OVERLAY_PAT:
     '/media/iv/manipulation/overlay/pat',
+  MEDIA_IV_MANIPULATION_OVERLAY_SPEECH_BUBBLE:
+    '/media/iv/manipulation/overlay/speech-bubble',
   MEDIA_IV_MANIPULATION_OVERLAY_MISTAKE:
     '/media/iv/manipulation/overlay/mistake',
   MEDIA_IV_MANIPULATION_OVERLAY_NEWS:
@@ -1469,6 +1475,9 @@ export const Api = Object.freeze({
   // the media editor activity's launch context, from the bot right after it launched it
   EDITOR_ACTIVITY_LAUNCH:
     '/editor/activity/:instanceId/launch',
+  // a server ban: the rooms the banned person made in its activity are deleted
+  EDITOR_GUILD_USER_ROOMS:
+    '/editor/guilds/:guildId/users/:userId/rooms',
 
   UTILITIES_CODE_RUN:
     '/utilities/code/run',

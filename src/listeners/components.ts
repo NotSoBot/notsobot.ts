@@ -779,11 +779,11 @@ function findReuploadText(
     if (linkIndex === -1) {
       return {};
     }
-    const last = lines[lines.length - 1];
     return {
       description: lines.slice(0, linkIndex).join('\n') || undefined,
-      // its details line was only how long it took, the re-upload's has the size and dimensions too
-      hideDetails: !(linkIndex < lines.length - 1 && !last.startsWith('> -# **')),
+      // the link's own embed showed the file's size and dimensions, the attachment that replaces it has none, so the
+      // re-upload always gets the details line (even `.embed`'s, which leaves it out next to the link)
+      hideDetails: false,
       spoiler: lines[linkIndex].includes('||'),
     };
   }

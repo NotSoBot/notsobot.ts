@@ -218,6 +218,8 @@ import * as MediaIVManipulationFaceCutout from './media.iv.manipulation.face.cut
 import * as MediaIVManipulationFaceFat from './media.iv.manipulation.face.fat';
 import * as MediaIVManipulationFaceForehead from './media.iv.manipulation.face.forehead';
 import * as MediaIVManipulationFaceFeaturesSwap from './media.iv.manipulation.face.features.swap';
+import * as MediaIVManipulationFaceBigHead from './media.iv.manipulation.face.big.head';
+import * as MediaIVManipulationFaceFilter from './media.iv.manipulation.face.filter';
 import * as MediaIVManipulationFaceHalloweenHat from './media.iv.manipulation.face.halloween.hat';
 import * as MediaIVManipulationFaceJoy from './media.iv.manipulation.face.joy';
 import * as MediaIVManipulationFaceKnight from './media.iv.manipulation.face.knight';
@@ -527,6 +529,7 @@ import * as MediaIVManipulationOverlayHyperCam from './media.iv.manipulation.ove
 import * as MediaIVManipulationOverlayKeepItem from './media.iv.manipulation.overlay.keep.item';
 import * as MediaIVManipulationOverlayMistake from './media.iv.manipulation.overlay.mistake';
 import * as MediaIVManipulationOverlayPat from './media.iv.manipulation.overlay.pat';
+import * as MediaIVManipulationOverlaySpeechBubble from './media.iv.manipulation.overlay.speech.bubble';
 import * as MediaIVManipulationOverlayNews from './media.iv.manipulation.overlay.news';
 import * as MediaIVManipulationOverlayNotResponding from './media.iv.manipulation.overlay.not.responding';
 import * as MediaIVManipulationOverlayNotification from './media.iv.manipulation.overlay.notification';
@@ -1092,6 +1095,8 @@ export {
   MediaIVManipulationFaceFat,
   MediaIVManipulationFaceForehead,
   MediaIVManipulationFaceFeaturesSwap,
+  MediaIVManipulationFaceBigHead,
+  MediaIVManipulationFaceFilter,
   MediaIVManipulationFaceHalloweenHat,
   MediaIVManipulationFaceJoy,
   MediaIVManipulationFaceKnight,
@@ -1401,6 +1406,7 @@ export {
   MediaIVManipulationOverlayKeepItem,
   MediaIVManipulationOverlayMistake,
   MediaIVManipulationOverlayPat,
+  MediaIVManipulationOverlaySpeechBubble,
   MediaIVManipulationOverlayNews,
   MediaIVManipulationOverlayNotResponding,
   MediaIVManipulationOverlayNotification,

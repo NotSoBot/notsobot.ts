@@ -1771,6 +1771,19 @@ export namespace RestOptions {
     hat?: string,
   }
 
+  export interface MediaIVManipulationFaceBigHead extends MediaBaseOptions {
+    size?: number,
+  }
+
+  export interface MediaIVManipulationFaceFilter extends MediaBaseOptions {
+    filter?: string,
+  }
+
+  export interface MediaIVManipulationOverlaySpeechBubble extends MediaBaseOptions {
+    direction?: string,
+    transparent?: boolean,
+  }
+
   export interface MediaIVManipulationFaceXmasCap extends MediaBaseOptions {
     color?: string,
   }
