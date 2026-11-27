@@ -469,7 +469,7 @@ async function generateAndRunTag(
       [TagFormatter.PrivateVariables.SETTINGS]: {
         [TagFormatter.TagSettings.AI_MODEL]: args.model,
       },
-    } as any, {aiMemoryIds: response.memory_ids, confirmAction});
+    } as any, {aiKnowledgeIds: response.knowledge_ids, aiMemoryIds: response.memory_ids, confirmAction});
 
     // always say when NotSoAI changed what it remembers, instead of trusting it to mention it
     const memoryChanges = TagFormatter.getAIMemoryChanges(parsedTag);

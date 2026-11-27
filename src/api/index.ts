@@ -280,6 +280,14 @@ export async function moveReminderToDms(
 }
 
 
+export async function postReminderSent(
+  context: RequestContext,
+  reminderId: string,
+) {
+  return raw.postReminderSent(context, reminderId);
+}
+
+
 export async function deleteReminderPositional(
   context: RequestContext,
   userId: string,
@@ -319,8 +327,9 @@ export async function deleteGuildLLMKnowledge(
   context: RequestContext,
   guildId: string,
   position: number | string,
+  options: RestOptions.DeleteGuildLLMKnowledge = {},
 ) {
-  return raw.deleteGuildLLMKnowledge(context, guildId, position);
+  return raw.deleteGuildLLMKnowledge(context, guildId, position, options);
 }
 
 
@@ -1902,6 +1911,22 @@ export async function mediaICreateHacker(
   options: RestOptions.MediaICreateHacker,
 ) {
   return raw.mediaICreateHacker(context, options);
+}
+
+
+export async function mediaICreateWinError(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWinError,
+) {
+  return raw.mediaICreateWinError(context, options);
+}
+
+
+export async function mediaICreateWinErrorIcons(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWinErrorIcons,
+) {
+  return raw.mediaICreateWinErrorIcons(context, options);
 }
 
 

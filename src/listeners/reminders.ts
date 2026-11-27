@@ -5,9 +5,10 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Listener } from './listener';
 
-import { deleteReminder, fetchReminders } from '../api';
+import { deleteReminder, fetchReminders, postReminderSent } from '../api';
+import { getApiError } from '../api/errors';
 import { RestResponsesRaw } from '../api/types';
-import { RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
+import { ApiErrorCodes, RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { log } from '../log';
 
@@ -27,7 +28,9 @@ class ReminderInterval extends Listener {
   // scan a bit past the next interval so timer drift can't leave a gap between scans
   scanMargin = 5 * 60 * 1000;
   // a reminder goes scheduled (`reminders`) -> sending (`handled` + `sending`) -> deleting (`handled`, plus
-  // `deleteRetries` while its delete keeps failing) -> done (`completed`), and `isKnown` covers all of them
+  // `deleteRetries` while its delete keeps failing) -> done (`completed`), and `isKnown` covers all of them. Sending
+  // starts by marking it on the api (`sent_at`, `claimDelivery`), so one whose delete failed and that a restart (which
+  // forgets all of this) finds again is only deleted
   reminders = new Collections.BaseCollection<string, ReminderItem>();
   // reminders that were executed (or are executing) but not yet deleted from the api
   handled = new Set<string>();
@@ -122,11 +125,34 @@ class ReminderInterval extends Listener {
     this.sending.add(reminder.id);
     this.removeReminder(reminder.id);
     try {
-      await this.sendReminder(shard, reminder, content);
+      if (await this.claimDelivery(shard, reminder)) {
+        await this.sendReminder(shard, reminder, content);
+      }
     } finally {
       this.sending.delete(reminder.id);
     }
     await this.deleteHandledReminder(shard, reminder.id);
+  }
+
+  // Marks it as being sent on the api before it goes out: true when it's this delivery's to send. False for one an
+  // earlier delivery already marked (its delete failed, then a restart forgot it was `handled`) and for one deleted
+  // meanwhile, both are only deleted. An api that can't be asked (down, or an older one without the route) doesn't
+  // hold it back: a reminder sent late or never is worse than one sent twice, which is all this guards against
+  async claimDelivery(shard: ShardClient, reminder: RestResponsesRaw.Reminder): Promise<boolean> {
+    if (reminder.sent_at) {
+      return false;
+    }
+    try {
+      const marked = await postReminderSent({client: shard}, reminder.id);
+      return marked.claimed !== false;
+    } catch(error) {
+      const information = await getApiError(error);
+      if (information && information.code === ApiErrorCodes.UNKNOWN_REMINDER) {
+        return false;
+      }
+      log.warn(`Couldn't mark reminder ${reminder.id} as sent, sending it anyway`, error);
+      return true;
+    }
   }
 
   async sendReminder(shard: ShardClient, reminder: RestResponsesRaw.Reminder, content: string): Promise<void> {

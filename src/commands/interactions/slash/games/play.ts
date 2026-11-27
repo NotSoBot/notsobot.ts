@@ -1,9 +1,10 @@
 import { Interaction } from 'detritus-client';
 
+import { CommandRatelimits } from '../../../../constants';
 import { I18n } from '../../../../utils';
-import { canUseEditor, isOwnAppChannel, launchEditor, replyPrivately } from '../../../../utils/editoractivity';
+import { launchEditor, refuseCommandLaunch } from '../../../../utils/editoractivity';
 
-import { BaseInteractionCommandOption, isBlockedUserInstallRun, isDecoyChannelRun } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export const COMMAND_ID = 'games';
@@ -26,21 +27,16 @@ export class GamesPlayCommand extends BaseInteractionCommandOption {
   launchesActivity = true;
   triggerLoadingAfter = -1;
 
+  constructor() {
+    // the launch commands' own bucket (`/editor`'s too)
+    super({ratelimits: CommandRatelimits.ACTIVITY});
+  }
+
   async run(context: Interaction.InteractionContext) {
-    if (!canUseEditor(context)) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('games_activity.not_ready'));
-    }
-    // an App Channel bound to NotSoBot has the activity open inline, its Games tab is right there
-    if (isOwnAppChannel(context)) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('games_activity.already_open'));
-    }
-    // the server turned NotSoBot off here, or it's the decoy channel: an activity would post that it started. owners
-    // skip the user-install check without waiting on it
-    if (isDecoyChannelRun(context) || await isBlockedUserInstallRun(context)) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('games_activity.channel_turned_off'), true);
+    // the gate: who it's open to, an App Channel bound to NotSoBot (the activity is open inline, its Games tab is right
+    // there), the decoy channel and a channel the server turned NotSoBot off in (an activity would post that it started)
+    if (await refuseCommandLaunch(context, 'games')) {
+      return;
     }
     await launchEditor(context, {surface: 'games'});
   }

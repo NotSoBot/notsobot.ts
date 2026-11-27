@@ -1,4 +1,5 @@
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
+import type { ComponentContext } from 'detritus-client/lib/utils';
 
 import { GuildPrefixCommandPermissions } from '../constants';
 
@@ -9,8 +10,12 @@ import { GuildPrefixCommandPermissions } from '../constants';
 // non-admin command in it used to ask again
 const RETRY_AFTER = 5 * 60 * 1000;
 const failures = new Collections.BaseCollection<string, number>({expire: RETRY_AFTER});
+// the ones discord refused (403, the install has no `applications.commands` scope) apart from the ones that just
+// didn't work (a 5xx, a timeout): only the first says there are no command permissions to go by
+const refusals = new Collections.BaseCollection<string, number>({expire: RETRY_AFTER});
 
-type AnyContext = Command.Context | Interaction.InteractionContext;
+// (a button press too: only its `client` is read)
+type AnyContext = Command.Context | Interaction.InteractionContext | ComponentContext;
 
 
 // detritus shares one fetch between callers asking at the same time, this only stops asking servers that keep failing
@@ -20,10 +25,21 @@ export async function fillApplicationCommandPermissions(context: AnyContext, gui
   }
   try {
     await context.client.applicationCommandPermissions.fill(guildId);
-  } catch(error) {
+  } catch(error: any) {
     failures.set(guildId, Date.now());
+    if (error && error.response && error.response.statusCode === 403) {
+      refusals.set(guildId, Date.now());
+    } else {
+      refusals.delete(guildId);
+    }
     throw error;
   }
+}
+
+// whether the last failed fetch was discord refusing it (the scope's missing), for callers that must not take a
+// failure that says nothing (discord was down) as "nothing is turned off": whether the bot posts in a channel
+export function wasApplicationCommandPermissionsFetchRefused(guildId: string): boolean {
+  return refusals.has(guildId);
 }
 
 

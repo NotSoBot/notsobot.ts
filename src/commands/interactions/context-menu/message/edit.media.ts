@@ -10,7 +10,7 @@ import { CommandRatelimits } from '../../../../constants';
 import { Formatter, I18n, displayReply } from '../../../../utils';
 import { launchEditor } from '../../../../utils/editoractivity';
 
-import { BaseContextMenuMessageCommand, ContextMenuMessageArgs, canLaunchEditorHere, isPrivateRun } from '../../basecommand';
+import { BaseContextMenuMessageCommand, ContextMenuMessageArgs, canLaunchEditorHere, deferUnansweredLaunch, isPrivateRun } from '../../basecommand';
 
 
 export interface EditMediaCommandArgs extends ContextMenuMessageArgs {
@@ -53,6 +53,8 @@ export default class EditMediaCommand extends BaseContextMenuMessageCommand {
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: EditMediaCommandArgs) {
+    // nothing deferred it (`launchesActivity`), and the reply below waits on the api
+    await deferUnansweredLaunch(context);
     const { translate } = await I18n.getTranslator(context);
     return displayReply(context, {description: translate('commands.context.edit_media.no_media'), ephemeral: true});
   }

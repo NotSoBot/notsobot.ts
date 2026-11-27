@@ -302,6 +302,10 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         if (settings && settings.blocked) {
           return setCommandGate(context, {kind: 'server_blocked', message: blockedServerMessage(translate, settings)});
         }
+        if (quick && !settings) {
+          // the group dm's settings didn't come in time, like a server's below: the launch goes on and stays quiet
+          markChecksIncomplete(context);
+        }
       }
 
       if (context.invoker.disableDm) {

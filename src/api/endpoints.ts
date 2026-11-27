@@ -241,6 +241,10 @@ export const Api = Object.freeze({
     '/media/i/create/foggy-window',
   MEDIA_I_CREATE_HACKER:
     '/media/i/create/hacker',
+  MEDIA_I_CREATE_WINERROR:
+    '/media/i/create/winerror',
+  MEDIA_I_CREATE_WINERROR_ICONS:
+    '/media/i/create/winerror/icons',
   MEDIA_I_CREATE_NEON:
     '/media/i/create/neon',
   MEDIA_I_CREATE_PRESIDENTIAL:
@@ -1343,6 +1347,8 @@ export const Api = Object.freeze({
     '/bans/timed',
   REMINDER_MOVE_TO_DMS:
     '/reminders/:reminderId/move-to-dms',
+  REMINDER_SENT:
+    '/reminders/:reminderId/sent',
   REMINDER_POSITIONAL:
     '/reminders/positional/:userId/:position',
 

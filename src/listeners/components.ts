@@ -19,6 +19,7 @@ import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import { log } from '../log';
+import { captureError } from '../sentry';
 import { RedisPayloads } from '../types';
 import { I18n, editOrReply, mediaReplyFromOptions, renderEphemeralDisplay } from '../utils';
 import { RawAttachment, disableStaleComponents, isStaticCustomId } from '../utils/stalecomponents';
@@ -43,7 +44,8 @@ import {
 
 import { createTempFilePath, hasTempDiskSpace, removeTempFile } from '../tempfiles';
 
-import { onActivityInvite, onEditorJoin, onEditorTemplate, onFlagGuesserActivity, onGamesJoin } from '../utils/editoractivity';
+import { launchButtonOf } from '../utils/editoractivity';
+import { InteractionExpiredError } from '../utils/errors';
 import { Listener } from './listener';
 import { onReportRespondComponent } from './reportmessages';
 
@@ -82,40 +84,23 @@ class ComponentsListener extends Listener {
             // read before anything is awaited: the shard runs the press's listener right after this event, a button
             // that ends its listener (a paginator's stop) would look stale afterwards
             const stale = isStalePress(shard, interaction);
-            if (context.customId === MessageComponentCustomIds.EDITOR_JOIN) {
+            // the activity's launcher buttons (the launch messages' Joins, Flag Guesser's Open in Activity, the api's
+            // template and invite cards): theirs alone, a press that failed never goes on down to the handlers below
+            const launch = launchButtonOf(context.customId);
+            if (launch) {
               try {
-                return await onEditorJoin(context);
+                await launch(context);
               } catch(error) {
-                log.warn(`editor join ${context.guildId}`, error);
+                // (the id without what follows its dot, an invite's code stands in for its room's password)
+                const button = context.customId.split('.')[0];
+                log.warn(`activity launch button ${button} ${context.guildId}`, error);
+                // a refusal's answer that came too late, or one discord turned down: the rest client's own reporting
+                // has those (`captureRestResponse`), like a command's errors
+                if (!(error instanceof InteractionExpiredError) && !(error && (error as any).response)) {
+                  captureError(error, {extra: {button}, tags: {source: 'editor.activity.button'}});
+                }
               }
-            }
-            if (context.customId === MessageComponentCustomIds.GAMES_JOIN) {
-              try {
-                return await onGamesJoin(context);
-              } catch(error) {
-                log.warn(`games join ${context.guildId}`, error);
-              }
-            }
-            if (context.customId === MessageComponentCustomIds.FLAG_GUESSER_ACTIVITY) {
-              try {
-                return await onFlagGuesserActivity(context);
-              } catch(error) {
-                log.warn(`flag guesser activity ${context.guildId}`, error);
-              }
-            }
-            if (context.customId.startsWith(MessageComponentCustomIds.EDITOR_TEMPLATE + '.')) {
-              try {
-                return await onEditorTemplate(context, context.customId.slice(MessageComponentCustomIds.EDITOR_TEMPLATE.length + 1));
-              } catch(error) {
-                log.warn(`editor template ${context.guildId}`, error);
-              }
-            }
-            if (context.customId.startsWith(MessageComponentCustomIds.ACTIVITY_INVITE + '.')) {
-              try {
-                return await onActivityInvite(context, context.customId.slice(MessageComponentCustomIds.ACTIVITY_INVITE.length + 1));
-              } catch(error) {
-                log.warn(`activity invite ${context.guildId}`, error);
-              }
+              return;
             }
             if (context.customId.startsWith(MessageComponentCustomIds.AUTO_EMBED_UNDO + '.')) {
               try {

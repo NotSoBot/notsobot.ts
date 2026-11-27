@@ -1,5 +1,8 @@
+import type { Interaction } from 'detritus-client';
+import { InteractionCallbackTypes, MessageFlags } from 'detritus-client/lib/constants';
 import { Markup, ComponentContext } from 'detritus-client/lib/utils';
 
+import { acknowledgeUserWarnings } from '../api';
 import type { GuildSettings } from '../api/structures/guildsettings';
 import type { ServerSettings } from '../api/structures/serversettings';
 import type { UserFull } from '../api/structures/user';
@@ -10,6 +13,7 @@ import UserStore from '../stores/users';
 
 // a cycle (the formatter imports utils), only read at runtime
 import { displayBlockedUntil } from './formatter/commands/owner.block.user';
+import { createUserWarningsNotice } from './formatter/commands/owner.warn';
 import { describeGuildRule, getCommandCategory, resolveGuildRule } from './guildrules';
 import { Translator, getCachedTranslator } from './i18n';
 
@@ -43,7 +47,7 @@ export function blockedServerMessage(translate: Translator['translate'], setting
 
 
 // the server's own rule (ACCESS) against `commandId` for whoever pressed, in the channel the button is in
-function blockingRule(context: ComponentContext, settings: GuildSettings, commandId: string) {
+function blockingRule(context: ComponentContext | Interaction.InteractionContext, settings: GuildSettings, commandId: string) {
   const member = context.member || null;
   const match = resolveGuildRule(settings, GuildRuleActions.ACCESS, {
     category: getCommandCategory(context.client.commandClient, commandId),
@@ -64,6 +68,9 @@ export interface ComponentAccess {
   blocked: string | null,
   // one of the server's rules keeps `commandId` from them here: what a command blocked the same way says
   rule: string | null,
+  // warnings from NotSoBot staff they haven't seen: shown in place of what the button does, like a command's
+  // (`onCommandCheck`), then marked seen (`answerWarningsPending`)
+  warnings: {content: string, warningIds: Array<string>} | null,
 }
 
 /**
@@ -73,7 +80,7 @@ export interface ComponentAccess {
  * them away when the activity signs in. `commandId`: the command the button belongs to, what the server's rules name
  */
 export function checkComponentAccess(context: ComponentContext, commandId: string): ComponentAccess {
-  const access: ComponentAccess = {blocked: null, rule: null};
+  const access: ComponentAccess = {blocked: null, rule: null, warnings: null};
   if (context.user.isClientOwner) {
     return access;
   }
@@ -82,6 +89,9 @@ export function checkComponentAccess(context: ComponentContext, commandId: strin
   if (user && user.isBlocked) {
     access.blocked = blockedUserMessage(translate, user);
     return access;
+  }
+  if (user && user.warningsPending.length) {
+    access.warnings = createUserWarningsNotice(translate, user.warningsPending);
   }
   if (!context.guildId) {
     // a group dm counts as a server (its settings are by the channel)
@@ -111,9 +121,13 @@ export function checkComponentAccess(context: ComponentContext, commandId: strin
 /**
  * Whether one of the server's rules keeps `commandId` from whoever pressed, asked of the api when the server's settings
  * aren't in memory. For after the press was answered (whether a launch gets its message in the channel), never before.
- * Settings that can't be had count as blocked: nothing is posted on a guess
+ * Settings that can't be had count as blocked: nothing is posted on a guess. A command's run too, for a command other
+ * than its own (the launch message names `/editor`, whichever command launched)
  */
-export async function isComponentRuleBlocked(context: ComponentContext, commandId: string): Promise<boolean> {
+export async function isComponentRuleBlocked(
+  context: ComponentContext | Interaction.InteractionContext,
+  commandId: string,
+): Promise<boolean> {
   if (!context.guildId || context.user.isClientOwner) {
     return false;
   }
@@ -127,4 +141,22 @@ export async function isComponentRuleBlocked(context: ComponentContext, commandI
     return true;
   }
   return !!blockingRule(context, settings, commandId);
+}
+
+
+/**
+ * The staff warnings `checkComponentAccess` found, as the press's private first answer in place of what the button
+ * does (the same notice a command shows, nothing in it waits on the api), then marked seen. Like a command, only once
+ * it was shown: a failed answer leaves them for the next press or command
+ */
+export async function answerWarningsPending(
+  context: ComponentContext,
+  warnings: NonNullable<ComponentAccess['warnings']>,
+): Promise<void> {
+  await context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+    allowedMentions: {parse: []},
+    content: warnings.content,
+    flags: MessageFlags.EPHEMERAL,
+  });
+  await acknowledgeUserWarnings(context, context.userId, {warningIds: warnings.warningIds}).catch(() => null);
 }

@@ -24,6 +24,7 @@ import { MediaITextCommand } from './text';
 import { MediaIThonkifyCommand } from './thonkify';
 import { MediaITreeCarvingCommand } from './tree-carving';
 import { MediaIWoodenSignCommand } from './wooden-sign';
+import { MediaIWinErrorCommand, MediaIWinErrorIconsCommand } from './winerror';
 import { MediaIWordcloudCommand } from './wordcloud';
 import { MediaIYachtCommand } from './yacht';
 
@@ -62,6 +63,8 @@ export default class MediaITextGroupCommand extends BaseSlashCommand {
         new MediaITextCommand(),
         new MediaIThonkifyCommand(),
         new MediaITreeCarvingCommand(),
+        new MediaIWinErrorCommand(),
+        new MediaIWinErrorIconsCommand(),
         new MediaIWoodenSignCommand(),
         new MediaIWordcloudCommand(),
         new MediaIYachtCommand(),

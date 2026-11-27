@@ -127,7 +127,7 @@ export namespace RestOptions {
     reason?: string,
     // the reply had the prefix commands ending tip
     tip?: boolean,
-    // auto_embed or ai_reply when nobody typed the command
+    // auto_embed or ai_reply when nobody typed the command, entry_point for Discord's Launch button (recorded as `/editor`)
     trigger?: string,
   }
 
@@ -187,6 +187,11 @@ export namespace RestOptions {
   export interface DeleteTagSearch {
     name: string,
     serverId?: string,
+  }
+
+  export interface DeleteGuildLLMKnowledge {
+    // the entry the prompt showed at the position (`GenerateTag.knowledge_ids`), the api acts on it instead
+    id?: string,
   }
 
   export interface DeleteUserLLMMemory {
@@ -320,12 +325,15 @@ export namespace RestOptions {
     templateCode?: string | null,
     // `invite`: the room invite's code, the activity redeems it and opens in its room
     inviteCode?: string | null,
-    // `join`: the Join button on the launch message, it never posts one of its own. `template_post`: Try it on a
+    // `entry_point_join`: whose launch message the Join was on, the choice lists them first under "Jump in with someone"
+    joinedUserId?: string | null,
+    // `join`: the Join button on the launch message, it never posts one of its own, and `entry_point_join` the Join on
+    // an `entry_point` launch's message (the mode choice, like it). `template_post`: Try it on a
     // template the api posted for someone (the activity's "Post in chat"). `games`: `/games play`, the activity opens on
     // its game rooms, and `games_join` the Join button on the message that posts. `flag_guesser`: Open in Activity on
     // Flag Guesser's messages in chat, straight to its rooms (posts the same message as `games`). `invite`: Join on a
     // room invite's card, never posts one either
-    surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command' | 'join' | 'template_post' | 'games' | 'games_join' | 'flag_guesser' | 'invite',
+    surface: 'entry_point' | 'entry_point_join' | 'edit_media' | 'edit_avatar' | 'command' | 'join' | 'template_post' | 'games' | 'games_join' | 'flag_guesser' | 'invite',
     // `flag_guesser`: the in-chat game it was pressed on, the activity offers a room continuing it (its difficulty, the
     // flag that was up first). The code stays on the api
     flagGame?: {difficulty: string, code: string | null} | null,
@@ -349,6 +357,8 @@ export namespace RestOptions {
 
   export interface EditGuildLLMKnowledge {
     content: string,
+    // the entry the prompt showed at the position (`GenerateTag.knowledge_ids`), the api acts on it instead
+    id?: string,
   }
 
   export interface EditUserLLMMemory {
@@ -1174,6 +1184,23 @@ export namespace RestOptions {
     safe?: boolean,
     template?: number,
     text: string,
+  }
+
+  export interface MediaICreateWinError {
+    buttons?: Array<{disabled?: boolean, name: string, recommended?: boolean}>,
+    closeDisabled?: boolean,
+    frameColor?: number,
+    gradientColors?: Array<number>,
+    icon?: string,
+    safe?: boolean,
+    scale?: number,
+    system?: string,
+    text: string,
+    title?: string,
+  }
+
+  export interface MediaICreateWinErrorIcons {
+    system?: string,
   }
 
   export interface MediaICreatePresidential {
@@ -3214,6 +3241,8 @@ export namespace RestResponsesRaw {
   export type DeleteReminder = null;
 
   export type EditReminder = Reminder;
+  // `claimed`: this call marked it as being sent, false when an earlier delivery already had (only delete it then)
+  export type PostReminderSent = Reminder & {claimed: boolean};
 
   export type DeleteTagSearch = null;
   export type DeleteTagsDirectoryTagVerification = TagDirectory;
@@ -3486,9 +3515,38 @@ export namespace RestResponsesRaw {
   }
 
   // ranks are null with 0 points (on that board)
+  // one game's record (`games` counts every recorded game, solo ones too) and its own stats, any stat can be missing
+  export interface GameStatsEntry {
+    best_win_streak: number,
+    games: number,
+    left: number,
+    losses: number,
+    solo: number,
+    stats: {
+      // the game's own score, not global points
+      best_score?: number,
+      // flag guesser: the longest run of flags named in a game
+      best_streak?: number,
+      // flag guesser: the quickest right answer from the flag showing, in milliseconds
+      fastest_ms?: number,
+      firsts?: number,
+      // letter trail
+      longest_word?: string,
+      named?: number,
+      // letter trail: words only they found
+      only_you?: number,
+      words?: number,
+    },
+    ties: number,
+    win_streak: number,
+    wins: number,
+  }
+
   export interface FetchGamePointsUser {
     games: Partial<Record<GamePointsGames, number>>,
     rank: {global: null | number, guild: null | number},
+    // every game is present, zeros without a recorded game
+    stats: Record<GamePointsGames, GameStatsEntry>,
     total: number,
     user_id: string,
     week: number,
@@ -4037,6 +4095,9 @@ export namespace RestResponsesRaw {
     credits_alert?: CreditsAlert,
     external_id: string,
     id?: string,
+    // the ids of the server knowledge entries the prompt listed, in its order (position 1 is the first), in a server
+    // only. an older api leaves it out
+    knowledge_ids?: Array<string>,
     // the ids of the memories the prompt listed, in its order (position 1 is the first), only when it had them. an
     // older api leaves it out
     memory_ids?: Array<string>,
@@ -5276,6 +5337,8 @@ export namespace RestResponsesRaw {
     is_all_day: boolean,
     message_id: string | null,
     position: number,
+    // the scheduler started delivering it (`postReminderSent`), it only waits to be deleted. an older api leaves it out
+    sent_at?: string | null,
     timestamp_end: string | null,
     timestamp_start: string,
     user: User,

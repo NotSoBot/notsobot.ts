@@ -125,6 +125,7 @@ import * as MediaAVToolsIdentify from './media.av.tools.identify';
 import * as MediaICreateEinstein from './media.i.create.einstein';
 import * as MediaICreateFoggyWindow from './media.i.create.foggy.window';
 import * as MediaICreateHacker from './media.i.create.hacker';
+import * as MediaICreateWinError from './media.i.create.winerror';
 import * as MediaICreateLucia from './media.i.create.lucia';
 import * as MediaICreateNeon from './media.i.create.neon';
 import * as MediaICreatePresidential from './media.i.create.presidential';
@@ -1005,6 +1006,7 @@ export {
   MediaICreateEinstein,
   MediaICreateFoggyWindow,
   MediaICreateHacker,
+  MediaICreateWinError,
   MediaICreateLucia,
   MediaICreateNeon,
   MediaICreatePresidential,

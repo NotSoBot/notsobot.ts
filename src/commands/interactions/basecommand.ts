@@ -44,9 +44,10 @@ import {
 } from '../../constants';
 import { captureCommandError, captureError } from '../../sentry';
 import { DefaultParameters, FindMediaUrlOptions, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
-import { canUseEditor, isOwnAppChannel } from '../../utils/editoractivity';
+import { launchRefusal } from '../../utils/editoractivity';
 import { fillApplicationCommandPermissions, getApplicationCommandPermissionsLoaded } from '../../utils/commandpermissions';
 import { InteractionExpiredError } from '../../utils/errors';
+import { INTERACTION_EARLY_DEFER_AGE, getInteractionAge } from '../../utils/interactiondeadline';
 
 import {
   createArgumentErrorPayload,
@@ -153,9 +154,15 @@ const COMMAND_PERMISSIONS_WAIT = 1500;
 // all, from when its checks started. After that it goes on with what's known
 export const FIRST_ANSWER_CHECKS_WAIT = 1000;
 
+// and never past the age every other command is deferred at (by discord's clock, the interaction's id): one that
+// reached us late (a stalled event loop) used to get the whole wait anyway, and its answer then missed the 3 seconds
+// when answering right away, with what's known, would have made it
 export function firstAnswerWaitLeft(context: Interaction.InteractionContext): number {
-  const started = (context.metadata && context.metadata.started) || Date.now();
-  return Math.max(0, started + FIRST_ANSWER_CHECKS_WAIT - Date.now());
+  const now = Date.now();
+  const started = (context.metadata && context.metadata.started) || now;
+  const byChecks = started + FIRST_ANSWER_CHECKS_WAIT - now;
+  const byAge = INTERACTION_EARLY_DEFER_AGE - getInteractionAge(context.interactionId, now);
+  return Math.max(0, Math.min(byChecks, byAge));
 }
 
 // one of those checks couldn't be made in time (its data wasn't there yet): the run goes on, but nothing is posted in
@@ -225,13 +232,23 @@ export function isDecoyChannelRun(context: {channelId?: string | null, guildId?:
 }
 
 // whether Edit Media/Edit Avatar offer "Open editor": who can use the editor yet, and not where NotSoBot is turned off
-// or the decoy channel (an activity posts that it started, for everyone)
+// or the decoy channel (an activity posts that it started, for everyone). the launcher's own gate (`launchRefusal`, an
+// App Channel bound to NotSoBot too: it already shows the activity beside its chat), with their menu instead of its
+// refusal
 export async function canLaunchEditorHere(context: Interaction.InteractionContext): Promise<boolean> {
-  // (an App Channel bound to NotSoBot already shows the activity beside its chat, a launch would open a second copy)
-  if (!canUseEditor(context) || isOwnAppChannel(context)) {
+  if (launchRefusal(context, 'edit_media')) {
     return false;
   }
-  return !(await isBlockedUserInstallRun(context)) && !isDecoyChannelRun(context);
+  return !(await isBlockedUserInstallRun(context));
+}
+
+// A launch command that ends up answering with text from one of the shared hooks instead (its ratelimit, a run error,
+// no media found): nothing deferred it (`answersItselfFirst`), and those answers wait on the api for the translations
+// and settings. Deferred here first, privately, so the answer can take its time. Throws when it's already too late
+export async function deferUnansweredLaunch(context: Interaction.InteractionContext): Promise<void> {
+  if (launchesActivity(context) && !context.responded) {
+    await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+  }
 }
 
 // a command that answers by launching the activity (`launchesActivity`, its own or its option's)
@@ -285,6 +302,9 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   // the same for launching a discord activity (`context.launchActivity()`): it has to be the interaction's first answer,
   // within 3 seconds and with nothing deferring it. the command defers itself when it ends up not launching
   launchesActivity = false;
+  // a command with no page or usage of its own (the Launch entry point): its runs are recorded as another command's,
+  // with `trigger` saying what really started them. the api only takes usage for a command it knows by id and type
+  recordsUsageAs: null | {commandId: string, commandType: CommandTypes, trigger: string} = null;
   error = 'Command';
 
   get commandIds() {
@@ -499,6 +519,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     ratelimits: Array<Interaction.CommandRatelimitInfo>,
     metadata: Interaction.CommandRatelimitMetadata,
   ) {
+    await deferUnansweredLaunch(context);
     const { language, translate } = await I18n.getTranslator(context);
     const { global } = metadata;
     // the longest wait, the shorter ones don't matter until it's over
@@ -532,8 +553,14 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     }
     captureCommandError(context, error);
     // a modal response has no message to edit or follow up on (detritus beta.136+ throws instead of asking discord), the
-    // error is only reported
-    if (context.responseType === InteractionCallbackTypes.MODAL) {
+    // error is only reported. an activity launch neither
+    if (context.responseType === InteractionCallbackTypes.MODAL || context.responseType === InteractionCallbackTypes.LAUNCH_ACTIVITY) {
+      return;
+    }
+    try {
+      await deferUnansweredLaunch(context);
+    } catch(error) {
+      // too late for the error's reply as well
       return;
     }
     const translator = await I18n.getTranslator(context);
@@ -547,17 +574,18 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       return;
     }
 
+    const recordsAs = (context.command as BaseInteractionCommand).recordsUsageAs || null;
     let commandType: null | number = null;
     switch (context.command.type) {
       case ApplicationCommandTypes.CHAT_INPUT: commandType = CommandTypes.APPLICATION_SLASH; break;
       case ApplicationCommandTypes.MESSAGE: commandType = CommandTypes.APPLICATION_MENU_MESSAGE; break;
       case ApplicationCommandTypes.USER: commandType = CommandTypes.APPLICATION_MENU_USER; break;
-      default: commandType = null;
+      default: commandType = (recordsAs) ? recordsAs.commandType : null;
     }
 
     if (commandType !== null) {
       const metadata = context.invoker.metadata;
-      const commandId = metadata.id || context.name.split(' ').join('.');
+      const commandId = (recordsAs) ? recordsAs.commandId : metadata.id || context.name.split(' ').join('.');
       // set by NotSoAI's command, which response its reply holds
       const llmResponseId: string | undefined = context.metadata && context.metadata.llmResponseId;
       if (llmResponseId && context.responseId) {
@@ -602,6 +630,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
             messageTriggerId: context.interactionId,
             reason: getRecordedCommandReason(context, result),
             result,
+            trigger: (recordsAs) ? recordsAs.trigger : undefined,
           },
         );
       }, (error) => context.interactionCommandClient.emit(ClientEvents.COMMAND_ERROR, {command, context, error}));

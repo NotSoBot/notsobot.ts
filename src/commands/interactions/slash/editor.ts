@@ -7,9 +7,9 @@ import {
 
 import { CommandRatelimits } from '../../../constants';
 import { I18n } from '../../../utils';
-import { canUseEditor, editorTemplateCodeOf, isOwnAppChannel, launchEditor, replyPrivately } from '../../../utils/editoractivity';
+import { editorTemplateCodeOf, launchEditor, recordLaunchEnd, refuseCommandLaunch, replyPrivately } from '../../../utils/editoractivity';
 
-import { BaseSlashCommand, isBlockedUserInstallRun, isDecoyChannelRun } from '../basecommand';
+import { BaseSlashCommand } from '../basecommand';
 
 
 export const COMMAND_ID = 'editor';
@@ -67,7 +67,8 @@ export default class EditorCommand extends BaseSlashCommand {
 
   constructor() {
     super({
-      ratelimits: CommandRatelimits.MEDIA,
+      // its own bucket (shared with `/games play` and the Launch entry point), not the channel's media one: it runs no job
+      ratelimits: CommandRatelimits.ACTIVITY,
       options: [
         {
           name: 'attachment',
@@ -90,29 +91,21 @@ export default class EditorCommand extends BaseSlashCommand {
   }
 
   async run(context: Interaction.InteractionContext, args: EditorCommandArgs) {
-    if (!canUseEditor(context)) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('editor_activity.not_ready'));
+    // the gate: who the editor's open to, an App Channel bound to NotSoBot (it has the editor open inline, another
+    // launch there would only stack a second one), the decoy channel and a channel the server turned NotSoBot off in
+    // (an activity would post that it started)
+    if (await refuseCommandLaunch(context, 'command')) {
+      return;
     }
-    // an App Channel bound to NotSoBot has the editor open inline, another launch there would only stack a second one
-    if (isOwnAppChannel(context)) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('editor_activity.already_open'));
-    }
-    // the server turned NotSoBot off here, or it's the decoy channel: an activity would post that it started. owners
-    // skip the user-install check without waiting on it
-    if (isDecoyChannelRun(context) || await isBlockedUserInstallRun(context)) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('editor_activity.channel_turned_off'), true);
-    }
+    // (the cached translator: these are the interaction's first answer like the launch, nothing may wait on the api)
     if (args.url && !args.attachment && !mediaUrlOf(args)) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('editor_activity.bad_url'), true);
+      recordLaunchEnd(context, 'launch_bad_url');
+      return replyPrivately(context, I18n.getCachedTranslator(context).translate('editor_activity.bad_url'), true);
     }
     const templateCode = (args.template) ? editorTemplateCodeOf(args.template) : null;
     if (args.template && !templateCode) {
-      const { translate } = await I18n.getTranslator(context);
-      return replyPrivately(context, translate('editor_activity.bad_template'), true);
+      recordLaunchEnd(context, 'launch_bad_template');
+      return replyPrivately(context, I18n.getCachedTranslator(context).translate('editor_activity.bad_template'), true);
     }
     await launchEditor(context, {surface: 'command', mediaUrl: mediaUrlOf(args), templateCode});
   }

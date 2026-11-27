@@ -836,9 +836,14 @@ export async function deleteGuildLLMKnowledge(
   context: RequestContext,
   guildId: string,
   position: number | string,
+  options: RestOptions.DeleteGuildLLMKnowledge = {},
 ): Promise<RestResponsesRaw.DeleteGuildLLMKnowledge> {
+  const query = {
+    id: options.id,
+  };
   const params = {guildId, position};
   return request(context, {
+    query,
     route: {
       method: HTTPMethods.DELETE,
       path: Api.GUILD_LLM_KNOWLEDGE_ITEM,
@@ -1048,6 +1053,22 @@ export async function moveReminderToDms(
 }
 
 
+// the scheduler is about to deliver it (`sent_at`), before the message goes out: `claimed` false means it already was
+export async function postReminderSent(
+  context: RequestContext,
+  reminderId: string,
+): Promise<RestResponsesRaw.PostReminderSent> {
+  const params = {reminderId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.REMINDER_SENT,
+      params,
+    },
+  });
+}
+
+
 export async function editReminder(
   context: RequestContext,
   reminderId: string,
@@ -1194,6 +1215,7 @@ export async function storeEditorActivityLaunch(
     guild_id: options.guildId || undefined,
     flag_game: (options.flagGame) ? {code: options.flagGame.code || undefined, difficulty: options.flagGame.difficulty} : undefined,
     invite_code: options.inviteCode || undefined,
+    joined_user_id: options.joinedUserId || undefined,
     locale: options.locale || undefined,
     media_url: options.mediaUrl || undefined,
     surface: options.surface,
@@ -1236,6 +1258,7 @@ export async function editGuildLLMKnowledge(
 ): Promise<RestResponsesRaw.EditGuildLLMKnowledge> {
   const body = {
     content: options.content,
+    id: options.id,
   };
   const params = {guildId, position};
   return request(context, {
@@ -4711,6 +4734,51 @@ export async function mediaICreateHacker(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_HACKER,
+    },
+  });
+}
+
+
+export async function mediaICreateWinError(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWinError,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    buttons: options.buttons,
+    close_disabled: options.closeDisabled,
+    frame_color: options.frameColor,
+    gradient_colors: options.gradientColors,
+    icon: options.icon,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    scale: options.scale,
+    system: options.system,
+    text: options.text,
+    title: options.title,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_WINERROR,
+    },
+  });
+}
+
+
+export async function mediaICreateWinErrorIcons(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWinErrorIcons,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    system: options.system,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MEDIA_I_CREATE_WINERROR_ICONS,
     },
   });
 }

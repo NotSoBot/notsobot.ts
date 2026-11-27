@@ -1,4 +1,5 @@
 import { ClusterClient, Command, Interaction } from 'detritus-client';
+import type { ComponentContext } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Store } from './store';
@@ -10,6 +11,9 @@ import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 import { FetchVersions } from '../utils/fetchversions';
 
+
+// whoever the user is asked for: a command's run, or a button's press (after it was answered, a fetch can take seconds)
+type UserFetchContext = Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext | ComponentContext;
 
 // Stores NotSoApi User Object
 class UserStore extends Store<string, UserFull> {
@@ -28,7 +32,7 @@ class UserStore extends Store<string, UserFull> {
   }
 
   async getOrFetch(
-    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+    context: UserFetchContext,
     userId: string,
   ): Promise<UserFull | null> {
     let user: UserFull | null = null;
@@ -46,7 +50,7 @@ class UserStore extends Store<string, UserFull> {
   }
 
   async fetch(
-    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+    context: UserFetchContext,
     userId: string,
   ): Promise<UserFull | null> {
     let promise: Promise<UserFull | null>;

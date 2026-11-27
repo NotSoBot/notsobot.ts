@@ -92,6 +92,8 @@ type GameContext = Command.Context | Interaction.InteractionContext | ComponentC
 
 enum RoundOutcomes {
   CORRECT = 'CORRECT',
+  // Open in Activity took its flag into a room (`holdForActivity`), its answer isn't shown
+  MOVED = 'MOVED',
   SKIPPED = 'SKIPPED',
   TIMED_OUT = 'TIMED_OUT',
 }
@@ -111,6 +113,9 @@ interface Game {
   aborted: boolean,
   // an aborted game whose message stays: an edited trigger's new run replies in it
   abortKeepsResponse: boolean,
+  // an Open in Activity press is launching with its flag: guesses and the skip don't count until it's settled
+  // (`holdForActivity`)
+  carrying: boolean,
   channelId: string,
   context: GameContext,
   country: Country,
@@ -141,15 +146,20 @@ interface Game {
   translator: Translator,
 }
 
-// one flag per channel, so guesses go to the right one
-const activeGames = new Map<string, Game>();
+// one flag per channel, so guesses go to the right one. Kept on the process like the carries below: a `.refresh`
+// reloads this module while a game from before it keeps running on the old copy (its timers, its chat listener, its
+// Play Again), and a fresh map here let a second game start in that channel. Only the process's own games, a channel's
+// commands and presses come to its shard's process
+const activeGames: Map<string, Game> = (globalThis as any).notsobotFlagGuesserGames = (globalThis as any).notsobotFlagGuesserGames || new Map();
 // channels whose flag is still starting, taken before anything is awaited so two Play Again clicks at once can't both
-// start one
-const startingChannels = new Set<string>();
+// start one. On the process for the same reason
+const startingChannels: Set<string> = (globalThis as any).notsobotFlagGuesserStarting = (globalThis as any).notsobotFlagGuesserStarting || new Set();
 const flagCache = new Map<string, Promise<Buffer>>();
 // each flag's message: its difficulty, and its flag's code while nobody's answered it, for its Open in Activity (a room
-// continuing the game, `flagGuesserCarry`). per process is enough, a channel's interactions come to its shard's process
-const carriedByMessage = new Map<string, FlagGuesserCarry>();
+// continuing the game, `takeFlagGuesserCarry`). per process is enough, a channel's interactions come to its shard's process.
+// kept on the process: a `.refresh` reloads this module, and a game from before it (its Play Again chain keeps running
+// the old copy) has to write where the reloaded launcher reads
+const carriedByMessage: Map<string, CarriedMessage> = (globalThis as any).notsobotFlagGuesserCarries = (globalThis as any).notsobotFlagGuesserCarries || new Map();
 // the latest flags' messages, older ones' Open in Activity opens the rooms as before
 const CARRIED_MESSAGES = 1000;
 
@@ -159,10 +169,38 @@ export interface FlagGuesserCarry {
   code: string | null,
 }
 
-// what an Open in Activity press on `messageId` carries into the activity, null for a message this process doesn't know
-export function flagGuesserCarry(messageId: string | undefined): FlagGuesserCarry | null {
-  const carry = (messageId) ? carriedByMessage.get(messageId) : undefined;
-  return (carry) ? {...carry} : null;
+interface CarriedMessage extends FlagGuesserCarry {
+  // while its flag is up: takes it out of the chat round for a launch (`holdForActivity`), from the module copy that
+  // started the game (a `.refresh` keeps it on its old code). null when another press already holds it
+  hold?: (user: Structures.User) => ((moved: boolean) => void) | null,
+}
+
+export interface FlagGuesserCarryTaken {
+  // what the launch carries (`LaunchOptions.flagGame`)
+  flagGame: FlagGuesserCarry,
+  // once the launch is over: `moved` ends the chat round as taken to the Activity, otherwise it goes on as before
+  settle: (moved: boolean) => void,
+}
+
+// What an Open in Activity press on `messageId` carries into the activity, null for a message this process doesn't
+// know. A flag still up is held out of the chat round until `settle`: nobody can score it in chat while it's on its way
+// into a room. A second press while it's held carries the difficulty only, one room gets the flag
+export function takeFlagGuesserCarry(messageId: string | undefined, user: Structures.User): FlagGuesserCarryTaken | null {
+  const carried = (messageId) ? carriedByMessage.get(messageId) : undefined;
+  if (!carried) {
+    return null;
+  }
+  const flagGame: FlagGuesserCarry = {difficulty: carried.difficulty, code: carried.code};
+  let settle: (moved: boolean) => void = () => {};
+  if (flagGame.code && carried.hold) {
+    const held = carried.hold(user);
+    if (held) {
+      settle = held;
+    } else {
+      flagGame.code = null;
+    }
+  }
+  return {flagGame, settle};
 }
 // every country's names in a language, built once
 const matchers = new Map<string, CountryMatcher>();
@@ -217,6 +255,7 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
   const game: Game = {
     aborted: false,
     abortKeepsResponse: false,
+    carrying: false,
     channelId,
     context,
     country,
@@ -270,7 +309,11 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
     await editOrReply(context, await renderDisplay(context, createGamePayload(game)));
     game.responseId = await getResponseId(game);
     if (game.responseId) {
-      carriedByMessage.set(game.responseId, {difficulty: game.session.difficulty, code: (game.finished) ? null : game.country.code});
+      carriedByMessage.set(game.responseId, {
+        difficulty: game.session.difficulty,
+        code: (game.finished) ? null : game.country.code,
+        hold: (game.finished) ? undefined : (user) => holdForActivity(game, user),
+      });
       if (CARRIED_MESSAGES < carriedByMessage.size) {
         carriedByMessage.delete(carriedByMessage.keys().next().value!);
       }
@@ -353,6 +396,7 @@ function cleanupGame(game: Game): void {
   const carry = (game.responseId) ? carriedByMessage.get(game.responseId) : undefined;
   if (carry) {
     carry.code = null;
+    carry.hold = undefined;
   }
   game.timer.stop();
   game.hintTimer.stop();
@@ -552,6 +596,10 @@ function createGameComponents(game: Game): Components {
         const { translate } = await getTranslator(ctx);
         return respondEphemeral(ctx, translate('game.flag.only_host', {user: `<@${game.hostId}>`}));
       }
+      if (game.carrying) {
+        // held for an Open in Activity press, whose launch ends or resumes it
+        return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      }
       await ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       await endGame(game, RoundOutcomes.SKIPPED, null);
     },
@@ -594,7 +642,7 @@ function createPlayAgainComponents(game: Game): Components {
 }
 
 
-// Open in Activity, a room in the activity continuing this game (`onFlagGuesserActivity`, `flagGuesserCarry`: its
+// Open in Activity, a room in the activity continuing this game (`launchButtonOf` in utils/editoractivity.ts, `takeFlagGuesserCarry`: its
 // difficulty and, while unanswered, its flag first), its rooms for a message this process forgot. a static id the
 // components listener answers, so it keeps working after this message's buttons stop listening. Left out while the
 // activity is only open to NotSoBot owners and whoever started this flag isn't one, a press would only say it's not
@@ -620,7 +668,8 @@ function createGuessModal(game: Game, translator: Translator): InteractionModal 
     title: translate('game.flag.modal_title'),
     run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
       const guess = String(args.guess || '');
-      if (game.finished) {
+      // (held for an Open in Activity press: it's on its way into a room)
+      if (game.finished || game.carrying) {
         return respondEphemeral(modalContext, translate('game.flag.round_over'));
       }
       if (!game.matcher.isCorrect(game.country, guess)) {
@@ -664,7 +713,7 @@ async function replyWarning(context: GameContext, text: string): Promise<void> {
 
 
 async function onChatMessage(game: Game, message: Structures.Message): Promise<void> {
-  if (message.channelId !== game.channelId || message.fromBot || game.finished) {
+  if (message.channelId !== game.channelId || message.fromBot || game.finished || game.carrying) {
     return;
   }
   const content = message.content;
@@ -731,6 +780,29 @@ function awardPoints(game: Game, user: Structures.User, points: number): void {
 }
 
 
+// An Open in Activity press taking this flag into a room: held out of the chat round while the launch is tried, then
+// `settle` ends it as moved (the message says who took it, its answer stays hidden: it's still being played) or lets it
+// go on. null when it's over or another press holds it. Hints and the timer keep going meanwhile, a flag that runs out
+// while held ends as timed out and a later settle changes nothing
+function holdForActivity(game: Game, user: Structures.User): ((moved: boolean) => void) | null {
+  if (game.finished || game.aborted || game.carrying) {
+    return null;
+  }
+  game.carrying = true;
+  let settled = false;
+  return (moved: boolean) => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    game.carrying = false;
+    if (moved) {
+      endGame(game, RoundOutcomes.MOVED, user).catch(() => {});
+    }
+  };
+}
+
+
 async function endGame(game: Game, outcome: RoundOutcomes, scorer: Structures.User | null): Promise<void> {
   if (game.finished) {
     return;
@@ -753,6 +825,11 @@ async function endGame(game: Game, outcome: RoundOutcomes, scorer: Structures.Us
         `${StatusEmojis.YES} ${translate('game.flag.correct', {user: `<@${user}>`, country, points: translate('game.flag.points', {points})})}`,
         (bonus) ? `-# ${translate('game.flag.streak', {count: session.streak.count})}` : null,
       ]);
+    }; break;
+    case RoundOutcomes.MOVED: {
+      // nobody named it here, like a skip
+      session.streak = null;
+      game.result = translate('game.flag.moved', {user: `<@${scorer!.id}>`});
     }; break;
     case RoundOutcomes.SKIPPED: {
       session.streak = null;

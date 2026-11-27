@@ -3093,7 +3093,7 @@ export async function getPostGallery(
 
 // the same order from only what's cached, for a button press or modal that has to be answered right away
 export function getCachedResponseDisplay(
-  context: ComponentContext | InteractionModalContext,
+  context: ComponentContext | InteractionModalContext | Interaction.InteractionContext,
 ): UserSettingsResponseDisplayTypes {
   const userSettings = UserSettingsStore.get(context.userId);
   if (userSettings && typeof(userSettings.response_display) === 'number') {
@@ -3654,9 +3654,10 @@ export async function renderDisplay(
 }
 
 // a button press's or modal's own message that only whoever used it sees, rendered from only what's cached since it has
-// to be answered right away (`respond`, or a follow-up after deferring). `translator` is the cached one they already use
+// to be answered right away (`respond`, or a follow-up after deferring). `translator` is the cached one they already use.
+// a command's too when nothing defers it and its answer is its first (an activity launch that's refused)
 export function renderEphemeralDisplay(
-  context: ComponentContext | InteractionModalContext,
+  context: ComponentContext | InteractionModalContext | Interaction.InteractionContext,
   translator: Pick<Translator, 'translate'>,
   payload: DisplayPayload,
 ): Record<string, any> {
@@ -4715,11 +4716,20 @@ export function slashCommandMention(
   fullName: string,
 ): string {
   const [ topLevelName ] = fullName.split(' ');
+  const commandId = slashCommandId(context, topLevelName);
+  return (commandId) ? Markup.commandMention(fullName, commandId) : Markup.codestring(`/${fullName}`);
+}
+
+// a top-level slash command's global id (what its mention and the server's command permissions go by), null when the
+// interaction command client hasn't registered it
+export function slashCommandId(
+  context: Command.Context | Interaction.InteractionContext | ComponentContext,
+  topLevelName: string,
+): string | null {
   const command = (context.interactionCommandClient) ? context.interactionCommandClient.commands.find((x) => {
     return x.type === ApplicationCommandTypes.CHAT_INPUT && x.name === topLevelName;
   }) : undefined;
-  const commandId = (command) ? command.ids.get(LOCAL_GUILD_ID) : undefined;
-  return (commandId) ? Markup.commandMention(fullName, commandId) : Markup.codestring(`/${fullName}`);
+  return (command && command.ids.get(LOCAL_GUILD_ID)) || null;
 }
 
 

@@ -1609,6 +1609,10 @@ export interface TagContext {
   // the ids of the memories NotSoAI's prompt listed (`GenerateTag.memory_ids`), `{ai.memory.edit:N}` changes the one at
   // N by id since positions shift (an earlier delete in the same reply, or one on the dashboard meanwhile)
   aiMemoryIds?: ReadonlyArray<string>,
+  // the same for the server knowledge it listed (`GenerateTag.knowledge_ids`), `{ai.knowledge.delete:N}` and
+  // `{ai.knowledge.edit:N|...}`: `{ai.knowledge.delete:1}{ai.knowledge.delete:2}` removes the prompt's first and second,
+  // not the first and the one that moved up into second
+  aiKnowledgeIds?: ReadonlyArray<string>,
   // NotSoAI's reply can ask the command user before some functions run (`confirmAIAction`), only `tag generate` has one
   confirmAction?: AIConfirmAction,
   // the tag being run is a verified directory listing (staff reviewed it), it gets premium limits like a premium user's
@@ -2375,6 +2379,13 @@ function parseAIMemoryPosition(value: string): number {
 // for a position the prompt didn't have
 function getAIMemoryId(tag: TagResult, position: number): string | undefined {
   const ids = tag.context.aiMemoryIds;
+  return (ids) ? ids[position - 1] : undefined;
+}
+
+// the id of the server knowledge entry the prompt showed at that position, undefined (the api uses the position) from an
+// older api or for a position the prompt didn't have (one added earlier in this reply)
+function getAIKnowledgeId(tag: TagResult, position: number): string | undefined {
+  const ids = tag.context.aiKnowledgeIds;
   return (ids) ? ids[position - 1] : undefined;
 }
 
@@ -4549,14 +4560,18 @@ const ScriptTags = Object.freeze({
       // is from ai, parse the text first. its prompt was built while running, so it can have anyone's text in it
       const isFromAICache = tag.variables[PrivateVariables.IS_FROM_AI];
       tag.variables[PrivateVariables.IS_FROM_AI] = 1;
-      // its memory positions are into its own prompt's list, which an earlier change in this reply could have shifted
+      // its memory and knowledge positions are into its own prompt's lists, which an earlier change in this reply could
+      // have shifted
       const aiMemoryIdsCache = tag.context.aiMemoryIds;
+      const aiKnowledgeIdsCache = tag.context.aiKnowledgeIds;
       tag.context.aiMemoryIds = response.memory_ids;
+      tag.context.aiKnowledgeIds = response.knowledge_ids;
       try {
         tag.text += await parseUntrustedValue(context, tag, response.text);
       } finally {
         tag.variables[PrivateVariables.IS_FROM_AI] = isFromAICache;
         tag.context.aiMemoryIds = aiMemoryIdsCache;
+        tag.context.aiKnowledgeIds = aiKnowledgeIdsCache;
       }
     }
 
@@ -4604,7 +4619,9 @@ const ScriptTags = Object.freeze({
     }
     increaseNetworkRequests(tag);
 
-    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => deleteGuildLLMKnowledge(context, context.guildId!, position)));
+    // by the id the prompt showed there: positions shift once an earlier one in this reply is deleted
+    const id = getAIKnowledgeId(tag, position);
+    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => deleteGuildLLMKnowledge(context, context.guildId!, position, {id})));
     tag.text += String(true);
 
     return true;
@@ -4628,7 +4645,8 @@ const ScriptTags = Object.freeze({
     checkAIKnowledgeChange(context, tag);
     increaseNetworkRequests(tag);
 
-    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => editGuildLLMKnowledge(context, context.guildId!, position, {content: withRealNewlines(content)})));
+    const id = getAIKnowledgeId(tag, position);
+    await withAIKnowledgeNotFound(position, () => withDeadline(context, tag, () => editGuildLLMKnowledge(context, context.guildId!, position, {content: withRealNewlines(content), id})));
     tag.text += String(true);
 
     return true;

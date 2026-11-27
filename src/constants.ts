@@ -2230,6 +2230,10 @@ export enum MessageComponentCustomIds {
   // the Join button on the message an editor launch posts: launches the activity in that channel (Discord joins the one
   // already running there)
   EDITOR_JOIN = 'editor-join',
+  // `entry-point-join.<user id>`: the Join button on the message an entry point ("Mess Around") launch posts: the same
+  // activity, opened on its editor-or-games choice like the launch was, with whoever launched it first under "Jump in
+  // with someone"
+  ENTRY_POINT_JOIN = 'entry-point-join',
   // the Join button on the message a `/games play` launch posts: the same activity, opened on its game rooms
   GAMES_JOIN = 'games-join',
   // Open in Activity on Flag Guesser's messages in chat (`/games flag-guesser`): the activity in that channel, opened on
@@ -2391,6 +2395,9 @@ export enum ProxyRequestMethods {
 // slash clients share one ratelimiter (see bot.ts) so `.imagine` and `/tools ml imagine` count against each other too.
 // the `shared.` prefix keeps them apart from detritus' per command keys, the website labels the group by the key
 export const RatelimitKeys = Object.freeze({
+  // opening the activity (`/editor`, `/games play`, the Launch entry point): no job runs, its own bucket so a launch
+  // doesn't wait on (or hold up) the channel's media commands
+  ACTIVITY: 'shared.activity',
   // the headless browser and the downloader, both hold a worker for seconds
   BROWSER: 'shared.browser',
   MEDIA: 'shared.media',
@@ -2402,6 +2409,11 @@ export const RatelimitKeys = Object.freeze({
 });
 
 export const CommandRatelimits = Object.freeze({
+  // per person, not per channel: a few people opening it together in one channel is how it's meant to be used
+  ACTIVITY: [
+    {duration: 5000, limit: 10, key: RatelimitKeys.ACTIVITY, type: 'guild'},
+    {duration: 3000, limit: 2, key: RatelimitKeys.ACTIVITY, type: 'user'},
+  ],
   BROWSER: [
     {duration: 5000, limit: 5, key: RatelimitKeys.BROWSER, type: 'guild'},
     {duration: 2000, limit: 2, key: RatelimitKeys.BROWSER, type: 'channel'},
