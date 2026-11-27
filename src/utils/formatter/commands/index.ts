@@ -36,6 +36,8 @@ import * as FunZalgo from './fun.zalgo';
 
 import * as GameFlag from './game.flag';
 import * as GameImagine from './game.imagine';
+import * as GamesLeaderboard from './games.leaderboard';
+import * as GamesPoints from './games.points';
 
 import * as InfoActivity from './info.activity';
 import * as InfoApplications from './info.applications';
@@ -665,6 +667,7 @@ import * as ModerationWarningsClear from './moderation.warnings.clear';
 import * as ModerationWarningsRemove from './moderation.warnings.remove';
 
 import * as ServerBans from './server.bans';
+import * as ServerEditorChannel from './server.editorchannel';
 import * as ServerFontsAdd from './server.fonts.add';
 import * as ServerFontsList from './server.fonts.list';
 import * as ServerFontsRemove from './server.fonts.remove';
@@ -913,6 +916,8 @@ export {
 
   GameFlag,
   GameImagine,
+  GamesLeaderboard,
+  GamesPoints,
 
   InfoActivity,
   InfoApplications,
@@ -1542,6 +1547,7 @@ export {
   ModerationWarningsRemove,
 
   ServerBans,
+  ServerEditorChannel,
   ServerFontsAdd,
   ServerFontsList,
   ServerFontsRemove,

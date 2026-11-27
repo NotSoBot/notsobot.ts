@@ -70,20 +70,6 @@ export function embedParser(value: string, context: Command.Context | Interactio
   throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_embed'));
 }
 
-export function textParser(value: string, context: Command.Context | Interaction.InteractionContext): boolean | undefined {
-  const text = value.trim().toLowerCase();
-  if (!text) {
-    return undefined;
-  }
-  if (EMBED_ON_VALUES.includes(text)) {
-    return true;
-  }
-  if (EMBED_OFF_VALUES.includes(text)) {
-    return false;
-  }
-  throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_text'));
-}
-
 export function membersParser(value: string, context: Command.Context | Interaction.InteractionContext): boolean | undefined {
   const text = value.trim().toLowerCase();
   if (!text) {
@@ -98,18 +84,43 @@ export function membersParser(value: string, context: Command.Context | Interact
   throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_members'));
 }
 
-export function screenshotParser(value: string, context: Command.Context | Interaction.InteractionContext): boolean | undefined {
+// the one `text` choice (slash choices and the prefixed command's `-text`) for both saved settings: the screenshot only replaces the text reply of a
+// text-only post, so it never made sense as its own toggle (it did nothing with the text off)
+export enum AutoEmbedTextModes {
+  OFF = 'off',
+  SCREENSHOT = 'screenshot',
+  TEXT = 'text',
+}
+
+export function textModeSlashParser(value: string): AutoEmbedTextModes | undefined {
+  return (Object.values(AutoEmbedTextModes) as Array<string>).includes(value) ? value as AutoEmbedTextModes : undefined;
+}
+
+// the prefixed command's `-text`: text, screenshot or off, and on/off like before (on is text)
+export function textParser(value: string, context: Command.Context | Interaction.InteractionContext): AutoEmbedTextModes | undefined {
   const text = value.trim().toLowerCase();
   if (!text) {
     return undefined;
   }
+  const mode = textModeSlashParser(text);
+  if (mode) {
+    return mode;
+  }
   if (EMBED_ON_VALUES.includes(text)) {
-    return true;
+    return AutoEmbedTextModes.TEXT;
   }
   if (EMBED_OFF_VALUES.includes(text)) {
-    return false;
+    return AutoEmbedTextModes.OFF;
   }
-  throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_screenshot'));
+  throw new UserError(getCachedTranslator(context).translate('settings_server_autoembed.invalid_text'));
+}
+
+// off clears the screenshot too, so picking Text later doesn't bring a forgotten screenshot back
+export function textModeToArgs(mode?: AutoEmbedTextModes): {screenshot?: boolean, text?: boolean} {
+  if (!mode) {
+    return {};
+  }
+  return {screenshot: mode === AutoEmbedTextModes.SCREENSHOT, text: mode !== AutoEmbedTextModes.OFF};
 }
 
 // `gallery`, `pages`, or `default` (each poster's setting), the prefixed command's `-gallery` and the slash choices

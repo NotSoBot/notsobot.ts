@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 
+import { GUILD_TEXT_CHANNEL_TYPES } from '../../../../constants';
 import { I18n, Parameters, parseGuildRuleCoverage } from '../../../../utils';
 
 
@@ -32,7 +33,7 @@ export function targetOptions(key: string) {
           ChannelTypes.GUILD_MEDIA,
           ChannelTypes.GUILD_NEWS,
           ChannelTypes.GUILD_STAGE_VOICE,
-          ChannelTypes.GUILD_TEXT,
+          ...GUILD_TEXT_CHANNEL_TYPES,
           ChannelTypes.GUILD_VOICE,
         ],
       }),

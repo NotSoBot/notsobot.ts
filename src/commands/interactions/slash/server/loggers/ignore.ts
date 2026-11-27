@@ -1,7 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { GuildLoggerTypes } from '../../../../../constants';
+import { GUILD_TEXT_CHANNEL_TYPES, slashChannelTypes, GuildLoggerTypes } from '../../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -42,7 +42,7 @@ export class ServerLoggersIgnoreCommand extends BaseInteractionCommandOption {
           name: 'channel',
           description: 'Channel or category to ignore, covers its threads/channels',
           ...I18n.optionLocalizations('commands.moderation.loggers.ignore.channel'),
-          channelTypes: Formatter.Commands.ServerLoggersIgnore.IGNORE_CHANNEL_TYPES,
+          channelTypes: slashChannelTypes(Formatter.Commands.ServerLoggersIgnore.IGNORE_CHANNEL_TYPES),
           type: ApplicationCommandOptionTypes.CHANNEL,
         },
         {name: 'role', description: 'Role to ignore (roles logger)', ...I18n.optionLocalizations('commands.moderation.loggers.ignore.role'), type: ApplicationCommandOptionTypes.ROLE},
@@ -50,7 +50,7 @@ export class ServerLoggersIgnoreCommand extends BaseInteractionCommandOption {
           name: 'logger',
           description: 'Only the logger in this channel (Default: all of the type)',
           ...I18n.optionLocalizations('commands.moderation.loggers.ignore.logger'),
-          channelTypes: [ChannelTypes.GUILD_NEWS, ChannelTypes.GUILD_TEXT],
+          channelTypes: slashChannelTypes([ChannelTypes.GUILD_NEWS, ...GUILD_TEXT_CHANNEL_TYPES]),
           type: ApplicationCommandOptionTypes.CHANNEL,
         },
         {name: 'clear', description: 'Stop ignoring everything', ...I18n.optionLocalizations('commands.moderation.loggers.ignore.clear'), type: Boolean},

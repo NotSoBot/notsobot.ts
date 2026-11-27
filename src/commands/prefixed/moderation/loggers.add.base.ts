@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { GuildLoggerTypes, StatusEmojis } from '../../../constants';
+import { GUILD_TEXT_CHANNEL_TYPES, GuildLoggerTypes, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -18,7 +18,7 @@ export class LoggersAddBaseCommand extends BaseCommand {
           type: Parameters.channel({
             types: [
               ChannelTypes.GUILD_NEWS,
-              ChannelTypes.GUILD_TEXT,
+              ...GUILD_TEXT_CHANNEL_TYPES,
             ],
           }),
         },

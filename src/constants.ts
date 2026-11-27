@@ -1444,6 +1444,26 @@ export enum GameFlagDifficulties {
   HARD = 'hard',
 }
 
+// the api's `GAME_KEYS`, each game's points add to the same global total
+export enum GamePointsGames {
+  FLAG_GUESSER = 'flag_guesser',
+  LETTER_TRAIL = 'letter_trail',
+}
+
+// the api's `DAILY_POINTS_CAP`, the most points a user gets from one game in a utc day
+export const GAME_POINTS_DAILY_CAP = 300;
+
+export enum GamePointsPeriods {
+  ALL = 'all',
+  WEEK = 'week',
+}
+
+// `/games leaderboard where`, `server` is the api's `guild` scope
+export enum GamePointsScopes {
+  SERVER = 'server',
+  GLOBAL = 'global',
+}
+
 // the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `music effect clear` takes them all off. By name, so
 // the usage and the prefix command's error list them alphabetically
 export enum MusicEffects {
@@ -3511,6 +3531,23 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_SPACE]: 'Guild Space',
   [ChannelTypes.GUILD_APP]: 'Guild App',
 });
+
+// server channels with a normal text chat: an App Channel (Discord's preview, type 21) shows its app with a chat beside
+// it, so loggers, rules, prune, pins, wordclouds, command usage and auto-warn rules take one like a text channel. spread
+// in where a list had GUILD_TEXT, the decoy is the one place that leaves App Channels out
+export const GUILD_TEXT_CHANNEL_TYPES: ReadonlyArray<ChannelTypes> = Object.freeze([
+  ChannelTypes.GUILD_TEXT,
+  ChannelTypes.GUILD_APP,
+]);
+
+// a slash option's `channel_types` is checked by discord when the commands are uploaded, and nobody's confirmed it takes
+// App Channels (21) while they're a preview: one refused would fail the whole group's upload. so the pickers leave them out
+// until a test upload says otherwise (flip this), a command still works when it's run inside one
+export const SLASH_OPTIONS_TAKE_APP_CHANNELS = false;
+
+export function slashChannelTypes(types: ReadonlyArray<ChannelTypes>): Array<ChannelTypes> {
+  return (SLASH_OPTIONS_TAKE_APP_CHANNELS) ? [...types] : types.filter((type) => type !== ChannelTypes.GUILD_APP);
+}
 
 
 

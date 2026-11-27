@@ -7,7 +7,7 @@ import {
 
 import { CommandRatelimits } from '../../../constants';
 import { I18n } from '../../../utils';
-import { canUseEditor, editorTemplateCodeOf, launchEditor, replyPrivately } from '../../../utils/editoractivity';
+import { canUseEditor, editorTemplateCodeOf, isOwnAppChannel, launchEditor, replyPrivately } from '../../../utils/editoractivity';
 
 import { BaseSlashCommand, isBlockedUserInstallRun, isDecoyChannelRun } from '../basecommand';
 
@@ -93,6 +93,11 @@ export default class EditorCommand extends BaseSlashCommand {
     if (!canUseEditor(context)) {
       const { translate } = await I18n.getTranslator(context);
       return replyPrivately(context, translate('editor_activity.not_ready'));
+    }
+    // an App Channel bound to NotSoBot has the editor open inline, another launch there would only stack a second one
+    if (isOwnAppChannel(context)) {
+      const { translate } = await I18n.getTranslator(context);
+      return replyPrivately(context, translate('editor_activity.already_open'));
     }
     // the server turned NotSoBot off here, or it's the decoy channel: an activity would post that it started. owners
     // skip the user-install check without waiting on it

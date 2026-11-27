@@ -11,6 +11,7 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import {
   DateMomentLogFormat,
   EmbedColors,
+  GUILD_TEXT_CHANNEL_TYPES,
   GuildModerationDmFlags,
   GuildWarningAutoTriggers,
   MAX_GUILD_WARNING_WEIGHT,
@@ -474,7 +475,7 @@ export const CHANNEL_TYPES = Object.freeze([
   ChannelTypes.GUILD_MEDIA,
   ChannelTypes.GUILD_NEWS,
   ChannelTypes.GUILD_STAGE_VOICE,
-  ChannelTypes.GUILD_TEXT,
+  ...GUILD_TEXT_CHANNEL_TYPES,
   ChannelTypes.GUILD_VOICE,
 ]);
 

@@ -18,14 +18,13 @@ export default class SetAutoEmbedCommand extends BaseCommand {
       args: [
         {name: 'gallery', type: Formatter.Commands.SettingsServerSetAutoEmbed.galleryParser},
         {name: 'members', type: Formatter.Commands.SettingsServerSetAutoEmbed.membersParser},
-        {name: 'screenshot', type: Formatter.Commands.SettingsServerSetAutoEmbed.screenshotParser},
         {name: 'text', type: Formatter.Commands.SettingsServerSetAutoEmbed.textParser},
       ],
       disableDm: true,
       label: 'args',
       metadata: {
         category: CommandCategories.SERVER,
-        description: 'See or change which sites get auto-embedded: a message whose only link is to a post on one of them gets the media downloaded, like `download`, with `-text off` only the media without the post\'s text, and `-gallery pages` shows posts with more than one media one per page (premium servers). `-members off` stops premium members auto-embedding their own links here. `-screenshot on` draws text-only posts as a screenshot of the post (with the text on). A rule blocking `download` or `embed` stops it too',
+        description: 'See or change which sites get auto-embedded: a message whose only link is to a post on one of them gets the media downloaded, like `download`, `-text off` posts only the media without the post\'s text and `-text screenshot` draws text-only posts as a picture of the post, and `-gallery pages` shows posts with more than one media one per page (premium servers). `-members off` stops premium members auto-embedding their own links here. A rule blocking `download` or `embed` stops it too',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} on`,
@@ -33,19 +32,24 @@ export default class SetAutoEmbedCommand extends BaseCommand {
           `${COMMAND_NAME} on tiktok`,
           `${COMMAND_NAME} off facebook`,
           `${COMMAND_NAME} -text off`,
+          `${COMMAND_NAME} -text screenshot`,
           `${COMMAND_NAME} -gallery pages`,
           `${COMMAND_NAME} -members off`,
-          `${COMMAND_NAME} -screenshot on`,
         ],
         id: Formatter.Commands.SettingsServerSetAutoEmbed.COMMAND_ID,
-        usage: '(<on|off> (<tiktok|instagram|x|reddit|bluesky|threads|facebook|pinterest|tumblr|streamable>)) (-gallery <gallery|pages|default>) (-members <on|off>) (-screenshot <on|off>) (-text <on|off>)',
+        usage: '(<on|off> (<tiktok|instagram|x|reddit|bluesky|threads|facebook|pinterest|tumblr|streamable>)) (-gallery <gallery|pages|default>) (-members <on|off>) (-text <text|screenshot|off>)',
       },
       permissions: [Permissions.MANAGE_GUILD],
       type: Formatter.Commands.SettingsServerSetAutoEmbed.contentParser,
     });
   }
 
-  async run(context: Command.Context, args: {args: Formatter.Commands.SettingsServerSetAutoEmbed.CommandArgs, gallery?: null | PostGalleryTypes, members?: boolean, screenshot?: boolean, text?: boolean}) {
-    return Formatter.Commands.SettingsServerSetAutoEmbed.createMessage(context, {...args.args, gallery: args.gallery, members: args.members, screenshot: args.screenshot, text: args.text});
+  async run(context: Command.Context, args: {args: Formatter.Commands.SettingsServerSetAutoEmbed.CommandArgs, gallery?: null | PostGalleryTypes, members?: boolean, text?: Formatter.Commands.SettingsServerSetAutoEmbed.AutoEmbedTextModes}) {
+    return Formatter.Commands.SettingsServerSetAutoEmbed.createMessage(context, {
+      ...args.args,
+      ...Formatter.Commands.SettingsServerSetAutoEmbed.textModeToArgs(args.text),
+      gallery: args.gallery,
+      members: args.members,
+    });
   }
 }

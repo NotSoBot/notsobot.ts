@@ -44,8 +44,8 @@ import {
 } from '../../constants';
 import { captureCommandError, captureError } from '../../sentry';
 import { DefaultParameters, FindMediaUrlOptions, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
-import { canUseEditor } from '../../utils/editoractivity';
-import { fillApplicationCommandPermissions } from '../../utils/commandpermissions';
+import { canUseEditor, isOwnAppChannel } from '../../utils/editoractivity';
+import { fillApplicationCommandPermissions, getApplicationCommandPermissionsLoaded } from '../../utils/commandpermissions';
 import { InteractionExpiredError } from '../../utils/errors';
 
 import {
@@ -148,10 +148,40 @@ export function keepFollowUpsPrivate(context: Interaction.InteractionContext): v
 // answered within 3 seconds. too slow counts as allowed (a public reply)
 const COMMAND_PERMISSIONS_WAIT = 1500;
 
+// a command that answers by itself first (`answersItselfFirst`: a modal, an activity launch) has nothing deferring it,
+// so everything its checks wait on (the api's user and settings, the server's command permissions) gets this long in
+// all, from when its checks started. After that it goes on with what's known
+export const FIRST_ANSWER_CHECKS_WAIT = 1000;
+
+export function firstAnswerWaitLeft(context: Interaction.InteractionContext): number {
+  const started = (context.metadata && context.metadata.started) || Date.now();
+  return Math.max(0, started + FIRST_ANSWER_CHECKS_WAIT - Date.now());
+}
+
+// one of those checks couldn't be made in time (its data wasn't there yet): the run goes on, but nothing is posted in
+// the channel for it (the launch message, `canAnnounce` in utils/editoractivity.ts)
+export function markChecksIncomplete(context: Interaction.InteractionContext): void {
+  const contextMetadata = context.metadata = context.metadata || {};
+  contextMetadata.checksIncomplete = true;
+}
+
+export function areChecksIncomplete(context: Interaction.InteractionContext): boolean {
+  return !!(context.metadata && context.metadata.checksIncomplete);
+}
+
 // a run through the member's own install, in a server that has the bot but turned NotSoBot (or this command) off in
 // this channel with its discord command permissions. discord only applies those to the server install, so the bot
 // answers privately there instead. cached on the context, the tag writes ask too
-export async function isBlockedUserInstallRun(context: Interaction.InteractionContext): Promise<boolean> {
+export function isBlockedUserInstallRun(context: Interaction.InteractionContext): Promise<boolean> {
+  const contextMetadata = context.metadata = context.metadata || {};
+  // asked more than once per run (the checks, then the command): the one answer, and the one wait
+  if (!contextMetadata.blockedUserInstallRunPromise) {
+    contextMetadata.blockedUserInstallRunPromise = findBlockedUserInstallRun(context);
+  }
+  return contextMetadata.blockedUserInstallRunPromise;
+}
+
+async function findBlockedUserInstallRun(context: Interaction.InteractionContext): Promise<boolean> {
   const contextMetadata = context.metadata = context.metadata || {};
   if (typeof(contextMetadata.blockedUserInstallRun) === 'boolean') {
     return contextMetadata.blockedUserInstallRun;
@@ -164,13 +194,21 @@ export async function isBlockedUserInstallRun(context: Interaction.InteractionCo
     context.isBotPresent &&
     !context.user.isClientOwner
   ) {
+    // a launch has less time, shared with its other checks (a modal command asking here keeps the usual wait: it
+    // decides whether a tag may be written, not whether a message goes up)
+    const launches = launchesActivity(context);
+    const wait = (launches) ? firstAnswerWaitLeft(context) : COMMAND_PERMISSIONS_WAIT;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     await Promise.race([
       fillApplicationCommandPermissions(context, guildId).catch(() => null),
-      new Promise((resolve) => timeout = setTimeout(resolve, COMMAND_PERMISSIONS_WAIT)),
+      new Promise((resolve) => timeout = setTimeout(resolve, wait)),
     ]);
     if (timeout) {
       clearTimeout(timeout);
+    }
+    if (launches && getApplicationCommandPermissionsLoaded(context, guildId) === null) {
+      // still loading: counted as allowed for the launch, which then posts nothing here
+      markChecksIncomplete(context);
     }
     const data = context.interaction.data as Structures.InteractionDataApplicationCommand | undefined;
     const applicationCommandIds = (data && data.id) ? [data.id] : [];
@@ -189,10 +227,18 @@ export function isDecoyChannelRun(context: {channelId?: string | null, guildId?:
 // whether Edit Media/Edit Avatar offer "Open editor": who can use the editor yet, and not where NotSoBot is turned off
 // or the decoy channel (an activity posts that it started, for everyone)
 export async function canLaunchEditorHere(context: Interaction.InteractionContext): Promise<boolean> {
-  if (!canUseEditor(context)) {
+  // (an App Channel bound to NotSoBot already shows the activity beside its chat, a launch would open a second copy)
+  if (!canUseEditor(context) || isOwnAppChannel(context)) {
     return false;
   }
   return !(await isBlockedUserInstallRun(context)) && !isDecoyChannelRun(context);
+}
+
+// a command that answers by launching the activity (`launchesActivity`, its own or its option's)
+export function launchesActivity(context: Interaction.InteractionContext): boolean {
+  const invoker = context.invoker as any;
+  const command = context.command as any;
+  return !!((invoker && invoker.launchesActivity) || (command && command.launchesActivity));
 }
 
 // a modal or an activity launch: its own first answer, nothing may defer the interaction before it (onBefore's defers,
@@ -206,6 +252,10 @@ export function answersItselfFirst(context: Interaction.InteractionContext): boo
 // what `onBefore`'s private defer goes by: NotSoBot's turned off in the channel, or the user's response setting. for
 // commands that post more than their own response (Edit Media's results), those have to stay private too
 export async function isPrivateRun(context: Interaction.InteractionContext): Promise<boolean> {
+  // one of the server's own rules blocks the command here: it still runs, privately (interactioncommandclient.ts)
+  if (context.metadata && context.metadata.blockedByRule) {
+    return true;
+  }
   if (await isBlockedUserInstallRun(context) || isDecoyChannelRun(context)) {
     return true;
   }

@@ -171,6 +171,13 @@ export const AUTO_EMBED_GALLERY = [
   createChoice('One per Page', PostGalleryViews.PAGES, {localizationKey: 'choices.settings.post_gallery.pages'}),
 ];
 
+// `/server set auto-embed text` and `/settings set auto-embed text` (Formatter's AutoEmbedTextModes values)
+export const AUTO_EMBED_TEXT = [
+  createChoice('Text', 'text', {isDefault: true, localizationKey: 'choices.settings.auto_embed_text.text'}),
+  createChoice('Screenshot', 'screenshot', {localizationKey: 'choices.settings.auto_embed_text.screenshot'}),
+  createChoice('Off', 'off', {localizationKey: 'choices.settings.auto_embed_text.off'}),
+];
+
 // `/embed`, `/download`'s `view`, left out it's their setting
 export const POST_GALLERY_VIEWS = [
   createChoice('Gallery', PostGalleryViews.GALLERY, {localizationKey: 'choices.settings.post_gallery.gallery'}),

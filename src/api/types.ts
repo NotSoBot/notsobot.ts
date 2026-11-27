@@ -2,6 +2,8 @@ import { Collections } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import {
+  GamePointsGames,
+  GamePointsPeriods,
   GoogleCardTypes,
   GoogleImageVideoTypes,
   GoogleLocales,
@@ -324,6 +326,9 @@ export namespace RestOptions {
     // Flag Guesser's messages in chat, straight to its rooms (posts the same message as `games`). `invite`: Join on a
     // room invite's card, never posts one either
     surface: 'entry_point' | 'edit_media' | 'edit_avatar' | 'command' | 'join' | 'template_post' | 'games' | 'games_join' | 'flag_guesser' | 'invite',
+    // `flag_guesser`: the in-chat game it was pressed on, the activity offers a room continuing it (its difficulty, the
+    // flag that was up first). The code stays on the api
+    flagGame?: {difficulty: string, code: string | null} | null,
     userId: string,
   }
 
@@ -622,6 +627,31 @@ export namespace RestOptions {
     // older than this entry, for the next page
     before?: string,
     limit?: number,
+  }
+
+  export interface AwardGamePoints {
+    game: GamePointsGames,
+    // null in a dm, a group dm or a user install outside a server
+    guildId?: null | string,
+    points: number,
+    source: 'chat',
+    userId: string,
+  }
+
+  export interface FetchGamePointsLeaderboard {
+    // every game summed when left out
+    game?: GamePointsGames,
+    // needed for the `guild` scope
+    guildId?: null | string,
+    // up to 25, 10 by default
+    limit?: number,
+    period?: GamePointsPeriods,
+    scope: 'global' | 'guild',
+  }
+
+  export interface FetchGamePointsUser {
+    // its rank in this server too
+    guildId?: null | string,
   }
 
   export interface FetchGuildMusicStats {
@@ -3439,6 +3469,29 @@ export namespace RestResponsesRaw {
     source: 'opus' | 'url',
     track: GuildMusicQueueItem['track'],
     url: string,
+  }
+
+  // `counted` is what the daily cap let through (0 once it's reached), `today` what counted today in this game
+  export interface AwardGamePoints {
+    counted: number,
+    today: number,
+    total: number,
+  }
+
+  export interface FetchGamePointsLeaderboard {
+    game: GamePointsGames | null,
+    items: Array<{avatar_url: null | string, points: number, rank: number, user_id: string, username: string}>,
+    period: GamePointsPeriods,
+    scope: 'global' | 'guild',
+  }
+
+  // ranks are null with 0 points (on that board)
+  export interface FetchGamePointsUser {
+    games: Partial<Record<GamePointsGames, number>>,
+    rank: {global: null | number, guild: null | number},
+    total: number,
+    user_id: string,
+    week: number,
   }
 
   export interface FetchGuildMusicStats {

@@ -15,8 +15,11 @@ import {
 } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
 
-import { fetchGameFlag } from '../../../api';
-import { EmbedColors, GameFlagDifficulties, MessageComponentCustomIds, StatusEmojis } from '../../../constants';
+import { awardGamePoints, fetchGameFlag } from '../../../api';
+import { EmbedColors, GameFlagDifficulties, GamePointsGames, MessageComponentCustomIds, StatusEmojis } from '../../../constants';
+import { log } from '../../../log';
+import UserSettingsStore from '../../../stores/usersettings';
+import { captureError } from '../../../sentry';
 import {
   Countries,
   Country,
@@ -27,8 +30,9 @@ import {
   countryName,
   countryRegion,
 } from '../../countries';
+import { checkComponentAccess } from '../../componentchecks';
 import { canUseEditor } from '../../editoractivity';
-import { getTranslator, TranslationKey, Translator } from '../../i18n';
+import { getCachedTranslator, getTranslator, TranslationKey, Translator } from '../../i18n';
 import {
   DisplayPayload,
   displayDetail,
@@ -123,6 +127,8 @@ interface Game {
   hints: number,
   hostId: string,
   matcher: CountryMatcher,
+  // the scorer's global points total, once the api answered the award (only shown if that's before the result renders)
+  pointsTotal: number | null,
   // the bot is in the channel's guild (or it's a prefixed command/its own dm), so chat messages reach it
   readsChat: boolean,
   responseId: string | undefined,
@@ -141,6 +147,23 @@ const activeGames = new Map<string, Game>();
 // start one
 const startingChannels = new Set<string>();
 const flagCache = new Map<string, Promise<Buffer>>();
+// each flag's message: its difficulty, and its flag's code while nobody's answered it, for its Open in Activity (a room
+// continuing the game, `flagGuesserCarry`). per process is enough, a channel's interactions come to its shard's process
+const carriedByMessage = new Map<string, FlagGuesserCarry>();
+// the latest flags' messages, older ones' Open in Activity opens the rooms as before
+const CARRIED_MESSAGES = 1000;
+
+export interface FlagGuesserCarry {
+  difficulty: GameFlagDifficulties,
+  // the flag up in it, null once it's answered, skipped or out of time (its answer is in the message then)
+  code: string | null,
+}
+
+// what an Open in Activity press on `messageId` carries into the activity, null for a message this process doesn't know
+export function flagGuesserCarry(messageId: string | undefined): FlagGuesserCarry | null {
+  const carry = (messageId) ? carriedByMessage.get(messageId) : undefined;
+  return (carry) ? {...carry} : null;
+}
 // every country's names in a language, built once
 const matchers = new Map<string, CountryMatcher>();
 
@@ -206,6 +229,7 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
     hints: 0,
     hostId: context.userId,
     matcher: getMatcher(translator.language),
+    pointsTotal: null,
     readsChat: (context instanceof Command.Context) || ((context instanceof ComponentContext) ? context.isBotPresent : context.interaction.isBotPresent),
     responseId: undefined,
     result: null,
@@ -245,6 +269,12 @@ async function startGame(context: GameContext, session: GameSession): Promise<vo
   const posted = (async () => {
     await editOrReply(context, await renderDisplay(context, createGamePayload(game)));
     game.responseId = await getResponseId(game);
+    if (game.responseId) {
+      carriedByMessage.set(game.responseId, {difficulty: game.session.difficulty, code: (game.finished) ? null : game.country.code});
+      if (CARRIED_MESSAGES < carriedByMessage.size) {
+        carriedByMessage.delete(carriedByMessage.keys().next().value!);
+      }
+    }
   })();
   game.edits = posted.catch(() => {});
   try {
@@ -319,6 +349,11 @@ function fetchFlag(context: GameContext, country: Country): Promise<Buffer> {
 
 function cleanupGame(game: Game): void {
   game.finished = true;
+  // its answer's out (or the game's gone), Open in Activity only carries its difficulty now
+  const carry = (game.responseId) ? carriedByMessage.get(game.responseId) : undefined;
+  if (carry) {
+    carry.code = null;
+  }
   game.timer.stop();
   game.hintTimer.stop();
   while (game.subscriptions.length) {
@@ -433,6 +468,7 @@ function createGamePayload(game: Game): DisplayPayload {
       componentsInside: true,
       description: displayDetails([
         game.result,
+        (game.pointsTotal !== null) ? `-# ${translate('game.flag.points_total', {points: game.pointsTotal.toLocaleString(game.translator.language)})}` : null,
         (scores.length) ? `\n**${translate('game.flag.scores')}**` : null,
         ...scores,
       ]),
@@ -475,6 +511,15 @@ function createGamePayload(game: Game): DisplayPayload {
 }
 
 
+// A press skips a command's checks (`onCommandCheck`): someone NotSoBot blocked (or in a server it blocked), or kept
+// from the game here by one of the server's rules, gets what the command would have told them. From what's in memory
+// only, the answer to a press can't wait on the api
+function refusedPress(ctx: ComponentContext): string | null {
+  const access = checkComponentAccess(ctx, COMMAND_ID);
+  return access.blocked || access.rule;
+}
+
+
 function createGameComponents(game: Game): Components {
   const { translate } = game.translator;
   const components = new Components({timeout: Math.max(game.deadline - Date.now(), 0) + COMPONENTS_TIMEOUT_PADDING});
@@ -485,7 +530,14 @@ function createGameComponents(game: Game): Components {
       if (game.finished) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
-      return ctx.respond(createGuessModal(game, await getTranslator(ctx)));
+      const refusal = refusedPress(ctx);
+      if (refusal) {
+        return respondEphemeral(ctx, refusal);
+      }
+      // a modal has to be the press's first answer, within 3 seconds: in their own language when their settings are in
+      // memory, the game's otherwise. Getting them from the api first (5 seconds when it's slow) lost the modal
+      const translator = (UserSettingsStore.has(ctx.userId)) ? getCachedTranslator(ctx) : game.translator;
+      return ctx.respond(createGuessModal(game, translator));
     },
   });
 
@@ -518,13 +570,23 @@ function createPlayAgainComponents(game: Game): Components {
     label: game.translator.translate('game.flag.play_again'),
     style: MessageComponentButtonStyles.SUCCESS,
     run: async (ctx: ComponentContext) => {
+      const refusal = refusedPress(ctx);
+      if (refusal) {
+        return respondEphemeral(ctx, refusal);
+      }
       if (getActiveGame(ctx) || startingChannels.has(getChannelId(ctx))) {
         const { translate } = await getTranslator(ctx);
         return respondEphemeral(ctx, `${StatusEmojis.WARNING} ${translate('game.flag.already_running')}`);
       }
       // the flag can take a moment to download, the deferred reply turns into the next flag's message
       await ctx.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
-      await startGame(ctx, game.session);
+      try {
+        await startGame(ctx, game.session);
+      } catch(error) {
+        // the flag didn't download or post: the deferred reply would say "thinking" for good
+        captureError(error, {tags: {source: 'game.flag.play_again'}});
+        await ctx.deleteResponse().catch(() => {});
+      }
     },
   });
   addActivityButton(game, components);
@@ -532,9 +594,11 @@ function createPlayAgainComponents(game: Game): Components {
 }
 
 
-// Open in Activity, Flag Guesser's rooms in the activity (`onFlagGuesserActivity`). a static id the components listener
-// answers, so it keeps working after this message's buttons stop listening. Left out while the activity is only open to
-// NotSoBot owners and whoever started this flag isn't one, a press would only say it's not ready
+// Open in Activity, a room in the activity continuing this game (`onFlagGuesserActivity`, `flagGuesserCarry`: its
+// difficulty and, while unanswered, its flag first), its rooms for a message this process forgot. a static id the
+// components listener answers, so it keeps working after this message's buttons stop listening. Left out while the
+// activity is only open to NotSoBot owners and whoever started this flag isn't one, a press would only say it's not
+// ready
 function addActivityButton(game: Game, components: Components): void {
   if (!canUseEditor(game.context)) {
     return;
@@ -563,7 +627,7 @@ function createGuessModal(game: Game, translator: Translator): InteractionModal 
         return respondEphemeral(modalContext, `${StatusEmojis.NO} ${translate('game.flag.wrong')}`);
       }
       await modalContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-      await endGame(game, RoundOutcomes.CORRECT, modalContext.userId);
+      await endGame(game, RoundOutcomes.CORRECT, modalContext.user);
     },
   });
   modal.createLabel({
@@ -613,7 +677,7 @@ async function onChatMessage(game: Game, message: Structures.Message): Promise<v
   }
   const emoji = StatusEmojis.YES.replace(/^<:|>$/g, '');
   message.react(emoji).catch(() => {});
-  await endGame(game, RoundOutcomes.CORRECT, message.author.id);
+  await endGame(game, RoundOutcomes.CORRECT, message.author);
 }
 
 
@@ -651,7 +715,23 @@ function scheduleHint(game: Game): void {
 }
 
 
-async function endGame(game: Game, outcome: RoundOutcomes, userId: string | null): Promise<void> {
+// adds a correct answer's points to the scorer's global game points, never awaited: a slow or failed award can't hold up
+// the game, its total only shows when the answer is back before the result's edit renders. The scorer goes as the
+// acting user so the api knows them even if they never used a command
+function awardPoints(game: Game, user: Structures.User, points: number): void {
+  awardGamePoints({client: game.context.client, user}, {
+    game: GamePointsGames.FLAG_GUESSER,
+    guildId: game.context.guildId || null,
+    points,
+    source: 'chat',
+    userId: user.id,
+  }).then((response) => {
+    game.pointsTotal = response.total;
+  }).catch((error) => log.warn('flag guesser points award', error));
+}
+
+
+async function endGame(game: Game, outcome: RoundOutcomes, scorer: Structures.User | null): Promise<void> {
   if (game.finished) {
     return;
   }
@@ -663,11 +743,12 @@ async function endGame(game: Game, outcome: RoundOutcomes, userId: string | null
   const country = `${countryEmoji(game.country)} **${countryName(game.country, game.translator.language)}**`;
   switch (outcome) {
     case RoundOutcomes.CORRECT: {
-      const user = userId!;
+      const user = scorer!.id;
       session.streak = (session.streak && session.streak.userId === user) ? {count: session.streak.count + 1, userId: user} : {count: 1, userId: user};
       const bonus = (STREAK_BONUS_AT <= session.streak.count) ? 1 : 0;
       const points = roundPoints(game) + bonus;
       session.scores.set(user, (session.scores.get(user) || 0) + points);
+      awardPoints(game, scorer!, points);
       game.result = displayDetails([
         `${StatusEmojis.YES} ${translate('game.flag.correct', {user: `<@${user}>`, country, points: translate('game.flag.points', {points})})}`,
         (bonus) ? `-# ${translate('game.flag.streak', {count: session.streak.count})}` : null,

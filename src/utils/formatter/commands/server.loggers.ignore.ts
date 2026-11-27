@@ -6,6 +6,7 @@ import { GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import {
   EmbedColors,
   GUILD_LOGGER_IGNORE_TYPES,
+  GUILD_TEXT_CHANNEL_TYPES,
   GuildLoggerTypes,
   MAX_GUILD_LOGGER_IGNORED_AMOUNT,
   StatusEmojis,
@@ -24,7 +25,7 @@ export const IGNORE_CHANNEL_TYPES = [
   ChannelTypes.GUILD_MEDIA,
   ChannelTypes.GUILD_NEWS,
   ChannelTypes.GUILD_STAGE_VOICE,
-  ChannelTypes.GUILD_TEXT,
+  ...GUILD_TEXT_CHANNEL_TYPES,
   ChannelTypes.GUILD_VOICE,
 ];
 

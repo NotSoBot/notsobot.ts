@@ -1,7 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { GuildLoggerTypes, StatusEmojis } from '../../../../../constants';
+import { GUILD_TEXT_CHANNEL_TYPES, slashChannelTypes, GuildLoggerTypes, StatusEmojis } from '../../../../../constants';
 import { Formatter, I18n, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -35,7 +35,7 @@ export class ServerLoggersAddCommand extends BaseInteractionCommandOption {
           name: 'channel',
           description: 'Channel to log into (Default: Creates a new channel)',
           ...I18n.optionLocalizations('commands.moderation.loggers.add.channel'),
-          channelTypes: [ChannelTypes.GUILD_NEWS, ChannelTypes.GUILD_TEXT],
+          channelTypes: slashChannelTypes([ChannelTypes.GUILD_NEWS, ...GUILD_TEXT_CHANNEL_TYPES]),
           type: ApplicationCommandOptionTypes.CHANNEL,
         },
         {

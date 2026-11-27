@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 
-import { CommandCategories, MediaWordcloudShapes, MediaWordcloudThemes } from '../../../constants';
+import { CommandCategories, GUILD_TEXT_CHANNEL_TYPES, MediaWordcloudShapes, MediaWordcloudThemes } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -42,7 +42,7 @@ export default class WordcloudCommand extends BaseCommand {
       type: Parameters.channel({
         types: [
           ChannelTypes.GUILD_NEWS,
-          ChannelTypes.GUILD_TEXT,
+          ...GUILD_TEXT_CHANNEL_TYPES,
         ],
       }),
     });

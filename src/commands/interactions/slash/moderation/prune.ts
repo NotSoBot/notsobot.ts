@@ -1,7 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { StatusEmojis } from '../../../../constants';
+import { GUILD_TEXT_CHANNEL_TYPES, slashChannelTypes, StatusEmojis } from '../../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -43,7 +43,7 @@ export class ModerationPruneCommand extends BaseInteractionCommandOption {
         {name: 'amount', description: 'Amount of messages to delete (1..500) (Default: 100 with until)', ...I18n.optionLocalizations('commands.moderation.prune.amount'), maxValue: 500, minValue: 1, type: Number},
         {name: 'from', description: 'Only delete messages from these users (Mentions or IDs, separated by spaces)', ...I18n.optionLocalizations('commands.moderation.prune.from'), value: Parameters.membersOrUsers()},
         {name: 'with', description: 'Only delete messages containing this text', ...I18n.optionLocalizations('commands.moderation.prune.with')},
-        {name: 'in', description: 'Channel to prune in (Default: Current Channel)', ...I18n.optionLocalizations('commands.moderation.prune.in'), channelTypes: [ChannelTypes.GUILD_NEWS, ChannelTypes.GUILD_TEXT], type: ApplicationCommandOptionTypes.CHANNEL},
+        {name: 'in', description: 'Channel to prune in (Default: Current Channel)', ...I18n.optionLocalizations('commands.moderation.prune.in'), channelTypes: slashChannelTypes([ChannelTypes.GUILD_NEWS, ...GUILD_TEXT_CHANNEL_TYPES]), type: ApplicationCommandOptionTypes.CHANNEL},
         {name: 'after', description: 'Only delete messages after this message ID', ...I18n.optionLocalizations('commands.moderation.prune.after'), value: Parameters.snowflake},
         {name: 'before', description: 'Only delete messages before this message ID', ...I18n.optionLocalizations('commands.moderation.prune.before'), value: Parameters.snowflake},
         {name: 'until', description: 'Delete messages until this message ID', ...I18n.optionLocalizations('commands.moderation.prune.until'), value: Parameters.snowflake},

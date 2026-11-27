@@ -7,11 +7,14 @@ import type { RestOptions } from '../api/types';
 import { EmbedColors, MessageComponentCustomIds, UserSettingsApplicationCommandResponseTypes } from '../constants';
 import UserSettingsStore from '../stores/usersettings';
 // a cycle (basecommand imports this module), fine for a function only called at runtime, never copied at load
-import { isDecoyChannelRun, isPrivateRun } from '../commands/interactions/basecommand';
+import { areChecksIncomplete, isDecoyChannelRun, isPrivateRun } from '../commands/interactions/basecommand';
 import { log } from '../log';
 import { captureError } from '../sentry';
 
-import { getTranslator } from './i18n';
+// a cycle too (the game's formatter imports utils), only read at runtime
+import * as GameFlag from './formatter/commands/game.flag';
+import { checkComponentAccess, isComponentRuleBlocked } from './componentchecks';
+import { getCachedTranslator, getTranslator } from './i18n';
 import { displayReply, renderEphemeralDisplay, slashCommandMention } from './tools';
 
 
@@ -34,6 +37,15 @@ export function isGamesSurface(surface: EditorLaunchSurface): boolean {
   return GAMES_SURFACES.includes(surface);
 }
 
+// the command a launch stands for, what a server's rules name: `/games play` for the games' surfaces, `/editor` for the
+// rest (slash/editor.ts and slash/games/play.ts `COMMAND_ID`)
+const EDITOR_COMMAND_ID = 'editor';
+const GAMES_COMMAND_ID = 'games';
+
+function launchCommandId(surface: EditorLaunchSurface): string {
+  return (isGamesSurface(surface)) ? GAMES_COMMAND_ID : EDITOR_COMMAND_ID;
+}
+
 type LaunchContext = Interaction.InteractionContext | ComponentContext;
 
 
@@ -41,6 +53,14 @@ type LaunchContext = Interaction.InteractionContext | ComponentContext;
 // api's `EDITOR_PUBLIC=false` (its `/editor` routes and the site's page go by that one)
 export function canUseEditor(context: {user: Structures.User}): boolean {
   return process.env.NOTSOBOT_EDITOR_PUBLIC !== 'false' || context.user.isClientOwner;
+}
+
+
+// an App Channel (Discord's preview, type 21) bound to NotSoBot shows the activity inline beside its chat already, a launch
+// there would only open a second copy. the interaction's channel carries the binding, the cached one when there is one
+export function isOwnAppChannel(context: LaunchContext): boolean {
+  const channel = context.channel;
+  return !!channel && channel instanceof Structures.ChannelGuildApp && channel.applicationId === context.applicationId;
 }
 
 
@@ -87,7 +107,13 @@ export async function replyPrivately(context: LaunchContext, description: string
 // can't run) gets the web editor's link instead. Returns the instance id
 export async function launchEditor(
   context: LaunchContext,
-  options: {surface: EditorLaunchSurface, mediaUrl?: string | null, templateCode?: string | null, inviteCode?: string | null},
+  options: {
+    surface: EditorLaunchSurface,
+    mediaUrl?: string | null,
+    templateCode?: string | null,
+    inviteCode?: string | null,
+    flagGame?: {difficulty: string, code: string | null} | null,
+  },
 ): Promise<string | null> {
   let instanceId: string | null = null;
   try {
@@ -121,6 +147,7 @@ export async function launchEditor(
     // the launch already happened, a failed save only means the editor opens on its start screen
     storeEditorActivityLaunch(context, instanceId, {
       channelId: context.channelId || null,
+      flagGame: options.flagGame || null,
       guildId: context.guildId || null,
       inviteCode: options.inviteCode || null,
       locale: context.interaction.locale || null,
@@ -142,18 +169,29 @@ export async function launchEditor(
 // per process is enough, a channel's interactions come to its shard's process
 const ANNOUNCED_TTL = 6 * 60 * 60 * 1000;
 const announced = new Map<string, number>();
+// and one per person per channel this often: an instance ends when its last person leaves, so launching, leaving and
+// launching again was a new bot message each time (in their name, past the channel's slowmode)
+const ANNOUNCED_USER_TTL = 10 * 60 * 1000;
+const announcedByUser = new Map<string, number>();
 
-function claimAnnouncement(instanceId: string): boolean {
+function claimAnnouncement(instanceId: string, channelId: string | null | undefined, userId: string): boolean {
   const now = Date.now();
   for (let [ id, at ] of announced) {
     if (ANNOUNCED_TTL < now - at) {
       announced.delete(id);
     }
   }
-  if (announced.has(instanceId)) {
+  for (let [ key, at ] of announcedByUser) {
+    if (ANNOUNCED_USER_TTL < now - at) {
+      announcedByUser.delete(key);
+    }
+  }
+  const userKey = `${channelId || ''}.${userId}`;
+  if (announced.has(instanceId) || announcedByUser.has(userKey)) {
     return false;
   }
   announced.set(instanceId, now);
+  announcedByUser.set(userKey, now);
   return true;
 }
 
@@ -164,16 +202,29 @@ const THREAD_TYPES: Array<number> = [ChannelTypes.GUILD_NEWS_THREAD, ChannelType
 // is turned off or the decoy channel (`/editor` doesn't launch there anyway), not for someone whose setting is private
 // replies (a message only they'd see is pointless), and not where they can't post themselves (a follow-up would post
 // where they couldn't). The permissions are the interaction's own, worked out by Discord for this channel
-async function canAnnounce(context: LaunchContext): Promise<boolean> {
+async function canAnnounce(context: LaunchContext, commandId: string): Promise<boolean> {
   if (context instanceof Interaction.InteractionContext) {
-    if (await isPrivateRun(context)) {
+    // (a launch's checks only wait a moment on the api: one that couldn't be made in time means nothing is posted)
+    if (areChecksIncomplete(context) || await isPrivateRun(context)) {
       return false;
     }
   } else {
-    const settings = UserSettingsStore.get(context.userId);
-    if (settings && settings.application_command_response_type === UserSettingsApplicationCommandResponseTypes.EPHEMERAL) {
+    // a button: no command checks ran for the press. the decoy channel and the server's rules for the command it
+    // stands for, like a slash run's (the settings asked of the api if need be, see below)
+    if (isDecoyChannelRun(context) || await isComponentRuleBlocked(context, commandId)) {
       return false;
     }
+  }
+  // their reply setting: the launch already answered, so waiting on the api here costs nothing (a button never loaded
+  // it, a launch command's checks may not have had the time). not known means not posted, the message carries their name
+  let settings: Awaited<ReturnType<typeof UserSettingsStore.getOrFetch>> = null;
+  try {
+    settings = await UserSettingsStore.getOrFetch(context, context.userId);
+  } catch {
+    return false;
+  }
+  if (!settings || settings.application_command_response_type === UserSettingsApplicationCommandResponseTypes.EPHEMERAL) {
+    return false;
   }
   const member = context.member;
   if (!context.guildId || !member) {
@@ -198,7 +249,7 @@ export async function announceLaunch(
   instanceId: string,
   surface: EditorLaunchSurface = 'command',
 ): Promise<void> {
-  if (!await canAnnounce(context) || !claimAnnouncement(instanceId)) {
+  if (!await canAnnounce(context, launchCommandId(surface)) || !claimAnnouncement(instanceId, context.channelId, context.userId)) {
     return;
   }
   const { translate } = await getTranslator(context);
@@ -233,12 +284,39 @@ export async function announceLaunch(
 }
 
 
+// A press skips everything a command's checks do (`onCommandCheck`), so the buttons below ask what's in memory first
+// (`checkComponentAccess`, never the api: the launch has to answer within 3 seconds). Someone NotSoBot blocked, or
+// pressing in a server it blocked, is told so like a command would and nothing launches: true when that was the answer.
+// One of the server's own rules against the command doesn't stop the launch (a command blocked that way still runs,
+// privately): it only keeps the launch message out of the channel (`canAnnounce`)
+async function refuseBlockedPress(context: ComponentContext, commandId: string): Promise<boolean> {
+  const access = checkComponentAccess(context, commandId);
+  if (!access.blocked) {
+    return false;
+  }
+  await context.respond(
+    InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE,
+    renderEphemeralDisplay(context, getCachedTranslator(context), {color: EmbedColors.ERROR, description: access.blocked}),
+  );
+  return true;
+}
+
+
 // the launch message's Join: the activity in that channel (the running one, Discord joins it). answered by launching,
 // nothing may await before it (3 seconds)
 export async function onEditorJoin(context: ComponentContext): Promise<void> {
   if (!canUseEditor(context)) {
     const { translate } = await getTranslator(context);
     await replyPrivately(context, translate('editor_activity.not_ready'), true);
+    return;
+  }
+  // a launch message or Flag Guesser posted in an App Channel bound to NotSoBot, the activity is already open beside it
+  if (isOwnAppChannel(context)) {
+    const { translate } = await getTranslator(context);
+    await replyPrivately(context, translate('editor_activity.already_open'));
+    return;
+  }
+  if (await refuseBlockedPress(context, EDITOR_COMMAND_ID)) {
     return;
   }
   await launchEditor(context, {surface: 'join'});
@@ -251,6 +329,14 @@ export async function onGamesJoin(context: ComponentContext): Promise<void> {
   if (!canUseEditor(context)) {
     const { translate } = await getTranslator(context);
     await replyPrivately(context, translate('games_activity.not_ready'), true);
+    return;
+  }
+  if (isOwnAppChannel(context)) {
+    const { translate } = await getTranslator(context);
+    await replyPrivately(context, translate('games_activity.already_open'));
+    return;
+  }
+  if (await refuseBlockedPress(context, GAMES_COMMAND_ID)) {
     return;
   }
   await launchEditor(context, {surface: 'games_join'});
@@ -267,12 +353,23 @@ export async function onFlagGuesserActivity(context: ComponentContext): Promise<
     await replyPrivately(context, translate('games_activity.not_ready'), true);
     return;
   }
+  if (isOwnAppChannel(context)) {
+    const { translate } = await getTranslator(context);
+    await replyPrivately(context, translate('games_activity.already_open'));
+    return;
+  }
   if (isDecoyChannelRun(context)) {
     const { translate } = await getTranslator(context);
     await replyPrivately(context, translate('games_activity.channel_turned_off'), true);
     return;
   }
-  await launchEditor(context, {surface: 'flag_guesser'});
+  if (await refuseBlockedPress(context, GAMES_COMMAND_ID)) {
+    return;
+  }
+  // the game it was pressed on (its difficulty, its flag while unanswered): the activity offers a room continuing it.
+  // looked up without awaiting, the launch has to answer within 3 seconds
+  const flagGame = GameFlag.flagGuesserCarry(context.interaction.message?.id);
+  await launchEditor(context, {surface: 'flag_guesser', flagGame});
 }
 
 
@@ -283,6 +380,9 @@ export async function onEditorTemplate(context: ComponentContext, value: string)
   if (!canUseEditor(context) || !templateCode) {
     const { translate } = await getTranslator(context);
     await replyPrivately(context, translate('editor_activity.not_ready'), true);
+    return;
+  }
+  if (await refuseBlockedPress(context, EDITOR_COMMAND_ID)) {
     return;
   }
   await launchEditor(context, {surface: 'template_post', templateCode});
@@ -301,6 +401,9 @@ export async function onActivityInvite(context: ComponentContext, value: string)
     const { translate } = await getTranslator(context);
     const text = (INVITE_CODE.test(value)) ? translate('editor_activity.not_ready') : translate('activity_invite.invalid');
     await replyPrivately(context, text, true);
+    return;
+  }
+  if (await refuseBlockedPress(context, EDITOR_COMMAND_ID)) {
     return;
   }
   await launchEditor(context, {surface: 'invite', inviteCode: value});

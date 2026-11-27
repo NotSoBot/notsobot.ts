@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, GUILD_TEXT_CHANNEL_TYPES } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -22,7 +22,7 @@ export default class LoggersIgnoreCommand extends BaseCommand {
 
       args: [
         {name: 'clear', type: Boolean},
-        {name: 'logger', type: Parameters.channel({types: [ChannelTypes.GUILD_NEWS, ChannelTypes.GUILD_TEXT]})},
+        {name: 'logger', type: Parameters.channel({types: [ChannelTypes.GUILD_NEWS, ...GUILD_TEXT_CHANNEL_TYPES]})},
       ],
       disableDm: true,
       label: 'query',

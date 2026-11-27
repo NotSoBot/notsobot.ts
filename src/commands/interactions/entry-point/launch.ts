@@ -7,7 +7,7 @@ import {
 } from 'detritus-client/lib/constants';
 
 import { I18n } from '../../../utils';
-import { canUseEditor, launchEditor, replyPrivately } from '../../../utils/editoractivity';
+import { canUseEditor, isOwnAppChannel, launchEditor, replyPrivately } from '../../../utils/editoractivity';
 
 import { BaseInteractionCommand, isBlockedUserInstallRun, isDecoyChannelRun } from '../basecommand';
 
@@ -54,6 +54,11 @@ export default class LaunchCommand extends BaseInteractionCommand {
     if (!canUseEditor(context)) {
       const { translate } = await I18n.getTranslator(context);
       return replyPrivately(context, translate('editor_activity.not_ready'));
+    }
+    // an App Channel bound to NotSoBot: the activity is already open beside its chat
+    if (isOwnAppChannel(context)) {
+      const { translate } = await I18n.getTranslator(context);
+      return replyPrivately(context, translate('editor_activity.already_open'));
     }
     // the server turned NotSoBot off here, or it's the decoy channel: an activity would post that it started. owners
     // skip the user-install check without waiting on it

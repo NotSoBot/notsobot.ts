@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
+import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, StatusEmojis } from '../../../constants';
+import { CommandCategories, GUILD_TEXT_CHANNEL_TYPES, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, displayReply, getCommandIdFromInvoker } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -20,7 +20,7 @@ export default class CommandsUsageCommand extends BaseCommand {
           name: 'channel',
           type: Parameters.channel({
             types: [
-              ChannelTypes.GUILD_TEXT,
+              ...GUILD_TEXT_CHANNEL_TYPES,
             ],
           }),
         },

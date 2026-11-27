@@ -144,6 +144,8 @@ export async function createCreateMessage(context: Context, args: CreateArgs) {
   }
 
   const audit = await getGuildTranslator(context);
+  // plain text channels only, never GUILD_TEXT_CHANNEL_TYPES: the decoy is a text channel styled after the others, an App
+  // Channel is named for its app and would only skew the names it picks from
   const textChannelNames = guild.channels.filter((channel) => channel.type === ChannelTypes.GUILD_TEXT).map((channel) => channel.name);
   const name = (args.name && args.name.trim()) ? args.name.trim().slice(0, 100) : generateDecoyChannelName(textChannelNames, audit.language);
   const channel = await guild.createChannel({

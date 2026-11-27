@@ -1,7 +1,5 @@
 import { InteractionCommandClient, Interaction, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MessageFlags } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
-
 import GuildSettingsStore from './stores/guildsettings';
 import ServerSettingsStore from './stores/serversettings';
 import UserStore from './stores/users';
@@ -12,8 +10,12 @@ import {
   BaseInteractionCommandOption,
   InteractionCommandMetadata,
   answersItselfFirst,
+  firstAnswerWaitLeft,
   haveInteractionChecksPassed,
+  isBlockedUserInstallRun,
   keepFollowUpsPrivate,
+  launchesActivity,
+  markChecksIncomplete,
 } from './commands/interactions/basecommand';
 import { GuildRuleActions, GuildWarningAutoTriggers } from './constants';
 import {
@@ -26,6 +28,7 @@ import {
   isGuildRulesCommandId,
   resolveGuildRule,
 } from './utils';
+import { blockedGuildMessage, blockedServerMessage, blockedUserMessage } from './utils/componentchecks';
 import { acknowledgeUserWarnings } from './api';
 import type { GuildSettingsRule } from './api/structures/guildsettings';
 import {
@@ -151,6 +154,37 @@ async function deferEarly(context: Interaction.InteractionContext): Promise<void
 }
 
 
+// A command that answers by itself first (a modal, an activity launch: nothing may defer it) has discord's 3 seconds
+// for all of it. What its checks read (the user, their settings, the server's, its command permissions) is asked for
+// all at once and waited on for `FIRST_ANSWER_CHECKS_WAIT` in all: on a cold cache with a slow api each of those used to
+// be waited on in turn (5 seconds for one alone), and neither the launch nor its fallback reply made it. What came in
+// time is in the stores after this, the checks go on with that
+async function loadFirstAnswerChecks(context: Interaction.InteractionContext): Promise<void> {
+  const loads: Array<Promise<unknown>> = [
+    UserStore.getOrFetch(context, context.userId),
+    UserSettingsStore.getOrFetch(context, context.userId),
+  ];
+  if (context.guildId) {
+    loads.push(GuildSettingsStore.getOrFetch(context, context.guildId));
+    if (launchesActivity(context)) {
+      // the server's command permissions (a user-install run where the server turned NotSoBot off): a launch asks in
+      // its `run`, started here so its wait is this one (a modal never asks, it's private as it is)
+      loads.push(isBlockedUserInstallRun(context));
+    }
+  } else if (context.channel && context.channel.ownerId && context.channelId) {
+    loads.push(ServerSettingsStore.getOrFetch(context, context.channelId));
+  }
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    Promise.all(loads).catch(() => null),
+    new Promise((resolve) => timeout = setTimeout(resolve, firstAnswerWaitLeft(context))),
+  ]);
+  if (timeout) {
+    clearTimeout(timeout);
+  }
+}
+
+
 export class NotSoInteractionClient extends InteractionCommandClient {
   // the option names discord will refuse for matching a sibling option's name in some language
   getDuplicateOptionNames(): Array<ApplicationCommandDuplicateName> {
@@ -220,25 +254,38 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       return true;
     }
 
-    // at the same time, on a cold cache each is a request and all of it happens before the defer
-    const [ { translate }, user ] = await Promise.all([
-      I18n.getTranslator(context),
-      UserStore.getOrFetch(context, context.userId),
-    ]);
-    if (!user) {
+    // answers by itself first (`loadFirstAnswerChecks`): from here on only what's in the stores, nothing waits on the
+    // api again. A check whose data didn't come in time is skipped, the run is marked (`markChecksIncomplete`) and
+    // posts nothing in the channel for it (the launch message)
+    const quick = answersItselfFirst(context);
+    let translate: I18n.Translator['translate'];
+    let user: Awaited<ReturnType<typeof UserStore.getOrFetch>>;
+    if (quick) {
+      await loadFirstAnswerChecks(context);
+      translate = I18n.getCachedTranslator(context).translate;
+      user = UserStore.get(context.userId) || null;
+      if (!user || !UserSettingsStore.has(context.userId)) {
+        markChecksIncomplete(context);
+      }
+    } else {
+      // at the same time, on a cold cache each is a request and all of it happens before the defer
+      const [ translator, fetched ] = await Promise.all([
+        I18n.getTranslator(context),
+        UserStore.getOrFetch(context, context.userId),
+      ]);
+      translate = translator.translate;
+      user = fetched;
+    }
+    // (not known in time for a `quick` one: the api turns a blocked user's activity away itself)
+    if (!user && !quick) {
       return setCommandGate(context, {kind: 'user_fetch_failed', message: translate('blocked.user_fetch_failed')});
     }
-    if (user.isBlocked) {
-      let message = translate('blocked.user');
-      if (user.blockedReason) {
-        message = `${message} (${translate('logger.reason')}: \`${user.blockedReason}\`)`;
-      }
-      message += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, user.blockedUntil);
-      return setCommandGate(context, {kind: 'user_blocked', message});
+    if (user && user.isBlocked) {
+      return setCommandGate(context, {kind: 'user_blocked', message: blockedUserMessage(translate, user)});
     }
 
     // a warning from NotSoBot staff takes the place of this command, they run it again after reading it
-    if (user.warningsPending.length) {
+    if (user && user.warningsPending.length) {
       const notice = Formatter.Commands.OwnerWarn.createUserWarningsNotice(translate, user.warningsPending);
       return setCommandGate(context, {
         kind: 'warnings_pending',
@@ -251,13 +298,9 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     if (context.inDm) {
       if (context.channel && context.channel.ownerId) {
         const serverId = context.channelId!;
-        const settings = await ServerSettingsStore.getOrFetch(context, serverId);
+        const settings = (quick) ? ServerSettingsStore.get(serverId) || null : await ServerSettingsStore.getOrFetch(context, serverId);
         if (settings && settings.blocked) {
-          let message = translate('blocked.server');
-          if (settings.blockedReason) {
-            message = `${message} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
-          }
-          return setCommandGate(context, {kind: 'server_blocked', message});
+          return setCommandGate(context, {kind: 'server_blocked', message: blockedServerMessage(translate, settings)});
         }
       }
 
@@ -268,15 +311,11 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     }
 
     const guildId = context.guildId!;
-    const settings = await GuildSettingsStore.getOrFetch(context, guildId);
+    // (`getForUpdate`: what's cached, or the last copy known when the api is failing, like `getOrFetch` falls back to)
+    const settings = (quick) ? GuildSettingsStore.getForUpdate(guildId) || null : await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings && settings.isBlocked) {
       // if we aren't able to fetch the settings, it will surpass the blocked setting cuz it's rare to block a guild
-      let message = translate('blocked.server');
-      if (settings.blockedReason) {
-        message = `${message} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
-      }
-      message += Formatter.Commands.OwnerBlockUser.displayBlockedUntil(translate, settings.blockedUntil);
-      return setCommandGate(context, {kind: 'server_blocked', message});
+      return setCommandGate(context, {kind: 'server_blocked', message: blockedGuildMessage(translate, settings)});
     }
 
     const { member } = context;
@@ -302,6 +341,9 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       });
       if (match && !match.rule.allows) {
         if (invoker.blockedCommandShouldStillExecute) {
+          // what a launch (which is never deferred) goes by to post nothing in the channel: `isPrivateRun`
+          const contextMetadata = context.metadata = context.metadata || {};
+          contextMetadata.blockedByRule = true;
           // a modal has to be the first response, and it's private anyway. the early defer (`deferEarly`) may have been
           // first, it's private while the checks run
           if (!answersItselfFirst(context) && !context.responded) {
@@ -316,10 +358,17 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         return setCommandGate(context, {kind: 'rule', message, rule: match.rule});
       }
 
-      await UserSettingsStore.getOrFetch(context, context.userId);
-      // load their settings into cache, todo: maybe only load it as needed?
-      // loading as needed breaks the timestamp function in certain situations
+      if (!quick) {
+        await UserSettingsStore.getOrFetch(context, context.userId);
+        // load their settings into cache, todo: maybe only load it as needed?
+        // loading as needed breaks the timestamp function in certain situations
+      }
 
+      return true;
+    }
+    if (quick) {
+      // the server's settings didn't come in time: its rules weren't looked at, the launch goes on and stays quiet
+      markChecksIncomplete(context);
       return true;
     }
     // Failed to fetch, got null, just block it lol

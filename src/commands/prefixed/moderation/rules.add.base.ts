@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, MAX_GUILD_RULE_MESSAGE_LENGTH, StatusEmojis } from '../../../constants';
+import { CommandCategories, GUILD_TEXT_CHANNEL_TYPES, MAX_GUILD_RULE_MESSAGE_LENGTH, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, ParsedGuildRuleCoverage, displayReply, parseGuildRuleCoverage } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -31,7 +31,7 @@ export const GUILD_RULE_TARGET_ARGS = [
         ChannelTypes.GUILD_MEDIA,
         ChannelTypes.GUILD_NEWS,
         ChannelTypes.GUILD_STAGE_VOICE,
-        ChannelTypes.GUILD_TEXT,
+        ...GUILD_TEXT_CHANNEL_TYPES,
         ChannelTypes.GUILD_VOICE,
       ],
     }),

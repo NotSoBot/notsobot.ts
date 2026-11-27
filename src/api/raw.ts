@@ -1192,6 +1192,7 @@ export async function storeEditorActivityLaunch(
   const body = {
     channel_id: options.channelId || undefined,
     guild_id: options.guildId || undefined,
+    flag_game: (options.flagGame) ? {code: options.flagGame.code || undefined, difficulty: options.flagGame.difficulty} : undefined,
     invite_code: options.inviteCode || undefined,
     locale: options.locale || undefined,
     media_url: options.mediaUrl || undefined,
@@ -2219,6 +2220,69 @@ export async function fetchGameFlag(
     },
   });
   return response.buffer();
+}
+
+
+// adds a game's points to the user's global total, the api cuts it down to what the daily cap leaves
+export async function awardGamePoints(
+  context: RequestContext,
+  options: RestOptions.AwardGamePoints,
+): Promise<RestResponsesRaw.AwardGamePoints> {
+  const body = {
+    game: options.game,
+    guild_id: options.guildId || undefined,
+    points: options.points,
+    source: options.source,
+    user_id: options.userId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GAMES_POINTS,
+    },
+  });
+}
+
+
+export async function fetchGamePointsLeaderboard(
+  context: RequestContext,
+  options: RestOptions.FetchGamePointsLeaderboard,
+): Promise<RestResponsesRaw.FetchGamePointsLeaderboard> {
+  const query = {
+    game: options.game,
+    guild_id: options.guildId || undefined,
+    limit: options.limit,
+    period: options.period,
+    scope: options.scope,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GAMES_POINTS_LEADERBOARD,
+    },
+  });
+}
+
+
+export async function fetchGamePointsUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.FetchGamePointsUser = {},
+): Promise<RestResponsesRaw.FetchGamePointsUser> {
+  const query = {
+    guild_id: options.guildId || undefined,
+  };
+  const params = {userId};
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GAMES_POINTS_USER,
+      params,
+    },
+  });
 }
 
 

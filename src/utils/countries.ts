@@ -440,7 +440,9 @@ export function levenshtein(x: string, y: string, max: number): number {
   return previous[b.length];
 }
 
-// typos allowed for a name this long, short names have to be exact ("Chad", "Oman", "Peru")
+// typos allowed for a name this long, short names have to be exact ("Chad", "Oman", "Peru"). Asked with the shorter of
+// the guess and the name it's held against (`typoDistance`): by the guess's length alone, a letter added to a short
+// name made it long enough for a typo ("Chads" was Chad)
 function allowedTypos(length: number): number {
   if (length <= 4) {
     return 0;
@@ -478,6 +480,26 @@ export class CountryMatcher {
     return best;
   }
 
+  // how far the guess is from the closest of a country's names that it's a typo of, null when it's a typo of none. Each
+  // name has its own allowance, by the shorter of it and the guess (`allowedTypos`), and only counts within it: a
+  // country's short name is never matched with the allowance its long one would get. The api's matcher does the same
+  // (notsobot.api `activity_games/countries.py`), keep them in step
+  typoDistance(code: string, guess: string): number | null {
+    const length = Array.from(guess).length;
+    let best: number | null = null;
+    for (let answer of this.answers.get(code)!) {
+      const allowed = allowedTypos(Math.min(length, Array.from(answer).length));
+      if (!allowed) {
+        continue;
+      }
+      const distance = levenshtein(answer, guess, allowed);
+      if (distance <= allowed && (best === null || distance < best)) {
+        best = distance;
+      }
+    }
+    return best;
+  }
+
   // a guess is right when it's one of the answer's names, or a close enough typo that's closer to it than to any other
   // country's name. A name two countries share ("Congo") is right for both
   isCorrect(country: Country, text: string): boolean {
@@ -495,12 +517,8 @@ export class CountryMatcher {
     if (own.has(guess)) {
       return true;
     }
-    const max = allowedTypos(Array.from(guess).length);
-    if (!max) {
-      return false;
-    }
-    const distance = this.distance(country.code, guess, max);
-    if (max < distance) {
+    const distance = this.typoDistance(country.code, guess);
+    if (distance === null) {
       return false;
     }
     for (let [ code, answers ] of this.answers) {

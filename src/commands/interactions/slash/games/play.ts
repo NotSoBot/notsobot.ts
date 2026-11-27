@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { I18n } from '../../../../utils';
-import { canUseEditor, launchEditor, replyPrivately } from '../../../../utils/editoractivity';
+import { canUseEditor, isOwnAppChannel, launchEditor, replyPrivately } from '../../../../utils/editoractivity';
 
 import { BaseInteractionCommandOption, isBlockedUserInstallRun, isDecoyChannelRun } from '../../basecommand';
 
@@ -30,6 +30,11 @@ export class GamesPlayCommand extends BaseInteractionCommandOption {
     if (!canUseEditor(context)) {
       const { translate } = await I18n.getTranslator(context);
       return replyPrivately(context, translate('games_activity.not_ready'));
+    }
+    // an App Channel bound to NotSoBot has the activity open inline, its Games tab is right there
+    if (isOwnAppChannel(context)) {
+      const { translate } = await I18n.getTranslator(context);
+      return replyPrivately(context, translate('games_activity.already_open'));
     }
     // the server turned NotSoBot off here, or it's the decoy channel: an activity would post that it started. owners
     // skip the user-install check without waiting on it

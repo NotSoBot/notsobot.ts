@@ -42,6 +42,13 @@ export const Api = Object.freeze({
 
   GAMES_FLAG:
     '/games/flags/:code',
+  // global game points, one total per user across every game (`game-points-plan.md`)
+  GAMES_POINTS:
+    '/games/points',
+  GAMES_POINTS_LEADERBOARD:
+    '/games/points/leaderboard',
+  GAMES_POINTS_USER:
+    '/games/points/users/:userId',
 
   GUILD:
     '/guilds/:guildId',

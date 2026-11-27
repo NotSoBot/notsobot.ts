@@ -74,6 +74,22 @@ export async function createMessage(
     ]));
   }
 
+  if (channel instanceof Structures.ChannelGuildApp) {
+    // the app the App Channel shows beside its chat, null once that app was removed from the server. other apps are rarely
+    // cached, so they're shown by id
+    let app: string;
+    if (!channel.applicationId) {
+      app = translate('common.none');
+    } else if (channel.applicationId === context.applicationId) {
+      app = Markup.escape.all(context.client.application?.name || context.client.user?.username || 'NotSoBot');
+    } else if (channel.application) {
+      app = `${Markup.escape.all(channel.application.name)} (${Markup.codestring(channel.applicationId)})`;
+    } else {
+      app = Markup.codestring(channel.applicationId);
+    }
+    lines.push(displayDetail(translate('info.channel.app'), app));
+  }
+
   if (channel.isText) {
     lines.push(displayDetailsLine([
       (channel.lastMessageId) && displayDetail(translate('info.channel.last_message'), displayTimestamp(Snowflake.timestamp(channel.lastMessageId))),
@@ -115,6 +131,7 @@ export async function createMessage(
     if (channel.isGuildCategory && channels) {
       const children = channels.filter((child: Structures.Channel) => child.parentId === channel.id);
       const types = displayCounts(language, [
+        [translate('counts.app'), children.filter((child: Structures.Channel) => child.isGuildApp).length],
         [translate('counts.news'), children.filter((child: Structures.Channel) => child.isGuildNews).length],
         [translate('counts.store'), children.filter((child: Structures.Channel) => child.isGuildStore).length],
         [translate('counts.text'), children.filter((child: Structures.Channel) => child.isGuildText).length],

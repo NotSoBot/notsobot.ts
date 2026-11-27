@@ -1041,6 +1041,31 @@ export async function fetchGameFlag(
 }
 
 
+export async function awardGamePoints(
+  context: RequestContext,
+  options: RestOptions.AwardGamePoints,
+) {
+  return raw.awardGamePoints(context, options);
+}
+
+
+export async function fetchGamePointsLeaderboard(
+  context: RequestContext,
+  options: RestOptions.FetchGamePointsLeaderboard,
+) {
+  return raw.fetchGamePointsLeaderboard(context, options);
+}
+
+
+export async function fetchGamePointsUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.FetchGamePointsUser = {},
+) {
+  return raw.fetchGamePointsUser(context, userId, options);
+}
+
+
 export async function fetchGuildReportQuote(
   context: RequestContext,
   guildId: string,

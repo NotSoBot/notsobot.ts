@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, StatusEmojis } from '../../../constants';
+import { CommandCategories, GUILD_TEXT_CHANNEL_TYPES, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -17,7 +17,7 @@ export default class PinCommand extends BaseCommand {
       args: [
         {name: 'first', type: Boolean},
         {name: 'in', default: DefaultParameters.channel, type: Parameters.channel({
-          types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS],
+          types: [...GUILD_TEXT_CHANNEL_TYPES, ChannelTypes.GUILD_NEWS],
         })},
       ],
       disableDm: true,

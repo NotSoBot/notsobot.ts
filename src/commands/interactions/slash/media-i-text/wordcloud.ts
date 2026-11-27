@@ -1,7 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes } from 'detritus-client/lib/constants';
 
-import { MediaWordcloudShapes, MediaWordcloudThemes } from '../../../../constants';
+import { GUILD_TEXT_CHANNEL_TYPES, slashChannelTypes, MediaWordcloudShapes, MediaWordcloudThemes } from '../../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -30,7 +30,7 @@ export class MediaIWordcloudCommand extends BaseInteractionCommandOption {
           name: 'channel',
           description: 'Channel to read messages from (Default: Current Channel)',
           ...I18n.optionLocalizations('commands.media_i.fun.wordcloud.channel'),
-          channelTypes: [ChannelTypes.GUILD_NEWS, ChannelTypes.GUILD_TEXT],
+          channelTypes: slashChannelTypes([ChannelTypes.GUILD_NEWS, ...GUILD_TEXT_CHANNEL_TYPES]),
           default: DefaultParameters.channel,
           type: ApplicationCommandOptionTypes.CHANNEL,
         },

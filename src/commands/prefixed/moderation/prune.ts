@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, StatusEmojis } from '../../../constants';
+import { CommandCategories, GUILD_TEXT_CHANNEL_TYPES, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -31,7 +31,7 @@ export default class PruneCommand extends BaseCommand {
         // DM channels usually aren't cached, a missing default would read as `-in` not resolving below. Leaving it unset
         // prunes the channel the command was used in
         {name: 'in', default: (context: Command.Context) => DefaultParameters.channel(context) || undefined, type: Parameters.channel({
-          types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS],
+          types: [...GUILD_TEXT_CHANNEL_TYPES, ChannelTypes.GUILD_NEWS],
         })},
         {name: 'until', type: Parameters.snowflake},
         {name: 'with', type: Parameters.string({minLength: 1})},

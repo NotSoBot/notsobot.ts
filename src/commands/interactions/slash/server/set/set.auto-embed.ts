@@ -41,12 +41,6 @@ export class ServerSetAutoEmbedCommand extends BaseInteractionCommandOption {
           type: Boolean,
         },
         {
-          name: 'screenshot',
-          description: 'Draw text-only posts as a screenshot of the post (Default: off)',
-          ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.screenshot'),
-          type: Boolean,
-        },
-        {
           name: 'site',
           description: 'Only turn this site on or off (Default: all of them)',
           ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.site'),
@@ -58,15 +52,24 @@ export class ServerSetAutoEmbedCommand extends BaseInteractionCommandOption {
         },
         {
           name: 'text',
-          description: 'Post the post\'s text and author with the media too (Default: on)',
+          description: 'The post\'s text with the media, Screenshot draws text-only posts as an image (Default: Text)',
           ...I18n.optionLocalizations('commands.settings_server.set.set_auto_embed.text'),
-          type: Boolean,
+          choices: Parameters.Slash.AUTO_EMBED_TEXT,
+          label: 'textMode',
+          value: Formatter.Commands.SettingsServerSetAutoEmbed.textModeSlashParser,
         },
       ],
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.SettingsServerSetAutoEmbed.CommandArgs) {
-    return Formatter.Commands.SettingsServerSetAutoEmbed.createMessage(context, args);
+  async run(
+    context: Interaction.InteractionContext,
+    args: Formatter.Commands.SettingsServerSetAutoEmbed.CommandArgs & {textMode?: Formatter.Commands.SettingsServerSetAutoEmbed.AutoEmbedTextModes},
+  ) {
+    const { textMode, ...rest } = args;
+    return Formatter.Commands.SettingsServerSetAutoEmbed.createMessage(context, {
+      ...rest,
+      ...Formatter.Commands.SettingsServerSetAutoEmbed.textModeToArgs(textMode),
+    });
   }
 }

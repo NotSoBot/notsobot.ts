@@ -4,6 +4,7 @@ import { Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import {
+  GUILD_TEXT_CHANNEL_TYPES,
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../../../constants';
@@ -115,6 +116,8 @@ export async function createMessage(
     const managedRoles = guild.roles.filter((role) => role.managed).length;
     lines.push(displayDetailsLine([
       displayDetail(translate('counts.channels'), channels.length.toLocaleString(language) + displayCounts(language, [
+        // App Channels (Discord's preview) count on their own, not as text: each is an app with a chat beside it
+        [translate('counts.app'), channels.filter((channel: Structures.Channel) => channel.isGuildApp).length],
         [translate('counts.category'), channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length],
         [translate('counts.news'), channels.filter((channel: Structures.Channel) => channel.isGuildNews).length],
         [translate('counts.store'), channels.filter((channel: Structures.Channel) => channel.isGuildStore).length],
@@ -171,7 +174,7 @@ export async function createMessage(
       return `<#${channelId}>`;
     }
 
-    const defaultChannel = channels.find((channel: Structures.Channel) => channel.position === 0 && channel.isGuildText);
+    const defaultChannel = channels.find((channel: Structures.Channel) => channel.position === 0 && GUILD_TEXT_CHANNEL_TYPES.includes(channel.type));
     lines.push(displayDetailsLine([
       (guild.afkChannelId) && displayDetail(translate('info.guild.afk'), getChannelName(guild.afkChannelId)),
       (defaultChannel) && displayDetail(translate('info.guild.default'), (isThisGuild) ? defaultChannel.mention : `${defaultChannel} (${defaultChannel.id})`),
