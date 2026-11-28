@@ -14,7 +14,7 @@ import {
   findMediaUrlsInMessage,
   findUrlInMessage,
   findUrlInMessages,
-  getCachedChannelMessages,
+  getRecentCachedChannelMessages,
   getOrFetchRealUrl,
   isFileAttachment,
   requestAllGuildMembers,
@@ -143,7 +143,7 @@ async function findLastMediaUrls(
   const before = (context instanceof Command.Context) ? context.messageId : undefined;
   {
     const beforeId = (before) ? BigInt(before) : null;
-    const messages = getCachedChannelMessages(context).filter((message) => {
+    const messages = getRecentCachedChannelMessages(context).filter((message) => {
       if (message.interaction && message.hasFlagEphemeral) {
         return message.interaction.user.id === context.userId;
       }
@@ -151,7 +151,7 @@ async function findLastMediaUrls(
         return BigInt(message.id) <= beforeId;
       }
       return true;
-    }).reverse().slice(0, MEDIA_HISTORY_LIMIT);
+    }).slice(0, MEDIA_HISTORY_LIMIT);
     for (let message of messages) {
       if (!checkedMessageIds.has(message.id) && addMessage(message)) {
         return Array.from(urls);
@@ -289,7 +289,7 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
   const before = (context instanceof Command.Context) ? context.messageId : undefined;
   {
     const beforeId = (before) ? BigInt(before) : null;
-    const messages = getCachedChannelMessages(context).filter((message) => {
+    const messages = getRecentCachedChannelMessages(context).filter((message) => {
       if (message.interaction && message.hasFlagEphemeral) {
         return message.interaction.user.id === context.userId;
       }
@@ -297,7 +297,7 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
         return BigInt(message.id) <= beforeId;
       }
       return true;
-    }).reverse();
+    });
     const url = await findRealUrlInHistory(context, messages);
     if (url) {
       return url;

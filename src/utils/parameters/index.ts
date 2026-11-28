@@ -71,7 +71,7 @@ import {
   findMembersByChunkText,
   findUrlInMessages,
   findUrlsInMessages,
-  getCachedChannelMessages,
+  getRecentCachedChannelMessages,
   getOrFetchRealUrl,
   getOrFetchRealUrls,
   getOrRefreshAttachmentUrl,
@@ -2607,7 +2607,7 @@ export function mediaUrls(
       const before = (context instanceof Command.Context) ? context.messageId : undefined;
       {
         const beforeId = (before) ? BigInt(before) : null;
-        const messages = getCachedChannelMessages(context).filter((message) => {
+        const messages = getRecentCachedChannelMessages(context).filter((message) => {
           if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
             return false;
           }
@@ -2615,7 +2615,7 @@ export function mediaUrls(
             return BigInt(message.id) < beforeId;
           }
           return true;
-        }).reverse().slice(0, MEDIA_HISTORY_LIMIT);
+        }).slice(0, MEDIA_HISTORY_LIMIT);
         for (let message of messages) {
           if ((minAmount && minAmount <= urls.length) || maxAmount <= urls.length) {
             break;

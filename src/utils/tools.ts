@@ -4956,15 +4956,31 @@ function markPrefixSlashTipShown(context: Command.Context): void {
 }
 
 
-// the context channel's cached messages, oldest first. `context.messages` is the whole shard's cache (6 hours of every
-// channel), the cache keeps an index per channel so this only goes through the ones in this channel
-export function getCachedChannelMessages(
+// when this process started, as unix ms. `process.uptime()` so a `.refresh` (a module reload) keeps the cache's cutoff
+const PROCESS_STARTED_AT = Date.now() - Math.round(process.uptime() * 1000);
+
+// the context channel's cached messages, newest first by id. `context.messages` is the whole shard's cache (6 hours of
+// every channel), the cache keeps an index per channel so this only goes through the ones in this channel.
+// that index is in insertion order, not chat order: an edit, a pin or the bot editing its own old message
+// (`MESSAGE_UPDATE`, `rest.editMessage`) inserts an old message at the end, where reversing it would make it the newest
+// in the channel. so they're sorted by id, and anything posted before this process started is left out: only those
+// stragglers can be that old (`rest.fetchMessages` never caches), and the media searches fetch history after the cache
+export function getRecentCachedChannelMessages(
   context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
-): Collections.BaseCollection<string, Structures.Message> {
+): Array<Structures.Message> {
   if (!context.channelId) {
-    return new Collections.BaseCollection<string, Structures.Message>();
+    return [];
   }
-  return context.client.messages.getChannelMessages(context.channelId);
+  const messages: Array<Structures.Message> = [];
+  for (const [ , message ] of context.client.messages.getChannelMessages(context.channelId)) {
+    if (PROCESS_STARTED_AT <= Snowflake.timestamp(message.id)) {
+      messages.push(message);
+    }
+  }
+  return messages.sort((a, b) => {
+    const x = BigInt(a.id), y = BigInt(b.id);
+    return (x < y) ? 1 : (x > y) ? -1 : 0;
+  });
 }
 
 
@@ -4978,7 +4994,7 @@ export function findCachedTagDirectoryIds(
   limit: number,
 ): Array<string> {
   const beforeId = (context instanceof Command.Context) ? BigInt(context.messageId) : null;
-  const messages = getCachedChannelMessages(context).filter((message) => {
+  const messages = getRecentCachedChannelMessages(context).filter((message) => {
     if (message.interaction && message.hasFlagEphemeral) {
       return message.interaction.user.id === context.userId;
     }
@@ -4986,7 +5002,7 @@ export function findCachedTagDirectoryIds(
       return BigInt(message.id) <= beforeId;
     }
     return true;
-  }).reverse();
+  });
 
   const ids = new Set<string>();
   for (const message of messages) {
