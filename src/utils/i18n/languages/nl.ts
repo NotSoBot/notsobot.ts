@@ -5183,7 +5183,7 @@ export const Dutch: Translations = Object.freeze({
   'games_points.stats.fastest': 'Snelste',
   'games_points.stats.seconds': '{seconds} s',
   'games_points.stats.words': 'Woorden gevonden',
-  'games_points.stats.only_you': 'Alleen jij vond',
+  'games_points.stats.only_you': 'Door niemand anders gevonden',
   'games_points.stats.longest_word': 'Langste woord',
   'games_points.stats.best_score': 'Beste score',
   'games_leaderboard.title_server': 'Serverranglijst',

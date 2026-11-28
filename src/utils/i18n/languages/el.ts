@@ -5183,7 +5183,7 @@ export const Greek: Translations = Object.freeze({
   'games_points.stats.fastest': 'Ταχύτερη',
   'games_points.stats.seconds': '{seconds} δευτ.',
   'games_points.stats.words': 'Λέξεις που βρέθηκαν',
-  'games_points.stats.only_you': 'Μόνο εσύ βρήκες',
+  'games_points.stats.only_you': 'Μοναδικές λέξεις',
   'games_points.stats.longest_word': 'Μεγαλύτερη λέξη',
   'games_points.stats.best_score': 'Καλύτερο σκορ',
   'games_leaderboard.title_server': 'Κατάταξη server',

@@ -35,9 +35,9 @@ export class GamesFlagGuesserCommand extends BaseInteractionCommandOption {
             doNotSort: true,
             localizationKey: 'choices.game_flag_difficulties',
             descriptions: {
-              [GameFlagDifficulties.EASY]: 'Easy (well-known countries)',
-              [GameFlagDifficulties.MEDIUM]: 'Medium (every country)',
-              [GameFlagDifficulties.HARD]: 'Hard (territories too)',
+              [GameFlagDifficulties.EASY]: 'Easy (well-known flags)',
+              [GameFlagDifficulties.MEDIUM]: 'Medium (less famous countries)',
+              [GameFlagDifficulties.HARD]: 'Hard (obscure flags and lookalikes)',
             },
           }),
         },

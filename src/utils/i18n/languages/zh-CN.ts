@@ -5183,7 +5183,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'games_points.stats.fastest': '最快',
   'games_points.stats.seconds': '{seconds}秒',
   'games_points.stats.words': '找到的词',
-  'games_points.stats.only_you': '只有你找到',
+  'games_points.stats.only_you': '别人没找到的词',
   'games_points.stats.longest_word': '最长的词',
   'games_points.stats.best_score': '最高分',
   'games_leaderboard.title_server': '服务器排行榜',

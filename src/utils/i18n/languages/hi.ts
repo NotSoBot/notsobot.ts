@@ -5183,7 +5183,7 @@ export const Hindi: Translations = Object.freeze({
   'games_points.stats.fastest': 'सबसे तेज़',
   'games_points.stats.seconds': '{seconds} से.',
   'games_points.stats.words': 'मिले शब्द',
-  'games_points.stats.only_you': 'सिर्फ़ आपको मिले',
+  'games_points.stats.only_you': 'किसी और को नहीं मिले',
   'games_points.stats.longest_word': 'सबसे लंबा शब्द',
   'games_points.stats.best_score': 'सबसे अच्छा स्कोर',
   'games_leaderboard.title_server': 'सर्वर लीडरबोर्ड',

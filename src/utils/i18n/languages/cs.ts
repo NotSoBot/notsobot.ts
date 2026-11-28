@@ -5183,7 +5183,7 @@ export const Czech: Translations = Object.freeze({
   'games_points.stats.fastest': 'Nejrychleji',
   'games_points.stats.seconds': '{seconds} s',
   'games_points.stats.words': 'Nalezená slova',
-  'games_points.stats.only_you': 'Jen ty jsi našel',
+  'games_points.stats.only_you': 'Unikátní slova',
   'games_points.stats.longest_word': 'Nejdelší slovo',
   'games_points.stats.best_score': 'Nejlepší skóre',
   'games_leaderboard.title_server': 'Žebříček serveru',

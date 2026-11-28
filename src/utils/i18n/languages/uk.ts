@@ -5183,7 +5183,7 @@ export const Ukrainian: Translations = Object.freeze({
   'games_points.stats.fastest': 'Найшвидше',
   'games_points.stats.seconds': '{seconds} с',
   'games_points.stats.words': 'Знайдено слів',
-  'games_points.stats.only_you': 'Знайшли лише ви',
+  'games_points.stats.only_you': 'Більше ніхто не знайшов',
   'games_points.stats.longest_word': 'Найдовше слово',
   'games_points.stats.best_score': 'Найкращий рахунок',
   'games_leaderboard.title_server': 'Рейтинг сервера',

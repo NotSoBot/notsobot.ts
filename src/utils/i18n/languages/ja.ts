@@ -5183,7 +5183,7 @@ export const Japanese: Translations = Object.freeze({
   'games_points.stats.fastest': '最速',
   'games_points.stats.seconds': '{seconds}秒',
   'games_points.stats.words': '見つけた単語',
-  'games_points.stats.only_you': '自分だけの単語',
+  'games_points.stats.only_you': '他の人が見つけなかった単語',
   'games_points.stats.longest_word': '最長の単語',
   'games_points.stats.best_score': '最高スコア',
   'games_leaderboard.title_server': 'サーバーランキング',

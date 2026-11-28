@@ -5183,7 +5183,7 @@ export const Romanian: Translations = Object.freeze({
   'games_points.stats.fastest': 'Cel mai rapid',
   'games_points.stats.seconds': '{seconds} s',
   'games_points.stats.words': 'Cuvinte găsite',
-  'games_points.stats.only_you': 'Găsite doar de tine',
+  'games_points.stats.only_you': 'Cuvinte unice',
   'games_points.stats.longest_word': 'Cel mai lung cuvânt',
   'games_points.stats.best_score': 'Cel mai bun scor',
   'games_leaderboard.title_server': 'Clasamentul serverului',

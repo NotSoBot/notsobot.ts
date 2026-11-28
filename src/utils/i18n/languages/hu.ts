@@ -5183,7 +5183,7 @@ export const Hungarian: Translations = Object.freeze({
   'games_points.stats.fastest': 'Leggyorsabb',
   'games_points.stats.seconds': '{seconds} mp',
   'games_points.stats.words': 'Talált szavak',
-  'games_points.stats.only_you': 'Csak te találtad',
+  'games_points.stats.only_you': 'Más nem találta meg',
   'games_points.stats.longest_word': 'Leghosszabb szó',
   'games_points.stats.best_score': 'Legjobb pontszám',
   'games_leaderboard.title_server': 'Szerver ranglista',

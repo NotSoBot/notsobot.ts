@@ -5183,7 +5183,7 @@ export const Hebrew: Translations = Object.freeze({
   'games_points.stats.fastest': 'הכי מהיר',
   'games_points.stats.seconds': '{seconds} שנ׳',
   'games_points.stats.words': 'מילים שנמצאו',
-  'games_points.stats.only_you': 'רק אתה מצאת',
+  'games_points.stats.only_you': 'אף אחד אחר לא מצא',
   'games_points.stats.longest_word': 'המילה הארוכה ביותר',
   'games_points.stats.best_score': 'הניקוד הטוב ביותר',
   'games_leaderboard.title_server': 'טבלת המובילים של השרת',

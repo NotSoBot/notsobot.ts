@@ -5183,7 +5183,7 @@ export const Croatian: Translations = Object.freeze({
   'games_points.stats.fastest': 'Najbrže',
   'games_points.stats.seconds': '{seconds} s',
   'games_points.stats.words': 'Pronađene riječi',
-  'games_points.stats.only_you': 'Samo ti si našao',
+  'games_points.stats.only_you': 'Nitko drugi nije našao',
   'games_points.stats.longest_word': 'Najduža riječ',
   'games_points.stats.best_score': 'Najbolji rezultat',
   'games_leaderboard.title_server': 'Ljestvica servera',

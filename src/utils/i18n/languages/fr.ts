@@ -5183,7 +5183,7 @@ export const French: Translations = Object.freeze({
   'games_points.stats.fastest': 'Plus rapide',
   'games_points.stats.seconds': '{seconds} s',
   'games_points.stats.words': 'Mots trouvés',
-  'games_points.stats.only_you': 'Trouvés par toi seul',
+  'games_points.stats.only_you': 'Mots uniques',
   'games_points.stats.longest_word': 'Mot le plus long',
   'games_points.stats.best_score': 'Meilleur score',
   'games_leaderboard.title_server': 'Classement du serveur',

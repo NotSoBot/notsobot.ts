@@ -5183,7 +5183,7 @@ export const Korean: Translations = Object.freeze({
   'games_points.stats.fastest': '최단 시간',
   'games_points.stats.seconds': '{seconds}초',
   'games_points.stats.words': '찾은 단어',
-  'games_points.stats.only_you': '나만 찾은 단어',
+  'games_points.stats.only_you': '혼자 찾은 단어',
   'games_points.stats.longest_word': '가장 긴 단어',
   'games_points.stats.best_score': '최고 점수',
   'games_leaderboard.title_server': '서버 리더보드',

@@ -5183,7 +5183,7 @@ export const Thai: Translations = Object.freeze({
   'games_points.stats.fastest': 'เร็วที่สุด',
   'games_points.stats.seconds': '{seconds} วิ',
   'games_points.stats.words': 'คำที่หาเจอ',
-  'games_points.stats.only_you': 'เจอคนเดียว',
+  'games_points.stats.only_you': 'คนอื่นไม่เจอ',
   'games_points.stats.longest_word': 'คำที่ยาวที่สุด',
   'games_points.stats.best_score': 'คะแนนสูงสุด',
   'games_leaderboard.title_server': 'กระดานอันดับเซิร์ฟเวอร์',

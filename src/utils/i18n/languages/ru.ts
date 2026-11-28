@@ -5183,7 +5183,7 @@ export const Russian: Translations = Object.freeze({
   'games_points.stats.fastest': 'Быстрее всего',
   'games_points.stats.seconds': '{seconds} с',
   'games_points.stats.words': 'Найдено слов',
-  'games_points.stats.only_you': 'Нашли только вы',
+  'games_points.stats.only_you': 'Больше никто не нашёл',
   'games_points.stats.longest_word': 'Самое длинное слово',
   'games_points.stats.best_score': 'Лучший счёт',
   'games_leaderboard.title_server': 'Рейтинг сервера',
